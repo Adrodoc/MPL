@@ -8,30 +8,33 @@ import de.adrodoc55.minecraft.mpl.gui.ChainRenderer;
 
 public class ChainCalculator {
     private static final int MAX_TRIES = 1000000;
+    private Coordinate3D start;
     private List<Command> commands;
     private ChainRenderer renderer;
     private ChainRenderer optimalRenderer;
 
-    public ChainCalculator(List<Command> commands) {
-        this(commands, null, null);
+    public ChainCalculator() {
+        this(null, null);
     }
 
-    public ChainCalculator(List<Command> commands, ChainRenderer renderer, ChainRenderer optimalRenderer) {
-        this.commands = commands;
+    public ChainCalculator(ChainRenderer renderer, ChainRenderer optimalRenderer) {
         this.renderer = renderer;
         this.optimalRenderer = optimalRenderer;
     }
 
     public List<Coordinate3D> calculateOptimalChain(List<Command> commands) {
-        this.commands = commands;
-        return calculateOptimalChain();
+        return calculateOptimalChain(new Coordinate3D(), commands);
     }
 
     private int tries = 0;
 
-    public List<Coordinate3D> calculateOptimalChain() {
+    public List<Coordinate3D> calculateOptimalChain(Coordinate3D start, List<Command> commands) {
+        this.start = start;
+        this.commands = commands;
+        optimalScore = Integer.MAX_VALUE;
+        optimal.clear();
         tries = 0;
-        complete(null, new Coordinate3D());
+        complete(null, start);
         return optimal;
     }
 
@@ -46,7 +49,7 @@ public class ChainCalculator {
         if (previous.contains(current)) {
             return;
         }
-        if (current.getX() < 0 || current.getY() < 0 || current.getZ() < 0) {
+        if (current.getX() < start.getX() || current.getY() < start.getY() || current.getZ() < start.getZ()) {
             return;
         }
 
@@ -94,7 +97,7 @@ public class ChainCalculator {
     }
 
     private int optimalScore = Integer.MAX_VALUE;
-    private List<Coordinate3D> optimal = new ArrayList<Coordinate3D>();
+    private final List<Coordinate3D> optimal = new ArrayList<Coordinate3D>();
 
     private void registerPossibility(List<Coordinate3D> possibility) {
         int score = calculateScore(possibility);
@@ -108,41 +111,28 @@ public class ChainCalculator {
         }
     }
 
-    private static int calculateScore(Iterable<Coordinate3D> coordinates) {
+    private int calculateScore(Iterable<Coordinate3D> coordinates) {
         return getMaxLength(coordinates);
     }
 
-    private static int getMaxLength(Iterable<Coordinate3D> coordinates) {
-        int maxX = getMaxX(coordinates);
-        int maxY = getMaxY(coordinates);
-        int maxZ = getMaxZ(coordinates);
-        int i = Math.max(maxX, maxY);
-        i = Math.max(i, maxZ);
-        return i;
-    }
-
-    private static int getMaxX(Iterable<Coordinate3D> coordinates) {
+    private int getMaxLength(Iterable<Coordinate3D> coordinates) {
+        int minX = start.getX();
+        int minY = start.getY();
+        int minZ = start.getZ();
         int maxX = 0;
-        for (Coordinate3D c : coordinates) {
-            maxX = Math.max(maxX, c.getX());
-        }
-        return maxX;
-    }
-
-    private static int getMaxY(Iterable<Coordinate3D> coordinates) {
         int maxY = 0;
-        for (Coordinate3D c : coordinates) {
-            maxY = Math.max(maxY, c.getY());
-        }
-        return maxY;
-    }
-
-    private static int getMaxZ(Iterable<Coordinate3D> coordinates) {
         int maxZ = 0;
         for (Coordinate3D c : coordinates) {
+            maxX = Math.max(maxX, c.getX());
+            maxY = Math.max(maxY, c.getY());
             maxZ = Math.max(maxZ, c.getZ());
         }
-        return maxZ;
+        int x = maxX - minX;
+        int y = maxY - minY;
+        int z = maxZ - minZ;
+        int i = Math.max(x, y);
+        i = Math.max(i, z);
+        return i;
     }
 
 }
