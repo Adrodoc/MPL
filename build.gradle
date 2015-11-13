@@ -1,6 +1,15 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	testCompile 'org.assertj:assertj-core:3.2.0'
+	testCompile 'junit:junit:4.12'
+}
+
 jar {
     manifest {
         attributes(
