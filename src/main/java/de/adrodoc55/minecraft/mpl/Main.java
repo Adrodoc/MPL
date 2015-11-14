@@ -65,26 +65,25 @@ public class Main {
 			Chain chain = entry.getValue();
 			List<Command> commands = chain.getCommands();
 
-			// JFrame frame = new JFrame(chain.getName());
-			// ChainRenderer renderer = new ChainRenderer(commands);
-			// frame.getContentPane().add(renderer, BorderLayout.CENTER);
-			// ChainRenderer optimalRenderer = new ChainRenderer(commands);
-			// frame.getContentPane().add(optimalRenderer, BorderLayout.EAST);
-			// frame.pack();
-			// frame.setLocationRelativeTo(null);
-			// frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			// frame.setVisible(true);
+//			JFrame frame = new JFrame(chain.getName());
+//			ChainRenderer renderer = new ChainRenderer(commands);
+//			frame.getContentPane().add(renderer, BorderLayout.CENTER);
+//			ChainRenderer optimalRenderer = new ChainRenderer(commands);
+//			frame.getContentPane().add(optimalRenderer, BorderLayout.EAST);
+//			frame.pack();
+//			frame.setLocationRelativeTo(null);
+//			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//			frame.setVisible(true);
 
-			// ChainCalculator calculator = new ChainCalculator(renderer,
-			// optimalRenderer);
-			ChainCalculator calculator = new ChainCalculator();
+//			ChainCalculator calculator = new ChainCalculator(renderer, optimalRenderer);
+			 ChainCalculator calculator = new ChainCalculator();
 			List<Coordinate3D> optimal = calculator.calculateOptimalChain(start, commands);
 
 			// ChainCalculator calculator = new ChainCalculator(commands,
 			// renderer,
 			// optimalRenderer);
 
-			// optimalRenderer.render(optimal);
+//			optimalRenderer.render(optimal);
 
 			Pattern referencePattern = Pattern.compile("\\$\\{(-?\\d+)\\}");
 			for (int i = 0; i < commands.size(); i++) {

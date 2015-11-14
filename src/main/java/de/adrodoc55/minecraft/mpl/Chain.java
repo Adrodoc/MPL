@@ -12,9 +12,6 @@ public class Chain {
         this.commands = commands;
     }
 
-    /**
-     * @return the name
-     */
     public String getName() {
         return name;
     }

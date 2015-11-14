@@ -3,9 +3,9 @@ package de.adrodoc55.minecraft.mpl;
 public class Command {
 
     private String command;
-    private final boolean conditional;
-    private final Mode mode;
-    private final boolean needsRedstone;
+    private  boolean conditional;
+    private  Mode mode;
+    private  boolean needsRedstone;
 
     public Command(String command) {
         this(command, false);
@@ -27,24 +27,36 @@ public class Command {
     }
 
     public String getCommand() {
-        return command;
-    }
+		return command;
+	}
 
-    public void setCommand(String command) {
-        this.command = command;
-    }
+	public void setCommand(String command) {
+		this.command = command;
+	}
 
-    public boolean isConditional() {
-        return conditional;
-    }
+	public boolean isConditional() {
+		return conditional;
+	}
 
-    public Mode getMode() {
-        return mode;
-    }
+	public void setConditional(boolean conditional) {
+		this.conditional = conditional;
+	}
 
-    public boolean needsRedstone() {
+	public Mode getMode() {
+		return mode;
+	}
+
+	public void setMode(Mode mode) {
+		this.mode = mode;
+	}
+
+	public boolean needsRedstone() {
         return needsRedstone;
     }
+
+	public void setNeedsRedstone(boolean needsRedstone) {
+		this.needsRedstone = needsRedstone;
+	}
 
     public static enum Mode {
         IMPULSE, CHAIN, REPEAT;

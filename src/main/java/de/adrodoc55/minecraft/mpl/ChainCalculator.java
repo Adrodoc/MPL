@@ -34,11 +34,11 @@ public class ChainCalculator {
         optimalScore = Integer.MAX_VALUE;
         optimal.clear();
         tries = 0;
-        complete(null, start);
+        calculate(null, start);
         return optimal;
     }
 
-    private void complete(List<Coordinate3D> previous, Coordinate3D current) {
+    private void calculate(List<Coordinate3D> previous, Coordinate3D current) {
         tries++;
         if (tries > MAX_TRIES) {
             return;
@@ -86,7 +86,7 @@ public class ChainCalculator {
 
             previous.add(current);
             for (Coordinate3D relative : directions) {
-                complete(previous, current.plus(relative));
+                calculate(previous, current.plus(relative));
             }
             previous.remove(previous.size() - 1);
         }
