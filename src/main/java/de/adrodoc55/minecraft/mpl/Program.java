@@ -18,19 +18,19 @@ public class Program {
     private static final Pattern includePattern = Pattern.compile(
             "^include\\s*\\(\\s*\"(.*)\"\\s*,\\s*at\\(\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*\\)\\s*\\)$");
 
-    private final Map<Coordinate3D, Chain> chains;
+    private final Map<Coordinate3D, CommandChain> chains;
 
     public Program(File programFile) {
         chains = readProgramFile(programFile);
     }
 
-    private static Map<Coordinate3D, Chain> readProgramFile(File programFile) {
+    private static Map<Coordinate3D, CommandChain> readProgramFile(File programFile) {
         return readProgramFile(programFile, new Coordinate3D());
     }
 
-    private static Map<Coordinate3D, Chain> readProgramFile(File programFile, Coordinate3D at) {
+    private static Map<Coordinate3D, CommandChain> readProgramFile(File programFile, Coordinate3D at) {
         try (BufferedReader reader = new BufferedReader(new FileReader(programFile))) {
-            Map<Coordinate3D, Chain> methods = new HashMap<Coordinate3D, Chain>();
+            Map<Coordinate3D, CommandChain> methods = new HashMap<Coordinate3D, CommandChain>();
             List<Command> commands = new ArrayList<Command>();
             while (true) {
                 String line = reader.readLine();
@@ -57,7 +57,7 @@ public class Program {
                         int z = Integer.parseInt(includeMatcher.group(4));
 
                         File file = new File(programFile.getParentFile(), fileName);
-                        Map<Coordinate3D, Chain> includedFile = readProgramFile(file, new Coordinate3D(x, y, z));
+                        Map<Coordinate3D, CommandChain> includedFile = readProgramFile(file, new Coordinate3D(x, y, z));
                         methods.putAll(includedFile);
                     } else {
                         throw new RuntimeException("Folgende Zeile kann nicht interpretiert werden: " + line);
@@ -95,14 +95,14 @@ public class Program {
                     commands.add(new Command(command, conditional, mode));
                 }
             }
-            methods.put(at, new Chain(programFile.getName(), commands));
+            methods.put(at, new CommandChain(programFile.getName(), commands));
             return methods;
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
     }
 
-    public Map<Coordinate3D, Chain> getChains() {
+    public Map<Coordinate3D, CommandChain> getChains() {
         return chains;
     }
 

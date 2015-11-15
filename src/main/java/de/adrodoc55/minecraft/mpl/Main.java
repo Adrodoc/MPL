@@ -10,7 +10,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.adrodoc55.minecraft.Coordinate3D;
-import de.adrodoc55.minecraft.Coordinate3D.Direction;
 
 public class Main {
 
@@ -60,57 +59,36 @@ public class Main {
 				+ "def perform(level, box, options):\n");
 		String indent = "    ";
 
-		for (Map.Entry<Coordinate3D, Chain> entry : program.getChains().entrySet()) {
+		for (Map.Entry<Coordinate3D, CommandChain> entry : program.getChains().entrySet()) {
 			Coordinate3D start = entry.getKey();
-			Chain chain = entry.getValue();
-			List<Command> commands = chain.getCommands();
+			CommandChain commandChain = entry.getValue();
 
-//			JFrame frame = new JFrame(chain.getName());
-//			ChainRenderer renderer = new ChainRenderer(commands);
-//			frame.getContentPane().add(renderer, BorderLayout.CENTER);
-//			ChainRenderer optimalRenderer = new ChainRenderer(commands);
-//			frame.getContentPane().add(optimalRenderer, BorderLayout.EAST);
-//			frame.pack();
-//			frame.setLocationRelativeTo(null);
-//			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//			frame.setVisible(true);
+			// JFrame frame = new JFrame(chain.getName());
+			// ChainRenderer renderer = new ChainRenderer(commands);
+			// frame.getContentPane().add(renderer, BorderLayout.CENTER);
+			// ChainRenderer optimalRenderer = new ChainRenderer(commands);
+			// frame.getContentPane().add(optimalRenderer, BorderLayout.EAST);
+			// frame.pack();
+			// frame.setLocationRelativeTo(null);
+			// frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			// frame.setVisible(true);
 
-//			ChainCalculator calculator = new ChainCalculator(renderer, optimalRenderer);
-			 ChainCalculator calculator = new ChainCalculator();
-			List<Coordinate3D> optimal = calculator.calculateOptimalChain(start, commands);
+			// ChainCalculator calculator = new ChainCalculator(renderer,
+			// optimalRenderer);
+			RecursiveChainCalculator calculator = new RecursiveChainCalculator();
+			CommandBlockChain optimal = calculator.calculateOptimalChain(start, commandChain);
+			List<CommandBlock> commandBlocks = optimal.getCommandBlocks();
 
 			// ChainCalculator calculator = new ChainCalculator(commands,
 			// renderer,
 			// optimalRenderer);
 
-//			optimalRenderer.render(optimal);
+			// optimalRenderer.render(optimal);
 
-			Pattern referencePattern = Pattern.compile("\\$\\{(-?\\d+)\\}");
-			for (int i = 0; i < commands.size(); i++) {
-				Command command = commands.get(i);
-				Coordinate3D coordinate = optimal.get(i);
-
-				if (command != null) {
-					Matcher matcher = referencePattern.matcher(command.getCommand());
-					StringBuffer commandSb = new StringBuffer();
-					while (matcher.find()) {
-						int relative = Integer.parseInt(matcher.group(1));
-						Coordinate3D referenced = optimal.get(i + relative);
-						Coordinate3D relativeCoordinate = referenced.minus(coordinate);
-						matcher.appendReplacement(commandSb, relativeCoordinate.toRelativeString());
-					}
-					matcher.appendTail(commandSb);
-					command.setCommand(commandSb.toString());
-				}
-
-				Coordinate3D nextCoordinate = optimal.get(i + 1);
-				Coordinate3D directionalCoordinate = nextCoordinate.minus(coordinate);
-				Direction direction = Direction.valueOf(directionalCoordinate);
-
-				CommandBlock block = new CommandBlock(command, direction, coordinate);
-				python.append(indent + block.toPython() + "\n");
+			insertRelativeCoordinates(commandBlocks);
+			for (CommandBlock current : commandBlocks) {
+				python.append(indent + current.toPython() + "\n");
 			}
-
 		}
 
 		outputFile.delete();
@@ -126,6 +104,27 @@ public class Main {
 			throw new RuntimeException(ex);
 		}
 		// }
+	}
+
+	private static void insertRelativeCoordinates(List<CommandBlock> commandBlocks) {
+		for (int i = 0; i < commandBlocks.size(); i++) {
+			CommandBlock current = commandBlocks.get(i);
+
+			Pattern referencePattern = Pattern.compile("\\$\\{(-?\\d+)\\}");
+			if (current != null) {
+				Matcher matcher = referencePattern.matcher(current.getCommand());
+				StringBuffer commandSb = new StringBuffer();
+				while (matcher.find()) {
+					int relative = Integer.parseInt(matcher.group(1));
+					Coordinate3D referenced = commandBlocks.get(i + relative).getCoordinate();
+					Coordinate3D relativeCoordinate = referenced.minus(current.getCoordinate());
+					matcher.appendReplacement(commandSb, relativeCoordinate.toRelativeString());
+				}
+				matcher.appendTail(commandSb);
+				current.setCommand(commandSb.toString());
+			}
+
+		}
 	}
 
 }
