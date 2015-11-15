@@ -1,6 +1,7 @@
 **/bin
 **/build
 .classpath
+.factorypath
 .gradle
 .settings
 /.apt_generated/
