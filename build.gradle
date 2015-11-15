@@ -37,7 +37,7 @@ task eclipseFactorypath {
 	ext.factorypath = new File('.factorypath')
 } << {
 	def writer = new StringWriter()
-	def xml = new groovy.xml.MarkupBuilder(writer) 
+	def xml = new groovy.xml.MarkupBuilder(writer)
 	xml.factorypath {
 		configurations.annotationProccessing.each {
 			factorypathentry kind: 'EXTJAR', id: it, enabled: "true", runInBatchMode: "false"
@@ -52,6 +52,7 @@ task cleanEclipseFactorpath(type: Delete) {
 
 task eclipseApt {
 	File eclipseSettings = file('.settings')
+	eclipseSettings.mkdirs()
 	ext.jdtAptCorePrefs = new File(eclipseSettings, 'org.eclipse.jdt.apt.core.prefs')
 } << {
 	jdtAptCorePrefs.text = """\
