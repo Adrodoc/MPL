@@ -4,10 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.adrodoc55.minecraft.Coordinate3D;
-import de.adrodoc55.minecraft.Coordinate3D.Direction;
 import de.adrodoc55.minecraft.mpl.gui.ChainRenderer;
 
-public class RecursiveChainCalculator {
+public class RecursiveChainCalculator implements ChainCalculator {
 	private static final int MAX_TRIES = 1000000;
 	private Coordinate3D start;
 	private List<Command> commands;
@@ -18,7 +17,8 @@ public class RecursiveChainCalculator {
 		this(null, null);
 	}
 
-	public RecursiveChainCalculator(ChainRenderer renderer, ChainRenderer optimalRenderer) {
+	public RecursiveChainCalculator(ChainRenderer renderer,
+			ChainRenderer optimalRenderer) {
 		this.renderer = renderer;
 		this.optimalRenderer = optimalRenderer;
 	}
@@ -29,7 +29,8 @@ public class RecursiveChainCalculator {
 
 	private int tries = 0;
 
-	public CommandBlockChain calculateOptimalChain(Coordinate3D start, CommandChain input) {
+	public CommandBlockChain calculateOptimalChain(Coordinate3D start,
+			CommandChain input) {
 		this.start = start;
 		this.commands = input.getCommands();
 		optimalScore = Integer.MAX_VALUE;
@@ -37,23 +38,12 @@ public class RecursiveChainCalculator {
 		tries = 0;
 		calculateRecursively(null, start);
 
-		List<CommandBlock> commandBlocks = new ArrayList<CommandBlock>(commands.size());
-		for (int a = 0; a < commands.size(); a++) {
-			Command currentCommand = commands.get(a);
-
-			Coordinate3D currentCoordinate = optimal.get(a);
-			Coordinate3D nextCoordinate = optimal.get(a + 1);
-			Coordinate3D directionalCoordinate = nextCoordinate.minus(currentCoordinate);
-			Direction direction = Direction.valueOf(directionalCoordinate);
-
-			CommandBlock currentCommandBlock = new CommandBlock(currentCommand, direction, currentCoordinate);
-			commandBlocks.add(currentCommandBlock);
-		}
-		CommandBlockChain output = new CommandBlockChain(input.getName(), commandBlocks);
+		CommandBlockChain output = toCommandBlockChain(input, optimal);
 		return output;
 	}
 
-	private void calculateRecursively(List<Coordinate3D> previous, Coordinate3D current) {
+	private void calculateRecursively(List<Coordinate3D> previous,
+			Coordinate3D current) {
 		tries++;
 		if (tries > MAX_TRIES) {
 			return;
@@ -64,7 +54,8 @@ public class RecursiveChainCalculator {
 		if (previous.contains(current)) {
 			return;
 		}
-		if (current.getX() < start.getX() || current.getY() < start.getY() || current.getZ() < start.getZ()) {
+		if (current.getX() < start.getX() || current.getY() < start.getY()
+				|| current.getZ() < start.getZ()) {
 			return;
 		}
 
@@ -90,7 +81,8 @@ public class RecursiveChainCalculator {
 			Command currentCommand = commands.get(index);
 			if (currentCommand != null && currentCommand.isConditional()) {
 				if (previous.isEmpty()) {
-					throw new IllegalStateException("Der Erste Befehl kann nicht conditional sein!");
+					throw new IllegalStateException(
+							"Der Erste Befehl kann nicht conditional sein!");
 				}
 				Coordinate3D lastCoordinate = previous.get(previous.size() - 1);
 				Coordinate3D direction = current.minus(lastCoordinate);
@@ -108,7 +100,8 @@ public class RecursiveChainCalculator {
 	}
 
 	private static Coordinate3D[] getDirections() {
-		return new Coordinate3D[] { Coordinate3D.SOUTH, Coordinate3D.UP, Coordinate3D.NORTH, Coordinate3D.DOWN };
+		return new Coordinate3D[] { Coordinate3D.SOUTH, Coordinate3D.UP,
+				Coordinate3D.NORTH, Coordinate3D.DOWN };
 	}
 
 	private int optimalScore = Integer.MAX_VALUE;
