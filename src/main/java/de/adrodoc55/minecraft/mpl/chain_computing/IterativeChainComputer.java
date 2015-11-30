@@ -1,4 +1,4 @@
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.chain_computing;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -7,9 +7,12 @@ import java.util.Set;
 
 import de.adrodoc55.minecraft.Coordinate3D;
 import de.adrodoc55.minecraft.Coordinate3D.Direction;
+import de.adrodoc55.minecraft.mpl.Command;
+import de.adrodoc55.minecraft.mpl.CommandBlockChain;
+import de.adrodoc55.minecraft.mpl.CommandChain;
 import de.adrodoc55.minecraft.mpl.gui.ChainRenderer;
 
-public class IterativeChainCalculator implements ChainCalculator {
+public class IterativeChainComputer implements ChainComputer {
 
 	// public static void main(String[] args) {
 
@@ -62,12 +65,12 @@ public class IterativeChainCalculator implements ChainCalculator {
 	private ChainRenderer renderer;
 	private ChainRenderer optimalRenderer;
 
-	public IterativeChainCalculator() {
+	public IterativeChainComputer() {
 		this(new Coordinate3D(Integer.MAX_VALUE, Integer.MAX_VALUE,
 				Integer.MAX_VALUE));
 	}
 
-	public IterativeChainCalculator(Coordinate3D max) {
+	public IterativeChainComputer(Coordinate3D max) {
 		this.max = max;
 	}
 
@@ -80,7 +83,7 @@ public class IterativeChainCalculator implements ChainCalculator {
 
 	private static final int MAX_TRIES = 1000000;
 
-	public CommandBlockChain calculateOptimalChain(Coordinate3D start,
+	public CommandBlockChain computeOptimalChain(Coordinate3D start,
 			CommandChain input) {
 		this.start = start;
 		optimalScore = Integer.MAX_VALUE;

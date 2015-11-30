@@ -1,11 +1,14 @@
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.chain_computing;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import de.adrodoc55.minecraft.Coordinate3D;
+import de.adrodoc55.minecraft.mpl.Command;
+import de.adrodoc55.minecraft.mpl.CommandBlockChain;
+import de.adrodoc55.minecraft.mpl.CommandChain;
 
-public class NoConditionalChainCalculator implements ChainCalculator {
+public class NoConditionalChainComputer implements ChainComputer {
 	/*
 	 * public static void main(String[] args) { File programFile = new File(
 	 * "C:/Users/Adrian/Programme/workspace/MplGenerator/src/main/resources/testdata.txt"
@@ -65,11 +68,11 @@ public class NoConditionalChainCalculator implements ChainCalculator {
 	private boolean yAxisEnabled;
 	private boolean zAxisEnabled;
 
-	public NoConditionalChainCalculator() {
+	public NoConditionalChainComputer() {
 		this(true, true, true);
 	}
 
-	public NoConditionalChainCalculator(boolean xAxisEnabled,
+	public NoConditionalChainComputer(boolean xAxisEnabled,
 			boolean yAxisEnabled, boolean zAxisEnabled) {
 		this.xAxisEnabled = xAxisEnabled;
 		this.yAxisEnabled = yAxisEnabled;
@@ -101,7 +104,7 @@ public class NoConditionalChainCalculator implements ChainCalculator {
 	}
 
 	@Override
-	public CommandBlockChain calculateOptimalChain(Coordinate3D start,
+	public CommandBlockChain computeOptimalChain(Coordinate3D start,
 			CommandChain input) {
 		List<Command> commands = input.getCommands();
 		for (Command command : commands) {

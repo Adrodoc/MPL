@@ -12,12 +12,14 @@ import org.junit.Test;
 
 import com.google.common.collect.Lists;
 
+import de.adrodoc55.minecraft.mpl.chain_computing.RecursiveChainComputer;
+
 public class ChainCalculatorTest {
 
 	@Test
 	public void test_calculateChain_Erzeugte_Kette_enthaelt_alle_Commandos() {
 		// Given:
-		RecursiveChainCalculator underTest = new RecursiveChainCalculator();
+		RecursiveChainComputer underTest = new RecursiveChainComputer();
 		String name = someString();
 		List<Command> commands = new ArrayList<Command>();
 		commands.add($some($Command()));

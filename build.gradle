@@ -1,8 +1,9 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
+apply plugin: 'antlr'
 
 task wrapper (type: Wrapper) {
-	gradleVersion = 2.8
+	gradleVersion = 2.9
 }
 
 repositories {
@@ -14,12 +15,43 @@ configurations {
 }
 
 dependencies {
+    antlr 'org.antlr:antlr:3.5.2'
+    
 	annotationProccessing 'net.karneim:pojobuilder:3.4.0'
 
 	testCompile 'org.assertj:assertj-core:3.2.0'
 	testCompile 'com.google.guava:guava:18.0'
 	testCompile 'junit:junit:4.12'
 }
+
+String srcGenAntlrDir = 'src-gen/main/java'
+
+sourceSets {
+	main {
+		java {
+			srcDir srcGenAntlrDir
+		}
+	}
+}
+
+task cleanGeneratedSources << {
+	delete file(srcGenAntlrDir)
+}
+
+generateGrammarSource {
+	dependsOn cleanGeneratedSources
+	outputDirectory = new File(file(srcGenAntlrDir), 'de/adrodoc55/antlr/mpl')
+}
+
+jar {
+    manifest {
+        attributes(
+            'Main-Class':   'de.adrodoc55.minecraft.mpl.Main'
+            )
+    }
+}
+
+
 
 
 
@@ -72,11 +104,3 @@ tasks.cleanEclipse.dependsOn cleanEclipseApt
 tasks.eclipse.dependsOn cleanEclipse
 tasks.eclipse.dependsOn eclipseFactorypath
 tasks.eclipse.dependsOn eclipseApt
-
-jar {
-    manifest {
-        attributes(
-            'Main-Class':   'de.adrodoc55.minecraft.mpl.Main'
-            )
-    }
-}

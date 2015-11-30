@@ -1,35 +1,38 @@
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.chain_computing;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import de.adrodoc55.minecraft.Coordinate3D;
+import de.adrodoc55.minecraft.mpl.Command;
+import de.adrodoc55.minecraft.mpl.CommandBlockChain;
+import de.adrodoc55.minecraft.mpl.CommandChain;
 import de.adrodoc55.minecraft.mpl.gui.ChainRenderer;
 
-public class RecursiveChainCalculator implements ChainCalculator {
+public class RecursiveChainComputer implements ChainComputer {
 	private static final int MAX_TRIES = 1000000;
 	private Coordinate3D start;
 	private List<Command> commands;
 	private ChainRenderer renderer;
 	private ChainRenderer optimalRenderer;
 
-	public RecursiveChainCalculator() {
+	public RecursiveChainComputer() {
 		this(null, null);
 	}
 
-	public RecursiveChainCalculator(ChainRenderer renderer,
+	public RecursiveChainComputer(ChainRenderer renderer,
 			ChainRenderer optimalRenderer) {
 		this.renderer = renderer;
 		this.optimalRenderer = optimalRenderer;
 	}
 
 	public CommandBlockChain calculateOptimalChain(CommandChain input) {
-		return calculateOptimalChain(new Coordinate3D(), input);
+		return computeOptimalChain(new Coordinate3D(), input);
 	}
 
 	private int tries = 0;
 
-	public CommandBlockChain calculateOptimalChain(Coordinate3D start,
+	public CommandBlockChain computeOptimalChain(Coordinate3D start,
 			CommandChain input) {
 		this.start = start;
 		this.commands = input.getCommands();

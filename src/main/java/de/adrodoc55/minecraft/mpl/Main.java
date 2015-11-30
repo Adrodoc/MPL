@@ -10,6 +10,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.adrodoc55.minecraft.Coordinate3D;
+import de.adrodoc55.minecraft.mpl.chain_computing.ChainComputer;
+import de.adrodoc55.minecraft.mpl.chain_computing.IterativeChainComputer;
 
 public class Main {
 
@@ -98,13 +100,13 @@ public class Main {
 			// break;
 			// }
 			// }
-			ChainCalculator calculator;
+			ChainComputer calculator;
 			// if (containsConditional) {
-			calculator = new IterativeChainCalculator();
+			calculator = new IterativeChainComputer();
 			// } else {
 			// calculator = new NoConditionalChainCalculator(false, true, true);
 			// }
-			CommandBlockChain optimal = calculator.calculateOptimalChain(start,
+			CommandBlockChain optimal = calculator.computeOptimalChain(start,
 					commandChain);
 			List<CommandBlock> commandBlocks = optimal.getCommandBlocks();
 
