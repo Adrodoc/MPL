@@ -1,54 +1,111 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
-apply plugin: 'antlr'
+// apply plugin: 'antlr'
+
+ext {
+  libs = [
+    antlr4:         'org.antlr:antlr4:4.5',
+    antlr4_runtime: 'org.antlr:antlr4-runtime:4.5',
+    assertj:		'org.assertj:assertj-core:3.2.0',
+    guava:          'com.google.guava:guava:18.0',
+    junit:          'junit:junit:4.12',
+    pojobuilder:    'net.karneim:pojobuilder:3.4.0',
+
+  ]
+}
 
 task wrapper (type: Wrapper) {
-	gradleVersion = 2.9
+  gradleVersion = 2.9
 }
 
 repositories {
-	mavenCentral()
+  mavenCentral()
 }
 
 configurations {
-	compile.extendsFrom annotationProccessing
+  antlr4
+  compile.extendsFrom annotationProccessing
 }
 
 dependencies {
-    antlr 'org.antlr:antlr:3.5.2'
-    
-	annotationProccessing 'net.karneim:pojobuilder:3.4.0'
+  antlr4 libs.antlr4
+  compile libs.antlr4_runtime
 
-	testCompile 'org.assertj:assertj-core:3.2.0'
-	testCompile 'com.google.guava:guava:18.0'
-	testCompile 'junit:junit:4.12'
+  annotationProccessing libs.pojobuilder
+
+  testCompile libs.assertj
+  testCompile libs.guava
+  testCompile libs.junit
 }
 
-String srcGenAntlrDir = 'src-gen/main/java'
+//String srcGenAntlrDir = 'src-gen/antlr/java'
+
+File antlrDefDir = file('src/antlr/def')
+File antlrGenDir = file('src/antlr/gen')
 
 sourceSets {
-	main {
-		java {
-			srcDir srcGenAntlrDir
-		}
-	}
+  antlr {
+    java {
+      srcDirs = [antlrGenDir]
+    }
+    resources {
+      srcDirs = [antlrDefDir]
+    }
+  }
 }
 
-task cleanGeneratedSources << {
-	delete file(srcGenAntlrDir)
+task cleanAntlr4 << {
+  delete antlrGenDir
+  mkdir antlrGenDir
 }
 
-generateGrammarSource {
-	dependsOn cleanGeneratedSources
-	outputDirectory = new File(file(srcGenAntlrDir), 'de/adrodoc55/antlr/mpl')
+//generateGrammarSource {
+//  dependsOn cleanGeneratedSources
+//  outputDirectory = new File(file(srcGenAntlrDir), 'de/adrodoc55/antlr/mpl')
+//}
+
+// Test erzeugt aus allen (!) Grammatiken in dem Ordner (de/sanacorp/Hello.g4) --> de/sanacorp/HelloParser de/sanacorp/HelloLexer
+// Tests:
+//   -- nur Parser
+//   -- nur Lexer
+//   -- beides
+//   -- mehrere Grammatiken, dann werden alle im richtigen Package erzeugt
+//   -- Grammatik fehlerhaft --> Task abbrechen
+// Klassen sollten kompilieren
+task generateAntlr4 {
+  description = 'Generates Java sources from ANTLR4 grammars.'
+  logging.captureStandardOutput LogLevel.QUIET
+
+  fileTree(dir: antlrDefDir, include:'**/*.g4').each { File file ->
+    doLast {
+      String relativePathToGrammar = antlrDefDir.toURI().relativize( file.getParentFile().toURI() ).toString()
+      File grammarDestDir = new File(antlrGenDir, relativePathToGrammar)
+      mkdir grammarDestDir
+      String packageName = relativePathToGrammar.replaceFirst('/$', '').replace('/', '.')
+      println "  Generating grammar sources for ${file.name} in package $packageName"
+      javaexec {
+        classpath configurations.antlr4
+        main = 'org.antlr.v4.Tool'
+        args = ["-o", grammarDestDir,
+        "-package", packageName,
+        "-visitor", // ggf. Konfig auch für Listener (suche Listener)
+        "${file.canonicalPath}"]
+      }
+    }
+  }
 }
+generateAntlr4.dependsOn cleanAntlr4
+compileJava.dependsOn generateAntlr4
+
+
+
 
 jar {
-    manifest {
-        attributes(
-            'Main-Class':   'de.adrodoc55.minecraft.mpl.Main'
-            )
-    }
+  manifest {
+    attributes(
+      'Main-Class':   'de.adrodoc55.minecraft.mpl.Main'
+      )
+  }
 }
 
 
@@ -56,38 +113,38 @@ jar {
 
 
 eclipse {
-	jdt {
-		file {
-			withProperties { properties ->
-				properties << ['org.eclipse.jdt.core.compiler.processAnnotations':'enabled']
-			}
-		}
-	}
+  jdt {
+    file {
+      withProperties { properties ->
+        properties << ['org.eclipse.jdt.core.compiler.processAnnotations':'enabled']
+      }
+    }
+  }
 }
 
 task eclipseFactorypath {
-	ext.factorypath = new File('.factorypath')
+  ext.factorypath = new File('.factorypath')
 } << {
-	def writer = new StringWriter()
-	def xml = new groovy.xml.MarkupBuilder(writer)
-	xml.factorypath {
-		configurations.annotationProccessing.each {
-			factorypathentry kind: 'EXTJAR', id: it, enabled: "true", runInBatchMode: "false"
-		}
-	}
-	factorypath.text = writer.toString()
+  def writer = new StringWriter()
+  def xml = new groovy.xml.MarkupBuilder(writer)
+  xml.factorypath {
+    configurations.annotationProccessing.each {
+      factorypathentry kind: 'EXTJAR', id: it, enabled: "true", runInBatchMode: "false"
+    }
+  }
+  factorypath.text = writer.toString()
 }
 
 task cleanEclipseFactorpath(type: Delete) {
-	delete eclipseFactorypath.factorypath
+  delete eclipseFactorypath.factorypath
 }
 
 task eclipseApt {
-	File eclipseSettings = file('.settings')
-	eclipseSettings.mkdirs()
-	ext.jdtAptCorePrefs = new File(eclipseSettings, 'org.eclipse.jdt.apt.core.prefs')
+  File eclipseSettings = file('.settings')
+  eclipseSettings.mkdirs()
+  ext.jdtAptCorePrefs = new File(eclipseSettings, 'org.eclipse.jdt.apt.core.prefs')
 } << {
-	jdtAptCorePrefs.text = """\
+  jdtAptCorePrefs.text = """\
 eclipse.preferences.version=1
 org.eclipse.jdt.apt.aptEnabled=true
 org.eclipse.jdt.apt.genSrcDir=.apt_generated
@@ -96,7 +153,7 @@ org.eclipse.jdt.apt.reconcileEnabled=true
 }
 
 task cleanEclipseApt(type: Delete) {
-	delete eclipseApt.jdtAptCorePrefs
+  delete eclipseApt.jdtAptCorePrefs
 }
 
 tasks.cleanEclipse.dependsOn cleanEclipseFactorypath

@@ -1,0 +1,16 @@
+T__0=1
+T__1=2
+T__2=3
+T__3=4
+T__4=5
+T__5=6
+COMMENT=7
+COMMAND=8
+EOL=9
+WS=10
+','=1
+':'=2
+'impulse'=3
+'chain'=4
+'repeat'=5
+'conditional'=6
