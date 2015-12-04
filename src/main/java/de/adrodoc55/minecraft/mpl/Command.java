@@ -6,8 +6,8 @@ import net.karneim.pojobuilder.GeneratePojoBuilder;
 public class Command {
 
 	private String command;
-	private boolean conditional;
 	private Mode mode;
+	private boolean conditional;
 	private boolean needsRedstone;
 
 	public Command(String command) {
@@ -38,20 +38,24 @@ public class Command {
 		this.command = command;
 	}
 
-	public boolean isConditional() {
-		return conditional;
-	}
-
-	public void setConditional(boolean conditional) {
-		this.conditional = conditional;
-	}
-
 	public Mode getMode() {
 		return mode;
 	}
 
 	public void setMode(Mode mode) {
 		this.mode = mode;
+	}
+
+	public static enum Mode {
+		IMPULSE, CHAIN, REPEAT;
+	}
+
+	public boolean isConditional() {
+		return conditional;
+	}
+
+	public void setConditional(boolean conditional) {
+		this.conditional = conditional;
 	}
 
 	public boolean needsRedstone() {
@@ -62,8 +66,11 @@ public class Command {
 		this.needsRedstone = needsRedstone;
 	}
 
-	public static enum Mode {
-		IMPULSE, CHAIN, REPEAT;
+	@Override
+	public String toString() {
+		return "Command [command='" + command + "', mode=" + mode
+				+ ", conditional=" + conditional + ", needsRedstone="
+				+ needsRedstone + "]";
 	}
 
 }

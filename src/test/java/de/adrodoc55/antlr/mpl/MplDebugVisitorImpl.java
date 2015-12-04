@@ -5,12 +5,13 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import de.adrodoc55.antlr.mpl.MplParser.CommandContext;
 import de.adrodoc55.antlr.mpl.MplParser.LineContext;
-import de.adrodoc55.antlr.mpl.MplParser.ModifierContext;
 import de.adrodoc55.antlr.mpl.MplParser.ModifierListContext;
+import de.adrodoc55.antlr.mpl.MplParser.ModusContext;
 import de.adrodoc55.antlr.mpl.MplParser.ProgramContext;
 
+//public (.+) (.+)\((.+) (.+)\) \{[^\}]*\}
+//public $1 $2($3 $4) {System.out.println("$2(" + $4 + ")");return null;}
 public class MplDebugVisitorImpl implements MplVisitor<Void> {
 
     @Override
@@ -56,14 +57,8 @@ public class MplDebugVisitorImpl implements MplVisitor<Void> {
     }
 
     @Override
-    public Void visitModifier(ModifierContext ctx) {
-        System.out.println("visitModifier(" + ctx + ")");
-        return null;
-    }
-
-    @Override
-    public Void visitCommand(CommandContext ctx) {
-        System.out.println("visitCommand(" + ctx + ")");
+    public Void visitModus(ModusContext ctx) {
+        System.out.println("visitModus(" + ctx + ")");
         return null;
     }
 

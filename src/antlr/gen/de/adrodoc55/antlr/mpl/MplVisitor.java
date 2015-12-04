@@ -30,9 +30,9 @@ public interface MplVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitModifierList(MplParser.ModifierListContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link MplParser#modifier}.
+	 * Visit a parse tree produced by {@link MplParser#modus}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitModifier(MplParser.ModifierContext ctx);
+	T visitModus(MplParser.ModusContext ctx);
 }

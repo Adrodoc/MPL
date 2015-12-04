@@ -4,12 +4,13 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import de.adrodoc55.antlr.mpl.MplParser.CommandContext;
 import de.adrodoc55.antlr.mpl.MplParser.LineContext;
-import de.adrodoc55.antlr.mpl.MplParser.ModifierContext;
 import de.adrodoc55.antlr.mpl.MplParser.ModifierListContext;
+import de.adrodoc55.antlr.mpl.MplParser.ModusContext;
 import de.adrodoc55.antlr.mpl.MplParser.ProgramContext;
 
+//public (.+) (.+)\((.+) (.+)\) \{[^\}]*\}
+//public $1 $2($3 $4) {System.out.println("$2(" + $4 + ")");}
 public class MplDebugListenerImpl implements MplListener {
 
     @Override
@@ -63,23 +64,13 @@ public class MplDebugListenerImpl implements MplListener {
     }
 
     @Override
-    public void enterModifier(ModifierContext ctx) {
-        System.out.println("enterModifier(" + ctx + ")");
+    public void enterModus(ModusContext ctx) {
+        System.out.println("enterModus(" + ctx + ")");
     }
 
     @Override
-    public void exitModifier(ModifierContext ctx) {
-        System.out.println("exitModifier(" + ctx + ")");
-    }
-
-    @Override
-    public void enterCommand(CommandContext ctx) {
-        System.out.println("enterCommand(" + ctx + ")");
-    }
-
-    @Override
-    public void exitCommand(CommandContext ctx) {
-        System.out.println("exitCommand(" + ctx + ")");
+    public void exitModus(ModusContext ctx) {
+        System.out.println("exitModus(" + ctx + ")");
     }
 
 }

@@ -17,20 +17,21 @@ public class MplParser extends Parser {
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, COMMENT=7, COMMAND=8, 
-		EOL=9, WS=10;
+		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, COMMENT=6, COMMAND=7, CONDITIONAL=8, 
+		NEEDS_REDSTONE=9, EOL=10, WS=11;
 	public static final int
-		RULE_program = 0, RULE_line = 1, RULE_modifierList = 2, RULE_modifier = 3;
+		RULE_program = 0, RULE_line = 1, RULE_modifierList = 2, RULE_modus = 3;
 	public static final String[] ruleNames = {
-		"program", "line", "modifierList", "modifier"
+		"program", "line", "modifierList", "modus"
 	};
 
 	private static final String[] _LITERAL_NAMES = {
-		null, "','", "':'", "'impulse'", "'chain'", "'repeat'", "'conditional'"
+		null, "','", "':'", "'impulse'", "'chain'", "'repeat'", null, null, "'conditional'", 
+		"'needsRedstone'"
 	};
 	private static final String[] _SYMBOLIC_NAMES = {
-		null, null, null, null, null, null, null, "COMMENT", "COMMAND", "EOL", 
-		"WS"
+		null, null, null, null, null, null, "COMMENT", "COMMAND", "CONDITIONAL", 
+		"NEEDS_REDSTONE", "EOL", "WS"
 	};
 	public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
 
@@ -118,7 +119,7 @@ public class MplParser extends Parser {
 			setState(11);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__2) | (1L << T__3) | (1L << T__4) | (1L << T__5) | (1L << COMMAND) | (1L << EOL))) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__2) | (1L << T__3) | (1L << T__4) | (1L << COMMAND) | (1L << CONDITIONAL) | (1L << NEEDS_REDSTONE) | (1L << EOL))) != 0)) {
 				{
 				{
 				setState(8);
@@ -178,11 +179,11 @@ public class MplParser extends Parser {
 			{
 			setState(20);
 			_la = _input.LA(1);
-			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__2) | (1L << T__3) | (1L << T__4) | (1L << T__5) | (1L << COMMAND))) != 0)) {
+			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__2) | (1L << T__3) | (1L << T__4) | (1L << COMMAND) | (1L << CONDITIONAL) | (1L << NEEDS_REDSTONE))) != 0)) {
 				{
 				setState(17);
 				_la = _input.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__2) | (1L << T__3) | (1L << T__4) | (1L << T__5))) != 0)) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__2) | (1L << T__3) | (1L << T__4) | (1L << CONDITIONAL) | (1L << NEEDS_REDSTONE))) != 0)) {
 					{
 					setState(16);
 					modifierList();
@@ -210,12 +211,11 @@ public class MplParser extends Parser {
 	}
 
 	public static class ModifierListContext extends ParserRuleContext {
-		public List<ModifierContext> modifier() {
-			return getRuleContexts(ModifierContext.class);
+		public ModusContext modus() {
+			return getRuleContext(ModusContext.class,0);
 		}
-		public ModifierContext modifier(int i) {
-			return getRuleContext(ModifierContext.class,i);
-		}
+		public TerminalNode CONDITIONAL() { return getToken(MplParser.CONDITIONAL, 0); }
+		public TerminalNode NEEDS_REDSTONE() { return getToken(MplParser.NEEDS_REDSTONE, 0); }
 		public ModifierListContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -242,25 +242,65 @@ public class MplParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(24);
-			modifier();
-			setState(29);
-			_errHandler.sync(this);
-			_la = _input.LA(1);
-			while (_la==T__0) {
+			setState(39);
+			switch (_input.LA(1)) {
+			case T__2:
+			case T__3:
+			case T__4:
 				{
-				{
-				setState(25);
-				match(T__0);
-				setState(26);
-				modifier();
-				}
+				setState(24);
+				modus();
+				setState(27);
+				switch ( getInterpreter().adaptivePredict(_input,3,_ctx) ) {
+				case 1:
+					{
+					setState(25);
+					match(T__0);
+					setState(26);
+					match(CONDITIONAL);
+					}
+					break;
 				}
 				setState(31);
-				_errHandler.sync(this);
 				_la = _input.LA(1);
+				if (_la==T__0) {
+					{
+					setState(29);
+					match(T__0);
+					setState(30);
+					match(NEEDS_REDSTONE);
+					}
+				}
+
+				}
+				break;
+			case CONDITIONAL:
+				{
+				setState(33);
+				match(CONDITIONAL);
+				setState(36);
+				_la = _input.LA(1);
+				if (_la==T__0) {
+					{
+					setState(34);
+					match(T__0);
+					setState(35);
+					match(NEEDS_REDSTONE);
+					}
+				}
+
+				}
+				break;
+			case NEEDS_REDSTONE:
+				{
+				setState(38);
+				match(NEEDS_REDSTONE);
+				}
+				break;
+			default:
+				throw new NoViableAltException(this);
 			}
-			setState(32);
+			setState(41);
 			match(T__1);
 			}
 		}
@@ -275,36 +315,36 @@ public class MplParser extends Parser {
 		return _localctx;
 	}
 
-	public static class ModifierContext extends ParserRuleContext {
-		public ModifierContext(ParserRuleContext parent, int invokingState) {
+	public static class ModusContext extends ParserRuleContext {
+		public ModusContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_modifier; }
+		@Override public int getRuleIndex() { return RULE_modus; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof MplListener ) ((MplListener)listener).enterModifier(this);
+			if ( listener instanceof MplListener ) ((MplListener)listener).enterModus(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof MplListener ) ((MplListener)listener).exitModifier(this);
+			if ( listener instanceof MplListener ) ((MplListener)listener).exitModus(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof MplVisitor ) return ((MplVisitor<? extends T>)visitor).visitModifier(this);
+			if ( visitor instanceof MplVisitor ) return ((MplVisitor<? extends T>)visitor).visitModus(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final ModifierContext modifier() throws RecognitionException {
-		ModifierContext _localctx = new ModifierContext(_ctx, getState());
-		enterRule(_localctx, 6, RULE_modifier);
+	public final ModusContext modus() throws RecognitionException {
+		ModusContext _localctx = new ModusContext(_ctx, getState());
+		enterRule(_localctx, 6, RULE_modus);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(34);
+			setState(43);
 			_la = _input.LA(1);
-			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__2) | (1L << T__3) | (1L << T__4) | (1L << T__5))) != 0)) ) {
+			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__2) | (1L << T__3) | (1L << T__4))) != 0)) ) {
 			_errHandler.recoverInline(this);
 			} else {
 				consume();
@@ -323,17 +363,20 @@ public class MplParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\f\'\4\2\t\2\4\3\t"+
-		"\3\4\4\t\4\4\5\t\5\3\2\7\2\f\n\2\f\2\16\2\17\13\2\3\2\3\2\3\3\5\3\24\n"+
-		"\3\3\3\5\3\27\n\3\3\3\3\3\3\4\3\4\3\4\7\4\36\n\4\f\4\16\4!\13\4\3\4\3"+
-		"\4\3\5\3\5\3\5\2\2\6\2\4\6\b\2\3\3\2\5\b&\2\r\3\2\2\2\4\26\3\2\2\2\6\32"+
-		"\3\2\2\2\b$\3\2\2\2\n\f\5\4\3\2\13\n\3\2\2\2\f\17\3\2\2\2\r\13\3\2\2\2"+
-		"\r\16\3\2\2\2\16\20\3\2\2\2\17\r\3\2\2\2\20\21\7\2\2\3\21\3\3\2\2\2\22"+
-		"\24\5\6\4\2\23\22\3\2\2\2\23\24\3\2\2\2\24\25\3\2\2\2\25\27\7\n\2\2\26"+
-		"\23\3\2\2\2\26\27\3\2\2\2\27\30\3\2\2\2\30\31\7\13\2\2\31\5\3\2\2\2\32"+
-		"\37\5\b\5\2\33\34\7\3\2\2\34\36\5\b\5\2\35\33\3\2\2\2\36!\3\2\2\2\37\35"+
-		"\3\2\2\2\37 \3\2\2\2 \"\3\2\2\2!\37\3\2\2\2\"#\7\4\2\2#\7\3\2\2\2$%\t"+
-		"\2\2\2%\t\3\2\2\2\6\r\23\26\37";
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\r\60\4\2\t\2\4\3"+
+		"\t\3\4\4\t\4\4\5\t\5\3\2\7\2\f\n\2\f\2\16\2\17\13\2\3\2\3\2\3\3\5\3\24"+
+		"\n\3\3\3\5\3\27\n\3\3\3\3\3\3\4\3\4\3\4\5\4\36\n\4\3\4\3\4\5\4\"\n\4\3"+
+		"\4\3\4\3\4\5\4\'\n\4\3\4\5\4*\n\4\3\4\3\4\3\5\3\5\3\5\2\2\6\2\4\6\b\2"+
+		"\3\3\2\5\7\63\2\r\3\2\2\2\4\26\3\2\2\2\6)\3\2\2\2\b-\3\2\2\2\n\f\5\4\3"+
+		"\2\13\n\3\2\2\2\f\17\3\2\2\2\r\13\3\2\2\2\r\16\3\2\2\2\16\20\3\2\2\2\17"+
+		"\r\3\2\2\2\20\21\7\2\2\3\21\3\3\2\2\2\22\24\5\6\4\2\23\22\3\2\2\2\23\24"+
+		"\3\2\2\2\24\25\3\2\2\2\25\27\7\t\2\2\26\23\3\2\2\2\26\27\3\2\2\2\27\30"+
+		"\3\2\2\2\30\31\7\f\2\2\31\5\3\2\2\2\32\35\5\b\5\2\33\34\7\3\2\2\34\36"+
+		"\7\n\2\2\35\33\3\2\2\2\35\36\3\2\2\2\36!\3\2\2\2\37 \7\3\2\2 \"\7\13\2"+
+		"\2!\37\3\2\2\2!\"\3\2\2\2\"*\3\2\2\2#&\7\n\2\2$%\7\3\2\2%\'\7\13\2\2&"+
+		"$\3\2\2\2&\'\3\2\2\2\'*\3\2\2\2(*\7\13\2\2)\32\3\2\2\2)#\3\2\2\2)(\3\2"+
+		"\2\2*+\3\2\2\2+,\7\4\2\2,\7\3\2\2\2-.\t\2\2\2.\t\3\2\2\2\t\r\23\26\35"+
+		"!&)";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

@@ -53,13 +53,13 @@ public class MplBaseListener implements MplListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterModifier(MplParser.ModifierContext ctx) { }
+	@Override public void enterModus(MplParser.ModusContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitModifier(MplParser.ModifierContext ctx) { }
+	@Override public void exitModus(MplParser.ModusContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

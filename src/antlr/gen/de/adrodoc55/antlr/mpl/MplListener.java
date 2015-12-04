@@ -39,13 +39,13 @@ public interface MplListener extends ParseTreeListener {
 	 */
 	void exitModifierList(MplParser.ModifierListContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link MplParser#modifier}.
+	 * Enter a parse tree produced by {@link MplParser#modus}.
 	 * @param ctx the parse tree
 	 */
-	void enterModifier(MplParser.ModifierContext ctx);
+	void enterModus(MplParser.ModusContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link MplParser#modifier}.
+	 * Exit a parse tree produced by {@link MplParser#modus}.
 	 * @param ctx the parse tree
 	 */
-	void exitModifier(MplParser.ModifierContext ctx);
+	void exitModus(MplParser.ModusContext ctx);
 }

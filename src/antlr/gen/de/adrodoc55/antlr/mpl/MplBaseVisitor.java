@@ -39,5 +39,5 @@ public class MplBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements Mp
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitModifier(MplParser.ModifierContext ctx) { return visitChildren(ctx); }
+	@Override public T visitModus(MplParser.ModusContext ctx) { return visitChildren(ctx); }
 }

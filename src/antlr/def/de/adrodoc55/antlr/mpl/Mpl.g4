@@ -2,10 +2,6 @@ grammar Mpl;
 
 //http://www.alittlemadness.com/2006/07/06/antlr-by-example-part-4-tree-parsing/
 
-options {
-  language = Java;
-}
-
 program
 :
   line* EOF
@@ -20,30 +16,47 @@ line
 
 modifierList
 :
-  modifier
   (
-    ',' modifier
-  )* ':'
+    modus
+    (
+      ',' CONDITIONAL
+    )?
+    (
+      ',' NEEDS_REDSTONE
+    )?
+    | CONDITIONAL
+    (
+      ',' NEEDS_REDSTONE
+    )?
+    | NEEDS_REDSTONE
+  ) ':'
 ;
 
-modifier
+modus
 :
   'impulse'
   | 'chain'
   | 'repeat'
-  | 'conditional'
 ;
 
 COMMENT
 :
-  '//' ~( '\r' | '\n' )*
-  -> skip
-
+  '//' ~( '\r' | '\n' )* -> skip
 ;
 
 COMMAND
 :
   '/' ~( '\r' | '\n' )*
+;
+
+CONDITIONAL
+:
+  'conditional'
+;
+
+NEEDS_REDSTONE
+:
+  'needsRedstone'
 ;
 
 EOL
@@ -58,5 +71,4 @@ WS
     ' '
     | '\t'
   )+ -> skip
-
 ;
