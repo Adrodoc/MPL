@@ -26,7 +26,7 @@ public class AStarChainComputer implements ChainComputer {
         while (!todos.isEmpty()) {
             todos.sort(Comparator.naturalOrder());
             PathElement current = todos.poll();
-            System.out.println(current);
+//            System.out.println(current);
 
             if (current.getPathLength() > totalChainSize) {
                 return toCommandBlockChain(input.getName(), current);
@@ -66,7 +66,7 @@ public class AStarChainComputer implements ChainComputer {
         // }
         // System.out.println();
         // }
-        System.out.println(path);
+//        System.out.println(path);
         LinkedList<CommandBlock> chain = new LinkedList<CommandBlock>();
         PathElement following = path;
         for (PathElement current = path.getPrevious(); current != null; current = current.getPrevious()) {

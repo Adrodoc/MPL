@@ -101,7 +101,7 @@ class PathElement implements Comparable<PathElement> {
         if (command != null && command.isConditional()) {
             PathElement previous = getPrevious();
             if (previous == null) {
-                throw new RuntimeException("First Command can't be conditional");
+                throw new IllegalStateException("The first Command can't be conditional!");
             }
             Coordinate3D previousPos = previous.getPos();
             Coordinate3D direction = getPos().minus(previousPos);
