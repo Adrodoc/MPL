@@ -96,7 +96,7 @@ task generateAntlr4 {
 }
 generateAntlr4.dependsOn cleanAntlr4
 compileJava.dependsOn generateAntlr4
-
+eclipseClasspath.dependsOn generateAntlr4
 
 
 

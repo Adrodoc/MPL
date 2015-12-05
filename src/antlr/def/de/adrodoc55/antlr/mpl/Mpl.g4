@@ -41,7 +41,7 @@ modus
 
 COMMENT
 :
-  '//' ~( '\r' | '\n' )* -> skip
+  ( '//' | '#' ) ~( '\r' | '\n' )* -> skip
 ;
 
 COMMAND
@@ -67,8 +67,5 @@ EOL
 
 WS
 :
-  (
-    ' '
-    | '\t'
-  )+ -> skip
+  [ \t]+ -> skip
 ;

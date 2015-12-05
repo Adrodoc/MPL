@@ -1,5 +1,8 @@
 package de.adrodoc55.antlr.mpl;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -18,15 +21,19 @@ import de.adrodoc55.minecraft.mpl.Command.Mode;
 import de.adrodoc55.minecraft.mpl.CommandChain;
 
 public class AntlrTest {
-    public static void main(String[] args) throws RecognitionException {
-        String expression = "chain   , conditional : /ger eaf H 0 = we98 elloword\n";
-        ANTLRInputStream input = new ANTLRInputStream(expression);
+    public static void main(String[] args) throws RecognitionException, IOException {
+        // String expression = "chain , conditional : /ger eaf H 0 = we98
+        // elloword\n";
+        // ANTLRInputStream input = new ANTLRInputStream(expression);
+        File file = new File("C:/Users/adrian/Programme/workspace/ApertureCraftVanilla/src/main/minecraft/ACV_validateDirections.txt");
+        ANTLRInputStream input = new ANTLRInputStream(Files.newBufferedReader(file.toPath()));
         MplLexer lexer = new MplLexer(input);
         TokenStream tokens = new CommonTokenStream(lexer);
         MplParser parser = new MplParser(tokens);
-//        parser.addParseListener(new MplDebugListenerImpl());
+        // parser.addParseListener(new MplDebugListenerImpl());
 
         ProgramContext program = parser.program();
+        program.inspect(parser);
 
         List<Command> commands = new LinkedList<Command>();
 
@@ -55,8 +62,7 @@ public class AntlrTest {
             if (modifierList.NEEDS_REDSTONE() != null) {
                 needsRedstone = true;
             }
-            commands.add(new Command(command.getText(), conditional, mode,
-                    needsRedstone));
+            commands.add(new Command(command.getText(), conditional, mode, needsRedstone));
             continue;
         }
 
