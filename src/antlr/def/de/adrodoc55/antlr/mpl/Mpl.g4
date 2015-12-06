@@ -1,17 +1,56 @@
 grammar Mpl;
 
-//http://www.alittlemadness.com/2006/07/06/antlr-by-example-part-4-tree-parsing/
-
 program
 :
-  line* EOF
+  line
+  (
+    NEWLINE line
+  )*
 ;
 
 line
 :
   (
-    modifierList? COMMAND
-  )? EOL
+    includeDeclaration
+    | skipDeclaration
+    | commandDeclaration
+  )?
+;
+
+includeDeclaration
+:
+  DECLARATION_TOKEN 'include' '(' STRING
+  (
+    ',' includeAt
+  )?
+  (
+    ',' includeMax
+  )? ')'
+;
+
+includeAt
+:
+  'at' coordinate
+;
+
+includeMax
+:
+  'max' coordinate
+;
+
+coordinate
+:
+  '(' UNSIGNED_INT ',' UNSIGNED_INT ',' UNSIGNED_INT ')'
+;
+
+skipDeclaration
+:
+  DECLARATION_TOKEN 'skip'
+;
+
+commandDeclaration
+:
+  modifierList? command
 ;
 
 modifierList
@@ -22,13 +61,13 @@ modifierList
       ',' CONDITIONAL
     )?
     (
-      ',' NEEDS_REDSTONE
+      ',' auto
     )?
-    | CONDITIONAL
+    | conditional
     (
-      ',' NEEDS_REDSTONE
+      ',' auto
     )?
-    | NEEDS_REDSTONE
+    | auto
   ) ':'
 ;
 
@@ -39,14 +78,38 @@ modus
   | 'repeat'
 ;
 
+conditional
+:
+  CONDITIONAL
+;
+
+auto
+:
+  NEEDS_REDSTONE
+  | ALWAYS_ACTIVE
+;
+
+command
+:
+  COMMAND
+;
+
 COMMENT
 :
-  ( '//' | '#' ) ~( '\r' | '\n' )* -> skip
+  (
+    '//'
+    | '#'
+  ) ~( '\r' | '\n' )* -> skip
 ;
 
 COMMAND
 :
   '/' ~( '\r' | '\n' )*
+;
+
+STRING
+:
+  '"' .+? '"'
 ;
 
 CONDITIONAL
@@ -59,10 +122,24 @@ NEEDS_REDSTONE
   'needsRedstone'
 ;
 
-EOL
+ALWAYS_ACTIVE
 :
-  '\n'
-  | '\r\n'
+  'alwaysActive'
+;
+
+DECLARATION_TOKEN
+:
+  '$'
+;
+
+UNSIGNED_INT
+:
+  [0-9]+
+;
+
+NEWLINE
+:
+  '\r'? '\n'
 ;
 
 WS
