@@ -5,72 +5,83 @@ import net.karneim.pojobuilder.GeneratePojoBuilder;
 
 public class Command {
 
-	private String command;
-	private Mode mode;
-	private boolean conditional;
-	private boolean needsRedstone;
+    private String command;
+    private Mode mode;
+    private boolean conditional;
+    private boolean needsRedstone;
 
-	public Command(String command) {
-		this(command, false);
-	}
+    public Command() {
+        this(null);
+    }
 
-	public Command(String command, boolean conditional) {
-		this(command, conditional, Mode.CHAIN);
-	}
+    public Command(String command) {
+        this(command, null);
+    }
 
-	public Command(String command, boolean conditional, Mode mode) {
-		this(command, conditional, mode, mode == Mode.CHAIN ? false : true);
-	}
+    public Command(String command, Boolean conditional) {
+        this(command, null, conditional);
+    }
 
-	@GeneratePojoBuilder(withBuilderInterface = Builder.class)
-	public Command(String command, boolean conditional, Mode mode, boolean needsRedstone) {
-		this.command = command;
-		this.conditional = conditional;
-		this.mode = mode;
-		this.needsRedstone = needsRedstone;
-	}
+    public Command(String command, Mode mode, Boolean conditional) {
+        this(command, mode, conditional, null);
+    }
 
-	public String getCommand() {
-		return command;
-	}
+    @GeneratePojoBuilder(withBuilderInterface = Builder.class)
+    public Command(String command, Mode mode, Boolean conditional,
+            Boolean needsRedstone) {
+        this.command = command;
 
-	public void setCommand(String command) {
-		this.command = command;
-	}
+        this.conditional = (conditional != null) ? conditional : false;
+        this.mode = (mode != null) ? mode : Mode.CHAIN;
 
-	public Mode getMode() {
-		return mode;
-	}
+        if (needsRedstone != null) {
+            this.needsRedstone = needsRedstone;
+        } else {
+            this.needsRedstone = (this.mode == Mode.CHAIN) ? false : true;
+        }
+    }
 
-	public void setMode(Mode mode) {
-		this.mode = mode;
-	}
+    public String getCommand() {
+        return command;
+    }
 
-	public static enum Mode {
-		IMPULSE, CHAIN, REPEAT;
-	}
+    public void setCommand(String command) {
+        this.command = command;
+    }
 
-	public boolean isConditional() {
-		return conditional;
-	}
+    public Mode getMode() {
+        return mode;
+    }
 
-	public void setConditional(boolean conditional) {
-		this.conditional = conditional;
-	}
+    public void setMode(Mode mode) {
+        this.mode = mode;
+    }
 
-	public boolean needsRedstone() {
-		return needsRedstone;
-	}
+    public static enum Mode {
+        IMPULSE, CHAIN, REPEAT;
+    }
 
-	public void setNeedsRedstone(boolean needsRedstone) {
-		this.needsRedstone = needsRedstone;
-	}
+    public boolean isConditional() {
+        return conditional;
+    }
 
-	@Override
-	public String toString() {
-		return "Command [command='" + command + "', mode=" + mode
-				+ ", conditional=" + conditional + ", needsRedstone="
-				+ needsRedstone + "]";
-	}
+    public void setConditional(boolean conditional) {
+        this.conditional = conditional;
+    }
+
+    public boolean needsRedstone() {
+        return needsRedstone;
+    }
+
+    public void setNeedsRedstone(boolean needsRedstone) {
+        this.needsRedstone = needsRedstone;
+    }
+
+    @Override
+    public String toString() {
+        return "Command [command='" + command + "', mode=" + mode
+                + ", conditional=" + conditional + ", needsRedstone="
+                + needsRedstone + "]";
+    }
 
 }

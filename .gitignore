@@ -5,3 +5,4 @@
 **/.factorypath
 .settings
 **/.apt_generated
+src/antlr/gen
