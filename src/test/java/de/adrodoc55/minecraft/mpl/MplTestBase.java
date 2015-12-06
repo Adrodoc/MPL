@@ -1,8 +1,8 @@
 package de.adrodoc55.minecraft.mpl;
 
+import net.karneim.pojobuilder.Builder;
 import de.adrodoc55.TestBase;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
-import net.karneim.pojobuilder.Builder;
 
 public class MplTestBase extends TestBase {
 

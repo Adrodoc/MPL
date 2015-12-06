@@ -11,8 +11,9 @@ public class Coordinate3D {
     public static final Coordinate3D EAST = new Coordinate3D(1, 0, 0);
 
     public static enum Direction {
-        UP(Coordinate3D.UP), DOWN(Coordinate3D.DOWN), NORTH(Coordinate3D.NORTH), SOUTH(Coordinate3D.SOUTH), WEST(
-                Coordinate3D.WEST), EAST(Coordinate3D.EAST);
+        UP(Coordinate3D.UP), DOWN(Coordinate3D.DOWN), NORTH(Coordinate3D.NORTH), SOUTH(
+                Coordinate3D.SOUTH), WEST(Coordinate3D.WEST), EAST(
+                Coordinate3D.EAST);
 
         public static Direction valueOf(Coordinate3D coordinate) {
             if (coordinate == null) {
@@ -23,7 +24,8 @@ public class Coordinate3D {
                     return direction;
                 }
             }
-            throw new IllegalArgumentException("No enum constant for coordinate" + coordinate);
+            throw new IllegalArgumentException(
+                    "No enum constant for coordinate" + coordinate);
         }
 
         private final Coordinate3D relative;
@@ -60,16 +62,16 @@ public class Coordinate3D {
     }
 
     public Coordinate3D plus(Coordinate3D other) {
-        int x = this.x + other.x;
-        int y = this.y + other.y;
-        int z = this.z + other.z;
+        int x = overflowSaveAddition(this.x, other.x);
+        int y = overflowSaveAddition(this.y, other.y);
+        int z = overflowSaveAddition(this.z, other.z);
         return new Coordinate3D(x, y, z);
     }
 
     public Coordinate3D minus(Coordinate3D other) {
-        int x = this.x - other.x;
-        int y = this.y - other.y;
-        int z = this.z - other.z;
+        int x = overflowSaveSubstraction(this.x, other.x);
+        int y = overflowSaveSubstraction(this.y, other.y);
+        int z = overflowSaveSubstraction(this.z, other.z);
         return new Coordinate3D(x, y, z);
     }
 
@@ -124,6 +126,24 @@ public class Coordinate3D {
 
     public String toRelativeString() {
         return "~" + x + " ~" + y + " ~" + z;
+    }
+
+    public static int overflowSaveAddition(int a, int b) {
+        int c;
+        try {
+            c = Math.addExact(a, b);
+        } catch (ArithmeticException ex) {
+            if (a < 0) {
+                c = Integer.MIN_VALUE;
+            } else {
+                c = Integer.MAX_VALUE;
+            }
+        }
+        return c;
+    }
+
+    public static int overflowSaveSubstraction(int a, int b) {
+        return overflowSaveAddition(a, b * -1);
     }
 
 }
