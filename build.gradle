@@ -2,6 +2,9 @@ apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
 
+ext.productName = project.name
+version = 1.0
+
 ext {
   libs = [
     antlr4:         'org.antlr:antlr4:4.5',
@@ -18,6 +21,16 @@ task wrapper (type: Wrapper) { gradleVersion = 2.9 }
 
 repositories { mavenCentral() }
 
+File antlrDefDir = file('src/antlr/def')
+File antlrGenDir = file('src/antlr/gen')
+
+sourceSets {
+  antlr {
+    java { srcDirs = [antlrGenDir]}
+    resources { srcDirs = [antlrDefDir]}
+  }
+}
+
 configurations {
   antlr4
   compile.extendsFrom annotationProccessing
@@ -25,6 +38,10 @@ configurations {
 
 dependencies {
   antlr4 libs.antlr4
+
+  antlrCompile libs.antlr4_runtime
+
+  compile sourceSets.antlr.output
   compile libs.antlr4_runtime
 
   annotationProccessing libs.pojobuilder
@@ -35,17 +52,6 @@ dependencies {
   testCompile libs.spock
 }
 
-//String srcGenAntlrDir = 'src-gen/antlr/java'
-
-File antlrDefDir = file('src/antlr/def')
-File antlrGenDir = file('src/antlr/gen')
-
-sourceSets {
-  antlr {
-    java { srcDirs = [antlrGenDir] }
-    resources { srcDirs = [antlrDefDir] }
-  }
-}
 
 task cleanAntlr4 << {
   delete antlrGenDir
@@ -94,11 +100,44 @@ eclipseClasspath.dependsOn generateAntlr4
 jar {
   manifest {
     attributes(
+        'Created-By':				'Adrodoc55 (adrodoc55@googlemail.com)',
+        'Specification-Title':		productName,
+        'Specification-Version':	version,
+        'Implementation-Title':		productName,
+        'Implementation-Version':	version,
         'Main-Class':   'de.adrodoc55.minecraft.mpl.Main'
         )
   }
 }
 
+task fatJar(type: Jar) {
+  classifier 'fat'
+  from sourceSets.main.output
+  ( configurations.compile - configurations.annotationProccessing).each { File file ->
+    if(file.isDirectory()) {
+      from file
+    } else {
+      from zipTree(file)
+    }
+  }
+  manifest {
+    attributes(
+        'Created-By':				'Adrodoc55 (adrodoc55@googlemail.com)',
+        'Specification-Title':		productName,
+        'Specification-Version':	version,
+        'Implementation-Title':		productName,
+        'Implementation-Version':	version,
+        'Main-Class':   'de.adrodoc55.minecraft.mpl.Main'
+        )
+  }
+}
+assemble.dependsOn fatJar
+
+tasks.withType(Test) {
+  beforeTest { TestDescriptor descriptor ->
+    logger.lifecycle('Running test: ' + descriptor.name + '(' + descriptor.className + ')')
+  }
+}
 
 
 
