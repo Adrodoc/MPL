@@ -1,6 +1,6 @@
 apply plugin: 'java'
+apply plugin: 'groovy'
 apply plugin: 'eclipse'
-// apply plugin: 'antlr'
 
 ext {
   libs = [
@@ -10,17 +10,13 @@ ext {
     guava:          'com.google.guava:guava:18.0',
     junit:          'junit:junit:4.12',
     pojobuilder:    'net.karneim:pojobuilder:3.4.0',
-
+    spock:			'org.spockframework:spock-core:1.0-groovy-2.3'
   ]
 }
 
-task wrapper (type: Wrapper) {
-  gradleVersion = 2.9
-}
+task wrapper (type: Wrapper) { gradleVersion = 2.9 }
 
-repositories {
-  mavenCentral()
-}
+repositories { mavenCentral() }
 
 configurations {
   antlr4
@@ -36,6 +32,7 @@ dependencies {
   testCompile libs.assertj
   testCompile libs.guava
   testCompile libs.junit
+  testCompile libs.spock
 }
 
 //String srcGenAntlrDir = 'src-gen/antlr/java'
@@ -45,12 +42,8 @@ File antlrGenDir = file('src/antlr/gen')
 
 sourceSets {
   antlr {
-    java {
-      srcDirs = [antlrGenDir]
-    }
-    resources {
-      srcDirs = [antlrDefDir]
-    }
+    java { srcDirs = [antlrGenDir] }
+    resources { srcDirs = [antlrDefDir] }
   }
 }
 
@@ -86,10 +79,8 @@ task generateAntlr4 {
       javaexec {
         classpath configurations.antlr4
         main = 'org.antlr.v4.Tool'
-        args = ["-o", grammarDestDir,
-        "-package", packageName,
-        "-visitor", // ggf. Konfig auch für Listener (suche Listener)
-        "${file.canonicalPath}"]
+        args = ["-o", grammarDestDir, "-package", packageName, "-visitor", // ggf. Konfig auch für Listener (suche Listener)
+          "${file.canonicalPath}"]
       }
     }
   }
@@ -103,8 +94,8 @@ eclipseClasspath.dependsOn generateAntlr4
 jar {
   manifest {
     attributes(
-      'Main-Class':   'de.adrodoc55.minecraft.mpl.Main'
-      )
+        'Main-Class':   'de.adrodoc55.minecraft.mpl.Main'
+        )
   }
 }
 
@@ -135,26 +126,20 @@ task eclipseFactorypath {
   factorypath.text = writer.toString()
 }
 
-task cleanEclipseFactorpath(type: Delete) {
-  delete eclipseFactorypath.factorypath
-}
+task cleanEclipseFactorpath(type: Delete) { delete eclipseFactorypath.factorypath }
 
 task eclipseApt {
   File eclipseSettings = file('.settings')
   eclipseSettings.mkdirs()
   ext.jdtAptCorePrefs = new File(eclipseSettings, 'org.eclipse.jdt.apt.core.prefs')
-} << {
-  jdtAptCorePrefs.text = """\
+} << { jdtAptCorePrefs.text = """\
 eclipse.preferences.version=1
 org.eclipse.jdt.apt.aptEnabled=true
 org.eclipse.jdt.apt.genSrcDir=.apt_generated
 org.eclipse.jdt.apt.reconcileEnabled=true
-"""
-}
+""" }
 
-task cleanEclipseApt(type: Delete) {
-  delete eclipseApt.jdtAptCorePrefs
-}
+task cleanEclipseApt(type: Delete) { delete eclipseApt.jdtAptCorePrefs }
 
 tasks.cleanEclipse.dependsOn cleanEclipseFactorypath
 tasks.cleanEclipse.dependsOn cleanEclipseApt

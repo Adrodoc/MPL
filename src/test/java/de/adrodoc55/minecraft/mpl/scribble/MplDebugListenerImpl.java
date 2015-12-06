@@ -1,24 +1,23 @@
-package de.adrodoc55.scribble;
+package de.adrodoc55.minecraft.mpl.scribble;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import de.adrodoc55.antlr.mpl.MplListener;
-import de.adrodoc55.antlr.mpl.MplParser;
-import de.adrodoc55.antlr.mpl.MplParser.AutoContext;
-import de.adrodoc55.antlr.mpl.MplParser.CommandContext;
-import de.adrodoc55.antlr.mpl.MplParser.CommandDeclarationContext;
-import de.adrodoc55.antlr.mpl.MplParser.ConditionalContext;
-import de.adrodoc55.antlr.mpl.MplParser.CoordinateContext;
-import de.adrodoc55.antlr.mpl.MplParser.IncludeAtContext;
-import de.adrodoc55.antlr.mpl.MplParser.IncludeDeclarationContext;
-import de.adrodoc55.antlr.mpl.MplParser.IncludeMaxContext;
-import de.adrodoc55.antlr.mpl.MplParser.LineContext;
-import de.adrodoc55.antlr.mpl.MplParser.ModifierListContext;
-import de.adrodoc55.antlr.mpl.MplParser.ModusContext;
-import de.adrodoc55.antlr.mpl.MplParser.ProgramContext;
-import de.adrodoc55.antlr.mpl.MplParser.SkipDeclarationContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplListener;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.AutoContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandDeclarationContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.ConditionalContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.CoordinateContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeAtContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeDeclarationContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeMaxContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.LineContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModifierListContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModusContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProgramContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.SkipDeclarationContext;
 
 //public (.+) (.+)\((.+) (.+)\) \{[^\}]*\}
 //public $1 $2($3 $4) {System.out.println("$2(" + $4.getText() + ")");}
@@ -26,7 +25,7 @@ public class MplDebugListenerImpl implements MplListener {
 
     @Override
     public void visitTerminal(TerminalNode node) {
-//        System.out.println("visitTerminal(" + node.getText() + ")");
+        System.out.println("visitTerminal(" + node.getText() + ")");
     }
 
     @Override
@@ -36,32 +35,32 @@ public class MplDebugListenerImpl implements MplListener {
 
     @Override
     public void enterEveryRule(ParserRuleContext ctx) {
-//        System.out.println("enterEveryRule(" + ctx.getText() + ")");
+        System.out.println("enterEveryRule(" + ctx.getText() + ")");
     }
 
     @Override
     public void exitEveryRule(ParserRuleContext ctx) {
-//        System.out.println("exitEveryRule(" + ctx.getText() + ")");
+        System.out.println("exitEveryRule(" + ctx.getText() + ")");
     }
 
     @Override
     public void enterProgram(ProgramContext ctx) {
-//        System.out.println("enterProgram(" + ctx.getText() + ")");
+        System.out.println("enterProgram(" + ctx.getText() + ")");
     }
 
     @Override
     public void exitProgram(ProgramContext ctx) {
-//        System.out.println("exitProgram(" + ctx.getText() + ")");
+        System.out.println("exitProgram(" + ctx.getText() + ")");
     }
 
     @Override
     public void enterLine(LineContext ctx) {
-//        System.out.println("enterLine(" + ctx.getText() + ")");
+        System.out.println("enterLine(" + ctx.getText() + ")");
     }
 
     @Override
     public void exitLine(LineContext ctx) {
-//        System.out.println("exitLine(" + ctx.getText() + ")");
+        System.out.println("exitLine(" + ctx.getText() + ")");
     }
 
     @Override

@@ -58,7 +58,7 @@ modifierList
   (
     modus
     (
-      ',' CONDITIONAL
+      ',' conditional
     )?
     (
       ',' auto

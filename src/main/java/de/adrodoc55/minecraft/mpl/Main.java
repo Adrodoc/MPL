@@ -9,8 +9,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import de.adrodoc55.antlr.mpl.MplCompiler;
 import de.adrodoc55.minecraft.Coordinate3D;
+import de.adrodoc55.minecraft.mpl.antlr.MplCompiler;
 import de.adrodoc55.minecraft.mpl.chain_computing.ChainComputer;
 import de.adrodoc55.minecraft.mpl.chain_computing.IterativeChainComputer;
 

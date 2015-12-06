@@ -1,12 +1,12 @@
-package de.adrodoc55.scribble;
+package de.adrodoc55.minecraft.mpl.scribble;
 
 import java.io.File;
 import java.io.IOException;
 
-import de.adrodoc55.antlr.mpl.MplCompiler;
 import de.adrodoc55.minecraft.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.CommandChain;
 import de.adrodoc55.minecraft.mpl.Program;
+import de.adrodoc55.minecraft.mpl.antlr.MplCompiler;
 import de.adrodoc55.minecraft.mpl.chain_computing.AStarChainComputer;
 
 public class AStarImplScribbleTest {

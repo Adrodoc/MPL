@@ -1,4 +1,4 @@
-package de.adrodoc55.antlr;
+package de.adrodoc55.minecraft.mpl.antlr;
 
 public class CompilerException extends RuntimeException {
 

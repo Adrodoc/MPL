@@ -1,4 +1,4 @@
-package de.adrodoc55.unused;
+package de.adrodoc55.minecraft.mpl.scribble;
 
 public class Scribble {
 

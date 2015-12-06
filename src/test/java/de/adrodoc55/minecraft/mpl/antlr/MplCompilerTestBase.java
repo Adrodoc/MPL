@@ -1,4 +1,4 @@
-package de.adrodoc55.antlr.mpl;
+package de.adrodoc55.minecraft.mpl.antlr;
 
 import static de.adrodoc55.TestBase.someString;
 

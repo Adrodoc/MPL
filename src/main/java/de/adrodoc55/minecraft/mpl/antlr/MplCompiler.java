@@ -1,4 +1,4 @@
-package de.adrodoc55.antlr.mpl;
+package de.adrodoc55.minecraft.mpl.antlr;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,44 +14,44 @@ import java.util.Set;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import de.adrodoc55.antlr.CompilerException;
-import de.adrodoc55.antlr.GrammarException;
-import de.adrodoc55.antlr.mpl.MplParser.AutoContext;
-import de.adrodoc55.antlr.mpl.MplParser.CommandContext;
-import de.adrodoc55.antlr.mpl.MplParser.CommandDeclarationContext;
-import de.adrodoc55.antlr.mpl.MplParser.ConditionalContext;
-import de.adrodoc55.antlr.mpl.MplParser.IncludeAtContext;
-import de.adrodoc55.antlr.mpl.MplParser.IncludeDeclarationContext;
-import de.adrodoc55.antlr.mpl.MplParser.IncludeMaxContext;
-import de.adrodoc55.antlr.mpl.MplParser.ModusContext;
-import de.adrodoc55.antlr.mpl.MplParser.ProgramContext;
-import de.adrodoc55.antlr.mpl.MplParser.SkipDeclarationContext;
 import de.adrodoc55.minecraft.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 import de.adrodoc55.minecraft.mpl.CommandChain;
 import de.adrodoc55.minecraft.mpl.Program;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.AutoContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandDeclarationContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.ConditionalContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeAtContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeDeclarationContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeMaxContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModusContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProgramContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.SkipDeclarationContext;
 
 public class MplCompiler extends MplBaseListener {
 
     public static Program compile(File programFile) throws IOException {
+        ProgramContext ctx = interpret(programFile);
+        MplCompiler compiler = new MplCompiler(programFile, new Coordinate3D());
+        new ParseTreeWalker().walk(compiler, ctx);
+        Program program = new Program(compiler.chains);
+        return program;
+    }
+
+    public static ProgramContext interpret(File programFile) throws IOException {
         BufferedReader reader = Files.newBufferedReader(programFile.toPath());
         ANTLRInputStream input = new ANTLRInputStream(reader);
         MplLexer lexer = new MplLexer(input);
         TokenStream tokens = new CommonTokenStream(lexer);
         MplParser parser = new MplParser(tokens);
         ProgramContext context = parser.program();
-        return interpret(programFile, context);
-    }
-
-    private static Program interpret(File programFile, ProgramContext ctx) {
-        MplCompiler compiler = new MplCompiler(programFile, new Coordinate3D());
-        new ParseTreeWalker().walk(compiler, ctx);
-        Program program = new Program(compiler.chains);
-        return program;
+        return context;
     }
 
     private final File programFile;
@@ -72,6 +72,11 @@ public class MplCompiler extends MplBaseListener {
     private Map<Coordinate3D, CommandChain> chains = new HashMap<Coordinate3D, CommandChain>();
 
     private LinkedList<Command> commands;
+
+    @Override
+    public void visitErrorNode(ErrorNode node) {
+        throw new GrammarException("Mismatched input: '" + node.getText() + "'");
+    }
 
     @Override
     public void enterProgram(ProgramContext ctx) {

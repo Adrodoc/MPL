@@ -1,4 +1,4 @@
-package de.adrodoc55.scribble;
+package de.adrodoc55.minecraft.mpl.scribble;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,11 +7,11 @@ import java.util.Map.Entry;
 
 import org.antlr.v4.runtime.RecognitionException;
 
-import de.adrodoc55.antlr.mpl.MplCompiler;
 import de.adrodoc55.minecraft.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.CommandChain;
 import de.adrodoc55.minecraft.mpl.Program;
+import de.adrodoc55.minecraft.mpl.antlr.MplCompiler;
 
 public class AntlrTest {
     public static void main(String[] args) throws RecognitionException,
