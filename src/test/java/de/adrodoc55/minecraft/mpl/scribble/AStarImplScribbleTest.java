@@ -3,7 +3,6 @@ package de.adrodoc55.minecraft.mpl.scribble;
 import java.io.File;
 import java.io.IOException;
 
-import de.adrodoc55.minecraft.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.CommandChain;
 import de.adrodoc55.minecraft.mpl.Program;
 import de.adrodoc55.minecraft.mpl.antlr.MplCompiler;
@@ -23,9 +22,8 @@ public class AStarImplScribbleTest {
         File createPortal = new File(
                 "C:/Users/adrian/Programme/workspace/ApertureCraftVanilla/src/main/minecraft/ACV_createPortal.txt");
         Program program = MplCompiler.compile(createPortal);
-        CommandChain commandChain = program.getChains().get(new Coordinate3D());
-        new AStarChainComputer().computeOptimalChain(new Coordinate3D(),
-                commandChain);
+        CommandChain commandChain = program.getChains().get(0);
+        new AStarChainComputer().computeOptimalChain(commandChain);
     }
 
 }

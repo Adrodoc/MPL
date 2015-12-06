@@ -48,7 +48,7 @@ public abstract class ChainComputerTest {
         CommandChain input = new CommandChain(name, commands);
 
         // When:
-        CommandBlockChain optimal = underTest.computeOptimalChain(new Coordinate3D(), input);
+        CommandBlockChain optimal = underTest.computeOptimalChain(input);
         // Then:
         List<CommandBlock> blocks = optimal.getCommandBlocks();
         List<Command> actual = Lists.transform(blocks, block -> {
@@ -73,12 +73,13 @@ public abstract class ChainComputerTest {
 
         // When:
         try {
-            underTest.computeOptimalChain(new Coordinate3D(), input);
+            underTest.computeOptimalChain(input);
             fail("No Exception thrown.");
         } catch (Exception ex) {
             // Then:
             assertThat(ex).isExactlyInstanceOf(IllegalStateException.class);
-            assertThat(ex.getMessage()).isEqualTo("The first Command can't be conditional!");
+            assertThat(ex.getMessage()).isEqualTo(
+                    "The first Command can't be conditional!");
         }
 
     }
@@ -95,7 +96,7 @@ public abstract class ChainComputerTest {
         CommandChain input = new CommandChain(name, commands);
 
         // When:
-        CommandBlockChain optimal = underTest.computeOptimalChain(new Coordinate3D(), input);
+        CommandBlockChain optimal = underTest.computeOptimalChain(input);
         // Then:
         // 2 ^ 3 Würfel
         assertThat(optimal.getMin()).isEqualTo(new Coordinate3D(0, 0, 0));
@@ -124,7 +125,7 @@ public abstract class ChainComputerTest {
         ExecutorService executor = Executors.newCachedThreadPool();
         Callable<CommandBlockChain> task = new Callable<CommandBlockChain>() {
             public CommandBlockChain call() {
-                return underTest.computeOptimalChain(new Coordinate3D(), input);
+                return underTest.computeOptimalChain(input);
             }
         };
         Future<CommandBlockChain> future = executor.submit(task);
@@ -166,7 +167,7 @@ public abstract class ChainComputerTest {
         CommandChain input = new CommandChain(name, commands);
 
         // When:
-        CommandBlockChain optimal = underTest.computeOptimalChain(new Coordinate3D(), input);
+        CommandBlockChain optimal = underTest.computeOptimalChain(input);
         // Then:
         // 7er Kette Würfel
         assertThat(optimal.getMin()).isEqualTo(new Coordinate3D(0, 0, 0));
@@ -193,23 +194,30 @@ public abstract class ChainComputerTest {
         CommandChain input = new CommandChain(name, commands);
 
         // When:
-        CommandBlockChain optimal = underTest.computeOptimalChain(new Coordinate3D(), input);
+        CommandBlockChain optimal = underTest.computeOptimalChain(input);
         // Then:
         List<CommandBlock> commandBlocks = optimal.getCommandBlocks();
         for (int a = 0; a < commandBlocks.size(); a++) {
             CommandBlock commandBlock = commandBlocks.get(a);
             if (commandBlock.isConditional()) {
                 Coordinate3D currentCoordinate = commandBlock.getCoordinate();
-                Coordinate3D relativeCoordinate = commandBlock.getDirection().toCoordinate();
+                Coordinate3D relativeCoordinate = commandBlock.getDirection()
+                        .toCoordinate();
 
-                Coordinate3D expectedPreviousCoordinate = currentCoordinate.minus(relativeCoordinate);
-                Coordinate3D actualPreviousCoordinate = commandBlocks.get(a - 1).getCoordinate();
-                assertThat(actualPreviousCoordinate).isEqualTo(expectedPreviousCoordinate);
+                Coordinate3D expectedPreviousCoordinate = currentCoordinate
+                        .minus(relativeCoordinate);
+                Coordinate3D actualPreviousCoordinate = commandBlocks
+                        .get(a - 1).getCoordinate();
+                assertThat(actualPreviousCoordinate).isEqualTo(
+                        expectedPreviousCoordinate);
 
                 if (a + 1 < commandBlocks.size()) {
-                    Coordinate3D expectedNextCoordinate = currentCoordinate.plus(relativeCoordinate);
-                    Coordinate3D actualNextCoordinate = commandBlocks.get(a + 1).getCoordinate();
-                    assertThat(actualNextCoordinate).isEqualTo(expectedNextCoordinate);
+                    Coordinate3D expectedNextCoordinate = currentCoordinate
+                            .plus(relativeCoordinate);
+                    Coordinate3D actualNextCoordinate = commandBlocks
+                            .get(a + 1).getCoordinate();
+                    assertThat(actualNextCoordinate).isEqualTo(
+                            expectedNextCoordinate);
                 }
             }
         }

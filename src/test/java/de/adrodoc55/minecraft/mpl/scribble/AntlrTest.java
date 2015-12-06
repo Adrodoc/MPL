@@ -2,12 +2,10 @@ package de.adrodoc55.minecraft.mpl.scribble;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.List;
 
 import org.antlr.v4.runtime.RecognitionException;
 
-import de.adrodoc55.minecraft.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.CommandChain;
 import de.adrodoc55.minecraft.mpl.Program;
@@ -35,14 +33,13 @@ public class AntlrTest {
         // walker.walk(mplDebugListenerImpl, program);
 
         Program compiled = MplCompiler.compile(file);
-        Map<Coordinate3D, CommandChain> chains = compiled.getChains();
-        for (Entry<Coordinate3D, CommandChain> entry : chains.entrySet()) {
+        List<CommandChain> chains = compiled.getChains();
+        for (CommandChain chain : chains) {
             System.out
                     .println("--------------------------------------------------");
-            System.out.println("At: " + entry.getKey());
-            CommandChain value = entry.getValue();
-            System.out.println("Name: " + value.getName());
-            for (Command command : value.getCommands()) {
+            System.out.println("At: " + chain.getMin());
+            System.out.println("Name: " + chain.getName());
+            for (Command command : chain.getCommands()) {
                 System.out.println(command);
             }
         }

@@ -1,16 +1,14 @@
 package de.adrodoc55.minecraft.mpl;
 
-import java.util.Map;
-
-import de.adrodoc55.minecraft.Coordinate3D;
+import java.util.List;
 
 public class Program {
     // private static final Pattern includePattern = Pattern
     // .compile("^include\\s*\\(\\s*\"(.*)\"\\s*,\\s*at\\(\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*\\)\\s*\\)$");
 
-    private final Map<Coordinate3D, CommandChain> chains;
+    private final List<CommandChain> chains;
 
-    public Program(Map<Coordinate3D, CommandChain> chains) {
+    public Program(List<CommandChain> chains) {
         this.chains = chains;
     }
 
@@ -18,7 +16,7 @@ public class Program {
     // chains = readProgramFile(programFile);
     // }
 
-    public Map<Coordinate3D, CommandChain> getChains() {
+    public List<CommandChain> getChains() {
         return chains;
     }
 

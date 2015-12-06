@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,127 +15,42 @@ import de.adrodoc55.minecraft.mpl.chain_computing.IterativeChainComputer;
 
 public class Main {
 
+    private static final String INDENT = "    ";
+
     public static void main(String[] args) throws IOException {
         if (args.length != 2) {
             throw new IllegalArgumentException(
-                    "Expected two Arguments: imputFile, outputDir");
+                    "Expected exactly two Arguments: imputFile, outputDir");
         }
         File inputFile = new File(args[0]);
-        if (!inputFile.canRead()) {
-            throw new IOException("Can't read inputFile: " + inputFile);
-        }
-
         File outputDir = new File(args[1]);
-
-        // File inputFile = new File(
-        // "C:/Users/adrian/Programme/workspace/ApertureCraftVanilla/src/main/minecraft/ACV_online.txt");
-        // File outputDir = new
-        // File("C:/Users/adrian/Programme/workspace/ApertureCraftVanilla/build");
-
-        // File inputDir = new
-        // File("C:/Users/adrian/Programme/workspace/ApertureCraftVanilla/src/main/minecraft/methods");
-        // File outputDir = new
-        // File("C:/Users/adrian/Minecraft/MCEdit.v1.4.0.1.Win.64bit/stock-filters");
-
-        // File[] inputFiles = inputDir.listFiles();
-        // File[] inputFiles = { new File(inputDir,
-        // "ACV_createPortalFailed.txt") };
-        // for (File inputFile : inputFiles) {
-        // File inputFile = new File(inputDir,
-        // "ACV_validateDirections.txt");
         File outputFile = new File(outputDir, inputFile.getName() + ".py");
+        main(inputFile, outputFile);
+    }
+
+    private static void main(File inputFile, File outputFile)
+            throws IOException {
+        StringBuilder python = new StringBuilder(getPythonHeader(inputFile));
 
         Program program = MplCompiler.compile(inputFile);
-
-        StringBuilder python = new StringBuilder(
-                "from pymclevel.entity import TileEntity\n"
-                        + "from pymclevel.nbt import TAG_String\n"
-                        + "from pymclevel.nbt import TAG_Byte\n" + "\n"
-                        + "displayName = 'Generate "
-                        + inputFile.getName()
-                        + "'\n"
-                        + "\n"
-                        + "def create_command_block(level, xyz, command, direction='south', mode='chain', conditional=False, auto=True):\n"
-                        + "    x, y, z = xyz\n"
-                        + "    		\n"
-                        + "    idDict = {'impulse' : 137, 'chain' : 211, 'repeat' : 210}\n"
-                        + "    blockId = idDict[mode]\n"
-                        + "    level.setBlockAt(x, y, z, blockId)\n"
-                        + "    \n"
-                        + "    damageList = ['down', 'up', 'north', 'south', 'west', 'east']\n"
-                        + "    damage = damageList.index(direction)\n"
-                        + "    if conditional:\n"
-                        + "        damage += 8\n"
-                        + "\n"
-                        + "    level.setBlockDataAt(x, y, z, damage)\n"
-                        + "    control = TileEntity.Create('Control', xyz)\n"
-                        + "    control['Command'] = TAG_String(command)\n"
-                        + "    control['auto'] = TAG_Byte(auto)\n"
-                        + "    level.addTileEntity(control)\n"
-                        + "\n"
-                        + "def perform(level, box, options):\n");
-        String indent = "    ";
-
-        for (Map.Entry<Coordinate3D, CommandChain> entry : program.getChains()
-                .entrySet()) {
-            Coordinate3D start = entry.getKey();
-            CommandChain commandChain = entry.getValue();
-
-            // JFrame frame = new JFrame(chain.getName());
-            // ChainRenderer renderer = new ChainRenderer(commands);
-            // frame.getContentPane().add(renderer, BorderLayout.CENTER);
-            // ChainRenderer optimalRenderer = new ChainRenderer(commands);
-            // frame.getContentPane().add(optimalRenderer, BorderLayout.EAST);
-            // frame.pack();
-            // frame.setLocationRelativeTo(null);
-            // frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            // frame.setVisible(true);
-
-            // ChainCalculator calculator = new ChainCalculator(renderer,
-            // optimalRenderer);
-            // boolean containsConditional = false;
-            // for (Command command : commandChain.getCommands()) {
-            // if (command != null && command.isConditional()) {
-            // containsConditional = true;
-            // break;
-            // }
-            // }
-            ChainComputer calculator;
-            // if (containsConditional) {
-            calculator = new IterativeChainComputer();
-            // } else {
-            // calculator = new NoConditionalChainCalculator(false, true, true);
-            // }
-            CommandBlockChain optimal = calculator.computeOptimalChain(start,
-                    commandChain);
+        for (CommandChain chain : program.getChains()) {
+            ChainComputer calculator = new IterativeChainComputer();
+            CommandBlockChain optimal = calculator.computeOptimalChain(chain);
             List<CommandBlock> commandBlocks = optimal.getCommandBlocks();
-
-            // ChainCalculator calculator = new ChainCalculator(commands,
-            // renderer,
-            // optimalRenderer);
-
-            // optimalRenderer.render(optimal);
 
             insertRelativeCoordinates(commandBlocks);
             for (CommandBlock current : commandBlocks) {
-                python.append(indent + current.toPython() + "\n");
+                python.append(INDENT + current.toPython() + "\n");
             }
         }
 
         outputFile.delete();
-        try {
-            outputFile.getParentFile().mkdirs();
-            outputFile.createNewFile();
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
+        outputFile.getParentFile().mkdirs();
+        outputFile.createNewFile();
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(
                 outputFile));) {
             writer.write(python.toString());
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
         }
-        // }
     }
 
     private static void insertRelativeCoordinates(
@@ -166,6 +80,36 @@ public class Main {
             }
 
         }
+    }
+
+    private static String getPythonHeader(File inputFile) {
+        String pythonHeader = "from pymclevel.entity import TileEntity\n"
+                + "from pymclevel.nbt import TAG_String\n"
+                + "from pymclevel.nbt import TAG_Byte\n" + "\n"
+                + "displayName = 'Generate "
+                + inputFile.getName()
+                + "'\n"
+                + "\n"
+                + "def create_command_block(level, xyz, command, direction='south', mode='chain', conditional=False, auto=True):\n"
+                + "    x, y, z = xyz\n"
+                + "    		\n"
+                + "    idDict = {'impulse' : 137, 'chain' : 211, 'repeat' : 210}\n"
+                + "    blockId = idDict[mode]\n"
+                + "    level.setBlockAt(x, y, z, blockId)\n"
+                + "    \n"
+                + "    damageList = ['down', 'up', 'north', 'south', 'west', 'east']\n"
+                + "    damage = damageList.index(direction)\n"
+                + "    if conditional:\n"
+                + "        damage += 8\n"
+                + "\n"
+                + "    level.setBlockDataAt(x, y, z, damage)\n"
+                + "    control = TileEntity.Create('Control', xyz)\n"
+                + "    control['Command'] = TAG_String(command)\n"
+                + "    control['auto'] = TAG_Byte(auto)\n"
+                + "    level.addTileEntity(control)\n"
+                + "\n"
+                + "def perform(level, box, options):\n";
+        return pythonHeader;
     }
 
 }

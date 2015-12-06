@@ -4,12 +4,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -38,7 +35,7 @@ public class MplCompiler extends MplBaseListener {
 
     public static Program compile(File programFile) throws IOException {
         ProgramContext ctx = interpret(programFile);
-        MplCompiler compiler = new MplCompiler(programFile, new Coordinate3D());
+        MplCompiler compiler = new MplCompiler(programFile);
         new ParseTreeWalker().walk(compiler, ctx);
         Program program = new Program(compiler.chains);
         return program;
@@ -55,11 +52,9 @@ public class MplCompiler extends MplBaseListener {
     }
 
     private final File programFile;
-    private final Coordinate3D start;
 
-    public MplCompiler(File programFile, Coordinate3D start) {
+    public MplCompiler(File programFile) {
         this.programFile = programFile;
-        this.start = start;
     }
 
     private String getName() {
@@ -69,7 +64,7 @@ public class MplCompiler extends MplBaseListener {
         return name;
     }
 
-    private Map<Coordinate3D, CommandChain> chains = new HashMap<Coordinate3D, CommandChain>();
+    private List<CommandChain> chains = new ArrayList<CommandChain>();
 
     private LinkedList<Command> commands;
 
@@ -86,7 +81,7 @@ public class MplCompiler extends MplBaseListener {
     @Override
     public void exitProgram(ProgramContext ctx) {
         CommandChain chain = new CommandChain(this.getName(), this.commands);
-        this.chains.put(start, chain);
+        this.chains.add(chain);
         this.commands = null;
     }
 
@@ -179,9 +174,8 @@ public class MplCompiler extends MplBaseListener {
     public void exitIncludeDeclaration(IncludeDeclarationContext ctx) {
         String includeName = MplLexerUtils.getContainedString(ctx.STRING());
         this.includeBuffer.setIncludeName(includeName);
-        Map<Coordinate3D, CommandChain> includeChains = this.includeBuffer
-                .toInclude();
-        this.chains.putAll(includeChains);
+        List<CommandChain> includeChains = this.includeBuffer.toInclude();
+        this.chains.addAll(includeChains);
         this.includeBuffer = null;
     }
 
@@ -216,9 +210,9 @@ public class MplCompiler extends MplBaseListener {
     private class IncludeBuffer {
         private String includeName;
         private Coordinate3D at;
-        private Coordinate3D max; // TODO: include max() implementieren
+        private Coordinate3D max;
 
-        public Map<Coordinate3D, CommandChain> toInclude() {
+        public List<CommandChain> toInclude() {
             File includeFile = new File(
                     MplCompiler.this.programFile.getParentFile(),
                     this.includeName);
@@ -229,17 +223,16 @@ public class MplCompiler extends MplBaseListener {
                 throw new CompilerException("Couldn't include '"
                         + this.includeName + "'", ex);
             }
-            Map<Coordinate3D, CommandChain> includeChains = new HashMap<Coordinate3D, CommandChain>();
-            Set<Entry<Coordinate3D, CommandChain>> entrySet = include
-                    .getChains().entrySet();
-            for (Entry<Coordinate3D, CommandChain> entry : entrySet) {
+            List<CommandChain> includeChains = include.getChains();
+            for (CommandChain chain : includeChains) {
                 Coordinate3D at = this.at;
                 if (at == null) {
                     at = new Coordinate3D();
                 }
-                Coordinate3D chainStart = at.plus(entry.getKey());
-                CommandChain chain = entry.getValue();
-                includeChains.put(chainStart, chain);
+                chain.setMin(at.plus(chain.getMin()));
+                if (this.max != null) {
+                    chain.setMax(at.plus(this.max)); // TODO: max für includes in includes richten
+                }
             }
             return includeChains;
         }

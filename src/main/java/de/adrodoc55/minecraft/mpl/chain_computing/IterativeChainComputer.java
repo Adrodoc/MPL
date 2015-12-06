@@ -60,18 +60,10 @@ public class IterativeChainComputer implements ChainComputer {
     // + millis);
     // }
 
-    private Coordinate3D start;
-    private final Coordinate3D max;
+    private Coordinate3D min;
+    private Coordinate3D max;
     private ChainRenderer renderer;
     private ChainRenderer optimalRenderer;
-
-    public IterativeChainComputer() {
-        this(new Coordinate3D(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE));
-    }
-
-    public IterativeChainComputer(Coordinate3D max) {
-        this.max = max;
-    }
 
     private int optimalScore;
     private List<Command> commands;
@@ -82,13 +74,15 @@ public class IterativeChainComputer implements ChainComputer {
 
     private static final int MAX_TRIES = 1000000;
 
-    public CommandBlockChain computeOptimalChain(Coordinate3D start, CommandChain input) {
-        this.start = start;
+    public CommandBlockChain computeOptimalChain(CommandChain chain) {
+        this.min = chain.getMin();
+        this.max = chain.getMax();
         optimalScore = Integer.MAX_VALUE;
-        this.commands = input.getCommands();
+        this.commands = chain.getCommands();
+        @SuppressWarnings("unchecked")
         List<Coordinate3D>[] todos = new List[commands.size() + 1];
         path = new ArrayList<Coordinate3D>(commands.size() + 1);
-        path.add(start);
+        path.add(min);
         int tries = 0;
         while (!path.isEmpty()) {
             tries++;
@@ -126,7 +120,11 @@ public class IterativeChainComputer implements ChainComputer {
                 continue;
             }
         }
-        CommandBlockChain output = toCommandBlockChain(input, optimal);
+        if (optimal.isEmpty()) {
+            throw new IllegalStateException("Couldn't find a Solution for '"
+                    + chain.getName() + "' within " + MAX_TRIES + " tries!");
+        }
+        CommandBlockChain output = toCommandBlockChain(chain, optimal);
         return output;
     }
 
@@ -135,20 +133,25 @@ public class IterativeChainComputer implements ChainComputer {
         currentCommand = commands.get(i);
         if (currentCommand != null && currentCommand.isConditional()) {
             if (path.size() < 2) {
-                throw new IllegalStateException("The first Command can't be conditional!");
+                throw new IllegalStateException(
+                        "The first Command can't be conditional!");
             }
             Coordinate3D previousCoordinate = path.get(i - 1);
-            Direction direction = Direction.valueOf(currentCoordinate.minus(previousCoordinate));
+            Direction direction = Direction.valueOf(currentCoordinate
+                    .minus(previousCoordinate));
             directions = new Direction[] { direction };
         } else {
             directions = Direction.values();
         }
-        List<Coordinate3D> coords = getAdjacentCoordinates(currentCoordinate, directions);
+        List<Coordinate3D> coords = getAdjacentCoordinates(currentCoordinate,
+                directions);
         return coords;
     }
 
-    private static List<Coordinate3D> getAdjacentCoordinates(Coordinate3D coordinate, Direction[] directions) {
-        List<Coordinate3D> coords = new ArrayList<Coordinate3D>(directions.length);
+    private static List<Coordinate3D> getAdjacentCoordinates(
+            Coordinate3D coordinate, Direction[] directions) {
+        List<Coordinate3D> coords = new ArrayList<Coordinate3D>(
+                directions.length);
         for (Direction direction : directions) {
             coords.add(coordinate.plus(direction.toCoordinate()));
         }
@@ -166,7 +169,8 @@ public class IterativeChainComputer implements ChainComputer {
         while (!todos.isEmpty()) {
             Coordinate3D coordinate = todos.get(0);
             todos.remove(0);
-            List<Coordinate3D> adjacentCoordinates = getAdjacentCoordinates(coordinate, Direction.values());
+            List<Coordinate3D> adjacentCoordinates = getAdjacentCoordinates(
+                    coordinate, Direction.values());
             for (Coordinate3D a : adjacentCoordinates) {
                 if (isCoordinateValid(a) && !validCoordinates.contains(a)) {
                     validCoordinates.add(a);
@@ -186,8 +190,8 @@ public class IterativeChainComputer implements ChainComputer {
         int x = coordinate.getX();
         int y = coordinate.getY();
         int z = coordinate.getZ();
-        if (x < start.getX() || y < start.getY() || z < start.getZ() || x > max.getX() || y > max.getY()
-                || z > max.getZ()) {
+        if (x < min.getX() || y < min.getY() || z < min.getZ()
+                || x > max.getX() || y > max.getY() || z > max.getZ()) {
             return false;
         }
 
@@ -255,9 +259,9 @@ public class IterativeChainComputer implements ChainComputer {
     }
 
     private int getMaxLength(Iterable<Coordinate3D> coordinates) {
-        int minX = start.getX();
-        int minY = start.getY();
-        int minZ = start.getZ();
+        int minX = min.getX();
+        int minY = min.getY();
+        int minZ = min.getZ();
         int maxX = 0;
         int maxY = 0;
         int maxZ = 0;

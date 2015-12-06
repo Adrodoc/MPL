@@ -3,13 +3,12 @@ package de.adrodoc55.minecraft.mpl.antlr;
 import static de.adrodoc55.TestBase.someString
 import static org.assertj.core.api.Assertions.assertThat
 
-import java.util.Map.Entry
-
 import org.junit.Test
 
 import spock.lang.Unroll
 import de.adrodoc55.minecraft.Coordinate3D
 import de.adrodoc55.minecraft.mpl.Command
+import de.adrodoc55.minecraft.mpl.CommandChain
 import de.adrodoc55.minecraft.mpl.Program
 import de.adrodoc55.minecraft.mpl.Command.Mode
 
@@ -23,13 +22,14 @@ public class MplCompilerSpec extends MplCompilerSpecBase {
     when:
     Program program = compile(programString);
     then:
-    Map chains = program.getChains();
+    List chains = program.getChains();
     chains.size() == 1
 
-    Entry entry = chains.entrySet().first()
-    entry.key == new Coordinate3D()
+    CommandChain chain = chains.first()
+    chain.min == new Coordinate3D()
+    chain.max == new Coordinate3D(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE)
 
-    List<Command> commands = entry.value.commands
+    List<Command> commands = chain.commands
     commands.size() == 1
 
     Command command = commands.first()
