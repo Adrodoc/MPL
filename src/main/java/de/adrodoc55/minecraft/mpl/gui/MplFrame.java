@@ -2,10 +2,13 @@ package de.adrodoc55.minecraft.mpl.gui;
 
 import java.awt.BorderLayout;
 import java.awt.TextArea;
+import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -20,11 +23,16 @@ import javax.swing.UnsupportedLookAndFeelException;
 public class MplFrame extends JFrame {
 
     private static final long serialVersionUID = 1L;
+    private JFileChooser chooser;
     private JMenuBar menuBar;
-    private JToolBar toolBar;
-    private JTabbedPane tabbedPane;
     private JMenu fileMenu;
     private JMenuItem openMenuItem;
+    private JToolBar toolBar;
+    private JButton newButton;
+    private JButton openButton;
+    private JButton saveButton;
+    private JButton compileButton;
+    private JTabbedPane tabbedPane;
 
     public static void main(String[] args) {
         try {
@@ -37,7 +45,54 @@ public class MplFrame extends JFrame {
         frame.setVisible(true);
     }
 
+    private JFileChooser getOpenFileChooser() {
+        if (chooser == null) {
+            chooser = new JFileChooser();
+        }
+        return chooser;
+    }
+
+    private void newFile() {
+        TextArea textArea = new TextArea();
+        getTabbedPane().addTab("new.txt", textArea);
+        getTabbedPane().setSelectedComponent(textArea);
+    }
+
+    private void openFile() {
+        JFileChooser chooser = getOpenFileChooser();
+        int userAction = chooser.showOpenDialog(MplFrame.this);
+        if (userAction == JFileChooser.APPROVE_OPTION) {
+            File file = chooser.getSelectedFile();
+            if (file.exists()) {
+                try {
+                    byte[] bytes;
+                    bytes = Files.readAllBytes(file.toPath());
+                    String fileContent = new String(bytes);
+
+                    TextArea textArea = new TextArea();
+                    textArea.setText(fileContent);
+                    getTabbedPane().addTab(file.getName(), textArea);
+                    getTabbedPane().setSelectedComponent(textArea);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(
+                            chooser,
+                            "An Exception occured while trying to read '"
+                                    + file.getPath() + "'. Exception: "
+                                    + ex.getMessage(), "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(chooser,
+                        "The File '" + file.getPath() + "' couldn't be found!",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
     public MplFrame() {
+        super("Minecraft Programming Language");
+        setIconImage(Toolkit.getDefaultToolkit().getImage(
+                MplFrame.class.getResource("/icons/commandblock_icon.png")));
         init();
         pack();
         setLocationRelativeTo(null);
@@ -69,51 +124,63 @@ public class MplFrame extends JFrame {
         if (openMenuItem == null) {
             openMenuItem = new JMenuItem("Open");
             openMenuItem.addActionListener(e -> {
-                JFileChooser chooser = getOpenFileChooser();
-                int userAction = chooser.showOpenDialog(MplFrame.this);
-                if (userAction == JFileChooser.APPROVE_OPTION) {
-                    File file = chooser.getSelectedFile();
-                    if (file.exists()) {
-                        try {
-                            byte[] bytes;
-                            bytes = Files.readAllBytes(file.toPath());
-                            String fileContent = new String(bytes);
-
-                            TextArea textArea = new TextArea();
-                            textArea.setText(fileContent);
-                            getTabbedPane().addTab(file.getName(), textArea);
-                        } catch (IOException ex) {
-                            JOptionPane.showMessageDialog(chooser,
-                                    "An Exception occured while trying to read '"
-                                            + file.getPath() + "'. Exception: "
-                                            + ex.getMessage(), "Error",
-                                    JOptionPane.ERROR_MESSAGE);
-                        }
-                    } else {
-                        JOptionPane.showMessageDialog(chooser, "The File '"
-                                + file.getPath() + "' couldn't be found!",
-                                "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                }
+                openFile();
             });
         }
         return openMenuItem;
     }
 
-    JFileChooser chooser;
-
-    private JFileChooser getOpenFileChooser() {
-        if (chooser == null) {
-            chooser = new JFileChooser();
-        }
-        return chooser;
-    }
-
     private JToolBar getToolBar() {
         if (toolBar == null) {
             toolBar = new JToolBar();
+            toolBar.add(getNewButton());
+            toolBar.add(getOpenButton());
+            toolBar.add(getSaveButton());
+            toolBar.add(getCompileButton());
         }
         return toolBar;
+    }
+
+    private JButton getNewButton() {
+        if (newButton == null) {
+            newButton = new JButton();
+            newButton.setIcon(new ImageIcon(MplFrame.class
+                    .getResource("/icons/new_file_icon_16.png")));
+            newButton.addActionListener(e -> {
+                newFile();
+            });
+        }
+        return newButton;
+    }
+
+    private JButton getOpenButton() {
+        if (openButton == null) {
+            openButton = new JButton();
+            openButton.setIcon(new ImageIcon(MplFrame.class
+                    .getResource("/icons/folder_icon_16.png")));
+            openButton.addActionListener(e -> {
+                openFile();
+            });
+        }
+        return openButton;
+    }
+
+    private JButton getSaveButton() {
+        if (saveButton == null) {
+            saveButton = new JButton();
+            saveButton.setIcon(new ImageIcon(MplFrame.class
+                    .getResource("/icons/disk_icon_16.png")));
+        }
+        return saveButton;
+    }
+
+    private JButton getCompileButton() {
+        if (compileButton == null) {
+            compileButton = new JButton();
+            compileButton.setIcon(new ImageIcon(MplFrame.class
+                    .getResource("/icons/gear_run_16.png")));
+        }
+        return compileButton;
     }
 
     private JTabbedPane getTabbedPane() {
@@ -122,4 +189,5 @@ public class MplFrame extends JFrame {
         }
         return tabbedPane;
     }
+
 }
