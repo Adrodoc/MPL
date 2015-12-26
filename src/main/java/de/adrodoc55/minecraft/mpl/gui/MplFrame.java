@@ -1,11 +1,9 @@
 package de.adrodoc55.minecraft.mpl.gui;
 
 import java.awt.BorderLayout;
-import java.awt.TextArea;
 import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -37,8 +35,8 @@ public class MplFrame extends JFrame {
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException | InstantiationException
-                | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+                | UnsupportedLookAndFeelException ex) {
             ex.printStackTrace();
         }
         MplFrame frame = new MplFrame();
@@ -53,9 +51,9 @@ public class MplFrame extends JFrame {
     }
 
     private void newFile() {
-        TextArea textArea = new TextArea();
-        getTabbedPane().addTab("new.txt", textArea);
-        getTabbedPane().setSelectedComponent(textArea);
+        MplEditor editor = new MplEditor();
+        getTabbedPane().addTab("new.txt", editor);
+        getTabbedPane().setSelectedComponent(editor);
     }
 
     private void openFile() {
@@ -65,37 +63,35 @@ public class MplFrame extends JFrame {
             File file = chooser.getSelectedFile();
             if (file.exists()) {
                 try {
-                    byte[] bytes;
-                    bytes = Files.readAllBytes(file.toPath());
-                    String fileContent = new String(bytes);
-
-                    TextArea textArea = new TextArea();
-                    textArea.setText(fileContent);
-                    getTabbedPane().addTab(file.getName(), textArea);
-                    getTabbedPane().setSelectedComponent(textArea);
+                    MplEditor editor = new MplEditor(file);
+                    getTabbedPane().addTab(file.getName(), editor);
+                    getTabbedPane().setSelectedComponent(editor);
+                    // byte[] bytes;
+                    // bytes = Files.readAllBytes(file.toPath());
+                    // String fileContent = new String(bytes);
+                    //
+                    // JTextArea textArea = new JTextArea();
+                    // textArea.setText(fileContent);
+                    // getTabbedPane().addTab(file.getName(), textArea);
+                    // getTabbedPane().setSelectedComponent(textArea);
                 } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(
-                            chooser,
-                            "An Exception occured while trying to read '"
-                                    + file.getPath() + "'. Exception: "
-                                    + ex.getMessage(), "Error",
-                            JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(chooser, "An Exception occured while trying to read '"
+                            + file.getPath() + "'. Exception: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
-                JOptionPane.showMessageDialog(chooser,
-                        "The File '" + file.getPath() + "' couldn't be found!",
-                        "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(chooser, "The File '" + file.getPath() + "' couldn't be found!", "Error",
+                        JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
     public MplFrame() {
         super("Minecraft Programming Language");
-        setIconImage(Toolkit.getDefaultToolkit().getImage(
-                MplFrame.class.getResource("/icons/commandblock_icon.png")));
+        setIconImage(Toolkit.getDefaultToolkit().getImage(MplFrame.class.getResource("/icons/commandblock_icon.png")));
         init();
-        pack();
+        setSize(1000, 500);
         setLocationRelativeTo(null);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 
     private void init() {
@@ -144,8 +140,7 @@ public class MplFrame extends JFrame {
     private JButton getNewButton() {
         if (newButton == null) {
             newButton = new JButton();
-            newButton.setIcon(new ImageIcon(MplFrame.class
-                    .getResource("/icons/new_file_icon_16.png")));
+            newButton.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/new_file_icon_16.png")));
             newButton.addActionListener(e -> {
                 newFile();
             });
@@ -156,8 +151,7 @@ public class MplFrame extends JFrame {
     private JButton getOpenButton() {
         if (openButton == null) {
             openButton = new JButton();
-            openButton.setIcon(new ImageIcon(MplFrame.class
-                    .getResource("/icons/folder_icon_16.png")));
+            openButton.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/folder_icon_16.png")));
             openButton.addActionListener(e -> {
                 openFile();
             });
@@ -168,8 +162,7 @@ public class MplFrame extends JFrame {
     private JButton getSaveButton() {
         if (saveButton == null) {
             saveButton = new JButton();
-            saveButton.setIcon(new ImageIcon(MplFrame.class
-                    .getResource("/icons/disk_icon_16.png")));
+            saveButton.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/disk_icon_16.png")));
         }
         return saveButton;
     }
@@ -177,8 +170,7 @@ public class MplFrame extends JFrame {
     private JButton getCompileButton() {
         if (compileButton == null) {
             compileButton = new JButton();
-            compileButton.setIcon(new ImageIcon(MplFrame.class
-                    .getResource("/icons/gear_run_16.png")));
+            compileButton.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/gear_run_16.png")));
         }
         return compileButton;
     }
