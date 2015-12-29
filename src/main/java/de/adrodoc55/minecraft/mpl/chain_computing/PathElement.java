@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 import de.adrodoc55.minecraft.Coordinate3D;
-import de.adrodoc55.minecraft.Coordinate3D.Direction;
 import de.adrodoc55.minecraft.mpl.Command;
 
 class PathElement implements Comparable<PathElement> {
@@ -21,7 +21,8 @@ class PathElement implements Comparable<PathElement> {
         this(pos, index, commands, null);
     }
 
-    public PathElement(Coordinate3D pos, int index, List<Command> commands, PathElement previous) {
+    public PathElement(Coordinate3D pos, int index, List<Command> commands,
+            PathElement previous) {
         this.pos = pos;
         this.index = index;
         this.commands = commands;
@@ -68,7 +69,8 @@ class PathElement implements Comparable<PathElement> {
             int x = 1 + maxX - minX;
             int y = 1 + maxY - minY;
             int z = 1 + maxZ - minZ;
-            score = (x * y) + (y * z) + (z * x);
+            score = Math.max(Math.max(x, y), z);
+            // score = (x * y) + (y * z) + (z * x);
         }
         return score;
     }
@@ -95,35 +97,36 @@ class PathElement implements Comparable<PathElement> {
     }
 
     public Iterable<PathElement> getValidContinuations() {
-        Direction[] directions = Direction.values();
-        List<Coordinate3D> possibleCoodinates = new ArrayList<Coordinate3D>(directions.length);
+        List<Coordinate3D> possibleCoodinates;
         Command command = getCommands().get(index);
         if (command != null && command.isConditional()) {
+            possibleCoodinates = new ArrayList<Coordinate3D>(1);
             PathElement previous = getPrevious();
             if (previous == null) {
-                throw new IllegalStateException("The first Command can't be conditional!");
+                throw new IllegalStateException(
+                        "The first Command can't be conditional!");
             }
             Coordinate3D previousPos = previous.getPos();
             Coordinate3D direction = getPos().minus(previousPos);
             Coordinate3D next = getPos().plus(direction);
             possibleCoodinates.add(next);
         } else {
-            for (Direction d : directions) {
-                Coordinate3D next = getPos().plus(d.toCoordinate());
-                possibleCoodinates.add(next);
-            }
+            possibleCoodinates = getPos().getAdjacent();
         }
 
-        for (Iterator<Coordinate3D> it = possibleCoodinates.iterator(); it.hasNext();) {
+        for (Iterator<Coordinate3D> it = possibleCoodinates.iterator(); it
+                .hasNext();) {
             Coordinate3D coordinate = it.next();
             if (pathContains(coordinate)) {
                 it.remove();
             }
         }
 
-        Collection<PathElement> validContinuations = new ArrayList<PathElement>(possibleCoodinates.size());
+        Collection<PathElement> validContinuations = new ArrayList<PathElement>(
+                possibleCoodinates.size());
         for (Coordinate3D coordinate3d : possibleCoodinates) {
-            validContinuations.add(new PathElement(coordinate3d, getIndex() + 1, getCommands(), this));
+            validContinuations.add(new PathElement(coordinate3d,
+                    getIndex() + 1, getCommands(), this));
         }
         return validContinuations;
     }
@@ -161,6 +164,24 @@ class PathElement implements Comparable<PathElement> {
             }
         }
         return pathSet;
+    }
+
+    public boolean hasEnoughSpace() {
+        LinkedList<Coordinate3D> found = new LinkedList<Coordinate3D>();
+        LinkedList<Coordinate3D> todos = new LinkedList<Coordinate3D>();
+        todos.addAll(getPos().getAdjacent());
+        int reqiredSpace = commands.size() - getPathLength();
+        while (!todos.isEmpty()) {
+            Coordinate3D current = todos.poll();
+            if (!pathContains(current) && !found.contains(current)) {
+                found.add(current);
+                if (found.size() > reqiredSpace) {
+                    return true;
+                }
+                todos.addAll(current.getAdjacent());
+            }
+        }
+        return false;
     }
 
     // TODO: Remove

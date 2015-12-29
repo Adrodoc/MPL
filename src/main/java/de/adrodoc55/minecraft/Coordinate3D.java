@@ -1,5 +1,8 @@
 package de.adrodoc55.minecraft;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Coordinate3D {
 
     public static final Coordinate3D SELF = new Coordinate3D(0, 0, 0);
@@ -144,6 +147,32 @@ public class Coordinate3D {
 
     public static int overflowSaveSubstraction(int a, int b) {
         return overflowSaveAddition(a, b * -1);
+    }
+
+    public List<Coordinate3D> getAdjacent() {
+        List<Coordinate3D> directions = getDirections();
+        List<Coordinate3D> possibleCoodinates = new ArrayList<Coordinate3D>(
+                directions.size());
+        for (Coordinate3D d : directions) {
+            Coordinate3D next = plus(d);
+            possibleCoodinates.add(next);
+        }
+        return possibleCoodinates;
+    }
+
+    private static final ArrayList<Coordinate3D> directions = new ArrayList<Coordinate3D>(
+            6);
+    static {
+        directions.add(UP);
+        directions.add(DOWN);
+//        directions.add(NORTH);
+//        directions.add(SOUTH);
+        directions.add(WEST);
+        directions.add(EAST);
+    }
+
+    private static List<Coordinate3D> getDirections() {
+        return directions;
     }
 
 }
