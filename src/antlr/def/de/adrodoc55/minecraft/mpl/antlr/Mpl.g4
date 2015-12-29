@@ -54,10 +54,13 @@ line
 
 commandDeclaration
 :
-  modifierList?
+  modifierList? command
+  |
   (
-    command
-    | execute
+    conditional ':'
+  )?
+  (
+    execute
     | waitfor
   )
 ;
@@ -113,6 +116,11 @@ execute
 waitfor
 :
   WAITFOR IDENTIFIER?
+;
+
+returnDeclaration
+:
+  RETURN
 ;
 
 skip
@@ -206,6 +214,11 @@ EXECUTE
 WAITFOR
 :
   'waitfor'
+;
+
+RETURN
+:
+  'return'
 ;
 
 SKIP
