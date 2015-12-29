@@ -50,13 +50,16 @@ line
 :
   commandDeclaration
   | skip
-  | execute
-  | waitfor
 ;
 
 commandDeclaration
 :
-  modifierList? command
+  modifierList?
+  (
+    command
+    | execute
+    | waitfor
+  )
 ;
 
 modifierList
@@ -100,6 +103,16 @@ auto
 command
 :
   COMMAND
+;
+
+execute
+:
+  EXECUTE IDENTIFIER
+;
+
+waitfor
+:
+  WAITFOR IDENTIFIER?
 ;
 
 skip
@@ -185,6 +198,16 @@ NEEDS_REDSTONE
   'needs redstone'
 ;
 
+EXECUTE
+:
+  'execute'
+;
+
+WAITFOR
+:
+  'waitfor'
+;
+
 SKIP
 :
   'skip'
@@ -203,4 +226,9 @@ WS
 STRING
 :
   '"' .+? '"'
+;
+
+IDENTIFIER
+:
+  [a-zA-Z0-9]+
 ;

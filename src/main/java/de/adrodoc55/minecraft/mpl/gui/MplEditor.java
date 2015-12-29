@@ -113,13 +113,6 @@ public class MplEditor extends JComponent {
                 styleToken(token, getRepeatStyle());
                 break;
             case MplLexer.UNCONDITIONAL:
-                styleToken(token, getLowFocusKeywordStyle());
-                break;
-            case MplLexer.CONDITIONAL:
-                styleToken(token, getHighFocusKeywordStyle());
-                break;
-            case MplLexer.INVERT:
-                styleToken(token, getHighFocusKeywordStyle());
             case MplLexer.ALWAYS_ACTIVE:
                 styleToken(token, getLowFocusKeywordStyle());
                 break;
@@ -129,10 +122,14 @@ public class MplEditor extends JComponent {
             case MplLexer.COMMENT:
                 styleToken(token, getCommentStyle());
                 break;
+            case MplLexer.CONDITIONAL:
+            case MplLexer.INVERT:
             case MplLexer.INCLUDE:
             case MplLexer.INSTALL:
             case MplLexer.METHOD:
             case MplLexer.PROJECT:
+            case MplLexer.EXECUTE:
+            case MplLexer.WAITFOR:
             case MplLexer.SKIP:
             case MplLexer.UNINSTALL:
                 styleToken(token, getHighFocusKeywordStyle());

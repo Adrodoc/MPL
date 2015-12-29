@@ -5,14 +5,16 @@ import java.io.File;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeContext;
 
 public class Include {
+    private File srcFile;
     private File programFile;
     private IncludeContext ctx;
 
-    public Include(File programFile) {
-        this.programFile = programFile;
-    }
+    // public Include(File programFile) {
+    // this.programFile = programFile;
+    // }
 
-    public Include(File parentFile, IncludeContext ctx) {
+    public Include(File srcFile, File parentFile, IncludeContext ctx) {
+        this.srcFile = srcFile;
         String includePath = MplLexerUtils.getContainedString(ctx.STRING());
         this.programFile = new File(parentFile, includePath);
         this.ctx = ctx;
@@ -26,11 +28,24 @@ public class Include {
         this.programFile = programFile;
     }
 
+    public File getSrcFile() {
+        return srcFile;
+    }
+
+    public int getSrcLine() {
+        return ctx.STRING().getSymbol().getLine();
+    }
+
+    public int getSrcIndex() {
+        return ctx.STRING().getSymbol().getStartIndex();
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((programFile == null) ? 0 : programFile.hashCode());
+        result = prime * result
+                + ((programFile == null) ? 0 : programFile.hashCode());
         return result;
     }
 

@@ -6,20 +6,23 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
 import spock.lang.Specification
-import de.adrodoc55.minecraft.mpl.MplCompiler
-import de.adrodoc55.minecraft.mpl.Program
 
 class MplInterpreterSpecBase extends Specification {
   @Rule
-  public TemporaryFolder tempFolder
+  TemporaryFolder tempFolder
+  File lastTempFile
+
+  File newTempFile() {
+    lastTempFile = tempFolder.newFile()
+  }
 
   MplInterpreter interpret(String program) {
-    File file = tempFolder.newFile()
+    File file = newTempFile()
     file.text = program
     interpret(file)
   }
 
-  MplInterpreter interpret(File file = tempFolder.newFile()) {
+  MplInterpreter interpret(File file = newTempFile()) {
     MplInterpreter.interpret(file)
   }
 }

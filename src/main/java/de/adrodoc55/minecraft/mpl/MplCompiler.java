@@ -12,7 +12,6 @@ import java.util.regex.Pattern;
 import de.adrodoc55.minecraft.Coordinate3D;
 import de.adrodoc55.minecraft.Coordinate3D.Direction;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
-import de.adrodoc55.minecraft.mpl.antlr.CompilerException;
 import de.adrodoc55.minecraft.mpl.antlr.Include;
 import de.adrodoc55.minecraft.mpl.antlr.MplBaseListener;
 import de.adrodoc55.minecraft.mpl.antlr.MplInterpreter;
@@ -20,7 +19,8 @@ import de.adrodoc55.minecraft.mpl.chain_computing.IterativeChainComputer;
 
 public class MplCompiler extends MplBaseListener {
 
-    public static List<CommandBlockChain> compile(File programFile) {
+    public static List<CommandBlockChain> compile(File programFile)
+            throws IOException {
         Program program = assembleProgram(programFile);
         List<CommandBlockChain> chains = computeChains(program);
         for (CommandBlockChain chain : chains) {
@@ -30,14 +30,30 @@ public class MplCompiler extends MplBaseListener {
         return chains;
     }
 
-    public static Program assembleProgram(File programFile) {
-        Set<Include> includes = new HashSet<Include>();
-        LinkedList<Include> includeTodos = new LinkedList<Include>();
-        LinkedList<CommandChain> chains = new LinkedList<CommandChain>();
-        LinkedList<Command> installation = new LinkedList<Command>();
-        LinkedList<Command> uninstallation = new LinkedList<Command>();
+    public static Program assembleProgram(File programFile) throws IOException {
+        MplCompiler compiler = new MplCompiler();
+        return compiler.assemble(programFile);
+    }
 
-        includeTodos.add(new Include(programFile));
+    private Set<Include> includes;
+    private LinkedList<Include> includeTodos;
+    private Program program;
+
+    private MplCompiler() {
+    }
+
+    private Program assemble(File programFile) throws IOException {
+        includes = new HashSet<Include>();
+        includeTodos = new LinkedList<Include>();
+        program = new Program();
+        program.setOrientation(new MplOrientation());
+        MplInterpreter main = MplInterpreter.interpret(programFile);
+        addInterpreter(main);
+        doIncludes();
+        return program;
+    }
+
+    private void doIncludes() {
         while (!includeTodos.isEmpty()) {
             Include include = includeTodos.poll();
             File current = include.getProgramFile();
@@ -45,28 +61,30 @@ public class MplCompiler extends MplBaseListener {
             try {
                 interpreter = MplInterpreter.interpret(current);
             } catch (IOException ex) {
-                throw new CompilerException("Couldn't include '" + include
-                        + "'", ex);
+                throw new CompilerException(include.getSrcFile(),
+                        include.getSrcLine(), include.getSrcIndex(),
+                        "Couldn't include '" + include.getProgramFile() + "'",
+                        ex);
             }
             if (interpreter.isProject()) {
-                throw new CompilerException("Can't include Project " + include
-                        + ". Projects may not be included.");
+                throw new CompilerException(include.getSrcFile(),
+                        include.getSrcLine(), include.getSrcIndex(),
+                        "Can't include Project " + include
+                                + ". Projects may not be included.");
             }
-            chains.addAll(interpreter.getChains());
-            installation.addAll(interpreter.getInstallation());
-            uninstallation.addAll(interpreter.getUninstallation());
-            for (Include it : interpreter.getIncludes()) {
-                if (includes.add(it)) {
-                    includeTodos.add(it);
-                }
+            addInterpreter(interpreter);
+        }
+    }
+
+    private void addInterpreter(MplInterpreter interpreter) {
+        program.getChains().addAll(interpreter.getChains());
+        program.getInstallation().addAll(interpreter.getInstallation());
+        program.getUninstallation().addAll(interpreter.getUninstallation());
+        for (Include it : interpreter.getIncludes()) {
+            if (includes.add(it)) {
+                includeTodos.add(it);
             }
         }
-        Program program = new Program();
-        program.setChains(chains);
-        program.setInstallation(installation);
-        program.setUninstallation(uninstallation);
-        program.setOrientation(new MplOrientation());
-        return program;
     }
 
     private static List<CommandBlockChain> computeChains(Program program) {
@@ -84,15 +102,17 @@ public class MplCompiler extends MplBaseListener {
         Coordinate3D bPos = b.toCoordinate();
 
         CommandChain first = chains.poll();
+        Coordinate3D firstMax = a.toCoordinate().mult(Integer.MAX_VALUE)
+                .plus(b.toCoordinate().mult(Integer.MAX_VALUE));
         CommandBlockChain optimalFirst = new IterativeChainComputer()
-                .computeOptimalChain(first);
+                .computeOptimalChain(first, firstMax);
         optimalFirst.move(c.toCoordinate());
 
         List<CommandBlockChain> materialised = new LinkedList<CommandBlockChain>();
         materialised.add(optimalFirst);
 
         int maxA = optimalFirst.getMax().get(a.getAxis());
-        int maxB = optimalFirst.getMax().get(b.getAxis());
+        int maxB = optimalFirst.getMax().get(b.getAxis()) + 1;
         Coordinate3D max = a.toCoordinate().mult(maxA)
                 .plus(b.toCoordinate().mult(Integer.MAX_VALUE))
                 .plus(c.toCoordinate().mult(0)); // FIXME: max
@@ -128,6 +148,7 @@ public class MplCompiler extends MplBaseListener {
                 if (localMax <= maxB || array[x] == 0) {
                     optimal.move(cPos.mult(x + 2).plus(bPos.mult(array[x])));
                     array[x] = localMax;
+                    break;
                 }
             }
         }
