@@ -24,7 +24,8 @@ public class MplCompiler extends MplBaseListener {
         Program program = assembleProgram(programFile);
         List<CommandBlockChain> chains = computeChains(program);
         for (CommandBlockChain chain : chains) {
-            insertRelativeCoordinates(chain.getCommandBlocks(), program.getOrientation());
+            insertRelativeCoordinates(chain.getCommandBlocks(),
+                    program.getOrientation());
         }
         return chains;
     }
@@ -44,10 +45,12 @@ public class MplCompiler extends MplBaseListener {
             try {
                 interpreter = MplInterpreter.interpret(current);
             } catch (IOException ex) {
-                throw new CompilerException("Couldn't include '" + include + "'", ex);
+                throw new CompilerException("Couldn't include '" + include
+                        + "'", ex);
             }
             if (interpreter.isProject()) {
-                throw new CompilerException("Can't include Project " + include + ". Projects may not be included.");
+                throw new CompilerException("Can't include Project " + include
+                        + ". Projects may not be included.");
             }
             chains.addAll(interpreter.getChains());
             installation.addAll(interpreter.getInstallation());
@@ -69,7 +72,9 @@ public class MplCompiler extends MplBaseListener {
     private static List<CommandBlockChain> computeChains(Program program) {
         LinkedList<CommandChain> chains = program.getChains();
         chains.sort((o1, o2) -> {
-            return Integer.compare(o1.getCommands().size(), o2.getCommands().size()) * -1;
+            return Integer.compare(o1.getCommands().size(), o2.getCommands()
+                    .size())
+                    * -1;
         });
         MplOrientation orientation = program.getOrientation();
         Direction a = orientation.getA();
@@ -79,7 +84,8 @@ public class MplCompiler extends MplBaseListener {
         Coordinate3D bPos = b.toCoordinate();
 
         CommandChain first = chains.poll();
-        CommandBlockChain optimalFirst = new IterativeChainComputer().computeOptimalChain(first);
+        CommandBlockChain optimalFirst = new IterativeChainComputer()
+                .computeOptimalChain(first);
         optimalFirst.move(c.toCoordinate());
 
         List<CommandBlockChain> materialised = new LinkedList<CommandBlockChain>();
@@ -87,7 +93,8 @@ public class MplCompiler extends MplBaseListener {
 
         int maxA = optimalFirst.getMax().get(a.getAxis());
         int maxB = optimalFirst.getMax().get(b.getAxis());
-        Coordinate3D max = a.toCoordinate().mult(maxA).plus(b.toCoordinate().mult(Integer.MAX_VALUE))
+        Coordinate3D max = a.toCoordinate().mult(maxA)
+                .plus(b.toCoordinate().mult(Integer.MAX_VALUE))
                 .plus(c.toCoordinate().mult(0)); // FIXME: max
                                                     // ist
                                                     // inkorrekt
@@ -112,13 +119,14 @@ public class MplCompiler extends MplBaseListener {
 
         int[] array = new int[chains.size()];
         for (CommandChain chain : chains) {
-            CommandBlockChain optimal = chainComputer.computeOptimalChain(chain, max);
+            CommandBlockChain optimal = chainComputer.computeOptimalChain(
+                    chain, max);
             materialised.add(optimal);
-            int localMaxB = optimal.getMax().get(b.getAxis());
+            int localMaxB = optimal.getMax().get(b.getAxis()) + 1;
             for (int x = 0; x < array.length; x++) {
                 int localMax = array[x] + localMaxB;
-                if (localMax <= maxB) {
-                    optimal.move(cPos.mult(x + 1).plus(bPos.mult(localMax)));
+                if (localMax <= maxB || array[x] == 0) {
+                    optimal.move(cPos.mult(x + 2).plus(bPos.mult(array[x])));
                     array[x] = localMax;
                 }
             }
@@ -128,8 +136,8 @@ public class MplCompiler extends MplBaseListener {
         return materialised;
     }
 
-    private static void addUnInstallation(Program program, List<CommandBlockChain> materialised,
-            MplOrientation orientation) {
+    private static void addUnInstallation(Program program,
+            List<CommandBlockChain> materialised, MplOrientation orientation) {
         List<Command> installation = program.getInstallation();
         List<Command> uninstallation = program.getUninstallation();
 
@@ -138,25 +146,37 @@ public class MplCompiler extends MplBaseListener {
             if (name == null) {
                 continue;
             }
-            Coordinate3D chainStart = chain.getMin().minus(orientation.getA().toCoordinate());
-            installation.add(new Command(
-                    "/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString() + ")} {CustomName:\""
-                            + chain.getName() + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
-            uninstallation.add(new Command("/kill @e[type=ArmorStand,name=" + chain.getName() + "]"));
+            Coordinate3D chainStart = chain.getMin().minus(
+                    orientation.getA().toCoordinate());
+            installation
+                    .add(new Command(
+                            "/summon ArmorStand ${origin + ("
+                                    + chainStart.toAbsoluteString()
+                                    + ")} {CustomName:\""
+                                    + chain.getName()
+                                    + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
+            uninstallation.add(new Command("/kill @e[type=ArmorStand,name="
+                    + chain.getName() + "]"));
         }
 
-        installation.get(0).setMode(Mode.IMPULSE);
-        uninstallation.get(0).setMode(Mode.IMPULSE);
+        Command initInstall = installation.get(0);
+        initInstall.setMode(Mode.IMPULSE);
+        initInstall.setNeedsRedstone(true);
+        Command initUninstall = uninstallation.get(0);
+        initUninstall.setMode(Mode.IMPULSE);
+        initUninstall.setNeedsRedstone(true);
 
         CommandBlockChain materialisedUninstallation = new IterativeChainComputer()
-                .computeOptimalChain(new CommandChain("uninstallation", uninstallation), new Coordinate3D(100, 100, 0));
+                .computeOptimalChain(new CommandChain("uninstallation",
+                        uninstallation), new Coordinate3D(100, 100, 0));
         materialisedUninstallation.move(Coordinate3D.UP);
         CommandBlockChain materialisedInstallation = new IterativeChainComputer() {
             protected boolean isCoordinateValid(Coordinate3D coordinate) {
                 if (!super.isCoordinateValid(coordinate)) {
                     return false;
                 }
-                List<CommandBlock> commandBlocks = materialisedUninstallation.getCommandBlocks();
+                List<CommandBlock> commandBlocks = materialisedUninstallation
+                        .getCommandBlocks();
                 for (CommandBlock block : commandBlocks) {
                     if (block.getCoordinate().equals(coordinate)) {
                         return false;
@@ -164,17 +184,20 @@ public class MplCompiler extends MplBaseListener {
                 }
                 return true;
             };
-        }.computeOptimalChain(new CommandChain("installation", installation), new Coordinate3D(100, 100, 0));
+        }.computeOptimalChain(new CommandChain("installation", installation),
+                new Coordinate3D(100, 100, 0));
         materialised.add(materialisedInstallation);
         materialised.add(materialisedUninstallation);
     }
 
-    private static final Pattern thisPattern = Pattern.compile("\\$\\{\\s*this\\s*([+-])\\s*(\\d+)\\s*\\}");
+    private static final Pattern thisPattern = Pattern
+            .compile("\\$\\{\\s*this\\s*([+-])\\s*(\\d+)\\s*\\}");
 
     private static final Pattern originPattern = Pattern
             .compile("\\$\\{\\s*origin\\s*\\+\\s*\\(\\s*(-?\\d+)\\s+(-?\\d+)\\s+(-?\\d+)\\s*\\)\\s*\\}");
 
-    private static void insertRelativeCoordinates(List<CommandBlock> commandBlocks, MplOrientation orientation) {
+    private static void insertRelativeCoordinates(
+            List<CommandBlock> commandBlocks, MplOrientation orientation) {
         for (int i = 0; i < commandBlocks.size(); i++) {
             CommandBlock current = commandBlocks.get(i);
             if (current.toCommand() == null) {
@@ -193,25 +216,31 @@ public class MplCompiler extends MplBaseListener {
                     int index = i + relative;
                     Coordinate3D referenced;
                     if (index < 0) {
-                        referenced = commandBlocks.get(0).getCoordinate().minus(orientation.getA().toCoordinate());
+                        referenced = commandBlocks.get(0).getCoordinate()
+                                .minus(orientation.getA().toCoordinate());
                     } else {
                         referenced = commandBlocks.get(index).getCoordinate();
                     }
-                    Coordinate3D relativeCoordinate = referenced.minus(current.getCoordinate());
-                    thisMatcher.appendReplacement(thisSb, relativeCoordinate.toRelativeString());
+                    Coordinate3D relativeCoordinate = referenced.minus(current
+                            .getCoordinate());
+                    thisMatcher.appendReplacement(thisSb,
+                            relativeCoordinate.toRelativeString());
                 }
                 thisMatcher.appendTail(thisSb);
                 current.setCommand(thisSb.toString());
 
-                Matcher originMatcher = originPattern.matcher(current.getCommand());
+                Matcher originMatcher = originPattern.matcher(current
+                        .getCommand());
                 StringBuffer originSb = new StringBuffer();
                 while (originMatcher.find()) {
                     int x = Integer.parseInt(originMatcher.group(1));
                     int y = Integer.parseInt(originMatcher.group(2));
                     int z = Integer.parseInt(originMatcher.group(3));
                     Coordinate3D referenced = new Coordinate3D(x, y, z);
-                    Coordinate3D relativeCoordinate = current.getCoordinate().mult(-1).plus(referenced);
-                    originMatcher.appendReplacement(originSb, relativeCoordinate.toRelativeString());
+                    Coordinate3D relativeCoordinate = current.getCoordinate()
+                            .mult(-1).plus(referenced);
+                    originMatcher.appendReplacement(originSb,
+                            relativeCoordinate.toRelativeString());
                 }
                 originMatcher.appendTail(originSb);
                 current.setCommand(originSb.toString());
