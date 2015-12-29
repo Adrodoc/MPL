@@ -17,6 +17,7 @@ import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
+import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 import de.adrodoc55.minecraft.mpl.CommandChain;
@@ -71,10 +72,7 @@ public class MplInterpreter extends MplBaseListener {
      * @return name
      */
     private String getName() {
-        String fileName = programFile.getName();
-        int idx = fileName.lastIndexOf('.');
-        String name = (idx == -1) ? fileName : fileName.substring(0, idx);
-        return name;
+        return FileUtils.getFilenameWithoutExtension(programFile);
     }
 
     public File getProgramFile() {
@@ -100,8 +98,9 @@ public class MplInterpreter extends MplBaseListener {
     @Override
     public void visitErrorNode(ErrorNode node) {
         Token token = node.getSymbol();
-        throw new GrammarException("Mismatched input: '" + node.getText() + "' in File '" + this.getProgramFile()
-                + "' in Line " + token.getLine() + " in Column " + token.getStartIndex());
+        throw new GrammarException("Mismatched input: '" + node.getText()
+                + "' in File '" + this.getProgramFile() + "' in Line "
+                + token.getLine() + " in Column " + token.getStartIndex());
     }
 
     @Override
@@ -147,7 +146,8 @@ public class MplInterpreter extends MplBaseListener {
     @Override
     public void enterMethod(MethodContext ctx) {
         this.commands = new LinkedList<Command>();
-        this.commands.add(new Command("/setblock ${this-1} stone", Mode.IMPULSE, false));
+        this.commands.add(new Command("/setblock ${this-1} stone",
+                Mode.IMPULSE, false));
     }
 
     @Override
@@ -176,8 +176,10 @@ public class MplInterpreter extends MplBaseListener {
         } else if (ctx.CONDITIONAL() != null) {
             conditional = true;
         } else if (ctx.INVERT() != null) {
-            commands.add(new Command("/blockdata ${this-1} {SuccessCount:0}", true));
-            commands.add(new Command("/blockdata ${this-1} {SuccessCount:1}", true));
+            commands.add(new Command("/blockdata ${this-1} {SuccessCount:0}",
+                    true));
+            commands.add(new Command("/blockdata ${this-1} {SuccessCount:1}",
+                    true));
             conditional = true;
         }
         this.commandBuffer.setConditional(conditional);

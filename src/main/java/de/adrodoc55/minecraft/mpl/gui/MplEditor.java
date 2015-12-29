@@ -29,7 +29,8 @@ import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 
 public class MplEditor extends JComponent {
 
-    private static final Pattern INSERT_PATTERN = Pattern.compile("\\$\\{[^{}]*+\\}");
+    private static final Pattern INSERT_PATTERN = Pattern
+            .compile("\\$\\{[^{}]*+\\}");
 
     private static final long serialVersionUID = 1L;
 
@@ -65,8 +66,36 @@ public class MplEditor extends JComponent {
         }
     }
 
+    public File getFile() {
+        return file;
+    }
+
+    public void setFile(File file) {
+        this.file = file;
+    }
+
+    /**
+     * Saves the changes to this Editor's File, overwriting the content. The
+     * file and all it's parent directories will be created if necassary. If the
+     * file is null this method returns immediately.
+     *
+     * @return true if the save was successful, false if this editor has no
+     *         file.
+     * @throws IOException
+     */
+    public boolean save() throws IOException {
+        if (file == null) {
+            return false;
+        }
+        file.getParentFile().mkdirs();
+        byte[] bytes = getTextPane().getText().getBytes();
+        Files.write(file.toPath(), bytes);
+        return true;
+    }
+
     private void recolor() {
-        String text = getTextPane().getText().replace("\r\n", "\n").replace("\r", "\n");
+        String text = getTextPane().getText().replace("\r\n", "\n")
+                .replace("\r", "\n");
         MplLexer lexer = new MplLexer(new ANTLRInputStream(text));
         loop: while (true) {
             Token token = lexer.nextToken();
@@ -120,7 +149,7 @@ public class MplEditor extends JComponent {
                 break;
 
             default:
-                continue;
+                styleToken(token, getDefaultStyle());
             }
 
         }
@@ -150,7 +179,8 @@ public class MplEditor extends JComponent {
             textPane.addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyTyped(KeyEvent e) {
-                    if (e.getModifiers() != 0 || e.getKeyChar() == KeyEvent.CHAR_UNDEFINED) {
+                    if (e.getModifiers() != 0
+                            || e.getKeyChar() == KeyEvent.CHAR_UNDEFINED) {
                         return;
                     }
                     if (runnable != null) {
@@ -168,10 +198,12 @@ public class MplEditor extends JComponent {
             UndoManager undoManager = getUndoManager();
             textPane.getDocument().addUndoableEditListener(undoManager);
             textPane.getInputMap().put(
-                    KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
+                    KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit
+                            .getDefaultToolkit().getMenuShortcutKeyMask()),
                     "redo");
             textPane.getInputMap().put(
-                    KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
+                    KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit
+                            .getDefaultToolkit().getMenuShortcutKeyMask()),
                     "undo");
             textPane.getActionMap().put("redo", new RedoAction(undoManager));
             textPane.getActionMap().put("undo", new UndoAction(undoManager));
@@ -198,25 +230,30 @@ public class MplEditor extends JComponent {
 
     private Style getLowFocusKeywordStyle() {
         if (lowFocusKeywordStyle == null) {
-            lowFocusKeywordStyle = getStyledDocument().addStyle("lowFocusKeyword", getDefaultStyle());
+            lowFocusKeywordStyle = getStyledDocument().addStyle(
+                    "lowFocusKeyword", getDefaultStyle());
             StyleConstants.setBold(lowFocusKeywordStyle, true);
-            StyleConstants.setForeground(lowFocusKeywordStyle, new Color(128, 128, 128));
+            StyleConstants.setForeground(lowFocusKeywordStyle, new Color(128,
+                    128, 128));
         }
         return lowFocusKeywordStyle;
     }
 
     private Style getHighFocusKeywordStyle() {
         if (highFocusKeywordStyle == null) {
-            highFocusKeywordStyle = getStyledDocument().addStyle("highFocusKeyword", getDefaultStyle());
+            highFocusKeywordStyle = getStyledDocument().addStyle(
+                    "highFocusKeyword", getDefaultStyle());
             StyleConstants.setBold(highFocusKeywordStyle, true);
-            StyleConstants.setForeground(highFocusKeywordStyle, new Color(128, 0, 0));
+            StyleConstants.setForeground(highFocusKeywordStyle, new Color(128,
+                    0, 0));
         }
         return highFocusKeywordStyle;
     }
 
     private Style getImpulseStyle() {
         if (impulseStyle == null) {
-            impulseStyle = getStyledDocument().addStyle("impulse", getDefaultStyle());
+            impulseStyle = getStyledDocument().addStyle("impulse",
+                    getDefaultStyle());
             StyleConstants.setBold(impulseStyle, true);
             StyleConstants.setForeground(impulseStyle, new Color(255, 127, 80));
         }
@@ -225,7 +262,8 @@ public class MplEditor extends JComponent {
 
     private Style getChainStyle() {
         if (chainStyle == null) {
-            chainStyle = getStyledDocument().addStyle("chain", getDefaultStyle());
+            chainStyle = getStyledDocument().addStyle("chain",
+                    getDefaultStyle());
             StyleConstants.setBold(chainStyle, true);
             StyleConstants.setForeground(chainStyle, new Color(60, 179, 113));
         }
@@ -234,7 +272,8 @@ public class MplEditor extends JComponent {
 
     private Style getRepeatStyle() {
         if (repeatStyle == null) {
-            repeatStyle = getStyledDocument().addStyle("repeat", getDefaultStyle());
+            repeatStyle = getStyledDocument().addStyle("repeat",
+                    getDefaultStyle());
             StyleConstants.setBold(repeatStyle, true);
             StyleConstants.setForeground(repeatStyle, new Color(106, 90, 205));
         }
@@ -253,7 +292,8 @@ public class MplEditor extends JComponent {
 
     private Style getNeedsRedstoneStyle() {
         if (needsRedstoneStyle == null) {
-            needsRedstoneStyle = getStyledDocument().addStyle("needsRedstone", getDefaultStyle());
+            needsRedstoneStyle = getStyledDocument().addStyle("needsRedstone",
+                    getDefaultStyle());
             StyleConstants.setBold(needsRedstoneStyle, true);
             StyleConstants.setForeground(needsRedstoneStyle, Color.RED);
         }
@@ -262,7 +302,8 @@ public class MplEditor extends JComponent {
 
     private Style getCommentStyle() {
         if (commentStyle == null) {
-            commentStyle = getStyledDocument().addStyle("comment", getDefaultStyle());
+            commentStyle = getStyledDocument().addStyle("comment",
+                    getDefaultStyle());
             StyleConstants.setForeground(commentStyle, new Color(0, 128, 0));
         }
         return commentStyle;
@@ -279,7 +320,8 @@ public class MplEditor extends JComponent {
 
     private Style getInsertStyle() {
         if (insertStyle == null) {
-            insertStyle = getStyledDocument().addStyle("insert", getDefaultStyle());
+            insertStyle = getStyledDocument().addStyle("insert",
+                    getDefaultStyle());
             StyleConstants.setForeground(insertStyle, new Color(128, 0, 0));
             StyleConstants.setBackground(insertStyle, new Color(240, 230, 140));
         }
