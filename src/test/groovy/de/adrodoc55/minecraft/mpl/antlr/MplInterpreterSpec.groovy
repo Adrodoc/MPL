@@ -163,7 +163,7 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     List<Command> commands = chain.commands
     commands.size() == 4
     //	commands[0] == execute
-    commands[1] == new Command("/summon ArmorStand \${this + 1} {CustomName:\"${identifier}_RETURN\"}")
+    commands[1] == new Command("/summon ArmorStand \${this + 1} {CustomName:\"${identifier}_RETURN\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
     commands[2] == null
     commands[3] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
   }
@@ -199,7 +199,7 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
     commands.size() == 3
-    commands[0] == new Command("/summon ArmorStand \${this + 1} {CustomName:\"${identifier}_RETURN\"}")
+    commands[0] == new Command("/summon ArmorStand \${this + 1} {CustomName:\"${identifier}_RETURN\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
     commands[1] == null
     commands[2] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
   }
@@ -218,7 +218,7 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
     commands.size() == 5
-    commands[0] == new Command("/summon ArmorStand \${this + 3} {CustomName:\"${identifier}_RETURN\"}", true)
+    commands[0] == new Command("/summon ArmorStand \${this + 3} {CustomName:\"${identifier}_RETURN\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true)
     commands[1] == new Command("/blockdata \${this - 1} {SuccessCount:1}")
     commands[2] == new Command("/setblock \${this + 1} redstone_block", true)
     commands[3] == null
