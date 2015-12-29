@@ -14,9 +14,8 @@ import de.adrodoc55.minecraft.mpl.CommandChain;
 public class AStarChainComputer implements ChainComputer {
 
     @Override
-    public CommandBlockChain computeOptimalChain(CommandChain chain) {
-        Coordinate3D min = chain.getMin();
-        Coordinate3D max = chain.getMax();
+    public CommandBlockChain computeOptimalChain(CommandChain chain, Coordinate3D max) {
+        Coordinate3D min = new Coordinate3D();
 
         LinkedList<PathElement> todos = new LinkedList<PathElement>();
 
@@ -34,8 +33,7 @@ public class AStarChainComputer implements ChainComputer {
                 return toCommandBlockChain(chain.getName(), current);
             }
 
-            Iterable<PathElement> validContinuations = current
-                    .getValidContinuations();
+            Iterable<PathElement> validContinuations = current.getValidContinuations();
 
             for (PathElement p : validContinuations) {
                 if (containsPath(todos, p)) {
@@ -45,8 +43,8 @@ public class AStarChainComputer implements ChainComputer {
                 int x = pos.getX();
                 int y = pos.getY();
                 int z = pos.getZ();
-                if (x < min.getX() || y < min.getY() || z < min.getZ()
-                        || x > max.getX() || y > max.getY() || z > max.getZ()) {
+                if (x < min.getX() || y < min.getY() || z < min.getZ() || x > max.getX() || y > max.getY()
+                        || z > max.getZ()) {
                     continue;
                 }
                 todos.add(p);
@@ -71,15 +69,13 @@ public class AStarChainComputer implements ChainComputer {
         // System.out.println(path);
         LinkedList<CommandBlock> chain = new LinkedList<CommandBlock>();
         PathElement following = path;
-        for (PathElement current = path.getPrevious(); current != null; current = current
-                .getPrevious()) {
+        for (PathElement current = path.getPrevious(); current != null; current = current.getPrevious()) {
             Coordinate3D pos = current.getPos();
             List<Command> commands = current.getCommands();
             int index = current.getIndex();
             if (commands.size() > index) {
                 Command command = commands.get(index);
-                Direction direction = Direction.valueOf(following.getPos()
-                        .minus(pos));
+                Direction direction = Direction.valueOf(following.getPos().minus(pos));
                 CommandBlock block = new CommandBlock(command, direction, pos);
                 chain.push(block);
             }
@@ -88,8 +84,7 @@ public class AStarChainComputer implements ChainComputer {
         return new CommandBlockChain(name, chain);
     }
 
-    private static boolean containsPath(Iterable<PathElement> iterable,
-            PathElement p) {
+    private static boolean containsPath(Iterable<PathElement> iterable, PathElement p) {
         for (PathElement it : iterable) {
             if (it.pathEquals(p)) {
                 return true;

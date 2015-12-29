@@ -72,8 +72,7 @@ public class NoConditionalChainComputer implements ChainComputer {
         this(true, true, true);
     }
 
-    public NoConditionalChainComputer(boolean xAxisEnabled,
-            boolean yAxisEnabled, boolean zAxisEnabled) {
+    public NoConditionalChainComputer(boolean xAxisEnabled, boolean yAxisEnabled, boolean zAxisEnabled) {
         this.xAxisEnabled = xAxisEnabled;
         this.yAxisEnabled = yAxisEnabled;
         this.zAxisEnabled = zAxisEnabled;
@@ -104,17 +103,14 @@ public class NoConditionalChainComputer implements ChainComputer {
     }
 
     @Override
-    public CommandBlockChain computeOptimalChain(CommandChain input) {
-        Coordinate3D min = input.getMin();
-        Coordinate3D max = input.getMax();
+    public CommandBlockChain computeOptimalChain(CommandChain input, Coordinate3D max) {
+        Coordinate3D min = new Coordinate3D();
 
         List<Command> commands = input.getCommands();
         for (Command command : commands) {
             if (command.isConditional()) {
-                throw new IllegalArgumentException(this.getClass()
-                        .getSimpleName()
-                        + " can't handle Conditional Command: '"
-                        + command.getCommand() + "'");
+                throw new IllegalArgumentException(this.getClass().getSimpleName()
+                        + " can't handle Conditional Command: '" + command.getCommand() + "'");
             }
         }
         int root;
@@ -145,8 +141,7 @@ public class NoConditionalChainComputer implements ChainComputer {
         int zMod = 1;
         int yMod = 1;
         int xMod = 1;
-        List<Coordinate3D> coordinates = new ArrayList<Coordinate3D>(
-                commands.size() + 1);
+        List<Coordinate3D> coordinates = new ArrayList<Coordinate3D>(commands.size() + 1);
         outer: for (; z < zStart + root; z += zMod) {
             for (; y >= 0 && y < yStart + root; y += yMod) {
                 for (; x >= 0 && x < xStart + root; x += xMod) {

@@ -2,55 +2,61 @@ grammar Mpl;
 
 program
 :
-  line
   (
-    NEWLINE line
-  )*
+    include
+    | NEWLINE
+  )* install? uninstall?
+  (
+    project
+    | method
+    | skript
+  )
+;
+
+include
+:
+  INCLUDE STRING NEWLINE
+;
+
+install
+:
+  INSTALL NEWLINE line*
+;
+
+uninstall
+:
+  UNINSTALL NEWLINE line*
+;
+
+project
+:
+// TODO: Prefix, Orientation, max
+  PROJECT NEWLINE
+;
+
+method
+:
+  (
+    IMPULSE
+    | REPEAT
+  )? METHOD NEWLINE line*
+;
+
+skript
+:
+  line*
 ;
 
 line
 :
-  (
-    includeDeclaration
-    | skipDeclaration
-    | commandDeclaration
-  )?
-;
-
-includeDeclaration
-:
-  'include' '(' STRING
-  (
-    ',' includeAt
-  )?
-  (
-    ',' includeMax
-  )? ')'
-;
-
-includeAt
-:
-  'at' coordinate
-;
-
-includeMax
-:
-  'max' coordinate
-;
-
-coordinate
-:
-  '(' UNSIGNED_INT ',' UNSIGNED_INT ',' UNSIGNED_INT ')'
-;
-
-skipDeclaration
-:
-  SKIP
+  NEWLINE
+  | commandDeclaration
+  | skip
 ;
 
 commandDeclaration
 :
-  modifierList? command
+  modifierList? command NEWLINE
 ;
 
 modifierList
@@ -82,6 +88,7 @@ conditional
 :
   UNCONDITIONAL
   | CONDITIONAL
+  | INVERT
 ;
 
 auto
@@ -95,12 +102,17 @@ command
   COMMAND
 ;
 
+skip
+:
+  SKIP NEWLINE
+;
+
 COMMENT
 :
   (
     '//'
     | '#'
-  ) ~( '\r' | '\n' )* -> channel(HIDDEN)
+  ) ~( '\r' | '\n' )* -> channel ( HIDDEN )
 ;
 
 COMMAND
@@ -108,9 +120,29 @@ COMMAND
   '/' ~( '\r' | '\n' )*
 ;
 
-STRING
+INCLUDE
 :
-  '"' .+? '"'
+  'include'
+;
+
+INSTALL
+:
+  'install'
+;
+
+UNINSTALL
+:
+  'uninstall'
+;
+
+PROJECT
+:
+  'project'
+;
+
+METHOD
+:
+  'method'
 ;
 
 IMPULSE
@@ -136,6 +168,11 @@ UNCONDITIONAL
 CONDITIONAL
 :
   'conditional'
+;
+
+INVERT
+:
+  'invert'
 ;
 
 ALWAYS_ACTIVE
@@ -166,4 +203,9 @@ NEWLINE
 WS
 :
   [ \t]+ -> skip
+;
+
+STRING
+:
+  '"' .+? '"'
 ;

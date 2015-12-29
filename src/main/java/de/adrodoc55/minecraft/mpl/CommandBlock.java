@@ -6,9 +6,9 @@ import de.adrodoc55.minecraft.mpl.Command.Mode;
 
 public class CommandBlock {
 
-    private final Command command;
-    private final Direction direction;
-    private final Coordinate3D coordinate;
+    private Command command;
+    private Direction direction;
+    private Coordinate3D coordinate;
 
     public CommandBlock(Command command, Direction direction, Coordinate3D coordinate) {
         this.command = command;
@@ -20,8 +20,16 @@ public class CommandBlock {
         return command;
     }
 
+    public void setCommand(Command command) {
+        this.command = command;
+    }
+
     public Coordinate3D getCoordinate() {
         return coordinate;
+    }
+
+    public void setCoordinate(Coordinate3D coordinate) {
+        this.coordinate = coordinate;
     }
 
     public String toPython() {
@@ -76,6 +84,10 @@ public class CommandBlock {
 
     public Direction getDirection() {
         return direction;
+    }
+
+    public void setDirection(Direction direction) {
+        this.direction = direction;
     }
 
     public int getX() {

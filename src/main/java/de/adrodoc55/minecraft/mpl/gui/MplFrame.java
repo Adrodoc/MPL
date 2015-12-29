@@ -31,6 +31,9 @@ public class MplFrame extends JFrame {
     private JButton saveButton;
     private JButton compileButton;
     private JTabbedPane tabbedPane;
+    private JMenuItem newMenuItem;
+    private JMenuItem saveMenuItem;
+    private JMenuItem compileMenuItem;
 
     public static void main(String[] args) {
         try {
@@ -66,16 +69,8 @@ public class MplFrame extends JFrame {
                     MplEditor editor = new MplEditor(file);
                     getTabbedPane().addTab(file.getName(), editor);
                     getTabbedPane().setSelectedComponent(editor);
-                    // byte[] bytes;
-                    // bytes = Files.readAllBytes(file.toPath());
-                    // String fileContent = new String(bytes);
-                    //
-                    // JTextArea textArea = new JTextArea();
-                    // textArea.setText(fileContent);
-                    // getTabbedPane().addTab(file.getName(), textArea);
-                    // getTabbedPane().setSelectedComponent(textArea);
                 } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(chooser, "An Exception occured while trying to read '"
+                    JOptionPane.showMessageDialog(chooser, "An Exception occured while trying to open '"
                             + file.getPath() + "'. Exception: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
@@ -111,9 +106,22 @@ public class MplFrame extends JFrame {
     private JMenu getFileMenu() {
         if (fileMenu == null) {
             fileMenu = new JMenu("File");
+            fileMenu.add(getNewMenuItem());
             fileMenu.add(getOpenMenuItem());
+            fileMenu.add(getSaveMenuItem());
+            fileMenu.add(getCompileMenuItem());
         }
         return fileMenu;
+    }
+
+    private JMenuItem getNewMenuItem() {
+        if (newMenuItem == null) {
+            newMenuItem = new JMenuItem("New");
+            newMenuItem.addActionListener(e -> {
+                newFile();
+            });
+        }
+        return newMenuItem;
     }
 
     private JMenuItem getOpenMenuItem() {
@@ -124,6 +132,20 @@ public class MplFrame extends JFrame {
             });
         }
         return openMenuItem;
+    }
+
+    private JMenuItem getSaveMenuItem() {
+        if (saveMenuItem == null) {
+            saveMenuItem = new JMenuItem("Save");
+        }
+        return saveMenuItem;
+    }
+
+    private JMenuItem getCompileMenuItem() {
+        if (compileMenuItem == null) {
+            compileMenuItem = new JMenuItem("Compile");
+        }
+        return compileMenuItem;
     }
 
     private JToolBar getToolBar() {
@@ -181,5 +203,4 @@ public class MplFrame extends JFrame {
         }
         return tabbedPane;
     }
-
 }

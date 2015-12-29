@@ -3,6 +3,7 @@ package de.adrodoc55.minecraft.mpl.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.EventQueue;
+import java.awt.Toolkit;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -14,10 +15,12 @@ import java.util.regex.Pattern;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+import javax.swing.KeyStroke;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
+import javax.swing.undo.UndoManager;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.Token;
@@ -33,8 +36,10 @@ public class MplEditor extends JComponent {
     private File file;
     private JScrollPane scrollPane;
     private JTextPane textPane;
+    private UndoManager undoManager;
 
     private Style lowFocusKeywordStyle;
+    private Style highFocusKeywordStyle;
     private Style impulseStyle;
     private Style chainStyle;
     private Style repeatStyle;
@@ -82,8 +87,10 @@ public class MplEditor extends JComponent {
                 styleToken(token, getLowFocusKeywordStyle());
                 break;
             case MplLexer.CONDITIONAL:
-                styleToken(token, getLowFocusKeywordStyle());
+                styleToken(token, getHighFocusKeywordStyle());
                 break;
+            case MplLexer.INVERT:
+                styleToken(token, getHighFocusKeywordStyle());
             case MplLexer.ALWAYS_ACTIVE:
                 styleToken(token, getLowFocusKeywordStyle());
                 break;
@@ -93,8 +100,13 @@ public class MplEditor extends JComponent {
             case MplLexer.COMMENT:
                 styleToken(token, getCommentStyle());
                 break;
+            case MplLexer.INCLUDE:
+            case MplLexer.INSTALL:
+            case MplLexer.METHOD:
+            case MplLexer.PROJECT:
             case MplLexer.SKIP:
-                styleToken(token, getSkipStyle());
+            case MplLexer.UNINSTALL:
+                styleToken(token, getHighFocusKeywordStyle());
                 break;
             case MplLexer.COMMAND:
                 styleToken(token, getDefaultStyle());
@@ -130,22 +142,48 @@ public class MplEditor extends JComponent {
         return scrollPane;
     }
 
+    private CancelableRunable runnable;
+
     private JTextPane getTextPane() {
         if (textPane == null) {
             textPane = new JTextPane();
             textPane.addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyTyped(KeyEvent e) {
-                    EventQueue.invokeLater(new Runnable() {
+                    if (e.getModifiers() != 0 || e.getKeyChar() == KeyEvent.CHAR_UNDEFINED) {
+                        return;
+                    }
+                    if (runnable != null) {
+                        runnable.cancel();
+                    }
+                    runnable = new CancelableRunable(new Runnable() {
                         @Override
                         public void run() {
                             recolor();
                         }
                     });
+                    EventQueue.invokeLater(runnable);
                 }
             });
+            UndoManager undoManager = getUndoManager();
+            textPane.getDocument().addUndoableEditListener(undoManager);
+            textPane.getInputMap().put(
+                    KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
+                    "redo");
+            textPane.getInputMap().put(
+                    KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
+                    "undo");
+            textPane.getActionMap().put("redo", new RedoAction(undoManager));
+            textPane.getActionMap().put("undo", new UndoAction(undoManager));
         }
         return textPane;
+    }
+
+    private UndoManager getUndoManager() {
+        if (undoManager == null) {
+            undoManager = new UndoManagerFix();
+        }
+        return undoManager;
     }
 
     private StyledDocument getStyledDocument() {
@@ -160,11 +198,20 @@ public class MplEditor extends JComponent {
 
     private Style getLowFocusKeywordStyle() {
         if (lowFocusKeywordStyle == null) {
-            lowFocusKeywordStyle = getStyledDocument().addStyle("conditional", getDefaultStyle());
+            lowFocusKeywordStyle = getStyledDocument().addStyle("lowFocusKeyword", getDefaultStyle());
             StyleConstants.setBold(lowFocusKeywordStyle, true);
             StyleConstants.setForeground(lowFocusKeywordStyle, new Color(128, 128, 128));
         }
         return lowFocusKeywordStyle;
+    }
+
+    private Style getHighFocusKeywordStyle() {
+        if (highFocusKeywordStyle == null) {
+            highFocusKeywordStyle = getStyledDocument().addStyle("highFocusKeyword", getDefaultStyle());
+            StyleConstants.setBold(highFocusKeywordStyle, true);
+            StyleConstants.setForeground(highFocusKeywordStyle, new Color(128, 0, 0));
+        }
+        return highFocusKeywordStyle;
     }
 
     private Style getImpulseStyle() {

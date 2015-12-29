@@ -1,0 +1,4 @@
+method
+/say 1
+conditional: /say 2
+/say 3

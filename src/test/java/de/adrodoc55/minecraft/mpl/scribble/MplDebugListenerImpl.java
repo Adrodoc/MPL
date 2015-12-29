@@ -9,15 +9,17 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.AutoContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ConditionalContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.CoordinateContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeAtContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeDeclarationContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeMaxContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.InstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.LineContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.MethodContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModifierListContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModusContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProgramContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.SkipDeclarationContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProjectContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.SkipContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.SkriptContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.UninstallContext;
 
 //public (.+) (.+)\((.+) (.+)\) \{[^\}]*\}
 //public $1 $2($3 $4) {System.out.println("$2(" + $4.getText() + ")");}
@@ -54,6 +56,66 @@ public class MplDebugListenerImpl implements MplListener {
     }
 
     @Override
+    public void enterInclude(IncludeContext ctx) {
+        System.out.println("enterInclude(" + ctx.getText() + ")");
+    }
+
+    @Override
+    public void exitInclude(IncludeContext ctx) {
+        System.out.println("exitInclude(" + ctx.getText() + ")");
+    }
+
+    @Override
+    public void enterInstall(InstallContext ctx) {
+        System.out.println("enterInstall(" + ctx.getText() + ")");
+    }
+
+    @Override
+    public void exitInstall(InstallContext ctx) {
+        System.out.println("exitInstall(" + ctx.getText() + ")");
+    }
+
+    @Override
+    public void enterUninstall(UninstallContext ctx) {
+        System.out.println("enterUninstall(" + ctx.getText() + ")");
+    }
+
+    @Override
+    public void exitUninstall(UninstallContext ctx) {
+        System.out.println("exitUninstall(" + ctx.getText() + ")");
+    }
+
+    @Override
+    public void enterProject(ProjectContext ctx) {
+        System.out.println("enterProject(" + ctx.getText() + ")");
+    }
+
+    @Override
+    public void exitProject(ProjectContext ctx) {
+        System.out.println("exitProject(" + ctx.getText() + ")");
+    }
+
+    @Override
+    public void enterMethod(MethodContext ctx) {
+        System.out.println("enterMethod(" + ctx.getText() + ")");
+    }
+
+    @Override
+    public void exitMethod(MethodContext ctx) {
+        System.out.println("exitMethod(" + ctx.getText() + ")");
+    }
+
+    @Override
+    public void enterSkript(SkriptContext ctx) {
+        System.out.println("enterSkript(" + ctx.getText() + ")");
+    }
+
+    @Override
+    public void exitSkript(SkriptContext ctx) {
+        System.out.println("exitSkript(" + ctx.getText() + ")");
+    }
+
+    @Override
     public void enterLine(LineContext ctx) {
         System.out.println("enterLine(" + ctx.getText() + ")");
     }
@@ -61,56 +123,6 @@ public class MplDebugListenerImpl implements MplListener {
     @Override
     public void exitLine(LineContext ctx) {
         System.out.println("exitLine(" + ctx.getText() + ")");
-    }
-
-    @Override
-    public void enterIncludeDeclaration(IncludeDeclarationContext ctx) {
-        System.out.println("enterIncludeDeclaration(" + ctx.getText() + ")");
-    }
-
-    @Override
-    public void exitIncludeDeclaration(IncludeDeclarationContext ctx) {
-        System.out.println("exitIncludeDeclaration(" + ctx.getText() + ")");
-    }
-
-    @Override
-    public void enterIncludeAt(IncludeAtContext ctx) {
-        System.out.println("enterIncludeAt(" + ctx.getText() + ")");
-    }
-
-    @Override
-    public void exitIncludeAt(IncludeAtContext ctx) {
-        System.out.println("exitIncludeAt(" + ctx.getText() + ")");
-    }
-
-    @Override
-    public void enterIncludeMax(IncludeMaxContext ctx) {
-        System.out.println("enterIncludeMax(" + ctx.getText() + ")");
-    }
-
-    @Override
-    public void exitIncludeMax(IncludeMaxContext ctx) {
-        System.out.println("exitIncludeMax(" + ctx.getText() + ")");
-    }
-
-    @Override
-    public void enterCoordinate(CoordinateContext ctx) {
-        System.out.println("enterCoordinate(" + ctx.getText() + ")");
-    }
-
-    @Override
-    public void exitCoordinate(CoordinateContext ctx) {
-        System.out.println("exitCoordinate(" + ctx.getText() + ")");
-    }
-
-    @Override
-    public void enterSkipDeclaration(SkipDeclarationContext ctx) {
-        System.out.println("enterSkipDeclaration(" + ctx.getText() + ")");
-    }
-
-    @Override
-    public void exitSkipDeclaration(SkipDeclarationContext ctx) {
-        System.out.println("exitSkipDeclaration(" + ctx.getText() + ")");
     }
 
     @Override
@@ -171,6 +183,16 @@ public class MplDebugListenerImpl implements MplListener {
     @Override
     public void exitCommand(CommandContext ctx) {
         System.out.println("exitCommand(" + ctx.getText() + ")");
+    }
+
+    @Override
+    public void enterSkip(SkipContext ctx) {
+        System.out.println("enterSkip(" + ctx.getText() + ")");
+    }
+
+    @Override
+    public void exitSkip(SkipContext ctx) {
+        System.out.println("exitSkip(" + ctx.getText() + ")");
     }
 
 }

@@ -10,11 +10,19 @@ public class Coordinate3D {
     public static final Coordinate3D WEST = new Coordinate3D(-1, 0, 0);
     public static final Coordinate3D EAST = new Coordinate3D(1, 0, 0);
 
-    public static enum Direction {
-        UP(Coordinate3D.UP), DOWN(Coordinate3D.DOWN), NORTH(Coordinate3D.NORTH), SOUTH(
-                Coordinate3D.SOUTH), WEST(Coordinate3D.WEST), EAST(
-                Coordinate3D.EAST);
+    public static enum Axis {
+        X, Y, Z
+    }
 
+    public static enum Direction {
+        // @formatter:off
+        EAST(Coordinate3D.EAST, false, Axis.X),
+        WEST(Coordinate3D.WEST, true, Axis.X),
+        UP(Coordinate3D.UP, false, Axis.Y),
+        DOWN(Coordinate3D.DOWN, true, Axis.Y),
+        SOUTH(Coordinate3D.SOUTH, false, Axis.Z),
+        NORTH(Coordinate3D.NORTH, true, Axis.Z);
+        // @formatter:on
         public static Direction valueOf(Coordinate3D coordinate) {
             if (coordinate == null) {
                 throw new NullPointerException("coordinate is null");
@@ -24,18 +32,29 @@ public class Coordinate3D {
                     return direction;
                 }
             }
-            throw new IllegalArgumentException(
-                    "No enum constant for coordinate" + coordinate);
+            throw new IllegalArgumentException("No enum constant for coordinate" + coordinate);
         }
 
         private final Coordinate3D relative;
+        private final boolean negative;
+        private final Axis axis;
 
-        private Direction(Coordinate3D relative) {
+        private Direction(Coordinate3D relative, boolean negative, Axis axis) {
             this.relative = relative;
+            this.negative = negative;
+            this.axis = axis;
         }
 
         public Coordinate3D toCoordinate() {
             return relative;
+        }
+
+        public boolean isNegative() {
+            return negative;
+        }
+
+        public Axis getAxis() {
+            return axis;
         }
     }
 
@@ -87,6 +106,50 @@ public class Coordinate3D {
         return z;
     }
 
+    public int get(Axis axis) {
+        switch (axis) {
+        case X:
+            return getX();
+        case Y:
+            return getY();
+        case Z:
+            return getZ();
+        default:
+            throw new IllegalArgumentException("axis must not be null");
+        }
+    }
+
+    public static int overflowSaveAddition(int a, int b) {
+        int c;
+        try {
+            c = Math.addExact(a, b);
+        } catch (ArithmeticException ex) {
+            if (a < 0) {
+                c = Integer.MIN_VALUE;
+            } else {
+                c = Integer.MAX_VALUE;
+            }
+        }
+        return c;
+    }
+
+    public static int overflowSaveSubstraction(int a, int b) {
+        return overflowSaveAddition(a, b * -1);
+    }
+
+    /**
+     * Einfache Skalarmultiplikation. Nicht Überlaufsicher.
+     *
+     * @param skalar
+     * @return
+     */
+    public Coordinate3D mult(int skalar) {
+        int x = this.x * skalar;
+        int y = this.y * skalar;
+        int z = this.z * skalar;
+        return new Coordinate3D(x, y, z);
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -126,24 +189,6 @@ public class Coordinate3D {
 
     public String toRelativeString() {
         return "~" + x + " ~" + y + " ~" + z;
-    }
-
-    public static int overflowSaveAddition(int a, int b) {
-        int c;
-        try {
-            c = Math.addExact(a, b);
-        } catch (ArithmeticException ex) {
-            if (a < 0) {
-                c = Integer.MIN_VALUE;
-            } else {
-                c = Integer.MAX_VALUE;
-            }
-        }
-        return c;
-    }
-
-    public static int overflowSaveSubstraction(int a, int b) {
-        return overflowSaveAddition(a, b * -1);
     }
 
 }

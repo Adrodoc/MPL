@@ -8,12 +8,10 @@ import org.antlr.v4.runtime.RecognitionException;
 
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.CommandChain;
-import de.adrodoc55.minecraft.mpl.Program;
-import de.adrodoc55.minecraft.mpl.antlr.MplCompiler;
+import de.adrodoc55.minecraft.mpl.antlr.MplInterpreter;
 
 public class AntlrTest {
-    public static void main(String[] args) throws RecognitionException,
-            IOException {
+    public static void main(String[] args) throws RecognitionException, IOException {
         // String expression = "chain , conditional : /ger eaf H 0 = we98
         // elloword\n";
         // ANTLRInputStream input = new ANTLRInputStream(expression);
@@ -32,12 +30,10 @@ public class AntlrTest {
         // MplDebugListenerImpl();
         // walker.walk(mplDebugListenerImpl, program);
 
-        Program compiled = MplCompiler.compile(file);
-        List<CommandChain> chains = compiled.getChains();
+        MplInterpreter interpreter = MplInterpreter.interpret(file);
+        List<CommandChain> chains = interpreter.getChains();
         for (CommandChain chain : chains) {
-            System.out
-                    .println("--------------------------------------------------");
-            System.out.println("At: " + chain.getMin());
+            System.out.println("--------------------------------------------------");
             System.out.println("Name: " + chain.getName());
             for (Command command : chain.getCommands()) {
                 System.out.println(command);

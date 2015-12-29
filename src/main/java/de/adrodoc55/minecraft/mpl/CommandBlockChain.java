@@ -15,6 +15,17 @@ public class CommandBlockChain {
         this.commandBlocks = commandBlocks;
     }
 
+    /**
+     * Moves this Chain according to the vector
+     *
+     * @param vector
+     */
+    public void move(Coordinate3D vector) {
+        for (CommandBlock block : commandBlocks) {
+            block.setCoordinate(block.getCoordinate().plus(vector));
+        }
+    }
+
     public String getName() {
         return name;
     }
@@ -26,7 +37,7 @@ public class CommandBlockChain {
     public Coordinate3D getMin() {
         Iterator<CommandBlock> it = commandBlocks.iterator();
         if (!it.hasNext()) {
-            return null;
+            return new Coordinate3D();
         }
         CommandBlock first = it.next();
         Coordinate3D pos = first.getCoordinate();
@@ -46,7 +57,7 @@ public class CommandBlockChain {
     public Coordinate3D getMax() {
         Iterator<CommandBlock> it = commandBlocks.iterator();
         if (!it.hasNext()) {
-            return null;
+            return new Coordinate3D();
         }
         CommandBlock first = it.next();
         Coordinate3D pos = first.getCoordinate();
