@@ -19,7 +19,7 @@ line
 
 includeDeclaration
 :
-  DECLARATION_TOKEN 'include' '(' STRING
+  'include' '(' STRING
   (
     ',' includeAt
   )?
@@ -45,7 +45,7 @@ coordinate
 
 skipDeclaration
 :
-  DECLARATION_TOKEN 'skip'
+  SKIP
 ;
 
 commandDeclaration
@@ -73,14 +73,15 @@ modifierList
 
 modus
 :
-  'impulse'
-  | 'chain'
-  | 'repeat'
+  IMPULSE
+  | CHAIN
+  | REPEAT
 ;
 
 conditional
 :
-  CONDITIONAL
+  UNCONDITIONAL
+  | CONDITIONAL
 ;
 
 auto
@@ -99,7 +100,7 @@ COMMENT
   (
     '//'
     | '#'
-  ) ~( '\r' | '\n' )* -> skip
+  ) ~( '\r' | '\n' )* -> channel(HIDDEN)
 ;
 
 COMMAND
@@ -112,24 +113,44 @@ STRING
   '"' .+? '"'
 ;
 
+IMPULSE
+:
+  'impulse'
+;
+
+CHAIN
+:
+  'chain'
+;
+
+REPEAT
+:
+  'repeat'
+;
+
+UNCONDITIONAL
+:
+  'unconditional'
+;
+
 CONDITIONAL
 :
   'conditional'
 ;
 
-NEEDS_REDSTONE
-:
-  'needsRedstone'
-;
-
 ALWAYS_ACTIVE
 :
-  'alwaysActive'
+  'always active'
 ;
 
-DECLARATION_TOKEN
+NEEDS_REDSTONE
 :
-  '$'
+  'needs redstone'
+;
+
+SKIP
+:
+  'skip'
 ;
 
 UNSIGNED_INT
