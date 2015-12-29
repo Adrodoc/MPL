@@ -1,15 +1,14 @@
 package de.adrodoc55.minecraft.mpl;
 
 import java.util.LinkedList;
-import java.util.List;
 
 import de.adrodoc55.minecraft.Coordinate3D;
 
 public class Program {
 
     private LinkedList<CommandChain> chains;
-    private List<Command> installation;
-    private List<Command> uninstallation;
+    private LinkedList<Command> installation;
+    private LinkedList<Command> uninstallation;
 
     // Compiler-Options
     private Coordinate3D max;
@@ -17,6 +16,9 @@ public class Program {
     private MplOrientation orientation;
 
     public Program() {
+        chains = new LinkedList<CommandChain>();
+        installation = new LinkedList<Command>();
+        uninstallation = new LinkedList<Command>();
     }
 
     public LinkedList<CommandChain> getChains() {
@@ -27,19 +29,19 @@ public class Program {
         this.chains = chains;
     }
 
-    public List<Command> getInstallation() {
+    public LinkedList<Command> getInstallation() {
         return installation;
     }
 
-    public void setInstallation(List<Command> installation) {
+    public void setInstallation(LinkedList<Command> installation) {
         this.installation = installation;
     }
 
-    public List<Command> getUninstallation() {
+    public LinkedList<Command> getUninstallation() {
         return uninstallation;
     }
 
-    public void setUninstallation(List<Command> uninstallation) {
+    public void setUninstallation(LinkedList<Command> uninstallation) {
         this.uninstallation = uninstallation;
     }
 
