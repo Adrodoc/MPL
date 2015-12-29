@@ -4,7 +4,6 @@ program
 :
   (
     include
-    | NEWLINE
   )* install? uninstall?
   (
     project
@@ -15,23 +14,23 @@ program
 
 include
 :
-  INCLUDE STRING NEWLINE
+  INCLUDE STRING
 ;
 
 install
 :
-  INSTALL NEWLINE line*
+  INSTALL line*
 ;
 
 uninstall
 :
-  UNINSTALL NEWLINE line*
+  UNINSTALL line*
 ;
 
 project
 :
 // TODO: Prefix, Orientation, max
-  PROJECT NEWLINE
+  PROJECT
 ;
 
 method
@@ -39,7 +38,7 @@ method
   (
     IMPULSE
     | REPEAT
-  )? METHOD NEWLINE line*
+  )? METHOD line*
 ;
 
 skript
@@ -49,14 +48,15 @@ skript
 
 line
 :
-  NEWLINE
-  | commandDeclaration
+  commandDeclaration
   | skip
+  | execute
+  | waitfor
 ;
 
 commandDeclaration
 :
-  modifierList? command NEWLINE
+  modifierList? command
 ;
 
 modifierList
@@ -104,7 +104,7 @@ command
 
 skip
 :
-  SKIP NEWLINE
+  SKIP
 ;
 
 COMMENT
@@ -195,14 +195,9 @@ UNSIGNED_INT
   [0-9]+
 ;
 
-NEWLINE
-:
-  '\r'? '\n'
-;
-
 WS
 :
-  [ \t]+ -> skip
+  [ \t\r\n]+ -> skip
 ;
 
 STRING
