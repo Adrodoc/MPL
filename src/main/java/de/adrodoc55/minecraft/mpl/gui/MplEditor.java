@@ -129,6 +129,7 @@ public class MplEditor extends JComponent {
             case MplLexer.METHOD:
             case MplLexer.PROJECT:
             case MplLexer.EXECUTE:
+            case MplLexer.RETURN:
             case MplLexer.WAITFOR:
             case MplLexer.SKIP:
             case MplLexer.UNINSTALL:
