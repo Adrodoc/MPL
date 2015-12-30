@@ -161,8 +161,12 @@ public class MplInterpreter extends MplBaseListener {
     public void enterMethod(MethodContext ctx) {
         method = true;
         this.commands = new LinkedList<Command>();
+        Mode methodMode = Mode.IMPULSE;
+        if (ctx.REPEAT() != null) {
+            methodMode = Mode.REPEAT;
+        }
         this.commands.add(new Command("/setblock ${this - 1} stone",
-                Mode.IMPULSE, false));
+                methodMode, false));
     }
 
     @Override
