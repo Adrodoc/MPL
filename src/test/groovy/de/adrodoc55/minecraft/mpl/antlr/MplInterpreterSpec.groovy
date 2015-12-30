@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 import spock.lang.Unroll
-import de.adrodoc55.commons.FileUtils;
+import de.adrodoc55.commons.FileUtils
 import de.adrodoc55.minecraft.mpl.Command
 import de.adrodoc55.minecraft.mpl.CommandChain
 import de.adrodoc55.minecraft.mpl.CompilerException
@@ -162,9 +162,10 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
 
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
-    commands.size() == 2
+    commands.size() == 3
     commands[0] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands[1] == new Command("/execute @e[name=${identifier}_RETURN] ~ ~ ~ /setblock ~ ~ ~ redstone_block")
+    commands[2] == new Command("/kill @e[name=${identifier}_RETURN]")
   }
 
   @Test
@@ -183,9 +184,10 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
 
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
-    commands.size() == 2
+    commands.size() == 3
     commands[0] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands[1] == new Command("/execute @e[name=${identifier}_RETURN] ~ ~ ~ /setblock ~ ~ ~ redstone_block", true)
+    commands[2] == new Command("/kill @e[name=${identifier}_RETURN]", true)
   }
 
   @Test

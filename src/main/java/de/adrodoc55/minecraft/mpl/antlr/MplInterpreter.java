@@ -178,13 +178,13 @@ public class MplInterpreter extends MplBaseListener {
 
     @Override
     public void enterCommandDeclaration(CommandDeclarationContext ctx) {
-        this.commandBuffer = new CommandBuffer();
+        commandBuffer = new CommandBuffer();
     }
 
     @Override
     public void enterModus(ModusContext ctx) {
         Mode mode = Mode.valueOf(ctx.getText().toUpperCase());
-        this.commandBuffer.setMode(mode);
+        commandBuffer.setMode(mode);
     }
 
     @Override
@@ -200,7 +200,7 @@ public class MplInterpreter extends MplBaseListener {
             commands.add(new Command("/blockdata ${this - 1} {SuccessCount:1}"));
             conditional = true;
         }
-        this.commandBuffer.setConditional(conditional);
+        commandBuffer.setConditional(conditional);
     }
 
     @Override
@@ -211,13 +211,13 @@ public class MplInterpreter extends MplBaseListener {
         } else if (ctx.NEEDS_REDSTONE() != null) {
             needsRedstone = true;
         }
-        this.commandBuffer.setNeedsRedstone(needsRedstone);
+        commandBuffer.setNeedsRedstone(needsRedstone);
     }
 
     @Override
     public void enterCommand(CommandContext ctx) {
         String command = ctx.COMMAND().getText();
-        this.commandBuffer.setCommand(command);
+        commandBuffer.setCommand(command);
     }
 
     private String lastExecuteIdentifier;
@@ -227,7 +227,7 @@ public class MplInterpreter extends MplBaseListener {
         String method = ctx.IDENTIFIER().getText();
         String command = "/execute @e[name=" + method
                 + "] ~ ~ ~ /setblock ~ ~ ~ redstone_block";
-        this.commandBuffer.setCommand(command);
+        commandBuffer.setCommand(command);
         lastExecuteIdentifier = method;
     }
 
@@ -240,10 +240,10 @@ public class MplInterpreter extends MplBaseListener {
                     "Encountered return outside of a method context.");
         }
         String method = this.getName();
-        String command = "/execute @e[name=" + method + RETURN
-                + "] ~ ~ ~ /setblock ~ ~ ~ redstone_block";
-        this.commandBuffer.setCommand(command);
-        lastExecuteIdentifier = method;
+        commandBuffer.setCommand("/execute @e[name=" + method + RETURN
+                + "] ~ ~ ~ /setblock ~ ~ ~ redstone_block");
+        commands.add(commandBuffer.toCommand());
+        commandBuffer.setCommand("/kill @e[name=" + method + RETURN + "]");
     }
 
     @Override
@@ -272,7 +272,7 @@ public class MplInterpreter extends MplBaseListener {
                             + method
                             + RETURN
                             + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
-            commands.add(this.commandBuffer.toCommand());
+            commands.add(commandBuffer.toCommand());
             commands.add(new Command("/blockdata ${this - 1} {SuccessCount:1}"));
             commands.add(new Command("/setblock ${this + 1} redstone_block",
                     true));
@@ -285,7 +285,7 @@ public class MplInterpreter extends MplBaseListener {
                             + method
                             + RETURN
                             + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
-            commands.add(this.commandBuffer.toCommand());
+            commands.add(commandBuffer.toCommand());
             commands.add(null);
             commands.add(new Command("/setblock ${this - 1} stone",
                     Mode.IMPULSE, false));
