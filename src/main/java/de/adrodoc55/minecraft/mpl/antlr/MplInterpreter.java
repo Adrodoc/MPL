@@ -158,15 +158,14 @@ public class MplInterpreter extends MplBaseListener {
     }
 
     @Override
+    public void exitProject(ProjectContext ctx) {
+        project = false;
+    }
+
+    @Override
     public void enterMethod(MethodContext ctx) {
         method = true;
-        this.commands = new LinkedList<Command>();
-        Mode methodMode = Mode.IMPULSE;
-        if (ctx.REPEAT() != null) {
-            methodMode = Mode.REPEAT;
-        }
-        this.commands.add(new Command("/setblock ${this - 1} stone",
-                methodMode, false));
+        commands = new LinkedList<Command>();
     }
 
     @Override
@@ -311,16 +310,27 @@ public class MplInterpreter extends MplBaseListener {
 
     @Override
     public void exitMethod(MethodContext ctx) {
-        CommandChain chain = new CommandChain(this.getName(), this.commands);
-        this.chains.add(chain);
-        this.commands = null;
+        if (ctx.REPEAT() != null) {
+            if (commands.size() > 0) {
+                Command first = commands.get(0);
+                first.setMode(Mode.REPEAT);
+                first.setNeedsRedstone(true);
+            }
+        } else {
+            commands.add(0, new Command("/setblock ${this - 1} stone",
+                    Mode.IMPULSE, false));
+        }
+        CommandChain chain = new CommandChain(getName(), commands);
+        chains.add(chain);
+        commands = null;
+        method = false;
     }
 
     @Override
     public void exitSkript(SkriptContext ctx) {
         CommandChain chain = new CommandChain(null, this.commands);
-        this.chains.add(chain);
-        this.commands = null;
+        chains.add(chain);
+        commands = null;
     }
 
 }

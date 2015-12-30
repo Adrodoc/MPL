@@ -286,4 +286,43 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     commands[3] == null
     commands[4] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
   }
+
+  @Test
+  public void "Eine impulse Methode deaktiviert sich selbst"() {
+    given:
+    String programString = """
+    method
+    /say hi
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 2
+    commands[0] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[1] == new Command("/say hi")
+  }
+
+  @Test
+  public void "Eine repeat Methode deaktiviert sich nicht selbst"() {
+    given:
+    String programString = """
+    repeat method
+    /say hi
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 1
+    commands[0] == new Command("/say hi", Mode.REPEAT, false)
+  }
 }
