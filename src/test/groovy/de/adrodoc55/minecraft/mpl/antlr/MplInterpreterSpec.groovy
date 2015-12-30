@@ -7,10 +7,11 @@ import static org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 import spock.lang.Unroll
+import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.Command
 import de.adrodoc55.minecraft.mpl.CommandChain
+import de.adrodoc55.minecraft.mpl.CompilerException
 import de.adrodoc55.minecraft.mpl.Command.Mode
-import de.adrodoc55.minecraft.mpl.CompilerException;
 
 public class MplInterpreterSpec extends MplInterpreterSpecBase {
 
@@ -143,6 +144,65 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     programString 								| conditional
     'execute ' + someIdentifier()				| false
     'conditional: execute ' + someIdentifier()	| true
+  }
+
+  @Test
+  public void "return generiert die richtigen Commandos"() {
+    given:
+    String programString = """
+    method
+    return
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    String identifier = FileUtils.getFilenameWithoutExtension lastTempFile
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 2
+    commands[0] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[1] == new Command("/execute @e[name=${identifier}_RETURN] ~ ~ ~ /setblock ~ ~ ~ redstone_block")
+  }
+
+  @Test
+  public void "conditional: return generiert die richtigen Commandos"() {
+    given:
+    String programString = """
+    method
+    conditional: return
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    String identifier = FileUtils.getFilenameWithoutExtension lastTempFile
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 2
+    commands[0] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[1] == new Command("/execute @e[name=${identifier}_RETURN] ~ ~ ~ /setblock ~ ~ ~ redstone_block", true)
+  }
+
+  @Test
+  public void "return wirft auﬂerhalb einer Methode eine CompilerException"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    return
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    CompilerException ex = thrown(CompilerException)
+    ex.file == lastTempFile
+    ex.line == 2
+    ex.index == 5
+    ex.message == 'Encountered return outside of a method context.'
   }
 
   @Test

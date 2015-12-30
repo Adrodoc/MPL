@@ -34,6 +34,7 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.MethodContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModusContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProgramContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProjectContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.ReturnDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.SkipContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.SkriptContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.UninstallContext;
@@ -139,10 +140,16 @@ public class MplInterpreter extends MplBaseListener {
         this.commands = null;
     }
 
-    private boolean project = false;
+    private boolean project;
 
     public boolean isProject() {
         return project;
+    }
+
+    private boolean method;
+
+    public boolean isMethod() {
+        return method;
     }
 
     @Override
@@ -152,6 +159,7 @@ public class MplInterpreter extends MplBaseListener {
 
     @Override
     public void enterMethod(MethodContext ctx) {
+        method = true;
         this.commands = new LinkedList<Command>();
         this.commands.add(new Command("/setblock ${this - 1} stone",
                 Mode.IMPULSE, false));
@@ -214,6 +222,21 @@ public class MplInterpreter extends MplBaseListener {
     public void enterExecute(ExecuteContext ctx) {
         String method = ctx.IDENTIFIER().getText();
         String command = "/execute @e[name=" + method
+                + "] ~ ~ ~ /setblock ~ ~ ~ redstone_block";
+        this.commandBuffer.setCommand(command);
+        lastExecuteIdentifier = method;
+    }
+
+    @Override
+    public void enterReturnDeclaration(ReturnDeclarationContext ctx) {
+        if (!this.isMethod()) {
+            Token symbol = ctx.RETURN().getSymbol();
+            throw new CompilerException(programFile, symbol.getLine(),
+                    symbol.getStartIndex(),
+                    "Encountered return outside of a method context.");
+        }
+        String method = this.getName();
+        String command = "/execute @e[name=" + method + RETURN
                 + "] ~ ~ ~ /setblock ~ ~ ~ redstone_block";
         this.commandBuffer.setCommand(command);
         lastExecuteIdentifier = method;

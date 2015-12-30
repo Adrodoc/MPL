@@ -61,6 +61,7 @@ commandDeclaration
   )?
   (
     execute
+    | returnDeclaration
     | waitfor
   )
 ;
