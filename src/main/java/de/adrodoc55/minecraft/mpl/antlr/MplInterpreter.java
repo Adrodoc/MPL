@@ -152,6 +152,12 @@ public class MplInterpreter extends MplBaseListener {
         return method;
     }
 
+    private boolean repeating;
+
+    public boolean isRepeating() {
+        return repeating;
+    }
+
     @Override
     public void enterProject(ProjectContext ctx) {
         project = true;
@@ -166,6 +172,9 @@ public class MplInterpreter extends MplBaseListener {
     public void enterMethod(MethodContext ctx) {
         method = true;
         commands = new LinkedList<Command>();
+        if (ctx.REPEAT() != null) {
+            repeating = true;
+        }
     }
 
     @Override
@@ -239,6 +248,11 @@ public class MplInterpreter extends MplBaseListener {
                     "Encountered return outside of a method context.");
         }
         String method = this.getName();
+        if (this.isRepeating()) {
+            commandBuffer.setCommand("/execute @e[name=" + method
+                    + "] ~ ~ ~ /setblock ~ ~ ~ stone");
+            commands.add(commandBuffer.toCommand());
+        }
         commandBuffer.setCommand("/execute @e[name=" + method + RETURN
                 + "] ~ ~ ~ /setblock ~ ~ ~ redstone_block");
         commands.add(commandBuffer.toCommand());
@@ -310,7 +324,7 @@ public class MplInterpreter extends MplBaseListener {
 
     @Override
     public void exitMethod(MethodContext ctx) {
-        if (ctx.REPEAT() != null) {
+        if (this.isRepeating()) {
             if (commands.size() > 0) {
                 Command first = commands.get(0);
                 first.setMode(Mode.REPEAT);
@@ -324,6 +338,7 @@ public class MplInterpreter extends MplBaseListener {
         chains.add(chain);
         commands = null;
         method = false;
+        repeating = false;
     }
 
     @Override

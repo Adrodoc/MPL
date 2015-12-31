@@ -208,6 +208,54 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
   }
 
   @Test
+  public void "In einer repeat Methode interrupted return die methode"() {
+    given:
+    String programString = """
+    repeat method
+    /say hi
+    return
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    String identifier = FileUtils.getFilenameWithoutExtension lastTempFile
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 4
+    commands[0] == new Command("/say hi", Mode.REPEAT, false)
+    commands[1] == new Command("/execute @e[name=${identifier}] ~ ~ ~ /setblock ~ ~ ~ stone")
+    commands[2] == new Command("/execute @e[name=${identifier}_RETURN] ~ ~ ~ /setblock ~ ~ ~ redstone_block")
+    commands[3] == new Command("/kill @e[name=${identifier}_RETURN]")
+  }
+
+  @Test
+  public void "In einer repeat Methode interrupted return die methode und ist conditional"() {
+    given:
+    String programString = """
+    repeat method
+    /say hi
+    conditional: return
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    String identifier = FileUtils.getFilenameWithoutExtension lastTempFile
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 4
+    commands[0] == new Command("/say hi", Mode.REPEAT, false)
+    commands[1] == new Command("/execute @e[name=${identifier}] ~ ~ ~ /setblock ~ ~ ~ stone", true)
+    commands[2] == new Command("/execute @e[name=${identifier}_RETURN] ~ ~ ~ /setblock ~ ~ ~ redstone_block", true)
+    commands[3] == new Command("/kill @e[name=${identifier}_RETURN]", true)
+  }
+
+  @Test
   public void "waitfor ohne Identifier bezieht sich auf das letzte Execute"() {
     given:
     String identifier = someIdentifier()
