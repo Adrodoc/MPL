@@ -22,17 +22,16 @@ public class RecursiveChainComputer implements ChainComputer {
         this(null, null);
     }
 
-    public RecursiveChainComputer(ChainRenderer renderer,
-            ChainRenderer optimalRenderer) {
+    public RecursiveChainComputer(ChainRenderer renderer, ChainRenderer optimalRenderer) {
         this.renderer = renderer;
         this.optimalRenderer = optimalRenderer;
     }
 
     private int tries = 0;
 
-    public CommandBlockChain computeOptimalChain(CommandChain chain) {
-        this.min = chain.getMin();
-        this.max = chain.getMax();
+    public CommandBlockChain computeOptimalChain(CommandChain chain, Coordinate3D max) {
+        this.min = new Coordinate3D();
+        this.max = max;
         this.commands = chain.getCommands();
         optimalScore = Integer.MAX_VALUE;
         optimal.clear();
@@ -43,8 +42,7 @@ public class RecursiveChainComputer implements ChainComputer {
         return output;
     }
 
-    private void calculateRecursively(List<Coordinate3D> previous,
-            Coordinate3D current) {
+    private void calculateRecursively(List<Coordinate3D> previous, Coordinate3D current) {
         tries++;
         if (tries > MAX_TRIES) {
             return;
@@ -58,8 +56,7 @@ public class RecursiveChainComputer implements ChainComputer {
         int x = current.getX();
         int y = current.getY();
         int z = current.getZ();
-        if (x < min.getX() || y < min.getY() || z < min.getZ()
-                || x > max.getX() || y > max.getY() || z > max.getZ()) {
+        if (x < min.getX() || y < min.getY() || z < min.getZ() || x > max.getX() || y > max.getY() || z > max.getZ()) {
             return;
         }
 
@@ -85,8 +82,7 @@ public class RecursiveChainComputer implements ChainComputer {
             Command currentCommand = commands.get(index);
             if (currentCommand != null && currentCommand.isConditional()) {
                 if (previous.isEmpty()) {
-                    throw new IllegalStateException(
-                            "The first Command can't be conditional!");
+                    throw new IllegalStateException("The first Command can't be conditional!");
                 }
                 Coordinate3D lastCoordinate = previous.get(previous.size() - 1);
                 Coordinate3D relativeCoordinate = current.minus(lastCoordinate);
@@ -98,8 +94,7 @@ public class RecursiveChainComputer implements ChainComputer {
 
             previous.add(current);
             for (Direction direction : directions) {
-                calculateRecursively(previous,
-                        current.plus(direction.toCoordinate()));
+                calculateRecursively(previous, current.plus(direction.toCoordinate()));
             }
             previous.remove(previous.size() - 1);
         }

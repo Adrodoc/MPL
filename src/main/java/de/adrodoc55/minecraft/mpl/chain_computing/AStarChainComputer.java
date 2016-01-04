@@ -14,9 +14,9 @@ import de.adrodoc55.minecraft.mpl.CommandChain;
 public class AStarChainComputer implements ChainComputer {
 
     @Override
-    public CommandBlockChain computeOptimalChain(CommandChain chain) {
-        Coordinate3D min = chain.getMin();
-        Coordinate3D max = chain.getMax();
+    public CommandBlockChain computeOptimalChain(CommandChain chain,
+            Coordinate3D max) {
+        Coordinate3D min = new Coordinate3D();
 
         LinkedList<PathElement> todos = new LinkedList<PathElement>();
 
@@ -42,6 +42,7 @@ public class AStarChainComputer implements ChainComputer {
 
             Iterable<PathElement> validContinuations = current
                     .getValidContinuations();
+
             for (PathElement p : validContinuations) {
                 if (containsPath(todos, p)) {
                     continue;

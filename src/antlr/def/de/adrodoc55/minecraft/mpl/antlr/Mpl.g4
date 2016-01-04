@@ -2,55 +2,69 @@ grammar Mpl;
 
 program
 :
-  line
   (
-    NEWLINE line
-  )*
+    include
+  )* install? uninstall?
+  (
+    project
+    | method
+    | skript
+  )
+;
+
+include
+:
+  INCLUDE STRING
+;
+
+install
+:
+  INSTALL line*
+;
+
+uninstall
+:
+  UNINSTALL line*
+;
+
+project
+:
+// TODO: Prefix, Orientation, max
+  PROJECT
+;
+
+method
+:
+  (
+    IMPULSE
+    | REPEAT
+  )? METHOD line*
+;
+
+skript
+:
+  line*
 ;
 
 line
 :
-  (
-    includeDeclaration
-    | skipDeclaration
-    | commandDeclaration
-  )?
-;
-
-includeDeclaration
-:
-  'include' '(' STRING
-  (
-    ',' includeAt
-  )?
-  (
-    ',' includeMax
-  )? ')'
-;
-
-includeAt
-:
-  'at' coordinate
-;
-
-includeMax
-:
-  'max' coordinate
-;
-
-coordinate
-:
-  '(' UNSIGNED_INT ',' UNSIGNED_INT ',' UNSIGNED_INT ')'
-;
-
-skipDeclaration
-:
-  SKIP
+  commandDeclaration
+  | skip
 ;
 
 commandDeclaration
 :
   modifierList? command
+  |
+  (
+    conditional ':'
+  )?
+  (
+    execute
+    | interrupt
+    | returnDeclaration
+    | waitfor
+  )
 ;
 
 modifierList
@@ -82,6 +96,7 @@ conditional
 :
   UNCONDITIONAL
   | CONDITIONAL
+  | INVERT
 ;
 
 auto
@@ -95,12 +110,37 @@ command
   COMMAND
 ;
 
+execute
+:
+  EXECUTE IDENTIFIER
+;
+
+interrupt
+:
+  INTERRUPT IDENTIFIER?
+;
+
+waitfor
+:
+  WAITFOR IDENTIFIER?
+;
+
+returnDeclaration
+:
+  RETURN
+;
+
+skip
+:
+  SKIP
+;
+
 COMMENT
 :
   (
     '//'
     | '#'
-  ) ~( '\r' | '\n' )* -> channel(HIDDEN)
+  ) ~( '\r' | '\n' )* -> channel ( HIDDEN )
 ;
 
 COMMAND
@@ -108,9 +148,29 @@ COMMAND
   '/' ~( '\r' | '\n' )*
 ;
 
-STRING
+INCLUDE
 :
-  '"' .+? '"'
+  'include'
+;
+
+INSTALL
+:
+  'install'
+;
+
+UNINSTALL
+:
+  'uninstall'
+;
+
+PROJECT
+:
+  'project'
+;
+
+METHOD
+:
+  'method'
 ;
 
 IMPULSE
@@ -138,6 +198,11 @@ CONDITIONAL
   'conditional'
 ;
 
+INVERT
+:
+  'invert'
+;
+
 ALWAYS_ACTIVE
 :
   'always active'
@@ -146,6 +211,26 @@ ALWAYS_ACTIVE
 NEEDS_REDSTONE
 :
   'needs redstone'
+;
+
+EXECUTE
+:
+  'execute'
+;
+
+INTERRUPT
+:
+  'interrupt'
+;
+
+WAITFOR
+:
+  'waitfor'
+;
+
+RETURN
+:
+  'return'
 ;
 
 SKIP
@@ -158,12 +243,17 @@ UNSIGNED_INT
   [0-9]+
 ;
 
-NEWLINE
-:
-  '\r'? '\n'
-;
-
 WS
 :
-  [ \t]+ -> skip
+  [ \t\r\n]+ -> skip
+;
+
+STRING
+:
+  '"' .+? '"'
+;
+
+IDENTIFIER
+:
+  [a-zA-Z0-9_]+
 ;

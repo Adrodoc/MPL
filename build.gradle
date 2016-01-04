@@ -105,7 +105,7 @@ jar {
         'Specification-Version':	version,
         'Implementation-Title':		productName,
         'Implementation-Version':	version,
-        'Main-Class':   'de.adrodoc55.minecraft.mpl.Main'
+        'Main-Class':   'de.adrodoc55.minecraft.mpl.gui.MplFrame'
         )
   }
 }
@@ -127,7 +127,7 @@ task fatJar(type: Jar) {
         'Specification-Version':	version,
         'Implementation-Title':		productName,
         'Implementation-Version':	version,
-        'Main-Class':   'de.adrodoc55.minecraft.mpl.Main'
+        'Main-Class':   'de.adrodoc55.minecraft.mpl.gui.MplFrame'
         )
   }
 }
