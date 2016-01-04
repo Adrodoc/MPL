@@ -70,6 +70,7 @@ public class MplFrame extends JFrame {
 
     private void openFile() {
         JFileChooser chooser = getFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         int userAction = chooser.showOpenDialog(this);
         if (userAction != JFileChooser.APPROVE_OPTION) {
             return;
@@ -125,6 +126,7 @@ public class MplFrame extends JFrame {
             return;
         }
         JFileChooser chooser = getFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         int userAction = chooser.showSaveDialog(this);
         if (userAction != JFileChooser.APPROVE_OPTION) {
             return;
@@ -145,6 +147,8 @@ public class MplFrame extends JFrame {
             MplEditor editor = (MplEditor) selected;
             editor.setFile(file);
             editor.save();
+            int index = getTabbedPane().indexOfComponent(editor);
+            getTabbedPane().setTitleAt(index, file.getName());
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(
                     chooser,
@@ -154,6 +158,21 @@ public class MplFrame extends JFrame {
                     JOptionPane.ERROR_MESSAGE);
         }
 
+    }
+
+    private File compilationDir;
+
+    private File getCompilationDir() {
+        if (compilationDir == null) {
+            JFileChooser chooser = getFileChooser();
+            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            int userAction = chooser.showSaveDialog(this);
+            if (userAction != JFileChooser.APPROVE_OPTION) {
+                return null;
+            }
+            compilationDir = chooser.getSelectedFile();
+        }
+        return compilationDir;
     }
 
     private void compileFile() {
@@ -166,8 +185,8 @@ public class MplFrame extends JFrame {
         try {
             String targetFileName = FileUtils.getFilenameWithoutExtension(file)
                     + ".py";
-            Main.main(file, new File(
-                    "C:/Users/Adrian/Documents/MCEdit/Filters", targetFileName));
+            File dir = getCompilationDir();
+            Main.main(file, new File(dir, targetFileName));
         } catch (IOException ex) {
             // TODO Auto-generated catch block
             ex.printStackTrace();
