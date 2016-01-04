@@ -29,7 +29,6 @@ import de.adrodoc55.minecraft.mpl.Main;
 public class MplFrame extends JFrame {
 
     private static final long serialVersionUID = 1L;
-    private JFileChooser chooser;
     private JMenuBar menuBar;
     private JMenu fileMenu;
     private JMenuItem newMenuItem;
@@ -55,21 +54,13 @@ public class MplFrame extends JFrame {
         frame.setVisible(true);
     }
 
-    private JFileChooser getFileChooser() {
-        if (chooser == null) {
-            chooser = new JFileChooser();
-        }
-        return chooser;
-    }
-
     private void newFile() {
         MplEditor editor = new MplEditor();
-        getTabbedPane().addTab("new.txt", editor);
-        getTabbedPane().setSelectedComponent(editor);
+        addEditor(editor);
     }
 
     private void openFile() {
-        JFileChooser chooser = getFileChooser();
+        JFileChooser chooser = MplEditor.getFileChooser();
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         int userAction = chooser.showOpenDialog(this);
         if (userAction != JFileChooser.APPROVE_OPTION) {
@@ -78,9 +69,7 @@ public class MplFrame extends JFrame {
         File file = chooser.getSelectedFile();
         if (file.exists()) {
             try {
-                MplEditor editor = new MplEditor(file);
-                getTabbedPane().addTab(file.getName(), editor);
-                getTabbedPane().setSelectedComponent(editor);
+                addEditor(new MplEditor(file));
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(
                         chooser,
@@ -99,25 +88,25 @@ public class MplFrame extends JFrame {
 
     }
 
+    private void addEditor(MplEditor editor) {
+        JTabbedPane pane = getTabbedPane();
+        String title = editor.getTitle();
+        pane.addTab(title, editor);
+        pane.setSelectedComponent(editor);
+        TabCloseComponent component = new TabCloseComponent(pane, title, editor);
+        editor.setTabComponent(component);
+        int index = pane.indexOfComponent(editor);
+        pane.setTabComponentAt(index, component);
+    }
+
     private void saveFile() {
         Component selected = getTabbedPane().getSelectedComponent();
         if (selected == null || !(selected instanceof MplEditor)) {
             return;
         }
         MplEditor editor = (MplEditor) selected;
-        try {
-            boolean saved = editor.save();
-            if (!saved) {
-                saveFileUnder();
-            }
-        } catch (IOException ex) {
-            File file = editor.getFile();
-            String path = file != null ? file.getPath() : null;
-            JOptionPane.showMessageDialog(chooser,
-                    "An Exception occured while trying to open '" + path
-                            + "'. Exception: " + ex.getMessage(), "Error",
-                    JOptionPane.ERROR_MESSAGE);
-        }
+        editor.save();
+
     }
 
     private void saveFileUnder() {
@@ -125,46 +114,15 @@ public class MplFrame extends JFrame {
         if (selected == null || !(selected instanceof MplEditor)) {
             return;
         }
-        JFileChooser chooser = getFileChooser();
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        int userAction = chooser.showSaveDialog(this);
-        if (userAction != JFileChooser.APPROVE_OPTION) {
-            return;
-        }
-        File file = chooser.getSelectedFile();
-        if (file.exists()) {
-            int overwrite = JOptionPane.showOptionDialog(chooser, "The File '"
-                    + file.getName()
-                    + "' already exists and will be overwritten.", "Save...",
-                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE,
-                    null, null, null);
-            if (overwrite != JOptionPane.OK_OPTION) {
-                saveFileUnder();
-                return;
-            }
-        }
-        try {
-            MplEditor editor = (MplEditor) selected;
-            editor.setFile(file);
-            editor.save();
-            int index = getTabbedPane().indexOfComponent(editor);
-            getTabbedPane().setTitleAt(index, file.getName());
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(
-                    chooser,
-                    "An Exception occured while trying to open '"
-                            + file.getPath() + "'. Exception: "
-                            + ex.getMessage(), "Error",
-                    JOptionPane.ERROR_MESSAGE);
-        }
-
+        MplEditor editor = (MplEditor) selected;
+        editor.saveUnder();
     }
 
     private File compilationDir;
 
     private File getCompilationDir() {
         if (compilationDir == null) {
-            JFileChooser chooser = getFileChooser();
+            JFileChooser chooser = MplEditor.getFileChooser();
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             int userAction = chooser.showSaveDialog(this);
             if (userAction != JFileChooser.APPROVE_OPTION) {
@@ -340,7 +298,7 @@ public class MplFrame extends JFrame {
 
     private JTabbedPane getTabbedPane() {
         if (tabbedPane == null) {
-            tabbedPane = new CloseableTabbedPane();
+            tabbedPane = new JTabbedPane();
             tabbedPane.getInputMap().put(
                     KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit
                             .getDefaultToolkit().getMenuShortcutKeyMask()),

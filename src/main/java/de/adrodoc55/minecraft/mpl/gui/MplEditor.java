@@ -13,6 +13,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
@@ -34,7 +36,18 @@ public class MplEditor extends JComponent {
 
     private static final long serialVersionUID = 1L;
 
+    private static JFileChooser chooser;
+
+    public static JFileChooser getFileChooser() {
+        if (chooser == null) {
+            chooser = new JFileChooser();
+        }
+        return chooser;
+    }
+
+    private TabCloseComponent tabComponent;
     private File file;
+
     private JScrollPane scrollPane;
     private JTextPane textPane;
     private UndoManager undoManager;
@@ -47,7 +60,6 @@ public class MplEditor extends JComponent {
     // private Style conditionalStyle;
     private Style needsRedstoneStyle;
     private Style commentStyle;
-    private Style skipStyle;
     private Style insertStyle;
 
     public MplEditor() {
@@ -66,31 +78,75 @@ public class MplEditor extends JComponent {
         }
     }
 
+    public TabCloseComponent getTabComponent() {
+        return tabComponent;
+    }
+
+    public void setTabComponent(TabCloseComponent tabComponent) {
+        this.tabComponent = tabComponent;
+    }
+
     public File getFile() {
         return file;
     }
 
     public void setFile(File file) {
         this.file = file;
+        if (tabComponent != null) {
+            tabComponent.setTitle(getTitle());
+        }
+    }
+
+    public String getTitle() {
+        return file != null ? file.getName() : "new.mpl";
     }
 
     /**
      * Saves the changes to this Editor's File, overwriting the content. The
      * file and all it's parent directories will be created if necassary. If the
-     * file is null this method returns immediately.
+     * file is null a JFileChooser dialog will be opened.<br>
+     * If an IOException is thrown the user will be informed via a JOptionPane.
      *
-     * @return true if the save was successful, false if this editor has no
-     *         file.
-     * @throws IOException
      */
-    public boolean save() throws IOException {
+    public void save() {
         if (file == null) {
-            return false;
+            saveUnder();
+        } else {
+            try {
+                file.getParentFile().mkdirs();
+                byte[] bytes = getTextPane().getText().getBytes();
+                Files.write(file.toPath(), bytes);
+            } catch (IOException ex) {
+                String path = file != null ? file.getPath() : null;
+                JOptionPane.showMessageDialog(chooser,
+                        "An Exception occured while trying to save to '" + path
+                                + "'. Exception: " + ex.getMessage(), "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
-        file.getParentFile().mkdirs();
-        byte[] bytes = getTextPane().getText().getBytes();
-        Files.write(file.toPath(), bytes);
-        return true;
+    }
+
+    public void saveUnder() {
+        JFileChooser chooser = getFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        int userAction = chooser.showSaveDialog(this);
+        if (userAction != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        File file = chooser.getSelectedFile();
+        if (file.exists()) {
+            int overwrite = JOptionPane.showOptionDialog(chooser, "The File '"
+                    + file.getName()
+                    + "' already exists and will be overwritten.", "Save...",
+                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE,
+                    null, null, null);
+            if (overwrite != JOptionPane.OK_OPTION) {
+                saveUnder();
+                return;
+            }
+        }
+        setFile(file);
+        save();
     }
 
     private void recolor() {
@@ -305,15 +361,6 @@ public class MplEditor extends JComponent {
             StyleConstants.setForeground(commentStyle, new Color(0, 128, 0));
         }
         return commentStyle;
-    }
-
-    private Style getSkipStyle() {
-        if (skipStyle == null) {
-            skipStyle = getStyledDocument().addStyle("skip", getDefaultStyle());
-            // StyleConstants.setForeground(insertStyle, new Color(0, 0, 255));
-            StyleConstants.setBackground(skipStyle, new Color(0, 255, 255));
-        }
-        return skipStyle;
     }
 
     private Style getInsertStyle() {

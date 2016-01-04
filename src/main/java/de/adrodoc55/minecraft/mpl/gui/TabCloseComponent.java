@@ -8,28 +8,37 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 
 public class TabCloseComponent extends JPanel {
 
     private static final long serialVersionUID = 1L;
-    private final CloseableTabbedPane parent;
-    private final String title;
+    private final JTabbedPane parent;
     private final Component component;
     private JLabel titleLabel;
     private JButton closeButton;
 
-    public TabCloseComponent(CloseableTabbedPane parent, String title,
+    public TabCloseComponent(JTabbedPane parent, String title,
             Component component) {
         this.parent = parent;
-        this.title = title;
         this.component = component;
-        add(getTitleLabel());
+        JLabel titleLabel = getTitleLabel();
+        titleLabel.setText(title);
+        add(titleLabel);
         add(getCloseButton());
+    }
+
+    public String getTitle() {
+        return getTitleLabel().getText();
+    }
+
+    public void setTitle(String title) {
+        getTitleLabel().setText(title);
     }
 
     private JLabel getTitleLabel() {
         if (titleLabel == null) {
-            titleLabel = new JLabel(this.title);
+            titleLabel = new JLabel();
         }
         return titleLabel;
     }
