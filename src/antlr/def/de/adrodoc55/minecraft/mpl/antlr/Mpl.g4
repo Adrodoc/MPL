@@ -61,6 +61,7 @@ commandDeclaration
   )?
   (
     execute
+    | interrupt
     | returnDeclaration
     | waitfor
   )
@@ -112,6 +113,11 @@ command
 execute
 :
   EXECUTE IDENTIFIER
+;
+
+interrupt
+:
+  INTERRUPT IDENTIFIER?
 ;
 
 waitfor
@@ -210,6 +216,11 @@ NEEDS_REDSTONE
 EXECUTE
 :
   'execute'
+;
+
+INTERRUPT
+:
+  'interrupt'
 ;
 
 WAITFOR

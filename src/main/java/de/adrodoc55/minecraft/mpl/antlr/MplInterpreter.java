@@ -30,6 +30,7 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.ConditionalContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ExecuteContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.InstallContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.InterruptContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.MethodContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModusContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProgramContext;
@@ -252,6 +253,24 @@ public class MplInterpreter extends MplBaseListener {
                 + "] ~ ~ ~ /setblock ~ ~ ~ redstone_block";
         commandBuffer.setCommand(command);
         lastExecuteIdentifier = method;
+    }
+
+    @Override
+    public void enterInterrupt(InterruptContext ctx) {
+        String method;
+        if (ctx.IDENTIFIER() != null) {
+            method = ctx.IDENTIFIER().getText();
+        } else if (isRepeatingMethod()) {
+            method = getName();
+        } else {
+            Token symbol = ctx.INTERRUPT().getSymbol();
+            throw new CompilerException(programFile, symbol.getLine(),
+                    symbol.getStartIndex(),
+                    "Can only interrupt repeating methods.");
+        }
+        String command = "/execute @e[name=" + method
+                + "] ~ ~ ~ /setblock ~ ~ ~ stone";
+        commandBuffer.setCommand(command);
     }
 
     @Override

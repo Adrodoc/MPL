@@ -147,6 +147,86 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
   }
 
   @Test
+  public void "repeating interrupt generiert die richtigen Commandos"() {
+    given:
+    String programString = """
+    repeat method
+    interrupt
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    String identifier = FileUtils.getFilenameWithoutExtension lastTempFile
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 1
+    commands[0] == new Command("/execute @e[name=${identifier}] ~ ~ ~ /setblock ~ ~ ~ stone", Mode.REPEAT, false)
+  }
+
+  @Test
+  public void "repeating conditional interrupt generiert die richtigen Commandos"() {
+    given:
+    String programString = """
+    repeat method
+    /say hi
+    conditional: interrupt
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    String identifier = FileUtils.getFilenameWithoutExtension lastTempFile
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 2
+    commands[0] == new Command("/say hi", Mode.REPEAT, false)
+    commands[1] == new Command("/execute @e[name=${identifier}] ~ ~ ~ /setblock ~ ~ ~ stone", true)
+  }
+
+  @Test
+  public void "impulse interrupt wirft exception"() {
+    given:
+    String programString = """
+    impulse method
+    interrupt
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    CompilerException ex = thrown()
+    ex.file == lastTempFile
+    ex.line == 3
+    ex.index == 24
+    ex.message == 'Can only interrupt repeating methods.'
+  }
+
+  @Test
+  public void "interrupt mit identifier generiert die richtigen Commandos"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    impulse method
+    interrupt ${identifier}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 2
+    commands[0] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[1] == new Command("/execute @e[name=${identifier}] ~ ~ ~ /setblock ~ ~ ~ stone")
+  }
+
+  @Test
   public void "return generiert die richtigen Commandos"() {
     given:
     String programString = """
