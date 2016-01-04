@@ -200,7 +200,7 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    CompilerException ex = thrown(CompilerException)
+    CompilerException ex = thrown()
     ex.file == lastTempFile
     ex.line == 2
     ex.index == 5
@@ -256,6 +256,44 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
   }
 
   @Test
+  public void "waitfor in repeating method wirf Exception"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    repeat method
+    execute ${identifier}
+    waitfor
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    CompilerException ex = thrown()
+    ex.file == lastTempFile
+    ex.line == 4
+    ex.index == 56
+    ex.message == 'Encountered waitfor in repeating context.'
+  }
+
+  @Test
+  public void "waitfor in repeating script wirf Exception"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    repeat: /say hi
+    execute ${identifier}
+    waitfor
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    CompilerException ex = thrown()
+    ex.file == lastTempFile
+    ex.line == 4
+    ex.index == 58
+    ex.message == 'Encountered waitfor in repeating context.'
+  }
+
+  @Test
   public void "waitfor ohne Identifier bezieht sich auf das letzte Execute"() {
     given:
     String identifier = someIdentifier()
@@ -288,7 +326,7 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    CompilerException ex = thrown(CompilerException)
+    CompilerException ex = thrown()
     ex.file == lastTempFile
     ex.line == 2
     ex.index == 11

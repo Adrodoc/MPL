@@ -152,10 +152,16 @@ public class MplInterpreter extends MplBaseListener {
         return method;
     }
 
-    private boolean repeating;
+    private boolean repeatingMethod;
 
-    public boolean isRepeating() {
-        return repeating;
+    public boolean isRepeatingMethod() {
+        return repeatingMethod;
+    }
+
+    private boolean repeatingContext;
+
+    public boolean isRepeatingContext() {
+        return repeatingContext;
     }
 
     @Override
@@ -173,7 +179,11 @@ public class MplInterpreter extends MplBaseListener {
         method = true;
         commands = new LinkedList<Command>();
         if (ctx.REPEAT() != null) {
-            repeating = true;
+            repeatingMethod = true;
+            repeatingContext = true;
+        } else {
+            repeatingMethod = false;
+            repeatingContext = false;
         }
     }
 
@@ -193,6 +203,11 @@ public class MplInterpreter extends MplBaseListener {
     public void enterModus(ModusContext ctx) {
         Mode mode = Mode.valueOf(ctx.getText().toUpperCase());
         commandBuffer.setMode(mode);
+        if (mode == Mode.IMPULSE) {
+            repeatingContext = false;
+        } else if (mode == Mode.REPEAT) {
+            repeatingContext = true;
+        }
     }
 
     @Override
@@ -248,7 +263,7 @@ public class MplInterpreter extends MplBaseListener {
                     "Encountered return outside of a method context.");
         }
         String method = this.getName();
-        if (this.isRepeating()) {
+        if (this.isRepeatingMethod()) {
             commandBuffer.setCommand("/execute @e[name=" + method
                     + "] ~ ~ ~ /setblock ~ ~ ~ stone");
             commands.add(commandBuffer.toCommand());
@@ -260,8 +275,13 @@ public class MplInterpreter extends MplBaseListener {
     }
 
     @Override
-    public void enterWaitfor(WaitforContext ctx) { // FIXME: Fix waitfor for
-                                                    // repeating context
+    public void enterWaitfor(WaitforContext ctx) {
+        Token symbol = ctx.WAITFOR().getSymbol();
+        if (isRepeatingContext()) {
+            throw new CompilerException(programFile, symbol.getLine(),
+                    symbol.getStartIndex(),
+                    "Encountered waitfor in repeating context.");
+        }
         TerminalNode identifier = ctx.IDENTIFIER();
         String method;
         if (identifier != null) {
@@ -270,7 +290,6 @@ public class MplInterpreter extends MplBaseListener {
             method = lastExecuteIdentifier;
             lastExecuteIdentifier = null;
         } else {
-            Token symbol = ctx.WAITFOR().getSymbol();
             throw new CompilerException(programFile, symbol.getLine(),
                     symbol.getStopIndex(),
                     "Missing Identifier. No previous execution was found to wait for.");
@@ -303,6 +322,7 @@ public class MplInterpreter extends MplBaseListener {
             commands.add(new Command("/setblock ${this - 1} stone",
                     Mode.IMPULSE, false));
         }
+        repeatingContext = false;
         commandBuffer = null;
     }
 
@@ -324,7 +344,7 @@ public class MplInterpreter extends MplBaseListener {
 
     @Override
     public void exitMethod(MethodContext ctx) {
-        if (this.isRepeating()) {
+        if (this.isRepeatingMethod()) {
             if (commands.size() > 0) {
                 Command first = commands.get(0);
                 first.setMode(Mode.REPEAT);
@@ -338,7 +358,7 @@ public class MplInterpreter extends MplBaseListener {
         chains.add(chain);
         commands = null;
         method = false;
-        repeating = false;
+        repeatingMethod = false;
     }
 
     @Override
