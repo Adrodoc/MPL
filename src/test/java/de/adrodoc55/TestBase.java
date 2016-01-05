@@ -25,7 +25,7 @@ public class TestBase extends Assertions {
     }
 
     public static String someIdentifier() {
-        return "Identifier" + somePositiveInt();
+        return "Identifier_" + somePositiveInt();
     }
 
     public static boolean someBoolean() {

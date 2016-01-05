@@ -149,35 +149,35 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
   @Test
   public void "repeating stop generiert die richtigen Commandos"() {
     given:
+    String name = someIdentifier()
     String programString = """
-    repeat process
+    repeat process ${name}
     stop
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    String identifier = FileUtils.getFilenameWithoutExtension lastTempFile
     List chains = interpreter.chains
     chains.size() == 1
 
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
     commands.size() == 1
-    commands[0] == new Command("/execute @e[name=${identifier}] ~ ~ ~ /setblock ~ ~ ~ stone", Mode.REPEAT, false)
+    commands[0] == new Command("/execute @e[name=${name}] ~ ~ ~ /setblock ~ ~ ~ stone", Mode.REPEAT, false)
   }
 
   @Test
   public void "repeating conditional stop generiert die richtigen Commandos"() {
     given:
+    String name = someIdentifier()
     String programString = """
-    repeat process
+    repeat process ${name}
     /say hi
     conditional: stop
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    String identifier = FileUtils.getFilenameWithoutExtension lastTempFile
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -185,14 +185,15 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     List<Command> commands = chain.commands
     commands.size() == 2
     commands[0] == new Command("/say hi", Mode.REPEAT, false)
-    commands[1] == new Command("/execute @e[name=${identifier}] ~ ~ ~ /setblock ~ ~ ~ stone", true)
+    commands[1] == new Command("/execute @e[name=${name}] ~ ~ ~ /setblock ~ ~ ~ stone", true)
   }
 
   @Test
   public void "impulse stop wirft exception"() {
     given:
+    String name = someIdentifier()
     String programString = """
-    impulse process
+    impulse process ${name}
     stop
     """
     when:
@@ -201,17 +202,18 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     CompilerException ex = thrown()
     ex.file == lastTempFile
     ex.line == 3
-    ex.index == 25
+    ex.index == 47
     ex.message == 'Can only stop repeating processes.'
   }
 
   @Test
   public void "stop mit identifier generiert die richtigen Commandos"() {
     given:
-    String identifier = someIdentifier()
+    String name = someIdentifier()
+    String sid = someIdentifier()
     String programString = """
-    impulse process
-    stop ${identifier}
+    impulse process ${name}
+    stop ${sid}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -223,20 +225,20 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     List<Command> commands = chain.commands
     commands.size() == 2
     commands[0] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
-    commands[1] == new Command("/execute @e[name=${identifier}] ~ ~ ~ /setblock ~ ~ ~ stone")
+    commands[1] == new Command("/execute @e[name=${sid}] ~ ~ ~ /setblock ~ ~ ~ stone")
   }
 
   @Test
   public void "notify generiert die richtigen Commandos"() {
     given:
+    String name = someIdentifier()
     String programString = """
-    process
+    process ${name}
     notify
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    String identifier = FileUtils.getFilenameWithoutExtension lastTempFile
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -244,21 +246,21 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     List<Command> commands = chain.commands
     commands.size() == 3
     commands[0] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
-    commands[1] == new Command("/execute @e[name=${identifier}_NOTIFY] ~ ~ ~ /setblock ~ ~ ~ redstone_block")
-    commands[2] == new Command("/kill @e[name=${identifier}_NOTIFY]")
+    commands[1] == new Command("/execute @e[name=${name}_NOTIFY] ~ ~ ~ /setblock ~ ~ ~ redstone_block")
+    commands[2] == new Command("/kill @e[name=${name}_NOTIFY]")
   }
 
   @Test
   public void "conditional: notify generiert die richtigen Commandos"() {
     given:
+    String name = someIdentifier()
     String programString = """
-    process
+    process ${name}
     conditional: notify
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    String identifier = FileUtils.getFilenameWithoutExtension lastTempFile
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -266,8 +268,8 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     List<Command> commands = chain.commands
     commands.size() == 3
     commands[0] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
-    commands[1] == new Command("/execute @e[name=${identifier}_NOTIFY] ~ ~ ~ /setblock ~ ~ ~ redstone_block", true)
-    commands[2] == new Command("/kill @e[name=${identifier}_NOTIFY]", true)
+    commands[1] == new Command("/execute @e[name=${name}_NOTIFY] ~ ~ ~ /setblock ~ ~ ~ redstone_block", true)
+    commands[2] == new Command("/kill @e[name=${name}_NOTIFY]", true)
   }
 
   @Test
@@ -290,14 +292,14 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
   @Test
   public void "In einem repeat Prozess stoppt notify den prozess nicht"() {
     given:
+    String name = someIdentifier()
     String programString = """
-    repeat process
+    repeat process ${name}
     /say hi
     notify
     """
     when:
     MplInterpreter interpreter = interpret(programString)
-    String identifier = FileUtils.getFilenameWithoutExtension lastTempFile
     then:
     List chains = interpreter.chains
     chains.size() == 1
@@ -306,21 +308,21 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     List<Command> commands = chain.commands
     commands.size() == 3
     commands[0] == new Command("/say hi", Mode.REPEAT, false)
-    commands[1] == new Command("/execute @e[name=${identifier}_NOTIFY] ~ ~ ~ /setblock ~ ~ ~ redstone_block")
-    commands[2] == new Command("/kill @e[name=${identifier}_NOTIFY]")
+    commands[1] == new Command("/execute @e[name=${name}_NOTIFY] ~ ~ ~ /setblock ~ ~ ~ redstone_block")
+    commands[2] == new Command("/kill @e[name=${name}_NOTIFY]")
   }
 
   @Test
   public void "In einem repeat Prozess stoppt notify den Prozess nicht, ist aber conditional"() {
     given:
+    String name = someIdentifier()
     String programString = """
-    repeat process
+    repeat process ${name}
     /say hi
     conditional: notify
     """
     when:
     MplInterpreter interpreter = interpret(programString)
-    String identifier = FileUtils.getFilenameWithoutExtension lastTempFile
     then:
     List chains = interpreter.chains
     chains.size() == 1
@@ -329,16 +331,17 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     List<Command> commands = chain.commands
     commands.size() == 3
     commands[0] == new Command("/say hi", Mode.REPEAT, false)
-    commands[1] == new Command("/execute @e[name=${identifier}_NOTIFY] ~ ~ ~ /setblock ~ ~ ~ redstone_block", true)
-    commands[2] == new Command("/kill @e[name=${identifier}_NOTIFY]", true)
+    commands[1] == new Command("/execute @e[name=${name}_NOTIFY] ~ ~ ~ /setblock ~ ~ ~ redstone_block", true)
+    commands[2] == new Command("/kill @e[name=${name}_NOTIFY]", true)
   }
 
   @Test
   public void "waitfor in repeating Prozess wirft Exception"() {
     given:
+    String name = someIdentifier()
     String identifier = someIdentifier()
     String programString = """
-    repeat process
+    repeat process ${name}
     start ${identifier}
     waitfor
     """
@@ -348,7 +351,7 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     CompilerException ex = thrown()
     ex.file == lastTempFile
     ex.line == 4
-    ex.index == 55
+    ex.index == 77
     ex.message == 'Encountered waitfor in repeating context.'
   }
 
@@ -454,8 +457,9 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
   @Test
   public void "Ein impulse Prozess deaktiviert sich selbst"() {
     given:
+    String name = someIdentifier()
     String programString = """
-    process
+    process ${name}
     /say hi
     """
     when:
@@ -474,8 +478,9 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
   @Test
   public void "Eine repeat Prozess deaktiviert sich nicht selbst"() {
     given:
+    String name = someIdentifier()
     String programString = """
-    repeat process
+    repeat process ${name}
     /say hi
     """
     when:
@@ -488,5 +493,44 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     List<Command> commands = chain.commands
     commands.size() == 1
     commands[0] == new Command("/say hi", Mode.REPEAT, false)
+  }
+
+
+  @Test
+  public void "Eine Datei kann mehrere Prozesse enthalten"() {
+    given:
+    String id1 = someIdentifier()
+    String id2 = someIdentifier()
+    String id3 = someIdentifier()
+    String programString = """
+    process ${id1}
+    /say I am a default process
+    impulse process ${id2}
+    /say I am an impulse process, wich is actually equivalent to the default
+    repeat process ${id3}
+    /say I am a repeating process. I am completely different :)
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List<CommandChain> chains = interpreter.chains
+    chains.size() == 3
+
+    chains[0].name == id1
+    List<Command> commands1 = chains[0].commands
+    commands1.size() == 2
+    commands1[0] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands1[1] == new Command("/say I am a default process")
+
+    chains[1].name == id2
+    List<Command> commands2 = chains[1].commands
+    commands2.size() == 2
+    commands2[0] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands2[1] == new Command("/say I am an impulse process, wich is actually equivalent to the default")
+
+    chains[2].name == id3
+    List<Command> commands3 = chains[2].commands
+    commands3.size() == 1
+    commands3[0] == new Command("/say I am a repeating process. I am completely different :)", Mode.REPEAT, false)
   }
 }

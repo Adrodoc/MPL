@@ -18,7 +18,6 @@ import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 import de.adrodoc55.minecraft.mpl.CommandChain;
@@ -73,18 +72,12 @@ public class MplInterpreter extends MplBaseListener {
         this.programFile = programFile;
     }
 
-    /**
-     * Returns the name of the current Project, Method or Skript. The Name is
-     * defined by the Name of the programFile.
-     *
-     * @return name
-     */
-    private String getName() {
-        return FileUtils.getFilenameWithoutExtension(programFile);
-    }
-
     public File getProgramFile() {
         return programFile;
+    }
+
+    public boolean isProject() {
+        return context.isProject();
     }
 
     public List<CommandChain> getChains() {
@@ -117,80 +110,59 @@ public class MplInterpreter extends MplBaseListener {
                 .getParentFile(), ctx));
     }
 
-    private LinkedList<Command> commands;
+    private ContextBuffer context;
 
     @Override
     public void enterInstall(InstallContext ctx) {
-        this.commands = new LinkedList<Command>();
+        context = new ContextBuffer(programFile);
     }
 
     @Override
     public void exitInstall(InstallContext ctx) {
-        this.installation.addAll(this.commands);
-        this.commands = null;
+        installation.addAll(context.getCommands());
+        context = null;
     }
 
     @Override
     public void enterUninstall(UninstallContext ctx) {
-        this.commands = new LinkedList<Command>();
+        context = new ContextBuffer(programFile);
     }
 
     @Override
     public void exitUninstall(UninstallContext ctx) {
-        this.uninstallation.addAll(this.commands);
-        this.commands = null;
-    }
-
-    private boolean project;
-
-    public boolean isProject() {
-        return project;
-    }
-
-    private boolean method;
-
-    public boolean isMethod() {
-        return method;
-    }
-
-    private boolean repeatingMethod;
-
-    public boolean isRepeatingMethod() {
-        return repeatingMethod;
-    }
-
-    private boolean repeatingContext;
-
-    public boolean isRepeatingContext() {
-        return repeatingContext;
+        uninstallation.addAll(context.getCommands());
+        context = null;
     }
 
     @Override
     public void enterProject(ProjectContext ctx) {
-        project = true;
+        context = new ContextBuffer(programFile);
+        context.setProject(true);
     }
 
     @Override
     public void exitProject(ProjectContext ctx) {
-        project = false;
+        context = null;
     }
 
     @Override
     public void enterProcess(ProcessContext ctx) {
-        method = true;
-        commands = new LinkedList<Command>();
+        context = new ContextBuffer(programFile);
+        context.setProcess(true);
+        context.setName(ctx.IDENTIFIER().getText());
         if (ctx.REPEAT() != null) {
-            repeatingMethod = true;
-            repeatingContext = true;
+            context.setRepeatingProcess(true);
+            context.setRepeatingContext(true);
         } else {
-            repeatingMethod = false;
-            repeatingContext = false;
+            context.setRepeatingProcess(false);
+            context.setRepeatingContext(false);
         }
     }
 
     @Override
     public void enterSkript(SkriptContext ctx) {
-        this.commands = new LinkedList<Command>();
+        context = new ContextBuffer(programFile);
+        context.setScript(true);
     }
 
     private CommandBuffer commandBuffer;
@@ -204,11 +176,6 @@ public class MplInterpreter extends MplBaseListener {
     public void enterModus(ModusContext ctx) {
         Mode mode = Mode.valueOf(ctx.getText().toUpperCase());
         commandBuffer.setMode(mode);
-        if (mode == Mode.IMPULSE) {
-            repeatingContext = false;
-        } else if (mode == Mode.REPEAT) {
-            repeatingContext = true;
-        }
     }
 
     @Override
@@ -219,9 +186,9 @@ public class MplInterpreter extends MplBaseListener {
         } else if (ctx.CONDITIONAL() != null) {
             conditional = true;
         } else if (ctx.INVERT() != null) {
-            commands.add(new Command("/blockdata ${this - 1} {SuccessCount:0}",
+            context.add(new Command("/blockdata ${this - 1} {SuccessCount:0}",
                     true));
-            commands.add(new Command("/blockdata ${this - 1} {SuccessCount:1}"));
+            context.add(new Command("/blockdata ${this - 1} {SuccessCount:1}"));
             conditional = true;
         }
         commandBuffer.setConditional(conditional);
@@ -260,8 +227,8 @@ public class MplInterpreter extends MplBaseListener {
         String method;
         if (ctx.IDENTIFIER() != null) {
             method = ctx.IDENTIFIER().getText();
-        } else if (isRepeatingMethod()) {
-            method = getName();
+        } else if (context.isRepeatingProcess()) {
+            method = context.getName();
         } else {
             Token symbol = ctx.STOP().getSymbol();
             throw new CompilerException(programFile, symbol.getLine(),
@@ -275,23 +242,23 @@ public class MplInterpreter extends MplBaseListener {
 
     @Override
     public void enterNotifyDeclaration(NotifyDeclarationContext ctx) {
-        if (!this.isMethod()) {
+        if (!context.isProcess()) {
             Token symbol = ctx.NOTIFY().getSymbol();
             throw new CompilerException(programFile, symbol.getLine(),
                     symbol.getStartIndex(),
                     "Encountered notify outside of a process context.");
         }
-        String method = this.getName();
+        String method = context.getName();
         commandBuffer.setCommand("/execute @e[name=" + method + NOTIFY
                 + "] ~ ~ ~ /setblock ~ ~ ~ redstone_block");
-        commands.add(commandBuffer.toCommand());
+        context.add(commandBuffer.toCommand());
         commandBuffer.setCommand("/kill @e[name=" + method + NOTIFY + "]");
     }
 
     @Override
     public void enterWaitfor(WaitforContext ctx) {
         Token symbol = ctx.WAITFOR().getSymbol();
-        if (isRepeatingContext()) {
+        if (context.isRepeatingContext()) {
             throw new CompilerException(programFile, symbol.getLine(),
                     symbol.getStartIndex(),
                     "Encountered waitfor in repeating context.");
@@ -318,12 +285,12 @@ public class MplInterpreter extends MplBaseListener {
                             + method
                             + NOTIFY
                             + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
-            commands.add(commandBuffer.toCommand());
-            commands.add(new Command("/blockdata ${this - 1} {SuccessCount:1}"));
-            commands.add(new Command("/setblock ${this + 1} redstone_block",
+            context.add(commandBuffer.toCommand());
+            context.add(new Command("/blockdata ${this - 1} {SuccessCount:1}"));
+            context.add(new Command("/setblock ${this + 1} redstone_block",
                     true));
-            commands.add(null);
-            commands.add(new Command("/setblock ${this - 1} stone",
+            context.add(null);
+            context.add(new Command("/setblock ${this - 1} stone",
                     Mode.IMPULSE, false));
         } else {
             commandBuffer
@@ -331,12 +298,11 @@ public class MplInterpreter extends MplBaseListener {
                             + method
                             + NOTIFY
                             + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
-            commands.add(commandBuffer.toCommand());
-            commands.add(null);
-            commands.add(new Command("/setblock ${this - 1} stone",
+            context.add(commandBuffer.toCommand());
+            context.add(null);
+            context.add(new Command("/setblock ${this - 1} stone",
                     Mode.IMPULSE, false));
         }
-        repeatingContext = false;
         commandBuffer = null;
     }
 
@@ -346,19 +312,20 @@ public class MplInterpreter extends MplBaseListener {
             return;
         }
         Command command = commandBuffer.toCommand();
-        commands.add(command);
+        context.add(command);
         commandBuffer = null;
 
     }
 
     @Override
     public void enterSkip(SkipContext ctx) {
-        this.commands.add(null);
+        context.add(null);
     }
 
     @Override
     public void exitProcess(ProcessContext ctx) {
-        if (this.isRepeatingMethod()) {
+        LinkedList<Command> commands = context.getCommands();
+        if (context.isRepeatingProcess()) {
             if (commands.size() > 0) {
                 Command first = commands.get(0);
                 first.setMode(Mode.REPEAT);
@@ -368,18 +335,16 @@ public class MplInterpreter extends MplBaseListener {
             commands.add(0, new Command("/setblock ${this - 1} stone",
                     Mode.IMPULSE, false));
         }
-        CommandChain chain = new CommandChain(getName(), commands);
+        CommandChain chain = new CommandChain(context.getName(), commands);
         chains.add(chain);
-        commands = null;
-        method = false;
-        repeatingMethod = false;
+        context = null;
     }
 
     @Override
     public void exitSkript(SkriptContext ctx) {
-        CommandChain chain = new CommandChain(null, this.commands);
+        CommandChain chain = new CommandChain(null, context.getCommands());
         chains.add(chain);
-        commands = null;
+        context = null;
     }
 
 }

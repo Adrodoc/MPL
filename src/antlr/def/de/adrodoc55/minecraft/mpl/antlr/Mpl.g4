@@ -7,7 +7,7 @@ program
   )* install? uninstall?
   (
     project
-    | process
+    | process+
     | skript
   )
 ;
@@ -38,7 +38,7 @@ process
   (
     IMPULSE
     | REPEAT
-  )? PROCESS line*
+  )? PROCESS IDENTIFIER line*
 ;
 
 skript
