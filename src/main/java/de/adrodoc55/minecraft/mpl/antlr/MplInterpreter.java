@@ -27,23 +27,23 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.AutoContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ConditionalContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.ExecuteContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.InstallContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.InterruptContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.MethodContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModusContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.NotifyDeclarationContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProcessContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProgramContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProjectContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.ReturnDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.SkipContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.SkriptContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.StartContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.StopContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.UninstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.WaitforContext;
 
 public class MplInterpreter extends MplBaseListener {
 
-    private static final String RETURN = "_RETURN";
+    private static final String NOTIFY = "_NOTIFY";
 
     public static MplInterpreter interpret(File programFile) throws IOException {
         ProgramContext ctx = parse(programFile);
@@ -176,7 +176,7 @@ public class MplInterpreter extends MplBaseListener {
     }
 
     @Override
-    public void enterMethod(MethodContext ctx) {
+    public void enterProcess(ProcessContext ctx) {
         method = true;
         commands = new LinkedList<Command>();
         if (ctx.REPEAT() != null) {
@@ -247,7 +247,7 @@ public class MplInterpreter extends MplBaseListener {
     private String lastExecuteIdentifier;
 
     @Override
-    public void enterExecute(ExecuteContext ctx) {
+    public void enterStart(StartContext ctx) {
         String method = ctx.IDENTIFIER().getText();
         String command = "/execute @e[name=" + method
                 + "] ~ ~ ~ /setblock ~ ~ ~ redstone_block";
@@ -256,17 +256,17 @@ public class MplInterpreter extends MplBaseListener {
     }
 
     @Override
-    public void enterInterrupt(InterruptContext ctx) {
+    public void enterStop(StopContext ctx) {
         String method;
         if (ctx.IDENTIFIER() != null) {
             method = ctx.IDENTIFIER().getText();
         } else if (isRepeatingMethod()) {
             method = getName();
         } else {
-            Token symbol = ctx.INTERRUPT().getSymbol();
+            Token symbol = ctx.STOP().getSymbol();
             throw new CompilerException(programFile, symbol.getLine(),
                     symbol.getStartIndex(),
-                    "Can only interrupt repeating methods.");
+                    "Can only stop repeating processes.");
         }
         String command = "/execute @e[name=" + method
                 + "] ~ ~ ~ /setblock ~ ~ ~ stone";
@@ -274,23 +274,18 @@ public class MplInterpreter extends MplBaseListener {
     }
 
     @Override
-    public void enterReturnDeclaration(ReturnDeclarationContext ctx) {
+    public void enterNotifyDeclaration(NotifyDeclarationContext ctx) {
         if (!this.isMethod()) {
-            Token symbol = ctx.RETURN().getSymbol();
+            Token symbol = ctx.NOTIFY().getSymbol();
             throw new CompilerException(programFile, symbol.getLine(),
                     symbol.getStartIndex(),
-                    "Encountered return outside of a method context.");
+                    "Encountered notify outside of a process context.");
         }
         String method = this.getName();
-        if (this.isRepeatingMethod()) {
-            commandBuffer.setCommand("/execute @e[name=" + method
-                    + "] ~ ~ ~ /setblock ~ ~ ~ stone");
-            commands.add(commandBuffer.toCommand());
-        }
-        commandBuffer.setCommand("/execute @e[name=" + method + RETURN
+        commandBuffer.setCommand("/execute @e[name=" + method + NOTIFY
                 + "] ~ ~ ~ /setblock ~ ~ ~ redstone_block");
         commands.add(commandBuffer.toCommand());
-        commandBuffer.setCommand("/kill @e[name=" + method + RETURN + "]");
+        commandBuffer.setCommand("/kill @e[name=" + method + NOTIFY + "]");
     }
 
     @Override
@@ -311,7 +306,7 @@ public class MplInterpreter extends MplBaseListener {
         } else {
             throw new CompilerException(programFile, symbol.getLine(),
                     symbol.getStopIndex(),
-                    "Missing Identifier. No previous execution was found to wait for.");
+                    "Missing Identifier. No previous start was found to wait for.");
         }
         Boolean conditional = commandBuffer.getConditional();
         if (conditional == null) {
@@ -321,7 +316,7 @@ public class MplInterpreter extends MplBaseListener {
             commandBuffer
                     .setCommand("/summon ArmorStand ${this + 3} {CustomName:\""
                             + method
-                            + RETURN
+                            + NOTIFY
                             + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
             commands.add(commandBuffer.toCommand());
             commands.add(new Command("/blockdata ${this - 1} {SuccessCount:1}"));
@@ -334,7 +329,7 @@ public class MplInterpreter extends MplBaseListener {
             commandBuffer
                     .setCommand("/summon ArmorStand ${this + 1} {CustomName:\""
                             + method
-                            + RETURN
+                            + NOTIFY
                             + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
             commands.add(commandBuffer.toCommand());
             commands.add(null);
@@ -362,7 +357,7 @@ public class MplInterpreter extends MplBaseListener {
     }
 
     @Override
-    public void exitMethod(MethodContext ctx) {
+    public void exitProcess(ProcessContext ctx) {
         if (this.isRepeatingMethod()) {
             if (commands.size() > 0) {
                 Command first = commands.get(0);

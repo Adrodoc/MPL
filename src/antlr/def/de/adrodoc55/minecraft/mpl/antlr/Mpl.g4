@@ -7,7 +7,7 @@ program
   )* install? uninstall?
   (
     project
-    | method
+    | process
     | skript
   )
 ;
@@ -33,12 +33,12 @@ project
   PROJECT
 ;
 
-method
+process
 :
   (
     IMPULSE
     | REPEAT
-  )? METHOD line*
+  )? PROCESS line*
 ;
 
 skript
@@ -60,9 +60,9 @@ commandDeclaration
     conditional ':'
   )?
   (
-    execute
-    | interrupt
-    | returnDeclaration
+    start
+    | stop
+    | notifyDeclaration
     | waitfor
   )
 ;
@@ -110,14 +110,14 @@ command
   COMMAND
 ;
 
-execute
+start
 :
-  EXECUTE IDENTIFIER
+  START IDENTIFIER
 ;
 
-interrupt
+stop
 :
-  INTERRUPT IDENTIFIER?
+  STOP IDENTIFIER?
 ;
 
 waitfor
@@ -125,9 +125,9 @@ waitfor
   WAITFOR IDENTIFIER?
 ;
 
-returnDeclaration
+notifyDeclaration
 :
-  RETURN
+  NOTIFY
 ;
 
 skip
@@ -168,9 +168,9 @@ PROJECT
   'project'
 ;
 
-METHOD
+PROCESS
 :
-  'method'
+  'process'
 ;
 
 IMPULSE
@@ -213,14 +213,14 @@ NEEDS_REDSTONE
   'needs redstone'
 ;
 
-EXECUTE
+START
 :
-  'execute'
+  'start'
 ;
 
-INTERRUPT
+STOP
 :
-  'interrupt'
+  'stop'
 ;
 
 WAITFOR
@@ -228,9 +228,9 @@ WAITFOR
   'waitfor'
 ;
 
-RETURN
+NOTIFY
 :
-  'return'
+  'notify'
 ;
 
 SKIP

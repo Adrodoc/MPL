@@ -126,10 +126,10 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
   }
 
   @Test
-  @Unroll("execute generiert die richtigen Commandos ('#programString')")
-  public void "execute generiert die richtigen Commandos"(String programString, boolean conditional) {
+  @Unroll("start generiert die richtigen Commandos ('#programString')")
+  public void "start generiert die richtigen Commandos"(String programString, boolean conditional) {
     given:
-    String identifier = programString.find('(?<=execute ).+$')
+    String identifier = programString.find('(?<=start ).+$')
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
@@ -142,16 +142,16 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     commands[0] == new Command("/execute @e[name=${identifier}] ~ ~ ~ /setblock ~ ~ ~ redstone_block", conditional)
     where:
     programString 								| conditional
-    'execute ' + someIdentifier()				| false
-    'conditional: execute ' + someIdentifier()	| true
+    'start ' + someIdentifier()					| false
+    'conditional: start ' + someIdentifier()	| true
   }
 
   @Test
-  public void "repeating interrupt generiert die richtigen Commandos"() {
+  public void "repeating stop generiert die richtigen Commandos"() {
     given:
     String programString = """
-    repeat method
-    interrupt
+    repeat process
+    stop
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -167,12 +167,12 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
   }
 
   @Test
-  public void "repeating conditional interrupt generiert die richtigen Commandos"() {
+  public void "repeating conditional stop generiert die richtigen Commandos"() {
     given:
     String programString = """
-    repeat method
+    repeat process
     /say hi
-    conditional: interrupt
+    conditional: stop
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -189,11 +189,11 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
   }
 
   @Test
-  public void "impulse interrupt wirft exception"() {
+  public void "impulse stop wirft exception"() {
     given:
     String programString = """
-    impulse method
-    interrupt
+    impulse process
+    stop
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -201,17 +201,17 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     CompilerException ex = thrown()
     ex.file == lastTempFile
     ex.line == 3
-    ex.index == 24
-    ex.message == 'Can only interrupt repeating methods.'
+    ex.index == 25
+    ex.message == 'Can only stop repeating processes.'
   }
 
   @Test
-  public void "interrupt mit identifier generiert die richtigen Commandos"() {
+  public void "stop mit identifier generiert die richtigen Commandos"() {
     given:
     String identifier = someIdentifier()
     String programString = """
-    impulse method
-    interrupt ${identifier}
+    impulse process
+    stop ${identifier}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -227,11 +227,11 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
   }
 
   @Test
-  public void "return generiert die richtigen Commandos"() {
+  public void "notify generiert die richtigen Commandos"() {
     given:
     String programString = """
-    method
-    return
+    process
+    notify
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -244,16 +244,16 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     List<Command> commands = chain.commands
     commands.size() == 3
     commands[0] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
-    commands[1] == new Command("/execute @e[name=${identifier}_RETURN] ~ ~ ~ /setblock ~ ~ ~ redstone_block")
-    commands[2] == new Command("/kill @e[name=${identifier}_RETURN]")
+    commands[1] == new Command("/execute @e[name=${identifier}_NOTIFY] ~ ~ ~ /setblock ~ ~ ~ redstone_block")
+    commands[2] == new Command("/kill @e[name=${identifier}_NOTIFY]")
   }
 
   @Test
-  public void "conditional: return generiert die richtigen Commandos"() {
+  public void "conditional: notify generiert die richtigen Commandos"() {
     given:
     String programString = """
-    method
-    conditional: return
+    process
+    conditional: notify
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -266,16 +266,16 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     List<Command> commands = chain.commands
     commands.size() == 3
     commands[0] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
-    commands[1] == new Command("/execute @e[name=${identifier}_RETURN] ~ ~ ~ /setblock ~ ~ ~ redstone_block", true)
-    commands[2] == new Command("/kill @e[name=${identifier}_RETURN]", true)
+    commands[1] == new Command("/execute @e[name=${identifier}_NOTIFY] ~ ~ ~ /setblock ~ ~ ~ redstone_block", true)
+    commands[2] == new Command("/kill @e[name=${identifier}_NOTIFY]", true)
   }
 
   @Test
-  public void "return wirft auﬂerhalb einer Methode eine CompilerException"() {
+  public void "notify wirft auﬂerhalb eines Prozesses eine CompilerException"() {
     given:
     String identifier = someIdentifier()
     String programString = """
-    return
+    notify
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -284,16 +284,16 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     ex.file == lastTempFile
     ex.line == 2
     ex.index == 5
-    ex.message == 'Encountered return outside of a method context.'
+    ex.message == 'Encountered notify outside of a process context.'
   }
 
   @Test
-  public void "In einer repeat Methode interrupted return die methode"() {
+  public void "In einem repeat Prozess stoppt notify den prozess nicht"() {
     given:
     String programString = """
-    repeat method
+    repeat process
     /say hi
-    return
+    notify
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -304,20 +304,19 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
 
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
-    commands.size() == 4
+    commands.size() == 3
     commands[0] == new Command("/say hi", Mode.REPEAT, false)
-    commands[1] == new Command("/execute @e[name=${identifier}] ~ ~ ~ /setblock ~ ~ ~ stone")
-    commands[2] == new Command("/execute @e[name=${identifier}_RETURN] ~ ~ ~ /setblock ~ ~ ~ redstone_block")
-    commands[3] == new Command("/kill @e[name=${identifier}_RETURN]")
+    commands[1] == new Command("/execute @e[name=${identifier}_NOTIFY] ~ ~ ~ /setblock ~ ~ ~ redstone_block")
+    commands[2] == new Command("/kill @e[name=${identifier}_NOTIFY]")
   }
 
   @Test
-  public void "In einer repeat Methode interrupted return die methode und ist conditional"() {
+  public void "In einem repeat Prozess stoppt notify den Prozess nicht, ist aber conditional"() {
     given:
     String programString = """
-    repeat method
+    repeat process
     /say hi
-    conditional: return
+    conditional: notify
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -328,20 +327,38 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
 
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
-    commands.size() == 4
+    commands.size() == 3
     commands[0] == new Command("/say hi", Mode.REPEAT, false)
-    commands[1] == new Command("/execute @e[name=${identifier}] ~ ~ ~ /setblock ~ ~ ~ stone", true)
-    commands[2] == new Command("/execute @e[name=${identifier}_RETURN] ~ ~ ~ /setblock ~ ~ ~ redstone_block", true)
-    commands[3] == new Command("/kill @e[name=${identifier}_RETURN]", true)
+    commands[1] == new Command("/execute @e[name=${identifier}_NOTIFY] ~ ~ ~ /setblock ~ ~ ~ redstone_block", true)
+    commands[2] == new Command("/kill @e[name=${identifier}_NOTIFY]", true)
   }
 
   @Test
-  public void "waitfor in repeating method wirf Exception"() {
+  public void "waitfor in repeating Prozess wirft Exception"() {
     given:
     String identifier = someIdentifier()
     String programString = """
-    repeat method
-    execute ${identifier}
+    repeat process
+    start ${identifier}
+    waitfor
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    CompilerException ex = thrown()
+    ex.file == lastTempFile
+    ex.line == 4
+    ex.index == 55
+    ex.message == 'Encountered waitfor in repeating context.'
+  }
+
+  @Test
+  public void "waitfor in repeating script wirft Exception"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    repeat: /say hi
+    start ${identifier}
     waitfor
     """
     when:
@@ -355,30 +372,11 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
   }
 
   @Test
-  public void "waitfor in repeating script wirf Exception"() {
+  public void "waitfor ohne Identifier bezieht sich auf das letzte Start"() {
     given:
     String identifier = someIdentifier()
     String programString = """
-    repeat: /say hi
-    execute ${identifier}
-    waitfor
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-    then:
-    CompilerException ex = thrown()
-    ex.file == lastTempFile
-    ex.line == 4
-    ex.index == 58
-    ex.message == 'Encountered waitfor in repeating context.'
-  }
-
-  @Test
-  public void "waitfor ohne Identifier bezieht sich auf das letzte Execute"() {
-    given:
-    String identifier = someIdentifier()
-    String programString = """
-    execute ${identifier}
+    start ${identifier}
     waitfor
     """
     when:
@@ -390,14 +388,14 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
     commands.size() == 4
-    //	commands[0] == execute
-    commands[1] == new Command("/summon ArmorStand \${this + 1} {CustomName:\"${identifier}_RETURN\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+    //	commands[0] == start
+    commands[1] == new Command("/summon ArmorStand \${this + 1} {CustomName:\"${identifier}_NOTIFY\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
     commands[2] == null
     commands[3] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
   }
 
   @Test
-  public void "waitfor ohne Identifier ohne vorheriges Execute wirft CompilerException"() {
+  public void "waitfor ohne Identifier ohne vorheriges Start wirft CompilerException"() {
     given:
     String identifier = someIdentifier()
     String programString = """
@@ -410,7 +408,7 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     ex.file == lastTempFile
     ex.line == 2
     ex.index == 11
-    ex.message == 'Missing Identifier. No previous execution was found to wait for.'
+    ex.message == 'Missing Identifier. No previous start was found to wait for.'
   }
 
   @Test
@@ -427,7 +425,7 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
     commands.size() == 3
-    commands[0] == new Command("/summon ArmorStand \${this + 1} {CustomName:\"${identifier}_RETURN\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+    commands[0] == new Command("/summon ArmorStand \${this + 1} {CustomName:\"${identifier}_NOTIFY\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
     commands[1] == null
     commands[2] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
   }
@@ -446,7 +444,7 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
     commands.size() == 5
-    commands[0] == new Command("/summon ArmorStand \${this + 3} {CustomName:\"${identifier}_RETURN\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true)
+    commands[0] == new Command("/summon ArmorStand \${this + 3} {CustomName:\"${identifier}_NOTIFY\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true)
     commands[1] == new Command("/blockdata \${this - 1} {SuccessCount:1}")
     commands[2] == new Command("/setblock \${this + 1} redstone_block", true)
     commands[3] == null
@@ -454,10 +452,10 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
   }
 
   @Test
-  public void "Eine impulse Methode deaktiviert sich selbst"() {
+  public void "Ein impulse Prozess deaktiviert sich selbst"() {
     given:
     String programString = """
-    method
+    process
     /say hi
     """
     when:
@@ -474,10 +472,10 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
   }
 
   @Test
-  public void "Eine repeat Methode deaktiviert sich nicht selbst"() {
+  public void "Eine repeat Prozess deaktiviert sich nicht selbst"() {
     given:
     String programString = """
-    repeat method
+    repeat process
     /say hi
     """
     when:

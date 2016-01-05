@@ -182,10 +182,11 @@ public class MplEditor extends JComponent {
             case MplLexer.INVERT:
             case MplLexer.INCLUDE:
             case MplLexer.INSTALL:
-            case MplLexer.METHOD:
+            case MplLexer.PROCESS:
             case MplLexer.PROJECT:
-            case MplLexer.EXECUTE:
-            case MplLexer.RETURN:
+            case MplLexer.START:
+            case MplLexer.STOP:
+            case MplLexer.NOTIFY:
             case MplLexer.WAITFOR:
             case MplLexer.SKIP:
             case MplLexer.UNINSTALL:
