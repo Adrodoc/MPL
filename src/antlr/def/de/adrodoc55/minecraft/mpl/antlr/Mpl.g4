@@ -1,20 +1,41 @@
 grammar Mpl;
 
-program
+file
 :
   (
     include
   )* install? uninstall?
   (
-    project
-    | process+
-    | skript
+    projectFile
+    | processFile
+    | skriptFile
   )
+;
+
+projectFile
+:
+  project include* install? uninstall?
+;
+
+project
+:
+// TODO: Prefix, Orientation, max
+  PROJECT IDENTIFIER
 ;
 
 include
 :
   INCLUDE STRING
+;
+
+processFile
+:
+  importDeclaration* install? uninstall? process+
+;
+
+importDeclaration
+:
+  IMPORT STRING
 ;
 
 install
@@ -27,12 +48,6 @@ uninstall
   UNINSTALL line*
 ;
 
-project
-:
-// TODO: Prefix, Orientation, max
-  PROJECT
-;
-
 process
 :
   (
@@ -41,7 +56,7 @@ process
   )? PROCESS IDENTIFIER line*
 ;
 
-skript
+skriptFile
 :
   line*
 ;
@@ -151,6 +166,11 @@ COMMAND
 INCLUDE
 :
   'include'
+;
+
+IMPORT
+:
+  'import'
 ;
 
 INSTALL

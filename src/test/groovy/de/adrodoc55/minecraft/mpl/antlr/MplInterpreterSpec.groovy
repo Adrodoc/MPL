@@ -7,7 +7,6 @@ import static org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 import spock.lang.Unroll
-import de.adrodoc55.commons.FileUtils
 import de.adrodoc55.minecraft.mpl.Command
 import de.adrodoc55.minecraft.mpl.CommandChain
 import de.adrodoc55.minecraft.mpl.CompilerException
@@ -495,7 +494,6 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     commands[0] == new Command("/say hi", Mode.REPEAT, false)
   }
 
-
   @Test
   public void "Eine Datei kann mehrere Prozesse enthalten"() {
     given:
@@ -532,5 +530,100 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     List<Command> commands3 = chains[2].commands
     commands3.size() == 1
     commands3[0] == new Command("/say I am a repeating process. I am completely different :)", Mode.REPEAT, false)
+  }
+
+  @Test
+  public void "Eine Projektdatei mit Includes erzeugt Includes"() {
+    given:
+    String id1 = someIdentifier()
+    String programString = """
+    project ${id1}
+    include "datei1.mpl"
+    include "ordner2"
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    File file = lastTempFile
+    then:
+    File parent = file.parentFile
+    List<Include> includes = interpreter.includes
+    includes.size() == 2
+    includes[0].files.size()==1
+    includes[0].files.containsAll([new File(parent, "datei1.mpl")])
+    includes[0].processName == null
+    includes[1].files.size()==1
+    includes[1].files.containsAll([new File(parent, "ordner2")])
+    includes[1].processName == null
+  }
+
+  @Test
+  public void "Eine Prozessdatei, die versucht einen fremden Prozess zu starten erzeugt ein Include"() {
+    given:
+    String id1 = someIdentifier()
+    String id2 = someIdentifier()
+    String programString = """
+    process ${id1}
+    /say I am a process
+    conditional: start ${id2}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    File file = lastTempFile
+    then:
+    List<Include> includes = interpreter.includes
+    includes.size() == 1
+    includes[0].files.size() == 1
+    includes[0].files.containsAll([file.parentFile])
+    includes[0].processName == id2
+  }
+
+  @Test
+  public void "Eine Prozessdatei mit Dir import, die versucht einen fremden Prozess zu starten erzeugt ein Include"() {
+    given:
+    String id1 = someIdentifier()
+    String id2 = someIdentifier()
+    String programString = """
+    import "newFolder"
+    process ${id1}
+    /say I am a process
+    conditional: start ${id2}
+    """
+    File file = newTempFile()
+    File newFolder = new File(file.parentFile, "newFolder")
+    newFolder.mkdirs()
+    File newFile = new File(newFolder, "newFile")
+    newFile.createNewFile()
+    when:
+    MplInterpreter interpreter = interpret(programString, file)
+    then:
+    List<Include> includes = interpreter.includes
+    includes.size() == 1
+    includes[0].files.size() == 2
+    includes[0].files.containsAll([file.parentFile, newFile])
+    includes[0].processName == id2
+  }
+
+  @Test
+  public void "Eine Prozessdatei mit File import, die versucht einen fremden Prozess zu starten erzeugt ein Include"() {
+    given:
+    String id1 = someIdentifier()
+    String id2 = someIdentifier()
+    String programString = """
+    import "newFile"
+    process ${id1}
+    /say I am a process
+    conditional: start ${id2}
+    """
+    File file = newTempFile()
+    File newFile = new File(file.parentFile, "newFile")
+    newFile.createNewFile()
+    when:
+    MplInterpreter interpreter = interpret(programString, file)
+    then:
+    List<Include> includes = interpreter.includes
+    includes.size() == 1
+    includes[0].files.size() == 2
+    includes[0].files.containsAll([file.parentFile, newFile])
+    includes[0].processName == id2
   }
 }

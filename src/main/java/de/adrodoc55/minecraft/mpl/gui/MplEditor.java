@@ -181,6 +181,7 @@ public class MplEditor extends JComponent {
             case MplLexer.CONDITIONAL:
             case MplLexer.INVERT:
             case MplLexer.INCLUDE:
+            case MplLexer.IMPORT:
             case MplLexer.INSTALL:
             case MplLexer.PROCESS:
             case MplLexer.PROJECT:

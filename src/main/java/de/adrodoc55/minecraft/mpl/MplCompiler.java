@@ -2,6 +2,7 @@ package de.adrodoc55.minecraft.mpl;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -56,15 +57,24 @@ public class MplCompiler extends MplBaseListener {
     private void doIncludes() {
         while (!includeTodos.isEmpty()) {
             Include include = includeTodos.poll();
-            File current = include.getProgramFile();
-            MplInterpreter interpreter;
+            String processName = include.getProcessName();
+            if (processName == null) {
+                massInclude(include);
+            } else {
+                processInclude(include);
+            }
+        }
+    }
+
+    private void massInclude(Include include) {
+        for (File file : include.getFiles()) {
+            MplInterpreter interpreter = null;
             try {
-                interpreter = MplInterpreter.interpret(current);
+                interpreter = MplInterpreter.interpret(file);
             } catch (IOException ex) {
                 throw new CompilerException(include.getSrcFile(),
                         include.getSrcLine(), include.getSrcIndex(),
-                        "Couldn't include '" + include.getProgramFile() + "'",
-                        ex);
+                        "Couldn't include '" + file + "'", ex);
             }
             if (interpreter.isProject()) {
                 throw new CompilerException(include.getSrcFile(),
@@ -73,6 +83,44 @@ public class MplCompiler extends MplBaseListener {
                                 + ". Projects may not be included.");
             }
             addInterpreter(interpreter);
+        }
+
+    }
+
+    private void processInclude(Include include) {
+        String processName = include.getProcessName();
+        Exception lastException = null;
+        File found = null;
+        Collection<File> files = include.getFiles();
+        for (File file : files) {
+            MplInterpreter interpreter = null;
+            try {
+                interpreter = MplInterpreter.interpret(file);
+            } catch (IOException ex) {
+                lastException = ex;
+            }
+            if (lastException != null) {
+                continue;
+            }
+            List<CommandChain> chains = interpreter.getChains();
+            for (CommandChain chain : chains) {
+                if (processName.equals(chain.getName())) {
+                    if (found != null) {
+                        throw new CompilerException(include.getSrcFile(),
+                                include.getSrcLine(), include.getSrcIndex(),
+                                "Process " + processName
+                                        + " is ambigious. It was found in '"
+                                        + found + "' and '" + file + "'");
+                    }
+                    found = file;
+                    addInterpreter(interpreter);
+                }
+            }
+        }
+        if (found == null) {
+            throw new CompilerException(include.getSrcFile(),
+                    include.getSrcLine(), include.getSrcIndex(),
+                    "Could not resolve process " + processName, lastException);
         }
     }
 

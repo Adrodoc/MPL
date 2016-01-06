@@ -1,28 +1,20 @@
 package de.adrodoc55.minecraft.mpl.antlr;
 
-import java.io.File;
 import java.util.LinkedList;
 
-import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 
-public class ContextBuffer {
+public class ChainBuffer {
 
-    private File programFile;
     private String name;
     private boolean install;
     private boolean uninstall;
-    private boolean project;
     private boolean process;
     private boolean script;
     private boolean repeatingProcess;
     private boolean repeatingContext;
     private final LinkedList<Command> commands = new LinkedList<Command>();
-
-    public ContextBuffer(File programFile) {
-        this.programFile = programFile;
-    }
 
     public boolean add(Command e) {
         if (e != null) {
@@ -52,13 +44,8 @@ public class ContextBuffer {
                 throw new IllegalStateException(
                         "The name of this process has not been set.");
             }
-        } else if (isProject()) {
-            return FileUtils.getFilenameWithoutExtension(programFile);
-        } else if (isScript()) {
-            throw new IllegalStateException("A script does not have a name.");
         } else {
-            throw new IllegalStateException(
-                    "This context is in an undefined State, it is neither a process nor a project nor a script.");
+            throw new IllegalStateException("This chain is not a process.");
         }
     }
 
@@ -80,14 +67,6 @@ public class ContextBuffer {
 
     public void setUninstall(boolean uninstall) {
         this.uninstall = uninstall;
-    }
-
-    public boolean isProject() {
-        return project;
-    }
-
-    public void setProject(boolean project) {
-        this.project = project;
     }
 
     public boolean isProcess() {

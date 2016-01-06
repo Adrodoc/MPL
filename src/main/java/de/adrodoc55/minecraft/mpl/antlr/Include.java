@@ -1,31 +1,31 @@
 package de.adrodoc55.minecraft.mpl.antlr;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.HashSet;
 
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeContext;
+import org.antlr.v4.runtime.Token;
 
 public class Include {
-    private File srcFile;
-    private File programFile;
-    private IncludeContext ctx;
+    private final File srcFile;
+    private final Token token;
+    private final String processName;
+    private final Collection<File> files;
 
-    // public Include(File programFile) {
-    // this.programFile = programFile;
-    // }
-
-    public Include(File srcFile, File parentFile, IncludeContext ctx) {
+    public Include(File srcFile, Token token, String includePath) {
         this.srcFile = srcFile;
-        String includePath = MplLexerUtils.getContainedString(ctx.STRING());
-        this.programFile = new File(parentFile, includePath);
-        this.ctx = ctx;
+        this.token = token;
+        processName = null;
+        files = new HashSet<File>(1);
+        files.add(new File(srcFile.getParentFile(), includePath));
     }
 
-    public File getProgramFile() {
-        return programFile;
-    }
-
-    public void setProgramFile(File programFile) {
-        this.programFile = programFile;
+    public Include(File srcFile, Token token, String processName,
+            Collection<File> imports) {
+        this.srcFile = srcFile;
+        this.token = token;
+        this.processName = processName;
+        files = imports;
     }
 
     public File getSrcFile() {
@@ -33,37 +33,19 @@ public class Include {
     }
 
     public int getSrcLine() {
-        return ctx.STRING().getSymbol().getLine();
+        return token.getLine();
     }
 
     public int getSrcIndex() {
-        return ctx.STRING().getSymbol().getStartIndex();
+        return token.getStartIndex();
     }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result
-                + ((programFile == null) ? 0 : programFile.hashCode());
-        return result;
+    public Collection<File> getFiles() {
+        return files;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        Include other = (Include) obj;
-        if (programFile == null) {
-            if (other.programFile != null)
-                return false;
-        } else if (!programFile.equals(other.programFile))
-            return false;
-        return true;
+    public String getProcessName() {
+        return processName;
     }
 
 }

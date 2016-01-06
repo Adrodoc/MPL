@@ -16,8 +16,7 @@ class MplInterpreterSpecBase extends Specification {
     lastTempFile = tempFolder.newFile()
   }
 
-  MplInterpreter interpret(String program) {
-    File file = newTempFile()
+  MplInterpreter interpret(String program, File file = newTempFile()) {
     file.text = program
     interpret(file)
   }
