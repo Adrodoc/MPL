@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 
-public class ChainBuffer {
+class ChainBuffer {
 
     private String name;
     private boolean install;

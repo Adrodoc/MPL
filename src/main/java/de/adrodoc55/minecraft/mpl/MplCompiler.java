@@ -3,9 +3,11 @@ package de.adrodoc55.minecraft.mpl;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,6 +38,7 @@ public class MplCompiler extends MplBaseListener {
         return compiler.assemble(programFile);
     }
 
+    private Map<File, Set<String>> programTree = new HashMap<File, Set<String>>();
     private Set<Include> includes;
     private LinkedList<Include> includeTodos;
     private Program program;
@@ -96,7 +99,7 @@ public class MplCompiler extends MplBaseListener {
             MplInterpreter interpreter = null;
             try {
                 interpreter = MplInterpreter.interpret(file);
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 lastException = ex;
             }
             if (lastException != null) {
@@ -113,7 +116,7 @@ public class MplCompiler extends MplBaseListener {
                                         + found + "' and '" + file + "'");
                     }
                     found = file;
-                    addInterpreter(interpreter);
+                    addInterpreter(interpreter, processName);
                 }
             }
         }
@@ -125,12 +128,35 @@ public class MplCompiler extends MplBaseListener {
     }
 
     private void addInterpreter(MplInterpreter interpreter) {
-        program.getChains().addAll(interpreter.getChains());
-        program.getInstallation().addAll(interpreter.getInstallation());
-        program.getUninstallation().addAll(interpreter.getUninstallation());
-        for (Include it : interpreter.getIncludes()) {
-            if (includes.add(it)) {
-                includeTodos.add(it);
+        addInterpreter(interpreter, null);
+    }
+
+    private void addInterpreter(MplInterpreter interpreter, String process) {
+        File programFile = interpreter.getProgramFile();
+        Set<String> alreadyIncluded = programTree.get(programFile);
+        if (alreadyIncluded == null) {
+            program.getInstallation().addAll(interpreter.getInstallation());
+            program.getUninstallation().addAll(interpreter.getUninstallation());
+            alreadyIncluded = new HashSet<String>();
+            programTree.put(programFile, alreadyIncluded);
+        }
+
+        for (CommandChain chain : interpreter.getChains()) {
+            if (process == null || process.equals(chain.getName())) {
+                if (alreadyIncluded.add(chain.getName())) {
+                    program.getChains().add(chain);
+                }
+            }
+        }
+        Map<String, List<Include>> includeMapping = interpreter.getIncludes();
+        for (String key : includeMapping.keySet()) {
+            if (process == null || process.equals(key)) {
+                List<Include> includes = includeMapping.get(key);
+                for (Include include : includes) {
+                    if (this.includes.add(include)) {
+                        includeTodos.add(include);
+                    }
+                }
             }
         }
     }

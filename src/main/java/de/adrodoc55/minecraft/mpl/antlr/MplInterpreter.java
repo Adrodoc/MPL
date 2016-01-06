@@ -5,9 +5,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -67,12 +69,13 @@ public class MplInterpreter extends MplBaseListener {
     private final List<CommandChain> chains = new ArrayList<CommandChain>();
     private final List<Command> installation = new ArrayList<Command>();
     private final List<Command> uninstallation = new ArrayList<Command>();
-    private final List<Include> includes = new LinkedList<Include>();
+    private final Map<String, List<Include>> includes = new HashMap<String, List<Include>>();
     private final Set<File> imports = new HashSet<File>();
 
     private MplInterpreter(File programFile) {
         this.programFile = programFile;
-        imports.add(programFile.getParentFile());
+        // FIXME was sinnvolleres als null reistecken
+        addFileImport(null, programFile.getParentFile());
     }
 
     public File getProgramFile() {
@@ -97,7 +100,14 @@ public class MplInterpreter extends MplBaseListener {
         return uninstallation;
     }
 
-    public List<Include> getIncludes() {
+    /**
+     * Returns the mapping of process names to includes required by that
+     * process. A key of null indicates that this include is not requred by a
+     * specific process, but by an explicit include of a project.
+     *
+     * @return
+     */
+    public Map<String, List<Include>> getIncludes() {
         return includes;
     }
 
@@ -113,7 +123,13 @@ public class MplInterpreter extends MplBaseListener {
     public void enterInclude(IncludeContext ctx) {
         String includePath = MplLexerUtils.getContainedString(ctx.STRING());
         Token token = ctx.STRING().getSymbol();
-        includes.add(new Include(programFile, token, includePath));
+        Include include = new Include(programFile, token, includePath);
+        List<Include> list = includes.get(null);
+        if (list == null) {
+            list = new LinkedList<Include>();
+            includes.put(null, list);
+        }
+        list.add(include);
     }
 
     @Override
@@ -122,6 +138,10 @@ public class MplInterpreter extends MplBaseListener {
         String importPath = MplLexerUtils.getContainedString(string);
         Token token = string.getSymbol();
         File file = new File(programFile.getParentFile(), importPath);
+        addFileImport(token, file);
+    }
+
+    private void addFileImport(Token token, File file) {
         if (imports.contains(file)) {
             throw new CompilerException(programFile, token.getLine(),
                     token.getStartIndex(), "Duplicate import.");
@@ -257,8 +277,16 @@ public class MplInterpreter extends MplBaseListener {
                 + "] ~ ~ ~ /setblock ~ ~ ~ redstone_block";
         commandBuffer.setCommand(command);
         lastStartIdentifier = process;
-        includes.add(new Include(programFile, identifier.getSymbol(), process,
-                imports));
+        String srcProcess = chainBuffer.isProcess() ? chainBuffer.getName()
+                : null;
+        Include include = new Include(programFile, identifier.getSymbol(),
+                process, imports);
+        List<Include> list = includes.get(srcProcess);
+        if (list == null) {
+            list = new LinkedList<Include>();
+            includes.put(srcProcess, list);
+        }
+        list.add(include);
     }
 
     @Override

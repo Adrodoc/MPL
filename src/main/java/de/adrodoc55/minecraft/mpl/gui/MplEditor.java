@@ -61,6 +61,7 @@ public class MplEditor extends JComponent {
     private Style needsRedstoneStyle;
     private Style commentStyle;
     private Style insertStyle;
+    private Style identifierStyle;
 
     public MplEditor() {
         setLayout(new BorderLayout());
@@ -192,6 +193,9 @@ public class MplEditor extends JComponent {
             case MplLexer.SKIP:
             case MplLexer.UNINSTALL:
                 styleToken(token, getHighFocusKeywordStyle());
+                break;
+            case MplLexer.IDENTIFIER:
+                styleToken(token, getIdentifierStyle());
                 break;
             case MplLexer.COMMAND:
                 styleToken(token, getDefaultStyle());
@@ -373,6 +377,17 @@ public class MplEditor extends JComponent {
             StyleConstants.setBackground(insertStyle, new Color(240, 230, 140));
         }
         return insertStyle;
+    }
+
+    private Style getIdentifierStyle() {
+        if (identifierStyle == null) {
+            identifierStyle = getStyledDocument().addStyle("identifier",
+                    getDefaultStyle());
+            StyleConstants.setBold(identifierStyle, true);
+            StyleConstants.setForeground(identifierStyle,
+                    new Color(128, 128, 0));
+        }
+        return identifierStyle;
     }
 
 }
