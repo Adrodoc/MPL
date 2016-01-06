@@ -145,9 +145,8 @@ public class MplFrame extends JFrame {
                     + ".py";
             File dir = getCompilationDir();
             Main.main(file, new File(dir, targetFileName));
-        } catch (IOException ex) {
-            // TODO Auto-generated catch block
-            ex.printStackTrace();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), ex.getClass().getSimpleName(), JOptionPane.ERROR_MESSAGE);
         }
     }
 
