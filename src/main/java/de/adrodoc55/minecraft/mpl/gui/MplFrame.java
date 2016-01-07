@@ -60,8 +60,7 @@ public class MplFrame extends JFrame {
     }
 
     private void openFile() {
-        JFileChooser chooser = MplEditor.getFileChooser();
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        JFileChooser chooser = MplEditor.getMplChooser();
         int userAction = chooser.showOpenDialog(this);
         if (userAction != JFileChooser.APPROVE_OPTION) {
             return;
@@ -122,9 +121,9 @@ public class MplFrame extends JFrame {
 
     private File getCompilationDir() {
         if (compilationDir == null) {
-            JFileChooser chooser = MplEditor.getFileChooser();
-            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-            int userAction = chooser.showSaveDialog(this);
+            JFileChooser chooser = MplEditor.getDirChooser();
+            // int userAction = chooser.showSaveDialog(this);
+            int userAction = chooser.showDialog(this, "Compile");
             if (userAction != JFileChooser.APPROVE_OPTION) {
                 return null;
             }
@@ -144,9 +143,13 @@ public class MplFrame extends JFrame {
             String targetFileName = FileUtils.getFilenameWithoutExtension(file)
                     + ".py";
             File dir = getCompilationDir();
+            if (dir == null) {
+                return;
+            }
             Main.main(file, new File(dir, targetFileName));
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), ex.getClass().getSimpleName(), JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, ex.getMessage(), ex.getClass()
+                    .getSimpleName(), JOptionPane.ERROR_MESSAGE);
         }
     }
 

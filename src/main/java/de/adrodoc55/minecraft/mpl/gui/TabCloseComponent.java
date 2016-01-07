@@ -13,8 +13,11 @@ import javax.swing.JTabbedPane;
 public class TabCloseComponent extends JPanel {
 
     private static final long serialVersionUID = 1L;
+
+    private boolean unsavedChanges;
     private final JTabbedPane parent;
     private final Component component;
+    private JLabel savedLabel;
     private JLabel titleLabel;
     private JButton closeButton;
 
@@ -22,6 +25,9 @@ public class TabCloseComponent extends JPanel {
             Component component) {
         this.parent = parent;
         this.component = component;
+        unsavedChanges = true;
+        setUnsavedChanges(false);
+        add(getSavedLabel());
         JLabel titleLabel = getTitleLabel();
         titleLabel.setText(title);
         add(titleLabel);
@@ -34,6 +40,29 @@ public class TabCloseComponent extends JPanel {
 
     public void setTitle(String title) {
         getTitleLabel().setText(title);
+    }
+
+    public void setUnsavedChanges(boolean unsavedChanges) {
+        if (this.unsavedChanges == unsavedChanges) {
+            return;
+        }
+        this.unsavedChanges = unsavedChanges;
+        if (unsavedChanges) {
+            getSavedLabel().setIcon(
+                    new ImageIcon(MplFrame.class
+                            .getResource("/icons/unsaved.gif")));
+        } else {
+            getSavedLabel().setIcon(
+                    new ImageIcon(MplFrame.class
+                            .getResource("/icons/saved.gif")));
+        }
+    }
+
+    private JLabel getSavedLabel() {
+        if (savedLabel == null) {
+            savedLabel = new JLabel();
+        }
+        return savedLabel;
     }
 
     private JLabel getTitleLabel() {
