@@ -10,14 +10,11 @@ import de.adrodoc55.minecraft.Coordinate3D.Direction;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.CommandChain;
-import de.adrodoc55.minecraft.mpl.gui.ChainRenderer;
 
 public class IterativeChainComputer implements ChainComputer {
 
     private Coordinate3D min;
     private Coordinate3D max;
-    private ChainRenderer renderer;
-    private ChainRenderer optimalRenderer;
 
     private int optimalScore;
     private List<Command> commands;
@@ -57,9 +54,6 @@ public class IterativeChainComputer implements ChainComputer {
                     todos[i] = null;
                     path.remove(i);
                     continue;
-                }
-                if (renderer != null) {
-                    renderer.render(path);
                 }
                 todos[i] = getNextCoordinates();
             }
@@ -157,9 +151,6 @@ public class IterativeChainComputer implements ChainComputer {
             optimal.clear();
             optimal.addAll(path);
             optimalScore = score;
-            if (optimalRenderer != null) {
-                optimalRenderer.render(optimal);
-            }
         }
     }
 
