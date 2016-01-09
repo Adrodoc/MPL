@@ -67,17 +67,7 @@ public class MplFrame extends JFrame {
         }
         File file = chooser.getSelectedFile();
         if (file.exists()) {
-            try {
-                addEditor(new MplEditor(file));
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(
-                        chooser,
-                        "An Exception occured while trying to open '"
-                                + file.getPath() + "'. Exception: "
-                                + ex.getMessage(), "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                openFile();
-            }
+            addEditor(new MplEditor(file));
         } else {
             JOptionPane.showMessageDialog(chooser,
                     "The File '" + file.getPath() + "' couldn't be found!",
@@ -96,6 +86,16 @@ public class MplFrame extends JFrame {
         editor.setTabComponent(component);
         int index = pane.indexOfComponent(editor);
         pane.setTabComponentAt(index, component);
+        try {
+            editor.load();
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "An Exception occured while trying to open '"
+                            + editor.getFile().getPath() + "'. Exception: "
+                            + ex.getMessage(), "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            openFile();
+        }
     }
 
     private void saveFile() {
