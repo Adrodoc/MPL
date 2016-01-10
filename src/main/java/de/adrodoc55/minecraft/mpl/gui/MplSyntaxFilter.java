@@ -8,6 +8,7 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
+import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
@@ -18,7 +19,7 @@ import org.antlr.v4.runtime.Token;
 
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 
-public class MplSyntaxHighlighter extends DocumentFilter {
+public class MplSyntaxFilter extends DocumentFilter {
 
     public void remove(FilterBypass fb, int offset, int length)
             throws BadLocationException {
@@ -121,7 +122,9 @@ public class MplSyntaxHighlighter extends DocumentFilter {
                     styleToken(start, stop, getInsertStyle());
                 }
                 break;
-
+            case MplLexer.UNRECOGNIZED:
+                styleToken(token, getErrorAttributes());
+                break;
             default:
                 styleToken(token, getDefaultStyle());
             }
@@ -129,11 +132,11 @@ public class MplSyntaxHighlighter extends DocumentFilter {
         }
     }
 
-    private void styleToken(Token token, Style style) {
+    private void styleToken(Token token, AttributeSet style) {
         styleToken(token.getStartIndex(), token.getStopIndex() + 1, style);
     }
 
-    private void styleToken(int start, int stop, Style style) {
+    private void styleToken(int start, int stop, AttributeSet style) {
         int length = stop - start;
         doc.setCharacterAttributes(start, length, style, true);
     }
@@ -237,6 +240,12 @@ public class MplSyntaxHighlighter extends DocumentFilter {
                     new Color(128, 128, 0));
         }
         return identifierStyle;
+    }
+
+    private SimpleAttributeSet getErrorAttributes() {
+        SimpleAttributeSet errorAttributes = new SimpleAttributeSet();
+        StyleConstants.setUnderline(errorAttributes, true);
+        return errorAttributes;
     }
 
 }

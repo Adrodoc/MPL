@@ -277,3 +277,8 @@ IDENTIFIER
 :
   [a-zA-Z0-9_]+
 ;
+
+UNRECOGNIZED
+:
+  .
+;

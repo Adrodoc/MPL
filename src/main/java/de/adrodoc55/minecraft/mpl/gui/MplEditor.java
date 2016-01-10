@@ -182,9 +182,9 @@ public class MplEditor extends JComponent {
     private JTextPane getTextPane() {
         if (textPane == null) {
             textPane = new JTextPane();
+            textPane.setEditorKit(new JaggedEditorKit());
             StyledDocument doc = textPane.getStyledDocument();
-            ((AbstractDocument) doc)
-                    .setDocumentFilter(new MplSyntaxHighlighter());
+            ((AbstractDocument) doc).setDocumentFilter(new MplSyntaxFilter());
             doc.addDocumentListener(new DocumentListener() {
                 @Override
                 public void removeUpdate(DocumentEvent e) {
@@ -215,6 +215,7 @@ public class MplEditor extends JComponent {
                     KeyStroke.getKeyStroke(KeyEvent.VK_S, ctrl), "save");
             textPane.getActionMap().put("save", new AbstractAction() {
                 private static final long serialVersionUID = 1L;
+
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     save();
