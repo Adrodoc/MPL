@@ -538,15 +538,15 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
   }
 
   @Test
-  void "an Interpreter will always include subfiles of it's parent directory"() {
+  void "an Interpreter will always include subfiles of it's parent directory, including itself"() {
     given:
     File programFile = newTempFile()
     File neighbourFile = new File(programFile.parentFile, 'neighbour.txt')
     neighbourFile.createNewFile()
     MplInterpreter interpreter = new MplInterpreter(programFile)
     expect:
-    interpreter.imports.size() == 1
-    interpreter.imports.first() == neighbourFile
+    interpreter.imports.size() == 2
+    interpreter.imports.containsAll([programFile, neighbourFile])
   }
 
   @Test
@@ -560,8 +560,8 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     when:
     interpreter.addFileImport(null, otherFile)
     then:
-    interpreter.imports.size() == 1
-    interpreter.imports.first() == otherFile
+    interpreter.imports.size() == 2
+    interpreter.imports.containsAll([programFile, otherFile])
   }
 
   @Test
@@ -621,13 +621,13 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     """
     when:
     MplInterpreter interpreter = interpret(programString)
-    File file = lastTempFile
     then:
     Map<File, Include> includeMap = interpreter.includes
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id1);
     includes.size() == 1
-    includes[0].files.size() == 0
+    includes[0].files.size() == 1
+    includes[0].files.containsAll([lastTempFile])
     includes[0].processName == id2
   }
 
@@ -654,8 +654,8 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id1);
     includes.size() == 1
-    includes[0].files.size() == 1
-    includes[0].files.containsAll([newFile])
+    includes[0].files.size() == 2
+    includes[0].files.containsAll([lastTempFile, newFile])
     includes[0].processName == id2
   }
 
@@ -681,8 +681,8 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id1);
     includes.size() == 1
-    includes[0].files.size() == 1
-    includes[0].files.containsAll([newFile])
+    includes[0].files.size() == 2
+    includes[0].files.containsAll([lastTempFile, newFile])
     includes[0].processName == id2
   }
 }
