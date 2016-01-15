@@ -7,6 +7,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
@@ -24,7 +26,9 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import de.adrodoc55.commons.FileUtils;
+import de.adrodoc55.minecraft.mpl.CompilerException;
 import de.adrodoc55.minecraft.mpl.Main;
+import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException;
 
 public class MplFrame extends JFrame {
 
@@ -147,6 +151,25 @@ public class MplFrame extends JFrame {
                 return;
             }
             Main.main(file, new File(dir, targetFileName));
+        } catch (CompilationFailedException ex) {
+            Map<File, List<CompilerException>> exceptions = ex.getExceptions();
+            JOptionPane.showMessageDialog(this,
+                    "The Compiler encountered Errors", "Compilation Failed!",
+                    JOptionPane.ERROR_MESSAGE);
+            // TODO: Sinnvolle Ausgabe, auch für geschlossene Dateien.
+            for (File programFile : exceptions.keySet()) {
+                Component[] components = getTabbedPane().getComponents();
+                for (Component component : components) {
+                    if (component == null || !(component instanceof MplEditor)) {
+                        continue;
+                    }
+                    MplEditor mplEditor = (MplEditor) component;
+                    if (programFile.equals(mplEditor.getFile())) {
+                        mplEditor.setCompilerExceptions(exceptions
+                                .get(programFile));
+                    }
+                }
+            }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), ex.getClass()
                     .getSimpleName(), JOptionPane.ERROR_MESSAGE);

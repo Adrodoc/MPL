@@ -32,12 +32,20 @@ public class Include {
         return srcFile;
     }
 
+    public Token getToken() {
+        return token;
+    }
+
     public int getSrcLine() {
         return token.getLine();
     }
 
-    public int getSrcIndex() {
+    public int getStartIndex() {
         return token.getStartIndex();
+    }
+
+    public int getStopIndex() {
+        return token.getStopIndex();
     }
 
     public Collection<File> getFiles() {

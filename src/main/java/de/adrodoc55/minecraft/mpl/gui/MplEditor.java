@@ -7,6 +7,7 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
@@ -22,6 +23,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.StyledDocument;
 import javax.swing.undo.UndoManager;
+
+import de.adrodoc55.minecraft.mpl.CompilerException;
 
 public class MplEditor extends JComponent {
 
@@ -71,6 +74,7 @@ public class MplEditor extends JComponent {
     private JScrollPane scrollPane;
     private JTextPane textPane;
     private UndoManager undoManager;
+    private MplSyntaxFilter mplSyntaxFilter;
 
     public MplEditor() {
         setLayout(new BorderLayout());
@@ -122,6 +126,11 @@ public class MplEditor extends JComponent {
     public void setUnsavedChanges(boolean unsavedChanges) {
         this.unsavedChanges = unsavedChanges;
         getTabComponent().setUnsavedChanges(unsavedChanges);
+    }
+
+    public void setCompilerExceptions(List<CompilerException> exceptions) {
+        getSyntaxHighlighter().setExceptions(exceptions);
+        getSyntaxHighlighter().recolor();
     }
 
     /**
@@ -184,7 +193,7 @@ public class MplEditor extends JComponent {
             textPane = new JTextPane();
             textPane.setEditorKit(new JaggedEditorKit());
             StyledDocument doc = textPane.getStyledDocument();
-            ((AbstractDocument) doc).setDocumentFilter(new MplSyntaxFilter());
+            ((AbstractDocument) doc).setDocumentFilter(getSyntaxHighlighter());
             doc.addDocumentListener(new DocumentListener() {
                 @Override
                 public void removeUpdate(DocumentEvent e) {
@@ -223,6 +232,13 @@ public class MplEditor extends JComponent {
             });
         }
         return textPane;
+    }
+
+    public MplSyntaxFilter getSyntaxHighlighter() {
+        if (mplSyntaxFilter == null) {
+            mplSyntaxFilter = new MplSyntaxFilter();
+        }
+        return mplSyntaxFilter;
     }
 
     private UndoManager getUndoManager() {

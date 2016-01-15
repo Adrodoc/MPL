@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 import de.adrodoc55.minecraft.Coordinate3D;
 import de.adrodoc55.minecraft.Coordinate3D.Direction;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
+import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException;
 import de.adrodoc55.minecraft.mpl.antlr.Include;
 import de.adrodoc55.minecraft.mpl.antlr.MplBaseListener;
 import de.adrodoc55.minecraft.mpl.antlr.MplInterpreter;
@@ -23,7 +24,7 @@ import de.adrodoc55.minecraft.mpl.chain_computing.IterativeChainComputer;
 public class MplCompiler extends MplBaseListener {
 
     public static List<CommandBlockChain> compile(File programFile)
-            throws IOException {
+            throws IOException, CompilationFailedException {
         Program program = assembleProgram(programFile);
         List<CommandBlockChain> chains = computeChains(program);
         for (CommandBlockChain chain : chains) {
@@ -33,11 +34,17 @@ public class MplCompiler extends MplBaseListener {
         return chains;
     }
 
-    public static Program assembleProgram(File programFile) throws IOException {
+    public static Program assembleProgram(File programFile) throws IOException,
+            CompilationFailedException {
         MplCompiler compiler = new MplCompiler();
-        return compiler.assemble(programFile);
+        Program program = compiler.assemble(programFile);
+        if (!compiler.exceptions.isEmpty()) {
+            throw new CompilationFailedException(compiler.exceptions);
+        }
+        return program;
     }
 
+    private Map<File, List<CompilerException>> exceptions = new HashMap<File, List<CompilerException>>();
     private Map<File, Set<String>> programTree = new HashMap<File, Set<String>>();
     private Set<Include> includes;
     private LinkedList<Include> includeTodos;
@@ -75,15 +82,31 @@ public class MplCompiler extends MplBaseListener {
             try {
                 interpreter = MplInterpreter.interpret(file);
             } catch (IOException ex) {
-                throw new CompilerException(include.getSrcFile(),
-                        include.getSrcLine(), include.getSrcIndex(),
+                CompilerException compilerException = new CompilerException(
+                        include.getSrcFile(), include.getToken(),
                         "Couldn't include '" + file + "'", ex);
+                List<CompilerException> list = exceptions.get(include
+                        .getSrcFile());
+                if (list == null) {
+                    list = new LinkedList<CompilerException>();
+                    exceptions.put(include.getSrcFile(), list);
+                }
+                list.add(compilerException);
+                return;
             }
             if (interpreter.isProject()) {
-                throw new CompilerException(include.getSrcFile(),
-                        include.getSrcLine(), include.getSrcIndex(),
+                CompilerException compilerException = new CompilerException(
+                        include.getSrcFile(), include.getToken(),
                         "Can't include Project " + include
                                 + ". Projects may not be included.");
+                List<CompilerException> list = exceptions.get(include
+                        .getSrcFile());
+                if (list == null) {
+                    list = new LinkedList<CompilerException>();
+                    exceptions.put(include.getSrcFile(), list);
+                }
+                list.add(compilerException);
+                return;
             }
             addInterpreter(interpreter);
         }
@@ -109,11 +132,19 @@ public class MplCompiler extends MplBaseListener {
             for (CommandChain chain : chains) {
                 if (processName.equals(chain.getName())) {
                     if (found != null) {
-                        throw new CompilerException(include.getSrcFile(),
-                                include.getSrcLine(), include.getSrcIndex(),
+                        CompilerException compilerException = new CompilerException(
+                                include.getSrcFile(), include.getToken(),
                                 "Process " + processName
                                         + " is ambigious. It was found in '"
                                         + found + "' and '" + file + "'");
+                        List<CompilerException> list = exceptions.get(include
+                                .getSrcFile());
+                        if (list == null) {
+                            list = new LinkedList<CompilerException>();
+                            exceptions.put(include.getSrcFile(), list);
+                        }
+                        list.add(compilerException);
+                        return;
                     }
                     found = file;
                     addInterpreter(interpreter, processName);
@@ -121,9 +152,16 @@ public class MplCompiler extends MplBaseListener {
             }
         }
         if (found == null) {
-            throw new CompilerException(include.getSrcFile(),
-                    include.getSrcLine(), include.getSrcIndex(),
+            CompilerException compilerException = new CompilerException(
+                    include.getSrcFile(), include.getToken(),
                     "Could not resolve process " + processName, lastException);
+            List<CompilerException> list = exceptions.get(include.getSrcFile());
+            if (list == null) {
+                list = new LinkedList<CompilerException>();
+                exceptions.put(include.getSrcFile(), list);
+            }
+            list.add(compilerException);
+            return;
         }
     }
 
@@ -139,6 +177,9 @@ public class MplCompiler extends MplBaseListener {
             program.getUninstallation().addAll(interpreter.getUninstallation());
             alreadyIncluded = new HashSet<String>();
             programTree.put(programFile, alreadyIncluded);
+            if (!interpreter.getExceptions().isEmpty()) {
+                exceptions.put(programFile, interpreter.getExceptions());
+            }
         }
 
         for (CommandChain chain : interpreter.getChains()) {

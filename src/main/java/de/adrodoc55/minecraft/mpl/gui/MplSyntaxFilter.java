@@ -1,6 +1,7 @@
 package de.adrodoc55.minecraft.mpl.gui;
 
 import java.awt.Color;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +18,7 @@ import javax.swing.text.StyledDocument;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.Token;
 
+import de.adrodoc55.minecraft.mpl.CompilerException;
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 
 public class MplSyntaxFilter extends DocumentFilter {
@@ -52,13 +54,22 @@ public class MplSyntaxFilter extends DocumentFilter {
             .compile("\\$\\{[^{}]*+\\}");
 
     private StyledDocument doc;
+    private List<CompilerException> exceptions;
+
+    public List<CompilerException> getExceptions() {
+        return exceptions;
+    }
+
+    public void setExceptions(List<CompilerException> exceptions) {
+        this.exceptions = exceptions;
+    }
 
     private void recolor(StyledDocument doc) {
         this.doc = doc;
         recolor();
     }
 
-    private void recolor() {
+    public void recolor() {
         String text;
         try {
             text = doc.getText(0, doc.getLength()).replace("\r\n", "\n")
@@ -68,6 +79,21 @@ public class MplSyntaxFilter extends DocumentFilter {
                     "Encountered unexpected BadLocationException in MplSyntaxHighlighter",
                     ex);
         }
+        colorTokens(text);
+        colorExceptions();
+    }
+
+    private void colorExceptions() {
+        if (exceptions == null) {
+            return;
+        }
+        for (CompilerException exception : exceptions) {
+            Token token = exception.getToken();
+            styleToken(token, getErrorAttributes(), true);
+        }
+    }
+
+    public void colorTokens(String text) {
         MplLexer lexer = new MplLexer(new ANTLRInputStream(text));
         loop: while (true) {
             Token token = lexer.nextToken();
@@ -128,17 +154,26 @@ public class MplSyntaxFilter extends DocumentFilter {
             default:
                 styleToken(token, getDefaultStyle());
             }
-
         }
     }
 
     private void styleToken(Token token, AttributeSet style) {
-        styleToken(token.getStartIndex(), token.getStopIndex() + 1, style);
+        styleToken(token, style, true);
+    }
+
+    private void styleToken(Token token, AttributeSet style, boolean replace) {
+        styleToken(token.getStartIndex(), token.getStopIndex() + 1, style,
+                replace);
     }
 
     private void styleToken(int start, int stop, AttributeSet style) {
+        styleToken(start, stop, style, true);
+    }
+
+    private void styleToken(int start, int stop, AttributeSet style,
+            boolean replace) {
         int length = stop - start;
-        doc.setCharacterAttributes(start, length, style, true);
+        doc.setCharacterAttributes(start, length, style, replace);
     }
 
     private Style getDefaultStyle() {

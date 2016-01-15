@@ -66,6 +66,7 @@ public class MplInterpreter extends MplBaseListener {
 
     private final File programFile;
 
+    private final List<CompilerException> exceptions = new LinkedList<CompilerException>();
     private final List<CommandChain> chains = new ArrayList<CommandChain>();
     private final List<Command> installation = new ArrayList<Command>();
     private final List<Command> uninstallation = new ArrayList<Command>();
@@ -88,6 +89,10 @@ public class MplInterpreter extends MplBaseListener {
         return project;
     }
 
+    public List<CompilerException> getExceptions() {
+        return exceptions;
+    }
+
     public List<CommandChain> getChains() {
         return chains;
     }
@@ -102,7 +107,7 @@ public class MplInterpreter extends MplBaseListener {
 
     /**
      * Returns the mapping of process names to includes required by that
-     * process. A key of null indicates that this include is not requred by a
+     * process. A key of null indicates that this include is not required by a
      * specific process, but by an explicit include of a project.
      *
      * @return
@@ -141,10 +146,21 @@ public class MplInterpreter extends MplBaseListener {
         addFileImport(token, file);
     }
 
+    /**
+     * Adds the file to the list of imports that will be used to search
+     * processes. If the file is a directory all direct subfiles will be added,
+     * this is not recursive.
+     *
+     * @param token
+     *            the token that this import originated from
+     * @param file
+     *            the file to import
+     */
     private void addFileImport(Token token, File file) {
         if (imports.contains(file)) {
-            throw new CompilerException(programFile, token.getLine(),
-                    token.getStartIndex(), "Duplicate import.");
+            exceptions.add(new CompilerException(programFile, token,
+                    "Duplicate import."));
+            return;
         } else if (file.isFile()) {
             imports.add(file);
         } else if (file.isDirectory()) {
@@ -160,14 +176,14 @@ public class MplInterpreter extends MplBaseListener {
             } catch (IOException ex) {
                 path = file.getAbsolutePath();
             }
-            throw new CompilerException(programFile, token.getLine(),
-                    token.getStartIndex(), "Could not find import '" + path
-                            + "'");
+            exceptions.add(new CompilerException(programFile, token,
+                    "Could not find import '" + path + "'"));
+            return;
         } else {
-            throw new CompilerException(programFile, token.getLine(),
-                    token.getStartIndex(),
+            exceptions.add(new CompilerException(programFile, token,
                     "Can only import Files and Directories, not: '" + file
-                            + "'");
+                            + "'"));
+            return;
         }
     }
 
@@ -298,9 +314,9 @@ public class MplInterpreter extends MplBaseListener {
             method = chainBuffer.getName();
         } else {
             Token symbol = ctx.STOP().getSymbol();
-            throw new CompilerException(programFile, symbol.getLine(),
-                    symbol.getStartIndex(),
-                    "Can only stop repeating processes.");
+            exceptions.add(new CompilerException(programFile, symbol,
+                    "Can only stop repeating processes."));
+            return;
         }
         String command = "/execute @e[name=" + method
                 + "] ~ ~ ~ /setblock ~ ~ ~ stone";
@@ -311,9 +327,9 @@ public class MplInterpreter extends MplBaseListener {
     public void enterNotifyDeclaration(NotifyDeclarationContext ctx) {
         if (!chainBuffer.isProcess()) {
             Token symbol = ctx.NOTIFY().getSymbol();
-            throw new CompilerException(programFile, symbol.getLine(),
-                    symbol.getStartIndex(),
-                    "Encountered notify outside of a process context.");
+            exceptions.add(new CompilerException(programFile, symbol,
+                    "Encountered notify outside of a process context."));
+            return;
         }
         String method = chainBuffer.getName();
         commandBuffer.setCommand("/execute @e[name=" + method + NOTIFY
@@ -326,9 +342,9 @@ public class MplInterpreter extends MplBaseListener {
     public void enterWaitfor(WaitforContext ctx) {
         Token symbol = ctx.WAITFOR().getSymbol();
         if (chainBuffer.isRepeatingContext()) {
-            throw new CompilerException(programFile, symbol.getLine(),
-                    symbol.getStartIndex(),
-                    "Encountered waitfor in repeating context.");
+            exceptions.add(new CompilerException(programFile, symbol,
+                    "Encountered waitfor in repeating context."));
+            return;
         }
         TerminalNode identifier = ctx.IDENTIFIER();
         String method;
@@ -338,9 +354,10 @@ public class MplInterpreter extends MplBaseListener {
             method = lastStartIdentifier;
             lastStartIdentifier = null;
         } else {
-            throw new CompilerException(programFile, symbol.getLine(),
-                    symbol.getStopIndex(),
-                    "Missing Identifier. No previous start was found to wait for.");
+            exceptions
+                    .add(new CompilerException(programFile, symbol,
+                            "Missing Identifier. No previous start was found to wait for."));
+            return;
         }
         Boolean conditional = commandBuffer.getConditional();
         if (conditional == null) {
