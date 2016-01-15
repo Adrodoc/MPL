@@ -198,10 +198,11 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    CompilerException ex = thrown()
+    interpreter.exceptions.size() == 1
+    CompilerException ex = interpreter.exceptions[0]
     ex.file == lastTempFile
-    ex.line == 3
-    ex.index == 47
+    ex.token.line == 3
+    ex.token.text == 'stop'
     ex.message == 'Can only stop repeating processes.'
   }
 
@@ -281,10 +282,11 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    CompilerException ex = thrown()
+    interpreter.exceptions.size() == 1
+    CompilerException ex = interpreter.exceptions[0]
     ex.file == lastTempFile
-    ex.line == 2
-    ex.index == 5
+    ex.token.line == 2
+    ex.token.text == 'notify'
     ex.message == 'Encountered notify outside of a process context.'
   }
 
@@ -347,10 +349,11 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    CompilerException ex = thrown()
+    interpreter.exceptions.size() == 1
+    CompilerException ex = interpreter.exceptions[0]
     ex.file == lastTempFile
-    ex.line == 4
-    ex.index == 77
+    ex.token.line == 4
+    ex.token.text == 'waitfor'
     ex.message == 'Encountered waitfor in repeating context.'
   }
 
@@ -366,10 +369,11 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    CompilerException ex = thrown()
+    interpreter.exceptions.size() == 1
+    CompilerException ex = interpreter.exceptions[0]
     ex.file == lastTempFile
-    ex.line == 4
-    ex.index == 56
+    ex.token.line == 4
+    ex.token.text == 'waitfor'
     ex.message == 'Encountered waitfor in repeating context.'
   }
 
@@ -406,10 +410,11 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    CompilerException ex = thrown()
+    interpreter.exceptions.size() == 1
+    CompilerException ex = interpreter.exceptions[0]
     ex.file == lastTempFile
-    ex.line == 2
-    ex.index == 11
+    ex.token.line == 2
+    ex.token.text == 'waitfor'
     ex.message == 'Missing Identifier. No previous start was found to wait for.'
   }
 
@@ -533,6 +538,52 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
   }
 
   @Test
+  void "an Interpreter will always include subfiles of it's parent directory"() {
+    given:
+    File programFile = newTempFile()
+    File neighbourFile = new File(programFile.parentFile, 'neighbour.txt')
+    neighbourFile.createNewFile()
+    MplInterpreter interpreter = new MplInterpreter(programFile)
+    expect:
+    interpreter.imports.size() == 1
+    interpreter.imports.first() == neighbourFile
+  }
+
+  @Test
+  void "addFileImport will add a file that is not in the same folder"() {
+    given:
+    File otherFile = newTempFile()
+    File programFile = new File(otherFile.parentFile, 'folder/neighbour.txt')
+    programFile.parentFile.mkdirs()
+    programFile.createNewFile()
+    MplInterpreter interpreter = new MplInterpreter(programFile)
+    when:
+    interpreter.addFileImport(null, otherFile)
+    then:
+    interpreter.imports.size() == 1
+    interpreter.imports.first() == otherFile
+  }
+
+  @Test
+  void "calling addFileImport twice with the same file will add an exception"() {
+    given:
+    File otherFile = newTempFile()
+    File programFile = new File(otherFile.parentFile, 'folder/file.txt')
+    programFile.parentFile.mkdirs()
+    programFile.createNewFile()
+    MplInterpreter interpreter = new MplInterpreter(programFile)
+    when:
+    interpreter.addFileImport(null, otherFile)
+    interpreter.addFileImport(null, otherFile)
+    then:
+    interpreter.exceptions.size() == 1
+    CompilerException ex = interpreter.exceptions.first()
+    ex.file == programFile
+    ex.token == null
+    ex.message == 'Duplicate import.'
+  }
+
+  @Test
   public void "Eine Projektdatei mit Includes erzeugt Includes"() {
     given:
     String id1 = someIdentifier()
@@ -546,7 +597,9 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     File file = lastTempFile
     then:
     File parent = file.parentFile
-    List<Include> includes = interpreter.includes
+    Map<File, Include> includeMap = interpreter.includes
+    includeMap.size() == 1
+    List<Include> includes = includeMap.get(null); // null indicates that the whole file should be included
     includes.size() == 2
     includes[0].files.size()==1
     includes[0].files.containsAll([new File(parent, "datei1.mpl")])
@@ -570,10 +623,11 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     MplInterpreter interpreter = interpret(programString)
     File file = lastTempFile
     then:
-    List<Include> includes = interpreter.includes
+    Map<File, Include> includeMap = interpreter.includes
+    includeMap.size() == 1
+    List<Include> includes = includeMap.get(id1);
     includes.size() == 1
-    includes[0].files.size() == 1
-    includes[0].files.containsAll([file.parentFile])
+    includes[0].files.size() == 0
     includes[0].processName == id2
   }
 
@@ -596,10 +650,12 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString, file)
     then:
-    List<Include> includes = interpreter.includes
+    Map<File, Include> includeMap = interpreter.includes
+    includeMap.size() == 1
+    List<Include> includes = includeMap.get(id1);
     includes.size() == 1
-    includes[0].files.size() == 2
-    includes[0].files.containsAll([file.parentFile, newFile])
+    includes[0].files.size() == 1
+    includes[0].files.containsAll([newFile])
     includes[0].processName == id2
   }
 
@@ -609,21 +665,24 @@ public class MplInterpreterSpec extends MplInterpreterSpecBase {
     String id1 = someIdentifier()
     String id2 = someIdentifier()
     String programString = """
-    import "newFile"
+    import "newFolder/newFile"
     process ${id1}
     /say I am a process
     conditional: start ${id2}
     """
     File file = newTempFile()
-    File newFile = new File(file.parentFile, "newFile")
+    File newFile = new File(file.parentFile, "newFolder/newFile")
+    newFile.parentFile.mkdirs()
     newFile.createNewFile()
     when:
     MplInterpreter interpreter = interpret(programString, file)
     then:
-    List<Include> includes = interpreter.includes
+    Map<File, Include> includeMap = interpreter.includes
+    includeMap.size() == 1
+    List<Include> includes = includeMap.get(id1);
     includes.size() == 1
-    includes[0].files.size() == 2
-    includes[0].files.containsAll([file.parentFile, newFile])
+    includes[0].files.size() == 1
+    includes[0].files.containsAll([newFile])
     includes[0].processName == id2
   }
 }

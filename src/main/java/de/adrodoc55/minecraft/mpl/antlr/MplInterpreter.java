@@ -162,10 +162,16 @@ public class MplInterpreter extends MplBaseListener {
                     "Duplicate import."));
             return;
         } else if (file.isFile()) {
+            if(programFile.equals(file)) {
+                return;
+            }
             imports.add(file);
         } else if (file.isDirectory()) {
             for (File f : file.listFiles()) {
                 if (f.isFile()) {
+                    if(programFile.equals(f)) {
+                        continue;
+                    }
                     imports.add(f);
                 }
             }
