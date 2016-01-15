@@ -117,6 +117,14 @@ public class MplCompiler extends MplBaseListener {
         String processName = include.getProcessName();
         Exception lastException = null;
         File found = null;
+        for (File file : programTree.keySet()) {
+            Set<String> processes = programTree.get(file);
+            for (String string : processes) {
+                if (string.equals(processName)) {
+                    found = file;
+                }
+            }
+        }
         Collection<File> files = include.getFiles();
         for (File file : files) {
             MplInterpreter interpreter = null;
