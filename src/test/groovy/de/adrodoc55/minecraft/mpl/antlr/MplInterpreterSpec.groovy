@@ -10,9 +10,10 @@ import spock.lang.Unroll
 import de.adrodoc55.minecraft.mpl.Command
 import de.adrodoc55.minecraft.mpl.CommandChain
 import de.adrodoc55.minecraft.mpl.CompilerException
+import de.adrodoc55.minecraft.mpl.MplSpecBase;
 import de.adrodoc55.minecraft.mpl.Command.Mode
 
-public class MplInterpreterSpec extends MplInterpreterSpecBase {
+public class MplInterpreterSpec extends MplSpecBase {
 
   @Test
   @Unroll("Teste basis Modifier ('#programString')")
