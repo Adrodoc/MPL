@@ -10,7 +10,7 @@ import spock.lang.Unroll
 import de.adrodoc55.minecraft.mpl.Command
 import de.adrodoc55.minecraft.mpl.CommandChain
 import de.adrodoc55.minecraft.mpl.CompilerException
-import de.adrodoc55.minecraft.mpl.MplSpecBase;
+import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.Command.Mode
 
 public class MplInterpreterSpec extends MplSpecBase {
@@ -685,5 +685,30 @@ public class MplInterpreterSpec extends MplSpecBase {
     includes[0].files.size() == 2
     includes[0].files.containsAll([lastTempFile, newFile])
     includes[0].processName == id2
+  }
+
+  @Test
+  public void "Two processes with the same name throws Exception"() {
+    given:
+    String id = someIdentifier()
+    String programString = """
+    process ${id}
+    /say I am a process
+
+    process ${id}
+    /say I am also a process
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    interpreter.exceptions.size() == 2
+    interpreter.exceptions[0].file == lastTempFile
+    interpreter.exceptions[0].token.line == 2
+    interpreter.exceptions[0].token.text == id
+    interpreter.exceptions[0].message == "Process ${id} is ambigious. Every process must have a unique name."
+    interpreter.exceptions[1].file == lastTempFile
+    interpreter.exceptions[1].token.line == 5
+    interpreter.exceptions[1].token.text == id
+    interpreter.exceptions[1].message == "Process ${id} is ambigious. Every process must have a unique name."
   }
 }

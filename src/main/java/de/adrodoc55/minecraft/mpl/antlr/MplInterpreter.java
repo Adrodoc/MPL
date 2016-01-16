@@ -216,11 +216,27 @@ public class MplInterpreter extends MplBaseListener {
         project = true;
     }
 
+    private Map<String, Token> ambigiousProcessMapping = new HashMap<String, Token>();
+
     @Override
     public void enterProcess(ProcessContext ctx) {
         chainBuffer = new ChainBuffer();
         chainBuffer.setProcess(true);
-        chainBuffer.setName(ctx.IDENTIFIER().getText());
+        String name = ctx.IDENTIFIER().getText();
+        Token oldToken = ambigiousProcessMapping.get(name);
+        Token newToken = ctx.IDENTIFIER().getSymbol();
+        if (oldToken != null) {
+            String message = "Process " + name
+                    + " is ambigious. Every process must have a unique name.";
+            CompilerException ex1 = new CompilerException(programFile,
+                    oldToken, message);
+            exceptions.add(ex1);
+            CompilerException ex2 = new CompilerException(programFile,
+                    newToken, message);
+            exceptions.add(ex2);
+        }
+        ambigiousProcessMapping.put(name, newToken);
+        chainBuffer.setName(name);
         if (ctx.REPEAT() != null) {
             chainBuffer.setRepeatingProcess(true);
             chainBuffer.setRepeatingContext(true);
