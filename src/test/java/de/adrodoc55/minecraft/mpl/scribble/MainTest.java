@@ -4,11 +4,14 @@ import java.io.File;
 import java.io.IOException;
 
 import de.adrodoc55.minecraft.mpl.Main;
+import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException;
 
 public class MainTest {
 
-    public static void main(String[] args) throws IOException {
-        File turretsFile = new File("C:/Users/adrian/Programme/workspace/MplGenerator/src/main/resources/testdata.txt");
+    public static void main(String[] args) throws IOException,
+            CompilationFailedException {
+        File turretsFile = new File(
+                "C:/Users/adrian/Programme/workspace/MplGenerator/src/main/resources/testdata.txt");
         File validateDirections = new File(
                 "C:/Users/adrian/Programme/workspace/ApertureCraftVanilla/src/main/minecraft/ACV_validateDirections.txt");
         File teleportation = new File(
@@ -23,7 +26,8 @@ public class MainTest {
         File test = new File(
                 "C:/Users/adrian/Programme/workspace/MPL/src/test/resources/mpl-test.txt");
         File inputFile = test;
-        File outputFile = new File("C:/Users/Adrian/Documents/MCEdit/Filters", inputFile.getName() + ".py");
+        File outputFile = new File("C:/Users/Adrian/Documents/MCEdit/Filters",
+                inputFile.getName() + ".py");
         Main.main(inputFile, outputFile);
     }
 

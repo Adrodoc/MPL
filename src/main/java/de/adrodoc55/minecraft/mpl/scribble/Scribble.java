@@ -3,10 +3,12 @@ package de.adrodoc55.minecraft.mpl.scribble;
 import java.io.IOException;
 
 import de.adrodoc55.minecraft.mpl.Main;
+import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException;
 
 public class Scribble {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException,
+            CompilationFailedException {
         // File programFile = new File(
         // "C:/Users/adrian/Programme/workspace/ApertureCraftVanilla/src/main/minecraft/ACV_createPortal.txt");
         // Program compile = MplCompiler.compile(programFile);
