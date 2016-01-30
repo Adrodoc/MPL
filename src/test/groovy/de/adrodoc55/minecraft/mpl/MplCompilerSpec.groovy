@@ -248,4 +248,17 @@ class MplCompilerSpec extends MplSpecBase {
     CommandChain other = result.chains.find { it.name == 'other' }
     other.commands.contains(new Command('/this is the other process'))
   }
+
+  @Test
+  public void "a script can be compiled"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    /say hi
+    """
+    when:
+    MplCompiler.compile(new File(folder, 'main.mpl'))
+    then:
+    notThrown Exception
+  }
 }

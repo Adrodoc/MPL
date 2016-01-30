@@ -23,8 +23,8 @@ import de.adrodoc55.minecraft.mpl.chain_computing.IterativeChainComputer;
 
 public class MplCompiler extends MplBaseListener {
 
-  public static List<CommandBlockChain> compile(File programFile) throws IOException,
-      CompilationFailedException {
+  public static List<CommandBlockChain> compile(File programFile)
+      throws IOException, CompilationFailedException {
     Program program = assembleProgram(programFile);
     List<CommandBlockChain> chains = computeChains(program);
     for (CommandBlockChain chain : chains) {
@@ -33,8 +33,8 @@ public class MplCompiler extends MplBaseListener {
     return chains;
   }
 
-  public static Program assembleProgram(File programFile) throws IOException,
-      CompilationFailedException {
+  public static Program assembleProgram(File programFile)
+      throws IOException, CompilationFailedException {
     MplCompiler compiler = new MplCompiler();
     Program program = compiler.assemble(programFile);
     if (!compiler.exceptions.isEmpty()) {
@@ -81,9 +81,8 @@ public class MplCompiler extends MplBaseListener {
       try {
         interpreter = MplInterpreter.interpret(file);
       } catch (IOException ex) {
-        CompilerException compilerException =
-            new CompilerException(include.getSrcFile(), include.getToken(), include.getSrcLine(),
-                "Couldn't include '" + file + "'", ex);
+        CompilerException compilerException = new CompilerException(include.getSrcFile(),
+            include.getToken(), include.getSrcLine(), "Couldn't include '" + file + "'", ex);
         List<CompilerException> list = exceptions.get(include.getSrcFile());
         if (list == null) {
           list = new LinkedList<CompilerException>();
@@ -136,10 +135,9 @@ public class MplCompiler extends MplBaseListener {
       for (CommandChain chain : chains) {
         if (processName.equals(chain.getName())) {
           if (found != null) {
-            CompilerException compilerException =
-                new CompilerException(include.getSrcFile(), include.getToken(),
-                    include.getSrcLine(), "Process " + processName
-                        + " is ambigious. It was found in '" + found + "' and '" + file + "'");
+            CompilerException compilerException = new CompilerException(include.getSrcFile(),
+                include.getToken(), include.getSrcLine(), "Process " + processName
+                    + " is ambigious. It was found in '" + found + "' and '" + file + "'");
             List<CompilerException> list = exceptions.get(include.getSrcFile());
             if (list == null) {
               list = new LinkedList<CompilerException>();
@@ -228,14 +226,13 @@ public class MplCompiler extends MplBaseListener {
 
     int maxA = optimalFirst.getMax().get(a.getAxis());
     int maxB = optimalFirst.getMax().get(b.getAxis()) + 1;
-    Coordinate3D max =
-        a.toCoordinate().mult(maxA).plus(b.toCoordinate().mult(Integer.MAX_VALUE))
-            .plus(c.toCoordinate().mult(0)); // FIXME: max
-                                             // ist
-                                             // inkorrekt
-                                             // wenn
-                                             // orientation
-                                             // negativ
+    Coordinate3D max = a.toCoordinate().mult(maxA).plus(b.toCoordinate().mult(Integer.MAX_VALUE))
+        .plus(c.toCoordinate().mult(0)); // FIXME: max
+                                         // ist
+                                         // inkorrekt
+                                         // wenn
+                                         // orientation
+                                         // negativ
 
     IterativeChainComputer chainComputer = new IterativeChainComputer() {
       @Override
@@ -282,45 +279,47 @@ public class MplCompiler extends MplBaseListener {
         continue;
       }
       Coordinate3D chainStart = chain.getMin().minus(orientation.getA().toCoordinate());
-      installation.add(new Command("/summon ArmorStand ${origin + ("
-          + chainStart.toAbsoluteString() + ")} {CustomName:\"" + chain.getName()
-          + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
+      installation.add(new Command(
+          "/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString() + ")} {CustomName:\""
+              + chain.getName() + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
       uninstallation.add(new Command("/kill @e[type=ArmorStand,name=" + chain.getName() + "]"));
     }
 
-    Command initInstall = installation.get(0);
-    initInstall.setMode(Mode.IMPULSE);
-    initInstall.setNeedsRedstone(true);
-    Command initUninstall = uninstallation.get(0);
-    initUninstall.setMode(Mode.IMPULSE);
-    initUninstall.setNeedsRedstone(true);
+    if (!installation.isEmpty()) {
+      Command initInstall = installation.get(0);
+      initInstall.setMode(Mode.IMPULSE);
+      initInstall.setNeedsRedstone(true);
+    }
+    if (!uninstallation.isEmpty()) {
+      Command initUninstall = uninstallation.get(0);
+      initUninstall.setMode(Mode.IMPULSE);
+      initUninstall.setNeedsRedstone(true);
+    }
 
-    CommandBlockChain materialisedUninstallation =
-        new IterativeChainComputer().computeOptimalChain(new CommandChain("uninstallation",
-            uninstallation), new Coordinate3D(100, 100, 0));
+    CommandBlockChain materialisedUninstallation = new IterativeChainComputer().computeOptimalChain(
+        new CommandChain("uninstallation", uninstallation), new Coordinate3D(100, 100, 0));
     materialisedUninstallation.move(Coordinate3D.UP);
-    CommandBlockChain materialisedInstallation =
-        new IterativeChainComputer() {
-          protected boolean isCoordinateValid(Coordinate3D coordinate) {
-            if (!super.isCoordinateValid(coordinate)) {
-              return false;
-            }
-            List<CommandBlock> commandBlocks = materialisedUninstallation.getCommandBlocks();
-            for (CommandBlock block : commandBlocks) {
-              if (block.getCoordinate().equals(coordinate)) {
-                return false;
-              }
-            }
-            return true;
-          };
-        }.computeOptimalChain(new CommandChain("installation", installation), new Coordinate3D(100,
-            100, 0));
+    CommandBlockChain materialisedInstallation = new IterativeChainComputer() {
+      protected boolean isCoordinateValid(Coordinate3D coordinate) {
+        if (!super.isCoordinateValid(coordinate)) {
+          return false;
+        }
+        List<CommandBlock> commandBlocks = materialisedUninstallation.getCommandBlocks();
+        for (CommandBlock block : commandBlocks) {
+          if (block.getCoordinate().equals(coordinate)) {
+            return false;
+          }
+        }
+        return true;
+      };
+    }.computeOptimalChain(new CommandChain("installation", installation),
+        new Coordinate3D(100, 100, 0));
     materialised.add(materialisedInstallation);
     materialised.add(materialisedUninstallation);
   }
 
-  private static final Pattern thisPattern = Pattern
-      .compile("\\$\\{\\s*this\\s*([+-])\\s*(\\d+)\\s*\\}");
+  private static final Pattern thisPattern =
+      Pattern.compile("\\$\\{\\s*this\\s*([+-])\\s*(\\d+)\\s*\\}");
 
   private static final Pattern originPattern = Pattern
       .compile("\\$\\{\\s*origin\\s*\\+\\s*\\(\\s*(-?\\d+)\\s+(-?\\d+)\\s+(-?\\d+)\\s*\\)\\s*\\}");
