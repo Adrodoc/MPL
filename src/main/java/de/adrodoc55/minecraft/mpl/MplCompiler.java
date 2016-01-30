@@ -23,375 +23,355 @@ import de.adrodoc55.minecraft.mpl.chain_computing.IterativeChainComputer;
 
 public class MplCompiler extends MplBaseListener {
 
-    public static List<CommandBlockChain> compile(File programFile)
-            throws IOException, CompilationFailedException {
-        Program program = assembleProgram(programFile);
-        List<CommandBlockChain> chains = computeChains(program);
-        for (CommandBlockChain chain : chains) {
-            insertRelativeCoordinates(chain.getCommandBlocks(),
-                    program.getOrientation());
+  public static List<CommandBlockChain> compile(File programFile) throws IOException,
+      CompilationFailedException {
+    Program program = assembleProgram(programFile);
+    List<CommandBlockChain> chains = computeChains(program);
+    for (CommandBlockChain chain : chains) {
+      insertRelativeCoordinates(chain.getCommandBlocks(), program.getOrientation());
+    }
+    return chains;
+  }
+
+  public static Program assembleProgram(File programFile) throws IOException,
+      CompilationFailedException {
+    MplCompiler compiler = new MplCompiler();
+    Program program = compiler.assemble(programFile);
+    if (!compiler.exceptions.isEmpty()) {
+      throw new CompilationFailedException(compiler.exceptions);
+    }
+    return program;
+  }
+
+  private Map<File, List<CompilerException>> exceptions =
+      new HashMap<File, List<CompilerException>>();
+  private Map<File, Set<String>> programTree = new HashMap<File, Set<String>>();
+  private Set<Include> includes;
+  private LinkedList<Include> includeTodos;
+  private Program program;
+
+  private MplCompiler() {}
+
+  private Program assemble(File programFile) throws IOException {
+    includes = new HashSet<Include>();
+    includeTodos = new LinkedList<Include>();
+    program = new Program();
+    program.setOrientation(new MplOrientation());
+    MplInterpreter main = MplInterpreter.interpret(programFile);
+    addInterpreter(main);
+    doIncludes();
+    return program;
+  }
+
+  private void doIncludes() {
+    while (!includeTodos.isEmpty()) {
+      Include include = includeTodos.poll();
+      String processName = include.getProcessName();
+      if (processName == null) {
+        massInclude(include);
+      } else {
+        processInclude(include);
+      }
+    }
+  }
+
+  private void massInclude(Include include) {
+    for (File file : include.getFiles()) {
+      MplInterpreter interpreter = null;
+      try {
+        interpreter = MplInterpreter.interpret(file);
+      } catch (IOException ex) {
+        CompilerException compilerException =
+            new CompilerException(include.getSrcFile(), include.getToken(), include.getSrcLine(),
+                "Couldn't include '" + file + "'", ex);
+        List<CompilerException> list = exceptions.get(include.getSrcFile());
+        if (list == null) {
+          list = new LinkedList<CompilerException>();
+          exceptions.put(include.getSrcFile(), list);
         }
-        return chains;
+        list.add(compilerException);
+        return;
+      }
+      if (interpreter.isProject()) {
+        CompilerException compilerException =
+            new CompilerException(include.getSrcFile(), include.getToken(), include.getSrcLine(),
+                "Can't include Project " + include + ". Projects may not be included.");
+        List<CompilerException> list = exceptions.get(include.getSrcFile());
+        if (list == null) {
+          list = new LinkedList<CompilerException>();
+          exceptions.put(include.getSrcFile(), list);
+        }
+        list.add(compilerException);
+        return;
+      }
+      addInterpreter(interpreter);
     }
 
-    public static Program assembleProgram(File programFile) throws IOException,
-            CompilationFailedException {
-        MplCompiler compiler = new MplCompiler();
-        Program program = compiler.assemble(programFile);
-        if (!compiler.exceptions.isEmpty()) {
-            throw new CompilationFailedException(compiler.exceptions);
+  }
+
+  private void processInclude(Include include) {
+    String processName = include.getProcessName();
+    Exception lastException = null;
+    File found = null;
+    for (File file : programTree.keySet()) {
+      Set<String> processes = programTree.get(file);
+      for (String string : processes) {
+        if (string.equals(processName)) {
+          found = file;
         }
-        return program;
+      }
     }
-
-    private Map<File, List<CompilerException>> exceptions = new HashMap<File, List<CompilerException>>();
-    private Map<File, Set<String>> programTree = new HashMap<File, Set<String>>();
-    private Set<Include> includes;
-    private LinkedList<Include> includeTodos;
-    private Program program;
-
-    private MplCompiler() {
-    }
-
-    private Program assemble(File programFile) throws IOException {
-        includes = new HashSet<Include>();
-        includeTodos = new LinkedList<Include>();
-        program = new Program();
-        program.setOrientation(new MplOrientation());
-        MplInterpreter main = MplInterpreter.interpret(programFile);
-        addInterpreter(main);
-        doIncludes();
-        return program;
-    }
-
-    private void doIncludes() {
-        while (!includeTodos.isEmpty()) {
-            Include include = includeTodos.poll();
-            String processName = include.getProcessName();
-            if (processName == null) {
-                massInclude(include);
-            } else {
-                processInclude(include);
-            }
-        }
-    }
-
-    private void massInclude(Include include) {
-        for (File file : include.getFiles()) {
-            MplInterpreter interpreter = null;
-            try {
-                interpreter = MplInterpreter.interpret(file);
-            } catch (IOException ex) {
-                CompilerException compilerException = new CompilerException(
-                        include.getSrcFile(), include.getToken(),
-                        "Couldn't include '" + file + "'", ex);
-                List<CompilerException> list = exceptions.get(include
-                        .getSrcFile());
-                if (list == null) {
-                    list = new LinkedList<CompilerException>();
-                    exceptions.put(include.getSrcFile(), list);
-                }
-                list.add(compilerException);
-                return;
-            }
-            if (interpreter.isProject()) {
-                CompilerException compilerException = new CompilerException(
-                        include.getSrcFile(), include.getToken(),
-                        "Can't include Project " + include
-                                + ". Projects may not be included.");
-                List<CompilerException> list = exceptions.get(include
-                        .getSrcFile());
-                if (list == null) {
-                    list = new LinkedList<CompilerException>();
-                    exceptions.put(include.getSrcFile(), list);
-                }
-                list.add(compilerException);
-                return;
-            }
-            addInterpreter(interpreter);
-        }
-
-    }
-
-    private void processInclude(Include include) {
-        String processName = include.getProcessName();
-        Exception lastException = null;
-        File found = null;
-        for (File file : programTree.keySet()) {
-            Set<String> processes = programTree.get(file);
-            for (String string : processes) {
-                if (string.equals(processName)) {
-                    found = file;
-                }
-            }
-        }
-        Collection<File> files = include.getFiles();
-        for (File file : files) {
-            MplInterpreter interpreter = null;
-            try {
-                interpreter = MplInterpreter.interpret(file);
-            } catch (Exception ex) {
-                lastException = ex;
-            }
-            if (lastException != null) {
-                continue;
-            }
-            List<CommandChain> chains = interpreter.getChains();
-            for (CommandChain chain : chains) {
-                if (processName.equals(chain.getName())) {
-                    if (found != null) {
-                        CompilerException compilerException = new CompilerException(
-                                include.getSrcFile(), include.getToken(),
-                                "Process " + processName
-                                        + " is ambigious. It was found in '"
-                                        + found + "' and '" + file + "'");
-                        List<CompilerException> list = exceptions.get(include
-                                .getSrcFile());
-                        if (list == null) {
-                            list = new LinkedList<CompilerException>();
-                            exceptions.put(include.getSrcFile(), list);
-                        }
-                        list.add(compilerException);
-                        return;
-                    }
-                    found = file;
-                    addInterpreter(interpreter, processName);
-                }
-            }
-        }
-        if (found == null) {
-            CompilerException compilerException = new CompilerException(
-                    include.getSrcFile(), include.getToken(),
-                    "Could not resolve process " + processName, lastException);
+    Collection<File> files = include.getFiles();
+    for (File file : files) {
+      MplInterpreter interpreter = null;
+      try {
+        interpreter = MplInterpreter.interpret(file);
+      } catch (Exception ex) {
+        lastException = ex;
+      }
+      if (lastException != null) {
+        continue;
+      }
+      List<CommandChain> chains = interpreter.getChains();
+      for (CommandChain chain : chains) {
+        if (processName.equals(chain.getName())) {
+          if (found != null) {
+            CompilerException compilerException =
+                new CompilerException(include.getSrcFile(), include.getToken(),
+                    include.getSrcLine(), "Process " + processName
+                        + " is ambigious. It was found in '" + found + "' and '" + file + "'");
             List<CompilerException> list = exceptions.get(include.getSrcFile());
             if (list == null) {
-                list = new LinkedList<CompilerException>();
-                exceptions.put(include.getSrcFile(), list);
+              list = new LinkedList<CompilerException>();
+              exceptions.put(include.getSrcFile(), list);
             }
             list.add(compilerException);
             return;
+          }
+          found = file;
+          addInterpreter(interpreter, processName);
         }
+      }
+    }
+    if (found == null) {
+      CompilerException compilerException =
+          new CompilerException(include.getSrcFile(), include.getToken(), include.getSrcLine(),
+              "Could not resolve process " + processName, lastException);
+      List<CompilerException> list = exceptions.get(include.getSrcFile());
+      if (list == null) {
+        list = new LinkedList<CompilerException>();
+        exceptions.put(include.getSrcFile(), list);
+      }
+      list.add(compilerException);
+      return;
+    }
+  }
+
+  private void addInterpreter(MplInterpreter interpreter) {
+    addInterpreter(interpreter, null);
+  }
+
+  private void addInterpreter(MplInterpreter interpreter, String process) {
+    File programFile = interpreter.getProgramFile();
+    Set<String> alreadyIncluded = programTree.get(programFile);
+    if (alreadyIncluded == null) {
+      program.getInstallation().addAll(interpreter.getInstallation());
+      program.getUninstallation().addAll(interpreter.getUninstallation());
+      alreadyIncluded = new HashSet<String>();
+      programTree.put(programFile, alreadyIncluded);
+      if (!interpreter.getExceptions().isEmpty()) {
+        exceptions.put(programFile, interpreter.getExceptions());
+      }
     }
 
-    private void addInterpreter(MplInterpreter interpreter) {
-        addInterpreter(interpreter, null);
+    for (CommandChain chain : interpreter.getChains()) {
+      if (process == null || process.equals(chain.getName())) {
+        if (alreadyIncluded.add(chain.getName())) {
+          program.getChains().add(chain);
+        }
+      }
+    }
+    Map<String, List<Include>> includeMapping = interpreter.getIncludes();
+    for (String key : includeMapping.keySet()) {
+      if (process == null || process.equals(key)) {
+        List<Include> includes = includeMapping.get(key);
+        for (Include include : includes) {
+          if (this.includes.add(include)) {
+            includeTodos.add(include);
+          }
+        }
+      }
+    }
+  }
+
+  private static List<CommandBlockChain> computeChains(Program program) {
+    LinkedList<CommandChain> chains = program.getChains();
+    chains.sort((o1, o2) -> {
+      return Integer.compare(o1.getCommands().size(), o2.getCommands().size()) * -1;
+    });
+    MplOrientation orientation = program.getOrientation();
+    Direction a = orientation.getA();
+    Direction b = orientation.getB();
+    Direction c = orientation.getC(); // Avoid Axis of C statt Max?
+    Coordinate3D cPos = c.toCoordinate();
+    Coordinate3D bPos = b.toCoordinate();
+
+    CommandChain first = chains.poll();
+    Coordinate3D firstMax =
+        a.toCoordinate().mult(Integer.MAX_VALUE).plus(b.toCoordinate().mult(Integer.MAX_VALUE));
+    CommandBlockChain optimalFirst =
+        new IterativeChainComputer().computeOptimalChain(first, firstMax);
+    optimalFirst.move(c.toCoordinate());
+
+    List<CommandBlockChain> materialised = new LinkedList<CommandBlockChain>();
+    materialised.add(optimalFirst);
+
+    int maxA = optimalFirst.getMax().get(a.getAxis());
+    int maxB = optimalFirst.getMax().get(b.getAxis()) + 1;
+    Coordinate3D max =
+        a.toCoordinate().mult(maxA).plus(b.toCoordinate().mult(Integer.MAX_VALUE))
+            .plus(c.toCoordinate().mult(0)); // FIXME: max
+                                             // ist
+                                             // inkorrekt
+                                             // wenn
+                                             // orientation
+                                             // negativ
+
+    IterativeChainComputer chainComputer = new IterativeChainComputer() {
+      @Override
+      protected int calculateCost(List<Coordinate3D> coordinates) {
+        int maxB = 0;
+        for (Coordinate3D coordinate : coordinates) {
+          int deltaB = coordinate.get(b.getAxis());
+          if (b.isNegative()) {
+            deltaB *= -1;
+          }
+          maxB = Math.max(maxB, deltaB);
+        }
+        return maxB;
+      }
+    };
+
+    int[] array = new int[chains.size()];
+    for (CommandChain chain : chains) {
+      CommandBlockChain optimal = chainComputer.computeOptimalChain(chain, max);
+      materialised.add(optimal);
+      int localMaxB = optimal.getMax().get(b.getAxis()) + 1;
+      for (int x = 0; x < array.length; x++) {
+        int localMax = array[x] + localMaxB;
+        if (localMax <= maxB || array[x] == 0) {
+          optimal.move(cPos.mult(x + 2).plus(bPos.mult(array[x])));
+          array[x] = localMax;
+          break;
+        }
+      }
     }
 
-    private void addInterpreter(MplInterpreter interpreter, String process) {
-        File programFile = interpreter.getProgramFile();
-        Set<String> alreadyIncluded = programTree.get(programFile);
-        if (alreadyIncluded == null) {
-            program.getInstallation().addAll(interpreter.getInstallation());
-            program.getUninstallation().addAll(interpreter.getUninstallation());
-            alreadyIncluded = new HashSet<String>();
-            programTree.put(programFile, alreadyIncluded);
-            if (!interpreter.getExceptions().isEmpty()) {
-                exceptions.put(programFile, interpreter.getExceptions());
-            }
-        }
+    addUnInstallation(program, materialised, orientation);
+    return materialised;
+  }
 
-        for (CommandChain chain : interpreter.getChains()) {
-            if (process == null || process.equals(chain.getName())) {
-                if (alreadyIncluded.add(chain.getName())) {
-                    program.getChains().add(chain);
-                }
-            }
-        }
-        Map<String, List<Include>> includeMapping = interpreter.getIncludes();
-        for (String key : includeMapping.keySet()) {
-            if (process == null || process.equals(key)) {
-                List<Include> includes = includeMapping.get(key);
-                for (Include include : includes) {
-                    if (this.includes.add(include)) {
-                        includeTodos.add(include);
-                    }
-                }
-            }
-        }
+  private static void addUnInstallation(Program program, List<CommandBlockChain> materialised,
+      MplOrientation orientation) {
+    List<Command> installation = program.getInstallation();
+    List<Command> uninstallation = program.getUninstallation();
+
+    for (CommandBlockChain chain : materialised) {
+      String name = chain.getName();
+      if (name == null) {
+        continue;
+      }
+      Coordinate3D chainStart = chain.getMin().minus(orientation.getA().toCoordinate());
+      installation.add(new Command("/summon ArmorStand ${origin + ("
+          + chainStart.toAbsoluteString() + ")} {CustomName:\"" + chain.getName()
+          + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
+      uninstallation.add(new Command("/kill @e[type=ArmorStand,name=" + chain.getName() + "]"));
     }
 
-    private static List<CommandBlockChain> computeChains(Program program) {
-        LinkedList<CommandChain> chains = program.getChains();
-        chains.sort((o1, o2) -> {
-            return Integer.compare(o1.getCommands().size(), o2.getCommands()
-                    .size())
-                    * -1;
-        });
-        MplOrientation orientation = program.getOrientation();
-        Direction a = orientation.getA();
-        Direction b = orientation.getB();
-        Direction c = orientation.getC(); // Avoid Axis of C statt Max?
-        Coordinate3D cPos = c.toCoordinate();
-        Coordinate3D bPos = b.toCoordinate();
+    Command initInstall = installation.get(0);
+    initInstall.setMode(Mode.IMPULSE);
+    initInstall.setNeedsRedstone(true);
+    Command initUninstall = uninstallation.get(0);
+    initUninstall.setMode(Mode.IMPULSE);
+    initUninstall.setNeedsRedstone(true);
 
-        CommandChain first = chains.poll();
-        Coordinate3D firstMax = a.toCoordinate().mult(Integer.MAX_VALUE)
-                .plus(b.toCoordinate().mult(Integer.MAX_VALUE));
-        CommandBlockChain optimalFirst = new IterativeChainComputer()
-                .computeOptimalChain(first, firstMax);
-        optimalFirst.move(c.toCoordinate());
-
-        List<CommandBlockChain> materialised = new LinkedList<CommandBlockChain>();
-        materialised.add(optimalFirst);
-
-        int maxA = optimalFirst.getMax().get(a.getAxis());
-        int maxB = optimalFirst.getMax().get(b.getAxis()) + 1;
-        Coordinate3D max = a.toCoordinate().mult(maxA)
-                .plus(b.toCoordinate().mult(Integer.MAX_VALUE))
-                .plus(c.toCoordinate().mult(0)); // FIXME: max
-                                                    // ist
-                                                    // inkorrekt
-                                                    // wenn
-                                                    // orientation
-                                                    // negativ
-
-        IterativeChainComputer chainComputer = new IterativeChainComputer() {
-            @Override
-            protected int calculateCost(List<Coordinate3D> coordinates) {
-                int maxB = 0;
-                for (Coordinate3D coordinate : coordinates) {
-                    int deltaB = coordinate.get(b.getAxis());
-                    if (b.isNegative()) {
-                        deltaB *= -1;
-                    }
-                    maxB = Math.max(maxB, deltaB);
-                }
-                return maxB;
+    CommandBlockChain materialisedUninstallation =
+        new IterativeChainComputer().computeOptimalChain(new CommandChain("uninstallation",
+            uninstallation), new Coordinate3D(100, 100, 0));
+    materialisedUninstallation.move(Coordinate3D.UP);
+    CommandBlockChain materialisedInstallation =
+        new IterativeChainComputer() {
+          protected boolean isCoordinateValid(Coordinate3D coordinate) {
+            if (!super.isCoordinateValid(coordinate)) {
+              return false;
             }
-        };
-
-        int[] array = new int[chains.size()];
-        for (CommandChain chain : chains) {
-            CommandBlockChain optimal = chainComputer.computeOptimalChain(
-                    chain, max);
-            materialised.add(optimal);
-            int localMaxB = optimal.getMax().get(b.getAxis()) + 1;
-            for (int x = 0; x < array.length; x++) {
-                int localMax = array[x] + localMaxB;
-                if (localMax <= maxB || array[x] == 0) {
-                    optimal.move(cPos.mult(x + 2).plus(bPos.mult(array[x])));
-                    array[x] = localMax;
-                    break;
-                }
+            List<CommandBlock> commandBlocks = materialisedUninstallation.getCommandBlocks();
+            for (CommandBlock block : commandBlocks) {
+              if (block.getCoordinate().equals(coordinate)) {
+                return false;
+              }
             }
+            return true;
+          };
+        }.computeOptimalChain(new CommandChain("installation", installation), new Coordinate3D(100,
+            100, 0));
+    materialised.add(materialisedInstallation);
+    materialised.add(materialisedUninstallation);
+  }
+
+  private static final Pattern thisPattern = Pattern
+      .compile("\\$\\{\\s*this\\s*([+-])\\s*(\\d+)\\s*\\}");
+
+  private static final Pattern originPattern = Pattern
+      .compile("\\$\\{\\s*origin\\s*\\+\\s*\\(\\s*(-?\\d+)\\s+(-?\\d+)\\s+(-?\\d+)\\s*\\)\\s*\\}");
+
+  private static void insertRelativeCoordinates(List<CommandBlock> commandBlocks,
+      MplOrientation orientation) {
+    for (int i = 0; i < commandBlocks.size(); i++) {
+      CommandBlock current = commandBlocks.get(i);
+      if (current.toCommand() == null) {
+        continue;
+      }
+
+      if (current != null) {
+        Matcher thisMatcher = thisPattern.matcher(current.getCommand());
+        StringBuffer thisSb = new StringBuffer();
+        while (thisMatcher.find()) {
+          boolean minus = thisMatcher.group(1).equals("-");
+          int relative = Integer.parseInt(thisMatcher.group(2));
+          if (minus) {
+            relative *= -1;
+          }
+          int index = i + relative;
+          Coordinate3D referenced;
+          if (index < 0) {
+            referenced =
+                commandBlocks.get(0).getCoordinate().minus(orientation.getA().toCoordinate());
+          } else {
+            referenced = commandBlocks.get(index).getCoordinate();
+          }
+          Coordinate3D relativeCoordinate = referenced.minus(current.getCoordinate());
+          thisMatcher.appendReplacement(thisSb, relativeCoordinate.toRelativeString());
         }
+        thisMatcher.appendTail(thisSb);
+        current.setCommand(thisSb.toString());
 
-        addUnInstallation(program, materialised, orientation);
-        return materialised;
-    }
-
-    private static void addUnInstallation(Program program,
-            List<CommandBlockChain> materialised, MplOrientation orientation) {
-        List<Command> installation = program.getInstallation();
-        List<Command> uninstallation = program.getUninstallation();
-
-        for (CommandBlockChain chain : materialised) {
-            String name = chain.getName();
-            if (name == null) {
-                continue;
-            }
-            Coordinate3D chainStart = chain.getMin().minus(
-                    orientation.getA().toCoordinate());
-            installation
-                    .add(new Command(
-                            "/summon ArmorStand ${origin + ("
-                                    + chainStart.toAbsoluteString()
-                                    + ")} {CustomName:\""
-                                    + chain.getName()
-                                    + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
-            uninstallation.add(new Command("/kill @e[type=ArmorStand,name="
-                    + chain.getName() + "]"));
+        Matcher originMatcher = originPattern.matcher(current.getCommand());
+        StringBuffer originSb = new StringBuffer();
+        while (originMatcher.find()) {
+          int x = Integer.parseInt(originMatcher.group(1));
+          int y = Integer.parseInt(originMatcher.group(2));
+          int z = Integer.parseInt(originMatcher.group(3));
+          Coordinate3D referenced = new Coordinate3D(x, y, z);
+          Coordinate3D relativeCoordinate = current.getCoordinate().mult(-1).plus(referenced);
+          originMatcher.appendReplacement(originSb, relativeCoordinate.toRelativeString());
         }
+        originMatcher.appendTail(originSb);
+        current.setCommand(originSb.toString());
 
-        Command initInstall = installation.get(0);
-        initInstall.setMode(Mode.IMPULSE);
-        initInstall.setNeedsRedstone(true);
-        Command initUninstall = uninstallation.get(0);
-        initUninstall.setMode(Mode.IMPULSE);
-        initUninstall.setNeedsRedstone(true);
+      }
 
-        CommandBlockChain materialisedUninstallation = new IterativeChainComputer()
-                .computeOptimalChain(new CommandChain("uninstallation",
-                        uninstallation), new Coordinate3D(100, 100, 0));
-        materialisedUninstallation.move(Coordinate3D.UP);
-        CommandBlockChain materialisedInstallation = new IterativeChainComputer() {
-            protected boolean isCoordinateValid(Coordinate3D coordinate) {
-                if (!super.isCoordinateValid(coordinate)) {
-                    return false;
-                }
-                List<CommandBlock> commandBlocks = materialisedUninstallation
-                        .getCommandBlocks();
-                for (CommandBlock block : commandBlocks) {
-                    if (block.getCoordinate().equals(coordinate)) {
-                        return false;
-                    }
-                }
-                return true;
-            };
-        }.computeOptimalChain(new CommandChain("installation", installation),
-                new Coordinate3D(100, 100, 0));
-        materialised.add(materialisedInstallation);
-        materialised.add(materialisedUninstallation);
     }
-
-    private static final Pattern thisPattern = Pattern
-            .compile("\\$\\{\\s*this\\s*([+-])\\s*(\\d+)\\s*\\}");
-
-    private static final Pattern originPattern = Pattern
-            .compile("\\$\\{\\s*origin\\s*\\+\\s*\\(\\s*(-?\\d+)\\s+(-?\\d+)\\s+(-?\\d+)\\s*\\)\\s*\\}");
-
-    private static void insertRelativeCoordinates(
-            List<CommandBlock> commandBlocks, MplOrientation orientation) {
-        for (int i = 0; i < commandBlocks.size(); i++) {
-            CommandBlock current = commandBlocks.get(i);
-            if (current.toCommand() == null) {
-                continue;
-            }
-
-            if (current != null) {
-                Matcher thisMatcher = thisPattern.matcher(current.getCommand());
-                StringBuffer thisSb = new StringBuffer();
-                while (thisMatcher.find()) {
-                    boolean minus = thisMatcher.group(1).equals("-");
-                    int relative = Integer.parseInt(thisMatcher.group(2));
-                    if (minus) {
-                        relative *= -1;
-                    }
-                    int index = i + relative;
-                    Coordinate3D referenced;
-                    if (index < 0) {
-                        referenced = commandBlocks.get(0).getCoordinate()
-                                .minus(orientation.getA().toCoordinate());
-                    } else {
-                        referenced = commandBlocks.get(index).getCoordinate();
-                    }
-                    Coordinate3D relativeCoordinate = referenced.minus(current
-                            .getCoordinate());
-                    thisMatcher.appendReplacement(thisSb,
-                            relativeCoordinate.toRelativeString());
-                }
-                thisMatcher.appendTail(thisSb);
-                current.setCommand(thisSb.toString());
-
-                Matcher originMatcher = originPattern.matcher(current
-                        .getCommand());
-                StringBuffer originSb = new StringBuffer();
-                while (originMatcher.find()) {
-                    int x = Integer.parseInt(originMatcher.group(1));
-                    int y = Integer.parseInt(originMatcher.group(2));
-                    int z = Integer.parseInt(originMatcher.group(3));
-                    Coordinate3D referenced = new Coordinate3D(x, y, z);
-                    Coordinate3D relativeCoordinate = current.getCoordinate()
-                            .mult(-1).plus(referenced);
-                    originMatcher.appendReplacement(originSb,
-                            relativeCoordinate.toRelativeString());
-                }
-                originMatcher.appendTail(originSb);
-                current.setCommand(originSb.toString());
-
-            }
-
-        }
-    }
+  }
 
 }
