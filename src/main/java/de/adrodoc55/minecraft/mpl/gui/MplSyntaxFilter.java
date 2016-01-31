@@ -74,15 +74,6 @@ public class MplSyntaxFilter extends DocumentFilter
   private static final Pattern INSERT_PATTERN = Pattern.compile("\\$\\{[^{}]*+\\}");
 
   private StyledDocument doc;
-  private List<CompilerException> exceptions;
-
-  public List<CompilerException> getExceptions() {
-    return exceptions;
-  }
-
-  public void setExceptions(List<CompilerException> exceptions) {
-    this.exceptions = exceptions;
-  }
 
   private void recolor(StyledDocument doc) {
     this.doc = doc;
@@ -90,6 +81,9 @@ public class MplSyntaxFilter extends DocumentFilter
   }
 
   public void recolor() {
+    if (doc == null) {
+      return;
+    }
     String text;
     try {
       text = doc.getText(0, doc.getLength()).replace("\r\n", "\n").replace("\r", "\n");
@@ -102,6 +96,11 @@ public class MplSyntaxFilter extends DocumentFilter
   }
 
   private void colorExceptions() {
+    MplSyntaxFilterPM pModel = getPresentationModel();
+    if (pModel == null) {
+
+    }
+    List<CompilerException> exceptions = pModel.getExceptions();
     if (exceptions == null) {
       return;
     }
@@ -302,8 +301,8 @@ public class MplSyntaxFilter extends DocumentFilter
   protected ModelProvider getLocalModelProvider() {
     if (localModelProvider == null) {
       localModelProvider = new ModelProvider(); // @wb:location=10,430
-      localModelProvider.setPresentationModelType(
-          de.adrodoc55.minecraft.mpl.gui.MplSyntaxFilterPM.class);
+      localModelProvider
+          .setPresentationModelType(de.adrodoc55.minecraft.mpl.gui.MplSyntaxFilterPM.class);
     }
     return localModelProvider;
   }
@@ -314,8 +313,7 @@ public class MplSyntaxFilter extends DocumentFilter
   }
 
   /** {@inheritDoc} */
-  public void setPresentationModel(
-      de.adrodoc55.minecraft.mpl.gui.MplSyntaxFilterPM pModel) {
+  public void setPresentationModel(de.adrodoc55.minecraft.mpl.gui.MplSyntaxFilterPM pModel) {
     getLocalModelProvider().setPresentationModel(pModel);
   }
 

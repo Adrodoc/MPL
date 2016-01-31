@@ -29,6 +29,7 @@ import org.beanfabrics.ModelSubscriber;
 import org.beanfabrics.Path;
 import org.beanfabrics.View;
 
+import de.adrodoc55.minecraft.mpl.gui.utils.JaggedEditorKit;
 import de.adrodoc55.minecraft.mpl.gui.utils.RawUndoManager;
 import de.adrodoc55.minecraft.mpl.gui.utils.RedoAction;
 import de.adrodoc55.minecraft.mpl.gui.utils.TextLineNumber;
@@ -160,6 +161,7 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
   private JTextPane getTextPane() {
     if (textPane == null) {
       textPane = new JTextPane();
+      textPane.setEditorKit(new JaggedEditorKit());
       StyledDocument doc = textPane.getStyledDocument();
       ((AbstractDocument) doc).setDocumentFilter(getMplSyntaxFilter());
       doc.addDocumentListener(new DocumentListener() {
@@ -215,8 +217,18 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
   private MplSyntaxFilter getMplSyntaxFilter() {
     if (mplSyntaxFilter == null) {
       mplSyntaxFilter = new MplSyntaxFilter();
-      mplSyntaxFilter.setPath(new Path("this.syntaxFilter"));
+      Path path = new Path("this.syntaxFilter");
+      mplSyntaxFilter.setPath(path);
       mplSyntaxFilter.setModelProvider(getLocalModelProvider());
+      BnModelObserver syntaxObserver = new BnModelObserver();
+      syntaxObserver.setPath(path);
+      syntaxObserver.setModelProvider(getLocalModelProvider());
+      syntaxObserver.addPropertyChangeListener(new PropertyChangeListener() {
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+          mplSyntaxFilter.recolor();
+        }
+      });
     }
     return mplSyntaxFilter;
   }

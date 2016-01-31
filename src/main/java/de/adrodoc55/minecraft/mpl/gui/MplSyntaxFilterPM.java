@@ -19,8 +19,10 @@ public class MplSyntaxFilterPM extends AbstractPM {
     return exceptions;
   }
 
-  public void setExceptions(List<CompilerException> exceptions) {
-    this.exceptions = exceptions;
+  public void setExceptions(List<CompilerException> newExceptions) {
+    List<CompilerException> oldExceptions = exceptions;
+    this.exceptions = newExceptions;
+    getPropertyChangeSupport().firePropertyChange("exceptions", oldExceptions, newExceptions);
   }
 
 }
