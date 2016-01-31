@@ -246,7 +246,7 @@ public class TextLineNumber extends JPanel
     }
     int height;
     if (component != null) {
-      height = (lines + 1) * component.getFontMetrics(component.getFont()).getHeight();
+      height = 2 * lines * component.getFontMetrics(component.getFont()).getHeight();
     } else {
       height = 0;
     }
