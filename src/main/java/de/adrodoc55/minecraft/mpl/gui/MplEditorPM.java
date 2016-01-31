@@ -153,8 +153,6 @@ public class MplEditorPM extends AbstractPM {
     byte[] bytes = Files.readAllBytes(file.toPath());
     String content = new String(bytes);
     code.setText(content);
-    // TODO:
-    // getUndoManager().discardAllEdits();
     resetChanges.getPropertyChangeSupport().firePropertyChange("resetChanges", null, null);
     setUnsavedChanges(false);
   }
