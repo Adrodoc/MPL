@@ -48,8 +48,6 @@ public class TextLineNumber extends JPanel
 
   private final static Border OUTER = new MatteBorder(0, 0, 0, 2, Color.GRAY);
 
-  private final static int HEIGHT = Integer.MAX_VALUE - 1000000;
-
   // Text component this TextTextLineNumber component is in sync with
   private JTextComponent component;
 
@@ -62,6 +60,7 @@ public class TextLineNumber extends JPanel
 
   // Keep history information to reduce the number of times the component
   // needs to be repainted
+  private int lastPreferredWidth;
   private int lastDigits;
   private int lastHeight;
   private int lastLine;
@@ -86,18 +85,31 @@ public class TextLineNumber extends JPanel
    *        component
    */
   public TextLineNumber(JTextComponent component, int minimumDisplayDigits) {
-    this.component = component;
+    setComponent(component);
 
-    setFont(component.getFont());
+    if (component != null) {
+      setFont(component.getFont());
+    }
 
     setBorderGap(5);
     setCurrentLineForeground(Color.RED);
     setDigitAlignment(RIGHT);
     setMinimumDisplayDigits(minimumDisplayDigits);
+  }
 
-    component.getDocument().addDocumentListener(this);
-    component.addCaretListener(this);
-    component.addPropertyChangeListener("font", this);
+  public void setComponent(JTextComponent newComponent) {
+    JTextComponent oldComponent = component;
+    if (oldComponent != null) {
+      oldComponent.getDocument().removeDocumentListener(this);
+      oldComponent.removeCaretListener(this);
+      oldComponent.removePropertyChangeListener("font", this);
+    }
+    if (newComponent != null) {
+      newComponent.getDocument().addDocumentListener(this);
+      newComponent.addCaretListener(this);
+      newComponent.addPropertyChangeListener("font", this);
+    }
+    component = newComponent;
   }
 
   /**
@@ -209,8 +221,18 @@ public class TextLineNumber extends JPanel
    * Calculate the width needed to display the maximum line number
    */
   private void setPreferredWidth() {
-    Element root = component.getDocument().getDefaultRootElement();
-    int lines = root.getElementCount();
+    setSize(getPreferredSize());
+  }
+
+  @Override
+  public Dimension getPreferredSize() {
+    int lines;
+    if (component != null) {
+      Element root = component.getDocument().getDefaultRootElement();
+      lines = root.getElementCount();
+    } else {
+      lines = 0;
+    }
     int digits = Math.max(String.valueOf(lines).length(), minimumDisplayDigits);
 
     // Update sizes when number of digits in the line number changes
@@ -220,13 +242,15 @@ public class TextLineNumber extends JPanel
       FontMetrics fontMetrics = getFontMetrics(getFont());
       int width = fontMetrics.charWidth('0') * digits;
       Insets insets = getInsets();
-      int preferredWidth = insets.left + insets.right + width;
-
-      Dimension d = getPreferredSize();
-      d.setSize(preferredWidth, HEIGHT);
-      setPreferredSize(d);
-      setSize(d);
+      lastPreferredWidth = insets.left + insets.right + width;
     }
+    int height;
+    if (component != null) {
+      height = (lines + 1) * component.getFontMetrics(component.getFont()).getHeight();
+    } else {
+      height = 0;
+    }
+    return new Dimension(lastPreferredWidth, height);
   }
 
   /**
@@ -359,8 +383,7 @@ public class TextLineNumber extends JPanel
   @Override
   public void caretUpdate(CaretEvent e) {
     // Get the line the caret is positioned on
-
-    int caretPosition = component.getCaretPosition();
+    int caretPosition = e.getDot();
     Element root = component.getDocument().getDefaultRootElement();
     int currentLine = root.getElementIndex(caretPosition);
 
