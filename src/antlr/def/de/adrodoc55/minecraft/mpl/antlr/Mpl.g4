@@ -20,7 +20,7 @@ projectFile
 project
 :
 // TODO: Prefix, Orientation, max
-  PROJECT IDENTIFIER
+  PROJECT IDENTIFIER ':'
 ;
 
 include
@@ -53,7 +53,7 @@ process
   (
     IMPULSE
     | REPEAT
-  )? PROCESS IDENTIFIER line*
+  )? PROCESS IDENTIFIER ':' line*
 ;
 
 skriptFile

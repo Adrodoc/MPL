@@ -11,9 +11,9 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    process main
+    process main:
     /this is the main process
-    process other
+    process other:
     /this is the other process
     """
     when:
@@ -32,11 +32,11 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    process main
+    process main:
     /this is the main process
     """
     new File(folder, 'second.mpl').text = """
-    process other
+    process other:
     /this is the other process
     """
     when:
@@ -52,12 +52,12 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    process main
+    process main:
     /this is the main process
     start other
     """
     new File(folder, 'second.mpl').text = """
-    process other
+    process other:
     /this is the other process
     """
     when:
@@ -77,12 +77,12 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder/newFile.mpl"
-    process main
+    process main:
     /this is the main process
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process other
+    process other:
     /this is the other process
     """
     when:
@@ -99,13 +99,13 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder/newFile.mpl"
-    process main
+    process main:
     /this is the main process
     start other
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process other
+    process other:
     /this is the other process
     """
     when:
@@ -125,12 +125,12 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder"
-    process main
+    process main:
     /this is the main process
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process other
+    process other:
     /this is the other process
     """
     when:
@@ -147,13 +147,13 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder"
-    process main
+    process main:
     /this is the main process
     start other
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process other
+    process other:
     /this is the other process
     """
     when:
@@ -173,16 +173,16 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder"
-    process main
+    process main:
     /this is the main process
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process other
+    process other:
     /this is the other process
     """
     new File(folder, 'newFolder/newFile2.mpl').text = """
-    process other
+    process other:
     /this is the second other process
     """
     when:
@@ -199,19 +199,19 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder"
-    process main
+    process main:
     /this is the main process
     start other
     """
     new File(folder, 'newFolder').mkdirs()
     File newFile = new File(folder, 'newFolder/newFile.mpl')
     newFile.text = """
-    process other
+    process other:
     /this is the other process
     """
     File newFile2 = new File(folder, 'newFolder/newFile2.mpl')
     newFile2.text = """
-    process other
+    process other:
     /this is the second other process
     """
     when:
@@ -228,14 +228,14 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project main
+    project main:
     include "newFolder/newFile.mpl"
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process main
+    process main:
     /this is the main process
-    process other
+    process other:
     /this is the other process
     """
     when:
