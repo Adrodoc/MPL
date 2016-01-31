@@ -153,7 +153,6 @@ public class MplFrame extends JFrame {
             Main.main(file, new File(dir, targetFileName));
         } catch (CompilationFailedException ex) {
             Map<File, List<CompilerException>> exceptions = ex.getExceptions();
-            // TODO: Sinnvolle Ausgabe, auch für geschlossene Dateien.
             JOptionPane.showMessageDialog(this,
                     "The Compiler encountered Errors", "Compilation Failed!",
                     JOptionPane.ERROR_MESSAGE);

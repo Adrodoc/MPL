@@ -1,4 +1,4 @@
-package de.adrodoc55.minecraft.mpl.gui;
+package de.adrodoc55.minecraft.mpl.gui.utils;
 
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.DocumentEvent.EventType;

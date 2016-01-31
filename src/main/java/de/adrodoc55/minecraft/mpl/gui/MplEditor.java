@@ -25,6 +25,10 @@ import javax.swing.text.StyledDocument;
 import javax.swing.undo.UndoManager;
 
 import de.adrodoc55.minecraft.mpl.CompilerException;
+import de.adrodoc55.minecraft.mpl.gui.utils.JaggedEditorKit;
+import de.adrodoc55.minecraft.mpl.gui.utils.RawUndoManager;
+import de.adrodoc55.minecraft.mpl.gui.utils.RedoAction;
+import de.adrodoc55.minecraft.mpl.gui.utils.UndoAction;
 
 public class MplEditor extends JComponent {
 

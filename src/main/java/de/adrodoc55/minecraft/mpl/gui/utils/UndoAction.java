@@ -1,4 +1,4 @@
-package de.adrodoc55.minecraft.mpl.gui;
+package de.adrodoc55.minecraft.mpl.gui.utils;
 
 import java.awt.event.ActionEvent;
 
