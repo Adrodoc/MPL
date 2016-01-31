@@ -95,6 +95,7 @@ public class MplEditorPM extends AbstractPM {
         setUnsavedChanges(true);
       }
     });
+    setUnsavedChanges(true);
     PMManager.setup(this);
   }
 
@@ -111,7 +112,7 @@ public class MplEditorPM extends AbstractPM {
     this.title.setText(title);
   }
 
-  public boolean getUnsavedChanges() {
+  public boolean hasUnsavedChanges() {
     return unsavedChanges.getBoolean();
   }
 
