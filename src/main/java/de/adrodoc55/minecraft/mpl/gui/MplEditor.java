@@ -31,6 +31,7 @@ import org.beanfabrics.View;
 
 import de.adrodoc55.minecraft.mpl.gui.utils.RawUndoManager;
 import de.adrodoc55.minecraft.mpl.gui.utils.RedoAction;
+import de.adrodoc55.minecraft.mpl.gui.utils.TextLineNumber;
 import de.adrodoc55.minecraft.mpl.gui.utils.UndoAction;
 
 /**
@@ -85,6 +86,7 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
   private MplSyntaxFilter mplSyntaxFilter;
   private RawUndoManager rawUndoManager;
   private BnModelObserver resetUndoManagerObserver;
+  private TextLineNumber textLineNumber;
 
   /**
    * Constructs a new <code>MplEditor</code>.
@@ -142,9 +144,17 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
   private JScrollPane getScrollPane() {
     if (scrollPane == null) {
       scrollPane = new JScrollPane();
+      scrollPane.setRowHeaderView(getTextLineNumber());
       scrollPane.setViewportView(getTextPane());
     }
     return scrollPane;
+  }
+
+  private TextLineNumber getTextLineNumber() {
+    if (textLineNumber == null) {
+      textLineNumber = new TextLineNumber(getTextPane());
+    }
+    return textLineNumber;
   }
 
   private JTextPane getTextPane() {
@@ -250,4 +260,5 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
     }
     return resetUndoManagerObserver;
   }
+
 }
