@@ -257,8 +257,55 @@ class MplCompilerSpec extends MplSpecBase {
     /say hi
     """
     when:
-    MplCompiler.compile(new File(folder, 'main.mpl'))
+    List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
     then:
     notThrown Exception
   }
+
+  @Test
+  public void "a script does not have installation/uninstallation"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    /say hi
+    """
+    when:
+    List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
+    then:
+    chains.size() == 1
+  }
+
+  @Test
+  public void "having an installation does not produce an uninstallation"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    install
+    /say install
+    """
+    when:
+    List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
+    then:
+    chains.size() == 2
+    chains[0].name == null
+    chains[1].name == 'installation'
+  }
+
+  @Test
+  public void "having an uninstallation also produces an installation"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    uninstall
+    /say uninstall
+    """
+    when:
+    List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
+    then:
+    chains.size() == 3
+    chains[0].name == null
+    chains[1].name == 'installation'
+    chains[2].name == 'uninstallation'
+  }
+
 }

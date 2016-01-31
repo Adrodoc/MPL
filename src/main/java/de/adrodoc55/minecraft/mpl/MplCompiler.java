@@ -285,15 +285,11 @@ public class MplCompiler extends MplBaseListener {
       uninstallation.add(new Command("/kill @e[type=ArmorStand,name=" + chain.getName() + "]"));
     }
 
-    if (!installation.isEmpty()) {
-      Command initInstall = installation.get(0);
-      initInstall.setMode(Mode.IMPULSE);
-      initInstall.setNeedsRedstone(true);
+    if (!installation.isEmpty() || !uninstallation.isEmpty()) {
+      installation.add(0, new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
     }
     if (!uninstallation.isEmpty()) {
-      Command initUninstall = uninstallation.get(0);
-      initUninstall.setMode(Mode.IMPULSE);
-      initUninstall.setNeedsRedstone(true);
+      uninstallation.add(0, new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
     }
 
     CommandBlockChain materialisedUninstallation = new IterativeChainComputer().computeOptimalChain(
@@ -314,8 +310,12 @@ public class MplCompiler extends MplBaseListener {
       };
     }.computeOptimalChain(new CommandChain("installation", installation),
         new Coordinate3D(100, 100, 0));
-    materialised.add(materialisedInstallation);
-    materialised.add(materialisedUninstallation);
+    if (!materialisedInstallation.getCommandBlocks().isEmpty()) {
+      materialised.add(materialisedInstallation);
+    }
+    if (!materialisedUninstallation.getCommandBlocks().isEmpty()) {
+      materialised.add(materialisedUninstallation);
+    }
   }
 
   private static final Pattern thisPattern =
