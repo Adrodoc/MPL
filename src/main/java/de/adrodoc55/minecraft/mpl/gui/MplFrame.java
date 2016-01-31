@@ -1,341 +1,345 @@
 package de.adrodoc55.minecraft.mpl.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 
-import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
-import javax.swing.KeyStroke;
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
-import de.adrodoc55.commons.FileUtils;
-import de.adrodoc55.minecraft.mpl.CompilerException;
-import de.adrodoc55.minecraft.mpl.Main;
-import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException;
+import org.beanfabrics.IModelProvider;
+import org.beanfabrics.Link;
+import org.beanfabrics.ModelProvider;
+import org.beanfabrics.ModelSubscriber;
+import org.beanfabrics.Path;
+import org.beanfabrics.View;
+import org.beanfabrics.event.ElementChangedEvent;
+import org.beanfabrics.event.ElementsAddedEvent;
+import org.beanfabrics.event.ElementsDeselectedEvent;
+import org.beanfabrics.event.ElementsRemovedEvent;
+import org.beanfabrics.event.ElementsReplacedEvent;
+import org.beanfabrics.event.ElementsSelectedEvent;
+import org.beanfabrics.event.ListListener;
+import org.beanfabrics.model.IListPM;
+import org.beanfabrics.model.ListPM;
+import org.beanfabrics.swing.BnButton;
+import org.beanfabrics.swing.BnMenuItem;
 
-public class MplFrame extends JFrame {
+/**
+ * The MplFrame is a {@link View} on a {@link MplFramePM}.
+ *
+ * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
+ */
+public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscriber {
 
-    private static final long serialVersionUID = 1L;
-    private JMenuBar menuBar;
-    private JMenu fileMenu;
-    private JMenuItem newMenuItem;
-    private JMenuItem openMenuItem;
-    private JMenuItem saveMenuItem;
-    private JMenuItem saveUnderMenuItem;
-    private JMenuItem compileMenuItem;
-    private JToolBar toolBar;
-    private JButton newButton;
-    private JButton openButton;
-    private JButton saveButton;
-    private JButton compileButton;
-    private JTabbedPane tabbedPane;
+  private static final long serialVersionUID = 1L;
 
-    public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException | InstantiationException
-                | IllegalAccessException | UnsupportedLookAndFeelException ex) {
-            ex.printStackTrace();
-        }
-        MplFrame frame = new MplFrame();
-        frame.setVisible(true);
+  public static void main(String[] args) throws Exception {
+    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    MplFrame frame = new MplFrame();
+    MplFramePM pModel = new MplFramePM();
+    frame.setPresentationModel(pModel);
+    frame.setVisible(true);
+  }
+
+  private final Link link = new Link(this);
+  private ModelProvider localModelProvider;
+  private JMenuBar menuBar;
+  private JMenu mnFile;
+  private BnMenuItem mntmNew;
+  private BnMenuItem mntmOpen;
+  private BnMenuItem mntmSave;
+  private BnMenuItem mntmSaveUnder;
+  private BnMenuItem mntmCompile;
+  private BnMenuItem mntmCompileUnder;
+  private JToolBar toolBar;
+  private BnButton btnNew;
+  private BnButton btnOpen;
+  private BnButton btnSave;
+  private BnButton btnCompile;
+  private JTabbedPane tabbedPane;
+
+  /**
+   * Constructs a new <code>MplFrame</code>.
+   */
+  public MplFrame() {
+    super("Minecraft Programming Language");
+    setIconImage(Toolkit.getDefaultToolkit()
+        .getImage(MplFrame.class.getResource("/icons/commandblock_icon.png")));
+    init();
+    setSize(1000, 500);
+    setLocationRelativeTo(null);
+    setDefaultCloseOperation(EXIT_ON_CLOSE);
+  }
+
+  private void init() {
+    setJMenuBar(getMenuBar_1());
+    getContentPane().add(getToolBar(), BorderLayout.NORTH);
+    getContentPane().add(getTabbedPane(), BorderLayout.CENTER);
+  }
+
+  /**
+   * Returns the local {@link ModelProvider} for this class.
+   *
+   * @return the local <code>ModelProvider</code>
+   * @wbp.nonvisual location=20,550
+   */
+  protected ModelProvider getLocalModelProvider() {
+    if (localModelProvider == null) {
+      localModelProvider = new ModelProvider(); // @wb:location=10,430
+      localModelProvider.setPresentationModelType(MplFramePM.class);
     }
+    return localModelProvider;
+  }
 
-    private void newFile() {
+  /** {@inheritDoc} */
+  public MplFramePM getPresentationModel() {
+    return getLocalModelProvider().getPresentationModel();
+  }
+
+  /** {@inheritDoc} */
+  public void setPresentationModel(MplFramePM pModel) {
+    ListListener l = new ListListener() {
+      @Override
+      public void elementsSelected(ElementsSelectedEvent evt) {
+        tabbedPane.setSelectedIndex(evt.getBeginIndex());
+      }
+
+      @Override
+      public void elementsReplaced(ElementsReplacedEvent evt) {
+        int beginIndex = evt.getBeginIndex();
+        int length = evt.getLength();
+        this.remove(beginIndex, length);
+        @SuppressWarnings("unchecked")
+        IListPM<MplEditorPM> list = (IListPM<MplEditorPM>) evt.getSource();
+        this.add(list, beginIndex, length);
+      }
+
+      @Override
+      public void elementsRemoved(ElementsRemovedEvent evt) {
+        int beginIndex = evt.getBeginIndex();
+        int length = evt.getLength();
+        this.remove(beginIndex, length);
+      }
+
+      @Override
+      public void elementsDeselected(ElementsDeselectedEvent evt) {}
+
+      @Override
+      public void elementsAdded(ElementsAddedEvent evt) {
+        int beginIndex = evt.getBeginIndex();
+        int length = evt.getLength();
+        @SuppressWarnings("unchecked")
+        IListPM<MplEditorPM> list = (IListPM<MplEditorPM>) evt.getSource();
+        this.add(list, beginIndex, length);
+      }
+
+      @Override
+      public void elementChanged(ElementChangedEvent evt) {}
+
+      private void remove(int beginIndex, int length) {
+        for (int i = 0; i < length; i++) {
+          int index = beginIndex + i;
+          tabbedPane.remove(index);
+        }
+      }
+
+      private void add(IListPM<MplEditorPM> list, int beginIndex, int length) {
+        for (int i = 0; i < length; i++) {
+          int index = beginIndex + i;
+          MplEditorPM editorPm = list.getAt(index);
+          this.addMplEditor(index, editorPm);
+        }
+      }
+
+      private void addMplEditor(int i, MplEditorPM editorPm) {
         MplEditor editor = new MplEditor();
-        addEditor(editor);
-    }
+        editor.setPresentationModel(editorPm);
+        tabbedPane.insertTab(editorPm.getTitle(), null, editor, null, i);
+        TabCloseComponent tabComponent = new TabCloseComponent();
+        tabComponent.setPresentationModel(editorPm);
+        tabbedPane.setTabComponentAt(i, tabComponent);
+      }
+    };
+    pModel.editors.addListListener(l);
+    getLocalModelProvider().setPresentationModel(pModel);
+  }
 
-    private void openFile() {
-        JFileChooser chooser = MplEditor.getMplChooser();
-        int userAction = chooser.showOpenDialog(this);
-        if (userAction != JFileChooser.APPROVE_OPTION) {
+  /** {@inheritDoc} */
+  public IModelProvider getModelProvider() {
+    return this.link.getModelProvider();
+  }
+
+  /** {@inheritDoc} */
+  public void setModelProvider(IModelProvider modelProvider) {
+    this.link.setModelProvider(modelProvider);
+  }
+
+  /** {@inheritDoc} */
+  public Path getPath() {
+    return this.link.getPath();
+  }
+
+  /** {@inheritDoc} */
+  public void setPath(Path path) {
+    this.link.setPath(path);
+  }
+
+  private JMenuBar getMenuBar_1() {
+    if (menuBar == null) {
+      menuBar = new JMenuBar();
+      menuBar.add(getMnFile());
+    }
+    return menuBar;
+  }
+
+  private JMenu getMnFile() {
+    if (mnFile == null) {
+      mnFile = new JMenu("File");
+      mnFile.add(getMntmNew());
+      mnFile.add(getMntmOpen());
+      mnFile.add(getMntmSave());
+      mnFile.add(getMntmSaveUnder());
+      mnFile.add(getMntmCompile());
+      mnFile.add(getMntmCompileUnder());
+    }
+    return mnFile;
+  }
+
+  private BnMenuItem getMntmNew() {
+    if (mntmNew == null) {
+      mntmNew = new BnMenuItem();
+      mntmNew.setPath(new Path("this.newFile"));
+      mntmNew.setModelProvider(getLocalModelProvider());
+      mntmNew.setText("New");
+    }
+    return mntmNew;
+  }
+
+  private BnMenuItem getMntmOpen() {
+    if (mntmOpen == null) {
+      mntmOpen = new BnMenuItem();
+      mntmOpen.setPath(new Path("this.openFile"));
+      mntmOpen.setModelProvider(getLocalModelProvider());
+      mntmOpen.setText("Open");
+    }
+    return mntmOpen;
+  }
+
+  private BnMenuItem getMntmSave() {
+    if (mntmSave == null) {
+      mntmSave = new BnMenuItem();
+      mntmSave.setPath(new Path("this.saveFile"));
+      mntmSave.setModelProvider(getLocalModelProvider());
+      mntmSave.setText("Save");
+    }
+    return mntmSave;
+  }
+
+  private BnMenuItem getMntmSaveUnder() {
+    if (mntmSaveUnder == null) {
+      mntmSaveUnder = new BnMenuItem();
+      mntmSaveUnder.setPath(new Path("this.saveFileUnder"));
+      mntmSaveUnder.setModelProvider(getLocalModelProvider());
+      mntmSaveUnder.setText("Save under");
+    }
+    return mntmSaveUnder;
+  }
+
+  private BnMenuItem getMntmCompile() {
+    if (mntmCompile == null) {
+      mntmCompile = new BnMenuItem();
+      mntmCompile.setPath(new Path("this.compileFile"));
+      mntmCompile.setModelProvider(getLocalModelProvider());
+      mntmCompile.setText("Compile");
+    }
+    return mntmCompile;
+  }
+
+  private BnMenuItem getMntmCompileUnder() {
+    if (mntmCompileUnder == null) {
+      mntmCompileUnder = new BnMenuItem();
+      mntmCompileUnder.setPath(new Path("this.compileFileUnder"));
+      mntmCompileUnder.setModelProvider(getLocalModelProvider());
+      mntmCompileUnder.setText("Compile under");
+    }
+    return mntmCompileUnder;
+  }
+
+  private JToolBar getToolBar() {
+    if (toolBar == null) {
+      toolBar = new JToolBar();
+      toolBar.add(getBtnNew());
+      toolBar.add(getBtnOpen());
+      toolBar.add(getBtnSave());
+      toolBar.add(getBtnCompile());
+    }
+    return toolBar;
+  }
+
+  private BnButton getBtnNew() {
+    if (btnNew == null) {
+      btnNew = new BnButton();
+      btnNew.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/new_file_icon_16.png")));
+      btnNew.setModelProvider(getLocalModelProvider());
+      btnNew.setPath(new Path("this.newFile"));
+    }
+    return btnNew;
+  }
+
+  private BnButton getBtnOpen() {
+    if (btnOpen == null) {
+      btnOpen = new BnButton();
+      btnOpen.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/folder_icon_16.png")));
+      btnOpen.setPath(new Path("this.openFile"));
+      btnOpen.setModelProvider(getLocalModelProvider());
+    }
+    return btnOpen;
+  }
+
+  private BnButton getBtnSave() {
+    if (btnSave == null) {
+      btnSave = new BnButton();
+      btnSave.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/disk_icon_16.png")));
+      btnSave.setPath(new Path("this.saveFile"));
+      btnSave.setModelProvider(getLocalModelProvider());
+    }
+    return btnSave;
+  }
+
+  private BnButton getBtnCompile() {
+    if (btnCompile == null) {
+      btnCompile = new BnButton();
+      btnCompile.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/gear_run_16.png")));
+      btnCompile.setPath(new Path("this.compileFile"));
+      btnCompile.setModelProvider(getLocalModelProvider());
+    }
+    return btnCompile;
+  }
+
+  private JTabbedPane getTabbedPane() {
+    if (tabbedPane == null) {
+      tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+      tabbedPane.addChangeListener(new ChangeListener() {
+        @Override
+        public void stateChanged(ChangeEvent e) {
+          MplFramePM presentationModel = getPresentationModel();
+          if (presentationModel == null) {
             return;
+          }
+          ListPM<MplEditorPM> editors = presentationModel.editors;
+          int selectedIndex = tabbedPane.getSelectedIndex();
+          editors.getSelection().setInterval(selectedIndex, selectedIndex);
         }
-        File file = chooser.getSelectedFile();
-        if (file.exists()) {
-            addEditor(new MplEditor(file));
-        } else {
-            JOptionPane.showMessageDialog(chooser,
-                    "The File '" + file.getPath() + "' couldn't be found!",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-            openFile();
-        }
-
+      });
     }
+    return tabbedPane;
+  }
 
-    private void addEditor(MplEditor editor) {
-        JTabbedPane pane = getTabbedPane();
-        String title = editor.getTitle();
-        pane.addTab(title, editor);
-        pane.setSelectedComponent(editor);
-        TabCloseComponent component = new TabCloseComponent(pane, title, editor);
-        editor.setTabComponent(component);
-        int index = pane.indexOfComponent(editor);
-        pane.setTabComponentAt(index, component);
-        try {
-            editor.load();
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "An Exception occured while trying to open '"
-                            + editor.getFile().getPath() + "'. Exception: "
-                            + ex.getMessage(), "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            openFile();
-        }
-    }
-
-    private void saveFile() {
-        Component selected = getTabbedPane().getSelectedComponent();
-        if (selected == null || !(selected instanceof MplEditor)) {
-            return;
-        }
-        MplEditor editor = (MplEditor) selected;
-        editor.save();
-
-    }
-
-    private void saveFileUnder() {
-        Component selected = getTabbedPane().getSelectedComponent();
-        if (selected == null || !(selected instanceof MplEditor)) {
-            return;
-        }
-        MplEditor editor = (MplEditor) selected;
-        editor.saveUnder();
-    }
-
-    private File compilationDir;
-
-    private File getCompilationDir() {
-        if (compilationDir == null) {
-            JFileChooser chooser = MplEditor.getDirChooser();
-            // int userAction = chooser.showSaveDialog(this);
-            int userAction = chooser.showDialog(this, "Compile");
-            if (userAction != JFileChooser.APPROVE_OPTION) {
-                return null;
-            }
-            compilationDir = chooser.getSelectedFile();
-        }
-        return compilationDir;
-    }
-
-    private void compileFile() {
-        Component selected = getTabbedPane().getSelectedComponent();
-        if (selected == null || !(selected instanceof MplEditor)) {
-            return; // TODO: Informiere User, dass er speichern muss
-        }
-        MplEditor editor = (MplEditor) selected;
-        File file = editor.getFile();
-        try {
-            String targetFileName = FileUtils.getFilenameWithoutExtension(file)
-                    + ".py";
-            File dir = getCompilationDir();
-            if (dir == null) {
-                return;
-            }
-            Main.main(file, new File(dir, targetFileName));
-        } catch (CompilationFailedException ex) {
-            Map<File, List<CompilerException>> exceptions = ex.getExceptions();
-            JOptionPane.showMessageDialog(this,
-                    "The Compiler encountered Errors", "Compilation Failed!",
-                    JOptionPane.ERROR_MESSAGE);
-            for (File programFile : exceptions.keySet()) {
-                Component[] components = getTabbedPane().getComponents();
-                for (Component component : components) {
-                    if (component == null || !(component instanceof MplEditor)) {
-                        continue;
-                    }
-                    MplEditor mplEditor = (MplEditor) component;
-                    if (programFile.equals(mplEditor.getFile())) {
-                        mplEditor.setCompilerExceptions(exceptions
-                                .get(programFile));
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), ex.getClass()
-                    .getSimpleName(), JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    public MplFrame() {
-        super("Minecraft Programming Language");
-        setIconImage(Toolkit.getDefaultToolkit().getImage(
-                MplFrame.class.getResource("/icons/commandblock_icon.png")));
-        init();
-        setSize(1000, 500);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-    }
-
-    private void init() {
-        setJMenuBar(getMenuBar_1());
-        getContentPane().add(getToolBar(), BorderLayout.NORTH);
-        getContentPane().add(getTabbedPane(), BorderLayout.CENTER);
-    }
-
-    private JMenuBar getMenuBar_1() {
-        if (menuBar == null) {
-            menuBar = new JMenuBar();
-            menuBar.add(getFileMenu());
-        }
-        return menuBar;
-    }
-
-    private JMenu getFileMenu() {
-        if (fileMenu == null) {
-            fileMenu = new JMenu("File");
-            fileMenu.add(getNewMenuItem());
-            fileMenu.add(getOpenMenuItem());
-            fileMenu.add(getSaveMenuItem());
-            fileMenu.add(getSaveUnderMenuItem());
-            fileMenu.add(getCompileMenuItem());
-        }
-        return fileMenu;
-    }
-
-    private JMenuItem getNewMenuItem() {
-        if (newMenuItem == null) {
-            newMenuItem = new JMenuItem("New");
-            newMenuItem.addActionListener(e -> {
-                newFile();
-            });
-        }
-        return newMenuItem;
-    }
-
-    private JMenuItem getOpenMenuItem() {
-        if (openMenuItem == null) {
-            openMenuItem = new JMenuItem("Open");
-            openMenuItem.addActionListener(e -> {
-                openFile();
-            });
-        }
-        return openMenuItem;
-    }
-
-    private JMenuItem getSaveMenuItem() {
-        if (saveMenuItem == null) {
-            saveMenuItem = new JMenuItem("Save");
-            saveMenuItem.addActionListener(e -> {
-                saveFile();
-            });
-        }
-        return saveMenuItem;
-    }
-
-    private JMenuItem getSaveUnderMenuItem() {
-        if (saveUnderMenuItem == null) {
-            saveUnderMenuItem = new JMenuItem("Save under");
-            saveUnderMenuItem.addActionListener(e -> {
-                saveFileUnder();
-            });
-        }
-        return saveUnderMenuItem;
-    }
-
-    private JMenuItem getCompileMenuItem() {
-        if (compileMenuItem == null) {
-            compileMenuItem = new JMenuItem("Compile");
-            compileMenuItem.addActionListener(e -> {
-                compileFile();
-            });
-        }
-        return compileMenuItem;
-    }
-
-    private JToolBar getToolBar() {
-        if (toolBar == null) {
-            toolBar = new JToolBar();
-            toolBar.add(getNewButton());
-            toolBar.add(getOpenButton());
-            toolBar.add(getSaveButton());
-            toolBar.add(getCompileButton());
-        }
-        return toolBar;
-    }
-
-    private JButton getNewButton() {
-        if (newButton == null) {
-            newButton = new JButton();
-            newButton.setIcon(new ImageIcon(MplFrame.class
-                    .getResource("/icons/new_file_icon_16.png")));
-            newButton.addActionListener(e -> {
-                newFile();
-            });
-        }
-        return newButton;
-    }
-
-    private JButton getOpenButton() {
-        if (openButton == null) {
-            openButton = new JButton();
-            openButton.setIcon(new ImageIcon(MplFrame.class
-                    .getResource("/icons/folder_icon_16.png")));
-            openButton.addActionListener(e -> {
-                openFile();
-            });
-        }
-        return openButton;
-    }
-
-    private JButton getSaveButton() {
-        if (saveButton == null) {
-            saveButton = new JButton();
-            saveButton.setIcon(new ImageIcon(MplFrame.class
-                    .getResource("/icons/disk_icon_16.png")));
-            saveButton.addActionListener(e -> {
-                saveFile();
-            });
-        }
-        return saveButton;
-    }
-
-    private JButton getCompileButton() {
-        if (compileButton == null) {
-            compileButton = new JButton();
-            compileButton.setIcon(new ImageIcon(MplFrame.class
-                    .getResource("/icons/gear_run_16.png")));
-            compileButton.addActionListener(e -> {
-                compileFile();
-            });
-        }
-        return compileButton;
-    }
-
-    private JTabbedPane getTabbedPane() {
-        if (tabbedPane == null) {
-            tabbedPane = new JTabbedPane();
-            tabbedPane.getInputMap().put(
-                    KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit
-                            .getDefaultToolkit().getMenuShortcutKeyMask()),
-                    "save");
-            tabbedPane.getActionMap().put("save", new AbstractAction() {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    saveFile();
-                }
-            });
-        }
-        return tabbedPane;
-    }
 }

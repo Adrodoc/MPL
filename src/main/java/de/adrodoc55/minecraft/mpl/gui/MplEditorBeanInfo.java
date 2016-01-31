@@ -1,14 +1,14 @@
-package de.adrodoc55.minecraft.mpl.gui.scribble;
+package de.adrodoc55.minecraft.mpl.gui;
 
 import org.beanfabrics.swing.ModelSubscriberBeanInfo;
 
 /**
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class XxxComponentBeanInfo extends ModelSubscriberBeanInfo {
+public class MplEditorBeanInfo extends ModelSubscriberBeanInfo {
     @Override
-    protected Class<?> getBeanClass() {
-        return XxxComponent.class;
+    protected Class<MplEditor> getBeanClass() {
+        return MplEditor.class;
     }
 
     @Override

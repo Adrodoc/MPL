@@ -1,14 +1,14 @@
-package de.adrodoc55.minecraft.mpl.gui.scribble;
+package de.adrodoc55.minecraft.mpl.gui;
 
 import org.beanfabrics.swing.ModelSubscriberBeanInfo;
 
 /**
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class TabCloseComponentBeanInfo extends ModelSubscriberBeanInfo {
+public class MplFrameBeanInfo extends ModelSubscriberBeanInfo {
     @Override
-    protected Class<TabCloseComponent> getBeanClass() {
-        return TabCloseComponent.class;
+    protected Class<MplFrame> getBeanClass() {
+        return MplFrame.class;
     }
 
     @Override
