@@ -111,21 +111,8 @@ public class MplFramePM extends AbstractPM {
 
   @Operation
   public void compileFile() {
-    LinkedList<MplEditorPM> unsaved = new LinkedList<MplEditorPM>();
-    for (MplEditorPM mplEditorPm : editors) {
-      if (mplEditorPm.hasUnsavedChanges()) {
-        unsaved.add(mplEditorPm);
-      }
-    }
-    if (!unsaved.isEmpty()) {
-      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-      UnsavedFilesDialog dialog = new UnsavedFilesDialog(activeWindow);
-      UnsavedFilesDialogPM dialogPm = new UnsavedFilesDialogPM(unsaved);
-      dialog.setPresentationModel(dialogPm);
-      dialog.setVisible(true);
-      if (dialogPm.isCanceled()) {
-        return;
-      }
+    if (warnAboutUnsavedResources()) {
+      return;
     }
 
     MplEditorPM selected = editors.getSelection().getFirst();
@@ -167,6 +154,41 @@ public class MplFramePM extends AbstractPM {
     }
   }
 
+  /**
+   * Warn the User about any unsaved Resources, if there are any. Returns true if the User canceled
+   * the Action. <br>
+   * This should be called like this:<br>
+   *
+   * <pre>
+   * <code>
+   * if (warnAboutUnsavedResources()) {
+   *   return;
+   * }
+   * </code>
+   * </pre>
+   *
+   * @return canceled - whether or not the Action should be canceled.
+   */
+  private boolean warnAboutUnsavedResources() {
+    LinkedList<MplEditorPM> unsaved = new LinkedList<MplEditorPM>();
+    for (MplEditorPM mplEditorPm : editors) {
+      if (mplEditorPm.hasUnsavedChanges()) {
+        unsaved.add(mplEditorPm);
+      }
+    }
+    if (!unsaved.isEmpty()) {
+      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+      UnsavedFilesDialog dialog = new UnsavedFilesDialog(activeWindow);
+      UnsavedFilesDialogPM dialogPm = new UnsavedFilesDialogPM(unsaved);
+      dialog.setPresentationModel(dialogPm);
+      dialog.setVisible(true);
+      if (dialogPm.isCanceled()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Operation
   public void compileFileUnder() {
     chooseCompilationDir();
@@ -198,6 +220,13 @@ public class MplFramePM extends AbstractPM {
         editors.remove(editorPm);
       }
     };
+  }
+
+  public void terminate() {
+    if (warnAboutUnsavedResources()) {
+      return;
+    }
+    System.exit(0);
   }
 
 }

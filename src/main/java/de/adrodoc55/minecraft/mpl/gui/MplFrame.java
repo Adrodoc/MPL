@@ -2,6 +2,9 @@ package de.adrodoc55.minecraft.mpl.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Toolkit;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -75,7 +78,17 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
     init();
     setSize(1000, 500);
     setLocationRelativeTo(null);
-    setDefaultCloseOperation(EXIT_ON_CLOSE);
+    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+    addWindowListener(new WindowAdapter() {
+      @Override
+      public void windowClosing(WindowEvent e) {
+        MplFramePM pModel = getPresentationModel();
+        if(pModel==null) {
+          System.exit(0);
+        }
+        pModel.terminate();
+      }
+    });
   }
 
   private void init() {
