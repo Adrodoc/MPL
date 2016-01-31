@@ -120,10 +120,6 @@ public class MplEditorPM extends AbstractPM {
     this.unsavedChanges.setBoolean(unsavedChanges);
   }
 
-  public List<CompilerException> getExceptions() {
-    return syntaxFilter.getExceptions();
-  }
-
   public void setCompilerExceptions(List<CompilerException> exceptions) {
     syntaxFilter.setExceptions(exceptions);
   }

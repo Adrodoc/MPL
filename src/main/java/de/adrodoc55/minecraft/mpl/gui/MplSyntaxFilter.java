@@ -24,8 +24,8 @@ import org.beanfabrics.ModelSubscriber;
 import org.beanfabrics.Path;
 import org.beanfabrics.View;
 
-import de.adrodoc55.minecraft.mpl.CompilerException;
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
+import de.adrodoc55.minecraft.mpl.gui.MplSyntaxFilterPM.CompilerExceptionWrapper;
 
 /**
  * The MplSyntaxFilter is a {@link View} on a
@@ -47,6 +47,7 @@ public class MplSyntaxFilter extends DocumentFilter
 
   public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
     super.remove(fb, offset, length);
+    correctExceptionIndicies(offset, -length);
     Document document = fb.getDocument();
     if (document instanceof StyledDocument) {
       recolor((StyledDocument) document);
@@ -56,6 +57,7 @@ public class MplSyntaxFilter extends DocumentFilter
   public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr)
       throws BadLocationException {
     super.insertString(fb, offset, string, attr);
+    correctExceptionIndicies(offset, string.length());
     Document document = fb.getDocument();
     if (document instanceof StyledDocument) {
       recolor((StyledDocument) document);
@@ -65,6 +67,7 @@ public class MplSyntaxFilter extends DocumentFilter
   public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
       throws BadLocationException {
     super.replace(fb, offset, length, text, attrs);
+    correctExceptionIndicies(offset, text.length() - length);
     Document document = fb.getDocument();
     if (document instanceof StyledDocument) {
       recolor((StyledDocument) document);
@@ -86,13 +89,38 @@ public class MplSyntaxFilter extends DocumentFilter
     }
     String text;
     try {
-      text = doc.getText(0, doc.getLength()).replace("\r\n", "\n").replace("\r", "\n");
+//      text = doc.getText(0, doc.getLength()).replace("\r\n", "\n").replace("\r", "\n");
+      text = doc.getText(0, doc.getLength());
     } catch (BadLocationException ex) {
       throw new RuntimeException(
           "Encountered unexpected BadLocationException in MplSyntaxHighlighter", ex);
     }
+    resetStyling();
     colorTokens(text);
     colorExceptions();
+  }
+
+  private void resetStyling() {
+    doc.setCharacterAttributes(0, doc.getLength(), getDefaultStyle(), true);
+  }
+
+  private void correctExceptionIndicies(int startIndex, int offset) {
+    MplSyntaxFilterPM pModel = getPresentationModel();
+    if (pModel == null) {
+
+    }
+    List<CompilerExceptionWrapper> exceptions = pModel.getExceptions();
+    if (exceptions == null) {
+      return;
+    }
+    for (CompilerExceptionWrapper ex : exceptions) {
+      if (ex.getStartIndex() >= startIndex) {
+        ex.addStartOffset(offset);
+      }
+      if (ex.getStopIndex() >= startIndex) {
+        ex.addStopOffset(offset);
+      }
+    }
   }
 
   private void colorExceptions() {
@@ -100,13 +128,12 @@ public class MplSyntaxFilter extends DocumentFilter
     if (pModel == null) {
 
     }
-    List<CompilerException> exceptions = pModel.getExceptions();
+    List<CompilerExceptionWrapper> exceptions = pModel.getExceptions();
     if (exceptions == null) {
       return;
     }
-    for (CompilerException exception : exceptions) {
-      Token token = exception.getToken();
-      styleToken(token, getErrorAttributes(), true);
+    for (CompilerExceptionWrapper ex : exceptions) {
+      styleToken(ex.getStartIndex(), ex.getStopIndex(), getErrorAttributes(), false);
     }
   }
 
