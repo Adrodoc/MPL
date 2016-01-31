@@ -4,6 +4,7 @@ import java.awt.KeyboardFocusManager;
 import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -20,8 +21,9 @@ import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.CompilerException;
 import de.adrodoc55.minecraft.mpl.Main;
 import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException;
-import de.adrodoc55.minecraft.mpl.gui.MplEditor;
 import de.adrodoc55.minecraft.mpl.gui.MplEditorPM.Context;
+import de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedFilesDialog;
+import de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedFilesDialogPM;
 
 public class MplFramePM extends AbstractPM {
 
@@ -109,11 +111,35 @@ public class MplFramePM extends AbstractPM {
 
   @Operation
   public void compileFile() {
+    LinkedList<MplEditorPM> unsaved = new LinkedList<MplEditorPM>();
+    for (MplEditorPM mplEditorPm : editors) {
+      if (mplEditorPm.hasUnsavedChanges()) {
+        unsaved.add(mplEditorPm);
+      }
+    }
+    if (!unsaved.isEmpty()) {
+      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+      UnsavedFilesDialog dialog = new UnsavedFilesDialog(activeWindow);
+      UnsavedFilesDialogPM dialogPm = new UnsavedFilesDialogPM(unsaved);
+      dialog.setPresentationModel(dialogPm);
+      dialog.setVisible(true);
+      if (dialogPm.isCanceled()) {
+        return;
+      }
+    }
+
     MplEditorPM selected = editors.getSelection().getFirst();
     if (selected == null) {
       return;
     }
     File file = selected.getFile();
+    if (file == null) {
+      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+      JOptionPane.showMessageDialog(activeWindow,
+          "You need to save this File before it can be compiled!", "Compilation Failed!",
+          JOptionPane.ERROR_MESSAGE);
+      return;
+    }
     try {
       String targetFileName = FileUtils.getFilenameWithoutExtension(file) + ".py";
       File dir = getCompilationDir();
