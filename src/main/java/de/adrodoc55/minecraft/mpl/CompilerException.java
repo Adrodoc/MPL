@@ -61,12 +61,12 @@ public class CompilerException extends Exception {
     } catch (IOException e) {
       path = this.getFile().getAbsolutePath();
     }
-    sb.append(path).append(":\n");
+    sb.append(path).append(':').append(token.getLine()).append(":\n");
     sb.append(this.getLocalizedMessage()).append("\n");
     sb.append(this.getLine()).append("\n");
     int count = this.getToken().getCharPositionInLine();
     sb.append(new String(new char[count]).replace('\0', ' '));
-    sb.append("^\n");
+    sb.append("^");
     return sb.toString();
   }
 }
