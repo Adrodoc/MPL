@@ -25,6 +25,7 @@ import de.adrodoc55.minecraft.mpl.MplCompiler;
 import de.adrodoc55.minecraft.mpl.OneCommandConverter;
 import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException;
 import de.adrodoc55.minecraft.mpl.gui.MplEditorPM.Context;
+import de.adrodoc55.minecraft.mpl.gui.dialog.ExceptionDialog;
 import de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialog;
 import de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialogPM;
 import de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedFilesDialog;

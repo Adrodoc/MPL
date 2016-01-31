@@ -1,4 +1,4 @@
-package de.adrodoc55.minecraft.mpl.gui;
+package de.adrodoc55.minecraft.mpl.gui.dialog;
 
 import org.beanfabrics.model.AbstractPM;
 import org.beanfabrics.model.PMManager;
