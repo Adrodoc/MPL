@@ -40,7 +40,7 @@ public class MplFramePM extends AbstractPM {
   @Operation
   public void newFile() {
     MplEditorPM editorPm = new MplEditorPM(createDefaultContext());
-    editors.add(editorPm);
+    addMplEditorPm(editorPm);
   }
 
   @Operation
@@ -73,7 +73,7 @@ public class MplFramePM extends AbstractPM {
     try {
       MplEditorPM editorPm = new MplEditorPM(createDefaultContext());
       editorPm.setFile(file);
-      editors.add(editorPm);
+      addMplEditorPm(editorPm);
       editorPm.load();
     } catch (IOException ex) {
       String message = "The File '" + file.getPath() + "' couldn't be loaded!\n" + ex.getMessage();
@@ -81,6 +81,12 @@ public class MplFramePM extends AbstractPM {
       JOptionPane.showMessageDialog(chooser, message, title, JOptionPane.ERROR_MESSAGE);
       openFile();
     }
+  }
+
+  private void addMplEditorPm(MplEditorPM editorPm) {
+    editors.add(editorPm);
+    editors.getSelection().clear();
+    editors.getSelection().add(editorPm);
   }
 
   @Operation
