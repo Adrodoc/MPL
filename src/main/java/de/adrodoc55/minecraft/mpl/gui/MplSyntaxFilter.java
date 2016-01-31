@@ -89,7 +89,7 @@ public class MplSyntaxFilter extends DocumentFilter
     }
     String text;
     try {
-//      text = doc.getText(0, doc.getLength()).replace("\r\n", "\n").replace("\r", "\n");
+      // text = doc.getText(0, doc.getLength()).replace("\r\n", "\n").replace("\r", "\n");
       text = doc.getText(0, doc.getLength());
     } catch (BadLocationException ex) {
       throw new RuntimeException(

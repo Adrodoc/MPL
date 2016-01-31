@@ -8,20 +8,20 @@ import javax.swing.undo.UndoManager;
 
 public class UndoAction extends AbstractAction {
 
-    private static final long serialVersionUID = -1330600449731063166L;
-    private final UndoManager manager;
+  private static final long serialVersionUID = -1330600449731063166L;
+  private final UndoManager manager;
 
-    public UndoAction(UndoManager manager) {
-        this.manager = manager;
-    }
+  public UndoAction(UndoManager manager) {
+    this.manager = manager;
+  }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        try {
-            manager.undo();
-        } catch (CannotUndoException ex) {
-            // Don't undo
-        }
+  @Override
+  public void actionPerformed(ActionEvent e) {
+    try {
+      manager.undo();
+    } catch (CannotUndoException ex) {
+      // Don't undo
     }
+  }
 
 }

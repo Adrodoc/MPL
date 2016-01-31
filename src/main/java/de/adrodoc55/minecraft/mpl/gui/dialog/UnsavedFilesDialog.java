@@ -171,9 +171,12 @@ public class UnsavedFilesDialog extends JDialog
       bnTable.setRowSelectionAllowed(false);
       bnTable.setPath(new Path("this.unsaved"));
       bnTable.setModelProvider(getLocalModelProvider());
-      bnTable.setColumns(new BnColumnBuilder().addColumn().withPath("this.save").withName("")
-          .withWidth(20).withWidthFixed(true).addColumn().withPath("this.editorPm.title")
-          .withName("Resource").withWidth(10).build());
+      bnTable.setColumns(new BnColumnBuilder()
+          // formatter:off
+          .addColumn().withPath("this.save").withName("").withWidth(20).withWidthFixed(true)
+          .addColumn().withPath("this.editorPm.title").withName("Resource").withWidth(10)
+          // formatter:on
+          .build());
     }
     return bnTable;
   }
