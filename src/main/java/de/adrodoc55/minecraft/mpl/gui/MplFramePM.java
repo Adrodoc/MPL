@@ -18,10 +18,15 @@ import org.beanfabrics.model.PMManager;
 import org.beanfabrics.support.Operation;
 
 import de.adrodoc55.commons.FileUtils;
+import de.adrodoc55.minecraft.mpl.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.CompilerException;
 import de.adrodoc55.minecraft.mpl.Main;
+import de.adrodoc55.minecraft.mpl.MplCompiler;
+import de.adrodoc55.minecraft.mpl.OneCommandConverter;
 import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException;
 import de.adrodoc55.minecraft.mpl.gui.MplEditorPM.Context;
+import de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialog;
+import de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialogPM;
 import de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedFilesDialog;
 import de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedFilesDialogPM;
 
@@ -34,6 +39,8 @@ public class MplFramePM extends AbstractPM {
   OperationPM saveFileUnder = new OperationPM();
   OperationPM compileFile = new OperationPM();
   OperationPM compileFileUnder = new OperationPM();
+  OperationPM compileCommand = new OperationPM();
+  OperationPM compileCommandUnder = new OperationPM();
 
   public MplFramePM() {
     PMManager.setup(this);
@@ -154,6 +161,81 @@ public class MplFramePM extends AbstractPM {
     }
   }
 
+  @Operation
+  public void compileFileUnder() {
+    chooseCompilationDir();
+    compileFile();
+  }
+
+  @Operation
+  public void compileCommand() {
+    if (warnAboutUnsavedResources()) {
+      return;
+    }
+
+    MplEditorPM selected = editors.getSelection().getFirst();
+    if (selected == null) {
+      return;
+    }
+    File file = selected.getFile();
+    if (file == null) {
+      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+      JOptionPane.showMessageDialog(activeWindow,
+          "You need to save this File before it can be compiled!", "Compilation Failed!",
+          JOptionPane.ERROR_MESSAGE);
+      return;
+    }
+    try {
+      List<CommandBlockChain> chains = MplCompiler.compile(file);
+      String oneCommand = OneCommandConverter.convert(chains);
+      OneCommandDialog dialog = new OneCommandDialog();
+      OneCommandDialogPM dialogPm = new OneCommandDialogPM();
+      dialog.setPresentationModel(dialogPm);
+      dialogPm.setText(oneCommand);
+      dialog.setVisible(true);
+    } catch (CompilationFailedException ex) {
+      ExceptionDialog dialog = ExceptionDialog.create("Compilation Failed!",
+          "The Compiler encountered Errors!", ex.toString());
+      dialog.setVisible(true);
+      Map<File, List<CompilerException>> exceptions = ex.getExceptions();
+      for (File programFile : exceptions.keySet()) {
+        for (MplEditorPM editorPm : editors) {
+          if (programFile.equals(editorPm.getFile())) {
+            editorPm.setCompilerExceptions(exceptions.get(programFile));
+          }
+        }
+      }
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+      JOptionPane.showMessageDialog(activeWindow, ex.getMessage(), ex.getClass().getSimpleName(),
+          JOptionPane.ERROR_MESSAGE);
+    }
+  }
+
+  public void compileCommandUnder() {
+    chooseCompilationDir();
+    compileCommand();
+  }
+
+  private File compilationDir;
+
+  private File getCompilationDir() {
+    if (compilationDir == null) {
+      chooseCompilationDir();
+    }
+    return compilationDir;
+  }
+
+  private void chooseCompilationDir() {
+    Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+    JFileChooser chooser = MplEditor.getDirChooser();
+    int userAction = chooser.showDialog(activeWindow, "Compile");
+    if (userAction == JFileChooser.APPROVE_OPTION) {
+      compilationDir = chooser.getSelectedFile();
+    }
+  }
+
   /**
    * Warn the User about any unsaved Resources, if there are any. Returns true if the User canceled
    * the Action. <br>
@@ -187,30 +269,6 @@ public class MplFramePM extends AbstractPM {
       }
     }
     return false;
-  }
-
-  @Operation
-  public void compileFileUnder() {
-    chooseCompilationDir();
-    compileFile();
-  }
-
-  private File compilationDir;
-
-  private File getCompilationDir() {
-    if (compilationDir == null) {
-      chooseCompilationDir();
-    }
-    return compilationDir;
-  }
-
-  private void chooseCompilationDir() {
-    Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-    JFileChooser chooser = MplEditor.getDirChooser();
-    int userAction = chooser.showDialog(activeWindow, "Compile");
-    if (userAction == JFileChooser.APPROVE_OPTION) {
-      compilationDir = chooser.getSelectedFile();
-    }
   }
 
   private Context createDefaultContext() {
