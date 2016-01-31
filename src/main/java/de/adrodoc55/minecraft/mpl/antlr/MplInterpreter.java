@@ -1,6 +1,5 @@
 package de.adrodoc55.minecraft.mpl.antlr;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -55,8 +54,9 @@ public class MplInterpreter extends MplBaseListener {
   }
 
   private static FileContext parse(File programFile) throws IOException {
-    BufferedReader reader = Files.newBufferedReader(programFile.toPath());
-    ANTLRInputStream input = new ANTLRInputStream(reader);
+    byte[] bytes = Files.readAllBytes(programFile.toPath());
+    ANTLRInputStream input =
+        new ANTLRInputStream(new String(bytes).replace("\r\n", "\n").replace("\r", "\n"));
     MplLexer lexer = new MplLexer(input);
     TokenStream tokens = new CommonTokenStream(lexer);
     MplParser parser = new MplParser(tokens);
@@ -65,7 +65,7 @@ public class MplInterpreter extends MplBaseListener {
   }
 
   private final File programFile;
-
+  private final List<String> lines;
   private final List<CompilerException> exceptions = new LinkedList<CompilerException>();
   private final List<CommandChain> chains = new ArrayList<CommandChain>();
   private final List<Command> installation = new ArrayList<Command>();
@@ -73,9 +73,10 @@ public class MplInterpreter extends MplBaseListener {
   private final Map<String, List<Include>> includes = new HashMap<String, List<Include>>();
   private final Set<File> imports = new HashSet<File>();
 
-  private MplInterpreter(File programFile) {
+  private MplInterpreter(File programFile) throws IOException {
     this.programFile = programFile;
-    // FIXME was sinnvolleres als null reistecken
+    lines = Files.readAllLines(programFile.toPath());
+    // FIXME was sinnvolleres als null reinstecken
     addFileImport(null, programFile.getParentFile());
   }
 
@@ -119,16 +120,16 @@ public class MplInterpreter extends MplBaseListener {
   @Override
   public void visitErrorNode(ErrorNode node) {
     Token token = node.getSymbol();
-    throw new GrammarException(
-        "Mismatched input: '" + node.getText() + "' in File '" + this.getProgramFile()
-            + "' in Line " + token.getLine() + " in Column " + token.getStartIndex());
+    String line = lines.get(token.getLine() - 1);
+    exceptions.add(new CompilerException(programFile, token, line, "Mismatched input"));
   }
 
   @Override
   public void enterInclude(IncludeContext ctx) {
     String includePath = MplLexerUtils.getContainedString(ctx.STRING());
     Token token = ctx.STRING().getSymbol();
-    Include include = new Include(programFile, token, ctx.getText(), includePath);
+    String line = lines.get(token.getLine() - 1);
+    Include include = new Include(programFile, token, line, includePath);
     List<Include> list = includes.get(null);
     if (list == null) {
       list = new LinkedList<Include>();
@@ -154,7 +155,7 @@ public class MplInterpreter extends MplBaseListener {
    */
   private void addFileImport(ImportDeclarationContext ctx, File file) {
     Token token = ctx != null ? ctx.STRING().getSymbol() : null;
-    String line = ctx != null ? ctx.getText() : null;
+    String line = ctx != null ? lines.get(token.getLine() - 1) : null;
     if (imports.contains(file)) {
       exceptions.add(new CompilerException(programFile, token, line, "Duplicate import."));
       return;
@@ -223,9 +224,11 @@ public class MplInterpreter extends MplBaseListener {
     Token newToken = ctx.IDENTIFIER().getSymbol();
     if (oldToken != null) {
       String message = "Process " + name + " is ambigious. Every process must have a unique name.";
-      CompilerException ex1 = new CompilerException(programFile, oldToken, ctx.getText(), message);
+      CompilerException ex1 =
+          new CompilerException(programFile, oldToken, lines.get(oldToken.getLine()), message);
       exceptions.add(ex1);
-      CompilerException ex2 = new CompilerException(programFile, newToken, ctx.getText(), message);
+      CompilerException ex2 =
+          new CompilerException(programFile, newToken, lines.get(newToken.getLine()), message);
       exceptions.add(ex2);
     }
     ambigiousProcessMapping.put(name, newToken);
@@ -300,8 +303,9 @@ public class MplInterpreter extends MplBaseListener {
     commandBuffer.setCommand(command);
     lastStartIdentifier = process;
     String srcProcess = chainBuffer.isProcess() ? chainBuffer.getName() : null;
-    Include include =
-        new Include(programFile, identifier.getSymbol(), process, ctx.getText(), imports);
+    Token symbol = identifier.getSymbol();
+    String line = lines.get(symbol.getLine() - 1);
+    Include include = new Include(programFile, symbol, process, line, imports);
     List<Include> list = includes.get(srcProcess);
     if (list == null) {
       list = new LinkedList<Include>();
@@ -319,8 +323,9 @@ public class MplInterpreter extends MplBaseListener {
       method = chainBuffer.getName();
     } else {
       Token symbol = ctx.STOP().getSymbol();
-      exceptions.add(new CompilerException(programFile, symbol, ctx.getText(),
-          "Can only stop repeating processes."));
+      String line = lines.get(symbol.getLine() - 1);
+      exceptions.add(
+          new CompilerException(programFile, symbol, line, "Can only stop repeating processes."));
       return;
     }
     String command = "/execute @e[name=" + method + "] ~ ~ ~ /setblock ~ ~ ~ stone";
@@ -331,7 +336,8 @@ public class MplInterpreter extends MplBaseListener {
   public void enterNotifyDeclaration(NotifyDeclarationContext ctx) {
     if (!chainBuffer.isProcess()) {
       Token symbol = ctx.NOTIFY().getSymbol();
-      exceptions.add(new CompilerException(programFile, symbol, ctx.getText(),
+      String line = lines.get(symbol.getLine() - 1);
+      exceptions.add(new CompilerException(programFile, symbol, line,
           "Encountered notify outside of a process context."));
       return;
     }
@@ -345,8 +351,9 @@ public class MplInterpreter extends MplBaseListener {
   @Override
   public void enterWaitfor(WaitforContext ctx) {
     Token symbol = ctx.WAITFOR().getSymbol();
+    String line = lines.get(symbol.getLine() - 1);
     if (chainBuffer.isRepeatingContext()) {
-      exceptions.add(new CompilerException(programFile, symbol, ctx.getText(),
+      exceptions.add(new CompilerException(programFile, symbol, line,
           "Encountered waitfor in repeating context."));
       return;
     }
@@ -358,7 +365,7 @@ public class MplInterpreter extends MplBaseListener {
       method = lastStartIdentifier;
       lastStartIdentifier = null;
     } else {
-      exceptions.add(new CompilerException(programFile, symbol, ctx.getText(),
+      exceptions.add(new CompilerException(programFile, symbol, line,
           "Missing Identifier. No previous start was found to wait for."));
       return;
     }
