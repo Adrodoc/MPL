@@ -3,18 +3,18 @@ apply plugin: 'groovy'
 apply plugin: 'eclipse'
 
 ext.productName = project.name
-version = 0.1
+version = 0.2
 
 ext {
   libs = [
     antlr4:         'org.antlr:antlr4:4.5',
     antlr4_runtime: 'org.antlr:antlr4-runtime:4.5',
-    assertj:		'org.assertj:assertj-core:3.2.0',
-    beanfabrics:	'org.beanfabrics:beanfabrics-swing:1.4.0',
+    assertj:        'org.assertj:assertj-core:3.2.0',
+    beanfabrics:    'org.beanfabrics:beanfabrics-swing:1.4.0',
     guava:          'com.google.guava:guava:18.0',
     junit:          'junit:junit:4.12',
     pojobuilder:    'net.karneim:pojobuilder:3.4.0',
-    spock:			'org.spockframework:spock-core:1.0-groovy-2.3'
+    spock:          'org.spockframework:spock-core:1.0-groovy-2.3'
   ]
 }
 
@@ -102,11 +102,11 @@ eclipseClasspath.dependsOn generateAntlr4
 jar {
   manifest {
     attributes(
-        'Created-By':				'Adrodoc55 (adrodoc55@googlemail.com)',
-        'Specification-Title':		productName,
-        'Specification-Version':	version,
-        'Implementation-Title':		productName,
-        'Implementation-Version':	version,
+        'Created-By':        'Adrodoc55 (adrodoc55@googlemail.com)',
+        'Specification-Title':    productName,
+        'Specification-Version':  version,
+        'Implementation-Title':    productName,
+        'Implementation-Version':  version,
         'Main-Class':   'de.adrodoc55.minecraft.mpl.gui.MplFrame'
         )
   }
@@ -124,11 +124,11 @@ task fatJar(type: Jar) {
   }
   manifest {
     attributes(
-        'Created-By':				'Adrodoc55 (adrodoc55@googlemail.com)',
-        'Specification-Title':		productName,
-        'Specification-Version':	version,
-        'Implementation-Title':		productName,
-        'Implementation-Version':	version,
+        'Created-By':        'Adrodoc55 (adrodoc55@googlemail.com)',
+        'Specification-Title':    productName,
+        'Specification-Version':  version,
+        'Implementation-Title':    productName,
+        'Implementation-Version':  version,
         'Main-Class':   'de.adrodoc55.minecraft.mpl.gui.MplFrame'
         )
   }
