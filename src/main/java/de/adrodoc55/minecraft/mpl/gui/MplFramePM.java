@@ -18,6 +18,7 @@ import org.beanfabrics.model.AbstractPM;
 import org.beanfabrics.model.ListPM;
 import org.beanfabrics.model.OperationPM;
 import org.beanfabrics.model.PMManager;
+import org.beanfabrics.model.Selection;
 import org.beanfabrics.support.Operation;
 
 import de.adrodoc55.commons.FileUtils;
@@ -81,6 +82,14 @@ public class MplFramePM extends AbstractPM {
       JOptionPane.showMessageDialog(chooser, message, "Error", JOptionPane.ERROR_MESSAGE);
       openFile();
       return;
+    }
+    for (MplEditorPM editorPm : editors) {
+      if (file.equals(editorPm.getFile())) {
+        Selection<MplEditorPM> selection = editors.getSelection();
+        selection.clear();
+        selection.add(editorPm);
+        return;
+      }
     }
     try {
       MplEditorPM editorPm = new MplEditorPM(createDefaultContext());
