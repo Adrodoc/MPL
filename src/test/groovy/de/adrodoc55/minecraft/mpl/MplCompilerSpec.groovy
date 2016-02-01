@@ -168,6 +168,29 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
+  public void "a process from the same file can be referenced"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    process main:
+    /this is the main process
+    start other
+
+    process other:
+    /this is the other process
+    """
+    when:
+    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    then:
+    result.chains.size() == 2
+    CommandChain main = result.chains.find { it.name == 'main' }
+    main.commands.contains(new Command('/this is the main process'))
+
+    CommandChain other = result.chains.find { it.name == 'other' }
+    other.commands.contains(new Command('/this is the other process'))
+  }
+
+  @Test
   public void "ambigious processes within imports will be ignored, by default"() {
     given:
     File folder = tempFolder.root
