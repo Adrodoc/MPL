@@ -2,7 +2,6 @@ package de.adrodoc55.minecraft.mpl.antlr;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.HashSet;
 
 import org.antlr.v4.runtime.Token;
 
@@ -13,13 +12,8 @@ public class Include {
   private final String line;
   private final Collection<File> files;
 
-  public Include(File srcFile, Token token, String line, String includePath) {
-    this.srcFile = srcFile;
-    this.token = token;
-    this.processName = null;
-    this.line = line;
-    files = new HashSet<File>(1);
-    files.add(new File(srcFile.getParentFile(), includePath));
+  public Include(File srcFile, Token token, String line, Collection<File> imports) {
+    this(srcFile, token, null, line, imports);
   }
 
   public Include(File srcFile, Token token, String processName, String line,

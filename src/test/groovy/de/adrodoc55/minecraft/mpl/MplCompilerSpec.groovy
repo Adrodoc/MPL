@@ -1,8 +1,12 @@
 package de.adrodoc55.minecraft.mpl
 
+import static de.adrodoc55.TestBase.someIdentifier
+
 import org.junit.Test
 
-import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException;
+import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException
+import de.adrodoc55.minecraft.mpl.antlr.Include
+import de.adrodoc55.minecraft.mpl.antlr.MplInterpreter
 
 class MplCompilerSpec extends MplSpecBase {
 
@@ -191,6 +195,40 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
+  public void "projekt includes are processed correctly"() {
+    given:
+    String id1 = someIdentifier()
+    String id2 = someIdentifier()
+    String id3 = someIdentifier()
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    project ${id1}:
+    include "newFolder/newFile.mpl"
+    include "newFolder2"
+    """
+    new File(folder, 'newFolder').mkdirs()
+    new File(folder, 'newFolder/newFile.mpl').text = """
+    process ${id2}:
+    /this is the ${id2} process
+    """
+    new File(folder, 'newFolder2').mkdirs()
+    new File(folder, 'newFolder2/newFile2.mpl').text = """
+    process ${id3}:
+    /this is the ${id3} process
+    """
+    when:
+    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    then:
+    result.chains.size() == 2
+
+    CommandChain main = result.chains.find { it.name == id2 }
+    main.commands.contains(new Command("/this is the ${id2} process"))
+
+    CommandChain other = result.chains.find { it.name == id3 }
+    other.commands.contains(new Command("/this is the ${id3} process"))
+  }
+
+  @Test
   public void "ambigious processes within imports will be ignored, by default"() {
     given:
     File folder = tempFolder.root
@@ -330,5 +368,4 @@ class MplCompilerSpec extends MplSpecBase {
     chains[1].name == 'installation'
     chains[2].name == 'uninstallation'
   }
-
 }

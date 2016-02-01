@@ -542,7 +542,7 @@ public class MplInterpreterSpec extends MplSpecBase {
   void "an Interpreter will always include subfiles of it's parent directory, including itself"() {
     given:
     File programFile = newTempFile()
-    File neighbourFile = new File(programFile.parentFile, 'neighbour.txt')
+    File neighbourFile = new File(programFile.parentFile, 'neighbour.mpl')
     neighbourFile.createNewFile()
     MplInterpreter interpreter = new MplInterpreter(programFile)
     expect:
@@ -589,10 +589,15 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String id1 = someIdentifier()
     String programString = """
-    project ${id1}
+    project ${id1}:
     include "datei1.mpl"
     include "ordner2"
     """
+    File folder = tempFolder.root
+    new File(folder, 'datei1.mpl').createNewFile()
+    new File(folder, 'ordner2').mkdirs()
+    new File(folder, 'ordner2/datei4.mpl').createNewFile()
+    new File(folder, 'ordner2/datei5.txt').createNewFile()
     when:
     MplInterpreter interpreter = interpret(programString)
     File file = lastTempFile
@@ -606,7 +611,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     includes[0].files.containsAll([new File(parent, "datei1.mpl")])
     includes[0].processName == null
     includes[1].files.size()==1
-    includes[1].files.containsAll([new File(parent, "ordner2")])
+    includes[1].files.containsAll([new File(parent, "ordner2/datei4.mpl")])
     includes[1].processName == null
   }
 
@@ -646,7 +651,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     File file = newTempFile()
     File newFolder = new File(file.parentFile, "newFolder")
     newFolder.mkdirs()
-    File newFile = new File(newFolder, "newFile")
+    File newFile = new File(newFolder, "newFile.mpl")
     newFile.createNewFile()
     when:
     MplInterpreter interpreter = interpret(programString, file)

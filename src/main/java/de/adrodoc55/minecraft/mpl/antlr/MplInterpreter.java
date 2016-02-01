@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -129,7 +130,12 @@ public class MplInterpreter extends MplBaseListener {
     String includePath = MplLexerUtils.getContainedString(ctx.STRING());
     Token token = ctx.STRING().getSymbol();
     String line = lines.get(token.getLine() - 1);
-    Include include = new Include(programFile, token, line, includePath);
+    File file = new File(programFile.getParentFile(), includePath);
+    LinkedList<File> files = new LinkedList<File>();
+    if (!addFile(files, file, token)) {
+      return;
+    }
+    Include include = new Include(programFile, token, line, files);
     List<Include> list = includes.get(null);
     if (list == null) {
       list = new LinkedList<Include>();
@@ -155,18 +161,37 @@ public class MplInterpreter extends MplBaseListener {
    */
   private void addFileImport(ImportDeclarationContext ctx, File file) {
     Token token = ctx != null ? ctx.STRING().getSymbol() : null;
-    String line = ctx != null ? lines.get(token.getLine() - 1) : null;
+    String line = token != null ? lines.get(token.getLine() - 1) : null;
     if (imports.contains(file)) {
       exceptions.add(new CompilerException(programFile, token, line, "Duplicate import."));
       return;
-    } else if (file.isFile()) {
-      imports.add(file);
+    }
+    addFile(imports, file, token);
+  }
+
+  /**
+   * Adds the File to the specified Collection. If the File is a Directory all relevant children are
+   * added instead. If any Problem occurs, an Exception will be added to the exceptions-List.
+   *
+   * @param files the Collection to add to
+   * @param file the File
+   * @param token the Token to display in potential Exceptions
+   * @return true if something was added to the Collection, false otherwise
+   */
+  private boolean addFile(Collection<File> files, File file, Token token) {
+    String line = token != null ? lines.get(token.getLine() - 1) : null;
+    if (file.isFile()) {
+      files.add(file);
+      return true;
     } else if (file.isDirectory()) {
+      boolean added = false;
       for (File f : file.listFiles()) {
-        if (f.isFile()) {
-          imports.add(f);
+        if (f.isFile() && (f.equals(programFile) || f.getName().endsWith(".mpl"))) {
+          files.add(f);
+          added = true;
         }
       }
+      return added;
     } else if (!file.exists()) {
       String path;
       try {
@@ -174,13 +199,13 @@ public class MplInterpreter extends MplBaseListener {
       } catch (IOException ex) {
         path = file.getAbsolutePath();
       }
-      exceptions.add(
-          new CompilerException(programFile, token, line, "Could not find import '" + path + "'"));
-      return;
+      exceptions
+          .add(new CompilerException(programFile, token, line, "Could not find '" + path + "'"));
+      return false;
     } else {
       exceptions.add(new CompilerException(programFile, token, line,
           "Can only import Files and Directories, not: '" + file + "'"));
-      return;
+      return false;
     }
   }
 
