@@ -93,7 +93,6 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
    * Constructs a new <code>MplEditor</code>.
    */
   public MplEditor() {
-    super();
     setLayout(new BorderLayout());
     add(getScrollPane(), BorderLayout.CENTER);
   }

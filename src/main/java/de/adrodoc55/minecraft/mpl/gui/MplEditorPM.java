@@ -138,6 +138,18 @@ public class MplEditorPM extends AbstractPM {
     setTitle(file.getName());
   }
 
+  public void checkFile() {
+    if (file == null) {
+      return;
+    }
+    if (hasUnsavedChanges()) {
+      return;
+    }
+    if (!file.exists()) {
+      setUnsavedChanges(true);
+    }
+  }
+
   /**
    * (Re)loads the content of this Editor's File, if it has one.
    *
@@ -188,11 +200,15 @@ public class MplEditorPM extends AbstractPM {
   public void saveUnder() {
     Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
     JFileChooser chooser = getMplChooser();
+    chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), getTitle()));
     int userAction = chooser.showSaveDialog(activeWindow);
     if (userAction != JFileChooser.APPROVE_OPTION) {
       return;
     }
     File file = chooser.getSelectedFile();
+    if (!file.getName().endsWith(".mpl")) {
+      file = new File(file.getAbsolutePath() + ".mpl");
+    }
     if (file.exists()) {
       int overwrite = JOptionPane.showOptionDialog(activeWindow,
           "The File '" + file.getName() + "' already exists and will be overwritten.", "Save...",

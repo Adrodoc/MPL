@@ -180,7 +180,14 @@ public class MplFramePM extends AbstractPM {
     dialog.setVisible(true);
   }
 
+  void checkFiles() {
+    for (MplEditorPM editorPm : editors) {
+      editorPm.checkFile();
+    }
+  }
+
   private List<CommandBlockChain> compile() {
+    checkFiles();
     if (warnAboutUnsavedResources()) {
       return null;
     }
@@ -190,7 +197,7 @@ public class MplFramePM extends AbstractPM {
       return null;
     }
     File file = selected.getFile();
-    if (file == null) {
+    if (file == null || !file.exists()) {
       Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
       JOptionPane.showMessageDialog(activeWindow,
           "You need to save this File before it can be compiled!", "Compilation Failed!",

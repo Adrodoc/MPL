@@ -90,6 +90,15 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
         pModel.terminate();
       }
     });
+    addWindowFocusListener(new WindowAdapter() {
+      @Override
+      public void windowGainedFocus(WindowEvent e) {
+        MplFramePM pModel = getPresentationModel();
+        if (pModel != null) {
+          pModel.checkFiles();
+        }
+      }
+    });
   }
 
   private void init() {
@@ -296,6 +305,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
     }
     return bnmntmCompileCommand;
   }
+
   private JToolBar getToolBar() {
     if (toolBar == null) {
       toolBar = new JToolBar();
@@ -341,7 +351,8 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnButton getBnbtnCompilePython() {
     if (bnbtnCompilePython == null) {
       bnbtnCompilePython = new BnButton();
-      bnbtnCompilePython.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/gear_run_16.png")));
+      bnbtnCompilePython
+          .setIcon(new ImageIcon(MplFrame.class.getResource("/icons/gear_run_16.png")));
       bnbtnCompilePython.setPath(new Path("this.compileFile"));
       bnbtnCompilePython.setModelProvider(getLocalModelProvider());
     }
