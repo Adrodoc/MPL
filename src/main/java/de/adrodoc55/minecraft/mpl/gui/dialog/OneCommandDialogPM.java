@@ -9,6 +9,7 @@ public class OneCommandDialogPM extends AbstractPM {
   TextPM oneCommand = new TextPM();
 
   public OneCommandDialogPM() {
+    oneCommand.setEditable(false);
     PMManager.setup(this);
   }
 
