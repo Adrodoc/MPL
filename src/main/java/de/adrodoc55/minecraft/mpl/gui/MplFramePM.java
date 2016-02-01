@@ -44,7 +44,6 @@ public class MplFramePM extends AbstractPM {
   OperationPM compileFile = new OperationPM();
   OperationPM compileFileUnder = new OperationPM();
   OperationPM compileCommand = new OperationPM();
-  OperationPM compileCommandUnder = new OperationPM();
 
   public MplFramePM() {
     PMManager.setup(this);
@@ -170,11 +169,6 @@ public class MplFramePM extends AbstractPM {
     dialog.setPresentationModel(dialogPm);
     dialogPm.setText(oneCommand);
     dialog.setVisible(true);
-  }
-
-  public void compileCommandUnder() {
-    chooseCompilationDir();
-    compileCommand();
   }
 
   private List<CommandBlockChain> compile() {

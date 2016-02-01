@@ -54,21 +54,20 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private ModelProvider localModelProvider;
   private JMenuBar menuBar;
   private JMenu mnFile;
-  private BnMenuItem mntmNew;
-  private BnMenuItem mntmOpen;
-  private BnMenuItem mntmSave;
-  private BnMenuItem mntmSaveUnder;
-  private BnMenuItem mntmCompile;
-  private BnMenuItem mntmCompileUnder;
+  private BnMenuItem bnmntmNew;
+  private BnMenuItem bnmntmOpen;
+  private BnMenuItem bnmntmSave;
+  private BnMenuItem bnmntmSaveUnder;
+  private BnMenuItem bnmntmCompile;
+  private BnMenuItem bnmntmCompileUnder;
   private JToolBar toolBar;
-  private BnButton btnNew;
-  private BnButton btnOpen;
-  private BnButton btnSave;
-  private BnButton btnCompilePython;
+  private BnButton bnbtnNew;
+  private BnButton bnbtnOpen;
+  private BnButton bnbtnSave;
+  private BnButton bnbtnCompilePython;
   private JTabbedPane tabbedPane;
   private BnButton bnbtnCompileCommand;
   private BnMenuItem bnmntmCompileCommand;
-  private BnMenuItem bnmntmCompileCommandUnder;
 
   /**
    * Constructs a new <code>MplFrame</code>.
@@ -217,128 +216,147 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private JMenu getMnFile() {
     if (mnFile == null) {
       mnFile = new JMenu("File");
-      mnFile.add(getMntmNew());
-      mnFile.add(getMntmOpen());
-      mnFile.add(getMntmSave());
-      mnFile.add(getMntmSaveUnder());
-      mnFile.add(getMntmCompile());
-      mnFile.add(getMntmCompileUnder());
+      mnFile.add(getBnmntmNew());
+      mnFile.add(getBnmntmOpen());
+      mnFile.add(getBnmntmSave());
+      mnFile.add(getBnmntmSaveUnder());
+      mnFile.add(getBnmntmCompile());
+      mnFile.add(getBnmntmCompileUnder());
       mnFile.add(getBnmntmCompileCommand());
-      mnFile.add(getBnmntmCompileCommandUnder());
     }
     return mnFile;
   }
 
-  private BnMenuItem getMntmNew() {
-    if (mntmNew == null) {
-      mntmNew = new BnMenuItem();
-      mntmNew.setPath(new Path("this.newFile"));
-      mntmNew.setModelProvider(getLocalModelProvider());
-      mntmNew.setText("New");
+  private BnMenuItem getBnmntmNew() {
+    if (bnmntmNew == null) {
+      bnmntmNew = new BnMenuItem();
+      bnmntmNew.setPath(new Path("this.newFile"));
+      bnmntmNew.setModelProvider(getLocalModelProvider());
+      bnmntmNew.setText("New");
     }
-    return mntmNew;
+    return bnmntmNew;
   }
 
-  private BnMenuItem getMntmOpen() {
-    if (mntmOpen == null) {
-      mntmOpen = new BnMenuItem();
-      mntmOpen.setPath(new Path("this.openFile"));
-      mntmOpen.setModelProvider(getLocalModelProvider());
-      mntmOpen.setText("Open");
+  private BnMenuItem getBnmntmOpen() {
+    if (bnmntmOpen == null) {
+      bnmntmOpen = new BnMenuItem();
+      bnmntmOpen.setPath(new Path("this.openFile"));
+      bnmntmOpen.setModelProvider(getLocalModelProvider());
+      bnmntmOpen.setText("Open");
     }
-    return mntmOpen;
+    return bnmntmOpen;
   }
 
-  private BnMenuItem getMntmSave() {
-    if (mntmSave == null) {
-      mntmSave = new BnMenuItem();
-      mntmSave.setPath(new Path("this.saveFile"));
-      mntmSave.setModelProvider(getLocalModelProvider());
-      mntmSave.setText("Save");
+  private BnMenuItem getBnmntmSave() {
+    if (bnmntmSave == null) {
+      bnmntmSave = new BnMenuItem();
+      bnmntmSave.setPath(new Path("this.saveFile"));
+      bnmntmSave.setModelProvider(getLocalModelProvider());
+      bnmntmSave.setText("Save");
     }
-    return mntmSave;
+    return bnmntmSave;
   }
 
-  private BnMenuItem getMntmSaveUnder() {
-    if (mntmSaveUnder == null) {
-      mntmSaveUnder = new BnMenuItem();
-      mntmSaveUnder.setPath(new Path("this.saveFileUnder"));
-      mntmSaveUnder.setModelProvider(getLocalModelProvider());
-      mntmSaveUnder.setText("Save under...");
+  private BnMenuItem getBnmntmSaveUnder() {
+    if (bnmntmSaveUnder == null) {
+      bnmntmSaveUnder = new BnMenuItem();
+      bnmntmSaveUnder.setPath(new Path("this.saveFileUnder"));
+      bnmntmSaveUnder.setModelProvider(getLocalModelProvider());
+      bnmntmSaveUnder.setText("Save under...");
     }
-    return mntmSaveUnder;
+    return bnmntmSaveUnder;
   }
 
-  private BnMenuItem getMntmCompile() {
-    if (mntmCompile == null) {
-      mntmCompile = new BnMenuItem();
-      mntmCompile.setPath(new Path("this.compileFile"));
-      mntmCompile.setModelProvider(getLocalModelProvider());
-      mntmCompile.setText("Compile");
+  private BnMenuItem getBnmntmCompile() {
+    if (bnmntmCompile == null) {
+      bnmntmCompile = new BnMenuItem();
+      bnmntmCompile.setPath(new Path("this.compileFile"));
+      bnmntmCompile.setModelProvider(getLocalModelProvider());
+      bnmntmCompile.setText("Compile");
     }
-    return mntmCompile;
+    return bnmntmCompile;
   }
 
-  private BnMenuItem getMntmCompileUnder() {
-    if (mntmCompileUnder == null) {
-      mntmCompileUnder = new BnMenuItem();
-      mntmCompileUnder.setPath(new Path("this.compileFileUnder"));
-      mntmCompileUnder.setModelProvider(getLocalModelProvider());
-      mntmCompileUnder.setText("Compile under...");
+  private BnMenuItem getBnmntmCompileUnder() {
+    if (bnmntmCompileUnder == null) {
+      bnmntmCompileUnder = new BnMenuItem();
+      bnmntmCompileUnder.setPath(new Path("this.compileFileUnder"));
+      bnmntmCompileUnder.setModelProvider(getLocalModelProvider());
+      bnmntmCompileUnder.setText("Compile under...");
     }
-    return mntmCompileUnder;
+    return bnmntmCompileUnder;
   }
 
+  private BnMenuItem getBnmntmCompileCommand() {
+    if (bnmntmCompileCommand == null) {
+      bnmntmCompileCommand = new BnMenuItem();
+      bnmntmCompileCommand.setPath(new Path("this.compileCommand"));
+      bnmntmCompileCommand.setModelProvider(getLocalModelProvider());
+      bnmntmCompileCommand.setText("Compile to one Command");
+    }
+    return bnmntmCompileCommand;
+  }
   private JToolBar getToolBar() {
     if (toolBar == null) {
       toolBar = new JToolBar();
-      toolBar.add(getBtnNew());
-      toolBar.add(getBtnOpen());
-      toolBar.add(getBtnSave());
-      toolBar.add(getBtnCompilePython());
+      toolBar.add(getBnbtnNew());
+      toolBar.add(getBnbtnOpen());
+      toolBar.add(getBnbtnSave());
+      toolBar.add(getBnbtnCompilePython());
       toolBar.add(getBnbtnCompileCommand());
     }
     return toolBar;
   }
 
-  private BnButton getBtnNew() {
-    if (btnNew == null) {
-      btnNew = new BnButton();
-      btnNew.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/new_file_icon_16.png")));
-      btnNew.setModelProvider(getLocalModelProvider());
-      btnNew.setPath(new Path("this.newFile"));
+  private BnButton getBnbtnNew() {
+    if (bnbtnNew == null) {
+      bnbtnNew = new BnButton();
+      bnbtnNew.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/new_file_icon_16.png")));
+      bnbtnNew.setModelProvider(getLocalModelProvider());
+      bnbtnNew.setPath(new Path("this.newFile"));
     }
-    return btnNew;
+    return bnbtnNew;
   }
 
-  private BnButton getBtnOpen() {
-    if (btnOpen == null) {
-      btnOpen = new BnButton();
-      btnOpen.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/folder_icon_16.png")));
-      btnOpen.setPath(new Path("this.openFile"));
-      btnOpen.setModelProvider(getLocalModelProvider());
+  private BnButton getBnbtnOpen() {
+    if (bnbtnOpen == null) {
+      bnbtnOpen = new BnButton();
+      bnbtnOpen.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/folder_icon_16.png")));
+      bnbtnOpen.setPath(new Path("this.openFile"));
+      bnbtnOpen.setModelProvider(getLocalModelProvider());
     }
-    return btnOpen;
+    return bnbtnOpen;
   }
 
-  private BnButton getBtnSave() {
-    if (btnSave == null) {
-      btnSave = new BnButton();
-      btnSave.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/disk_icon_16.png")));
-      btnSave.setPath(new Path("this.saveFile"));
-      btnSave.setModelProvider(getLocalModelProvider());
+  private BnButton getBnbtnSave() {
+    if (bnbtnSave == null) {
+      bnbtnSave = new BnButton();
+      bnbtnSave.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/disk_icon_16.png")));
+      bnbtnSave.setPath(new Path("this.saveFile"));
+      bnbtnSave.setModelProvider(getLocalModelProvider());
     }
-    return btnSave;
+    return bnbtnSave;
   }
 
-  private BnButton getBtnCompilePython() {
-    if (btnCompilePython == null) {
-      btnCompilePython = new BnButton();
-      btnCompilePython.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/gear_run_16.png")));
-      btnCompilePython.setPath(new Path("this.compileFile"));
-      btnCompilePython.setModelProvider(getLocalModelProvider());
+  private BnButton getBnbtnCompilePython() {
+    if (bnbtnCompilePython == null) {
+      bnbtnCompilePython = new BnButton();
+      bnbtnCompilePython.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/gear_run_16.png")));
+      bnbtnCompilePython.setPath(new Path("this.compileFile"));
+      bnbtnCompilePython.setModelProvider(getLocalModelProvider());
     }
-    return btnCompilePython;
+    return bnbtnCompilePython;
+  }
+
+  private BnButton getBnbtnCompileCommand() {
+    if (bnbtnCompileCommand == null) {
+      bnbtnCompileCommand = new BnButton();
+      bnbtnCompileCommand.setPath(new Path("this.compileCommand"));
+      bnbtnCompileCommand.setModelProvider(getLocalModelProvider());
+      bnbtnCompileCommand
+          .setIcon(new ImageIcon(MplFrame.class.getResource("/icons/commandblock_icon_16.png")));
+    }
+    return bnbtnCompileCommand;
   }
 
   private JTabbedPane getTabbedPane() {
@@ -360,34 +378,4 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
     return tabbedPane;
   }
 
-  private BnButton getBnbtnCompileCommand() {
-    if (bnbtnCompileCommand == null) {
-      bnbtnCompileCommand = new BnButton();
-      bnbtnCompileCommand.setPath(new Path("this.compileCommand"));
-      bnbtnCompileCommand.setModelProvider(getLocalModelProvider());
-      bnbtnCompileCommand
-          .setIcon(new ImageIcon(MplFrame.class.getResource("/icons/commandblock_icon_16.png")));
-    }
-    return bnbtnCompileCommand;
-  }
-
-  private BnMenuItem getBnmntmCompileCommand() {
-    if (bnmntmCompileCommand == null) {
-      bnmntmCompileCommand = new BnMenuItem();
-      bnmntmCompileCommand.setPath(new Path("this.compileCommand"));
-      bnmntmCompileCommand.setModelProvider(getLocalModelProvider());
-      bnmntmCompileCommand.setText("Compile to one Command");
-    }
-    return bnmntmCompileCommand;
-  }
-
-  private BnMenuItem getBnmntmCompileCommandUnder() {
-    if (bnmntmCompileCommandUnder == null) {
-      bnmntmCompileCommandUnder = new BnMenuItem();
-      bnmntmCompileCommandUnder.setPath(new Path("this.compileCommandUnder"));
-      bnmntmCompileCommandUnder.setModelProvider(getLocalModelProvider());
-      bnmntmCompileCommandUnder.setText("Compile to one Command under...");
-    }
-    return bnmntmCompileCommandUnder;
-  }
 }
