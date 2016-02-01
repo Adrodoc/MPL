@@ -6,6 +6,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -194,7 +195,11 @@ public class MplFramePM extends AbstractPM {
       return null;
     }
     try {
-      return MplCompiler.compile(file);
+      List<CommandBlockChain> chains = MplCompiler.compile(file);
+      for (MplEditorPM editorPm : editors) {
+        editorPm.setCompilerExceptions(Collections.emptyList());
+      }
+      return chains;
     } catch (CompilationFailedException ex) {
       ExceptionDialog dialog = ExceptionDialog.create("Compilation Failed!",
           "The Compiler encountered Errors!", ex.toString());
