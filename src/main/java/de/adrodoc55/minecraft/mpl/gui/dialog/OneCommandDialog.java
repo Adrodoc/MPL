@@ -4,11 +4,14 @@ import java.awt.BorderLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 
+import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 
 import org.beanfabrics.IModelProvider;
 import org.beanfabrics.Link;
@@ -53,6 +56,14 @@ public class OneCommandDialog extends JDialog
     getContentPane().setLayout(new BorderLayout());
     getContentPane().add(getScrollPane(), BorderLayout.CENTER);
     getContentPane().add(getPanel(), BorderLayout.SOUTH);
+    getRootPane().setDefaultButton(getBtnOk());
+    getRootPane().getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
+    getRootPane().getActionMap().put("close", new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        dispose();
+      }
+    });
   }
 
   /**

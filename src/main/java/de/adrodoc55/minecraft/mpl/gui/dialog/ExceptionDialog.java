@@ -8,14 +8,17 @@ import java.awt.KeyboardFocusManager;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
 import org.beanfabrics.BnModelObserver;
@@ -75,6 +78,14 @@ public class ExceptionDialog extends JDialog implements View<ExceptionDialogPM>,
         if (pModel != null) {
           setTitle(pModel.title.getText());
         }
+      }
+    });
+    getRootPane().setDefaultButton(getBtnOk());
+    getRootPane().getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
+    getRootPane().getActionMap().put("close", new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        dispose();
       }
     });
   }

@@ -3,11 +3,15 @@ package de.adrodoc55.minecraft.mpl.gui.dialog;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
+import javax.swing.AbstractAction;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
@@ -63,6 +67,14 @@ public class UnsavedFilesDialog extends JDialog
     getContentPane().setLayout(borderLayout);
     getContentPane().add(getPnlCenter(), BorderLayout.CENTER);
     getContentPane().add(getPnlButtons(), BorderLayout.SOUTH);
+    getRootPane().setDefaultButton(getBnbtnOk());
+    getRootPane().getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
+    getRootPane().getActionMap().put("close", new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        dispose();
+      }
+    });
   }
 
   /**
