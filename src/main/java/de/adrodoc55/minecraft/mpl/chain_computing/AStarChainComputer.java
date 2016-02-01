@@ -62,6 +62,9 @@ public class AStarChainComputer implements ChainComputer {
   private CommandBlockChain toCommandBlockChain(String name, PathElement path) {
     LinkedList<CommandBlock> chain = new LinkedList<CommandBlock>();
     PathElement following = path;
+    if (path.getPrevious() != null) {
+      chain.push(new CommandBlock(null, null, path.getPos()));
+    }
     for (PathElement current = path.getPrevious(); current != null; current =
         current.getPrevious()) {
       Coordinate3D pos = current.getPos();

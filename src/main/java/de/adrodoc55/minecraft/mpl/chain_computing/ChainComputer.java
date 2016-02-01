@@ -43,6 +43,9 @@ public interface ChainComputer {
           new CommandBlock(currentCommand, direction, currentCoordinate);
       commandBlocks.add(currentCommandBlock);
     }
+    if (!commandBlocks.isEmpty()) {
+      commandBlocks.add(new CommandBlock(null, null, coordinates.get(coordinates.size() - 1)));
+    }
     CommandBlockChain output = new CommandBlockChain(input.getName(), commandBlocks);
     return output;
   }

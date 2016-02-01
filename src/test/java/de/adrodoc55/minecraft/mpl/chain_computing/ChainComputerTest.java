@@ -35,7 +35,7 @@ public abstract class ChainComputerTest {
   public abstract void setup();
 
   @Test
-  public void test_computeChain_Erzeugte_Kette_enthaelt_alle_Commandos() {
+  public void test_computeChain_Erzeugte_Kette_enthaelt_alle_Commandos_plus_einen_folgenden_leeren_Block() {
     // Given:
     String name = someString();
     List<Command> commands = new ArrayList<Command>();
@@ -50,10 +50,11 @@ public abstract class ChainComputerTest {
     // When:
     CommandBlockChain optimal = underTest.computeOptimalChain(input);
     // Then:
+    commands.add(null); // folgender_leeren_Block
+
     List<CommandBlock> blocks = optimal.getCommandBlocks();
     List<Command> actual = Lists.transform(blocks, block -> {
       return block.toCommand();
-
     });
     assertThat(actual).containsExactlyElementsOf(commands);
   }
@@ -97,6 +98,7 @@ public abstract class ChainComputerTest {
     // When:
     CommandBlockChain optimal = underTest.computeOptimalChain(input);
     // Then:
+    commands.add(null); // folgender_leeren_Block
     // 2 ^ 3 Würfel
     assertThat(optimal.getMin()).isEqualTo(new Coordinate3D(0, 0, 0));
     assertThat(optimal.getMax()).isEqualTo(new Coordinate3D(1, 1, 1));
@@ -141,6 +143,7 @@ public abstract class ChainComputerTest {
       future.cancel(true); // may or may not desire this
     }
     // Then:
+    commands.add(null); // folgender_leeren_Block
     // 2 ^ 3 Würfel
     assertThat(optimal.getMin()).isEqualTo(new Coordinate3D(0, 0, 0));
     assertThat(optimal.getMax()).isEqualTo(new Coordinate3D(2, 2, 2));
@@ -168,9 +171,10 @@ public abstract class ChainComputerTest {
     // When:
     CommandBlockChain optimal = underTest.computeOptimalChain(input);
     // Then:
+    commands.add(null); // folgender_leeren_Block
     // 7er Kette Würfel
     assertThat(optimal.getMin()).isEqualTo(new Coordinate3D(0, 0, 0));
-    assertThat(optimal.getMax()).isEqualTo(new Coordinate3D(0, 6, 0));
+    assertThat(optimal.getMax()).isEqualTo(new Coordinate3D(7, 0, 0));
     // Enthält alle Commandos
     List<CommandBlock> blocks = optimal.getCommandBlocks();
     List<Command> actual = Lists.transform(blocks, block -> {
@@ -195,6 +199,8 @@ public abstract class ChainComputerTest {
     // When:
     CommandBlockChain optimal = underTest.computeOptimalChain(input);
     // Then:
+    commands.add(null); // folgender_leeren_Block
+
     List<CommandBlock> commandBlocks = optimal.getCommandBlocks();
     for (int a = 0; a < commandBlocks.size(); a++) {
       CommandBlock commandBlock = commandBlocks.get(a);
@@ -220,6 +226,21 @@ public abstract class ChainComputerTest {
 
     });
     assertThat(actual).containsExactlyElementsOf(commands);
+  }
+
+  @Test
+  public void test_computeChain_Erzeugte_Kette_ist_leer_wenn_initiale_kette_leer_war() {
+    // Given:
+    String name = someString();
+    List<Command> commands = new ArrayList<Command>();
+    CommandChain input = new CommandChain(name, commands);
+
+    // When:
+    CommandBlockChain optimal = underTest.computeOptimalChain(input);
+    // Then:
+
+    List<CommandBlock> actual = optimal.getCommandBlocks();
+    assertThat(actual).isEmpty();
   }
 
 }
