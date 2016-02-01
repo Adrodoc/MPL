@@ -173,8 +173,9 @@ public class MplSyntaxFilter extends DocumentFilter
         case MplLexer.PROJECT:
         case MplLexer.START:
         case MplLexer.STOP:
-        case MplLexer.NOTIFY:
         case MplLexer.WAITFOR:
+        case MplLexer.NOTIFY:
+        case MplLexer.INTERCEPT:
         case MplLexer.SKIP:
         case MplLexer.UNINSTALL:
           styleToken(token, getHighFocusKeywordStyle());

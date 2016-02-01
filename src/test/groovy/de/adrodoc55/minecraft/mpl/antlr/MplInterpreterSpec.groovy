@@ -31,36 +31,36 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands.size() == 1
     commands[0] == new Command(command, mode, conditional, needsRedstone)
     where:
-    programString                       | mode       | conditional   | needsRedstone
-    '/' + someString()                    | Mode.CHAIN  | false      | false
-    'impulse: /' + someString()                | Mode.IMPULSE  | false      | true
-    'chain: /' + someString()                | Mode.CHAIN  | false      | false
-    'repeat: /' + someString()                | Mode.REPEAT  | false      | true
+    programString                                           | mode          | conditional   | needsRedstone
+    '/' + someString()                                      | Mode.CHAIN    | false         | false
+    'impulse: /' + someString()                             | Mode.IMPULSE  | false         | true
+    'chain: /' + someString()                               | Mode.CHAIN    | false         | false
+    'repeat: /' + someString()                              | Mode.REPEAT   | false         | true
 
-    'conditional: /' + someString()              | Mode.CHAIN  | true      | false
-    'impulse, conditional: /' + someString()        | Mode.IMPULSE  | true      | true
-    'chain, conditional: /' + someString()          | Mode.CHAIN  | true      | false
-    'repeat, conditional: /' + someString()          | Mode.REPEAT  | true      | true
+    'conditional: /' + someString()                         | Mode.CHAIN    | true          | false
+    'impulse, conditional: /' + someString()                | Mode.IMPULSE  | true          | true
+    'chain, conditional: /' + someString()                  | Mode.CHAIN    | true          | false
+    'repeat, conditional: /' + someString()                 | Mode.REPEAT   | true          | true
 
-    'needs redstone: /' + someString()            | Mode.CHAIN  | false      | true
-    'impulse, needs redstone: /' + someString()        | Mode.IMPULSE  | false      | true
-    'chain, needs redstone: /' + someString()        | Mode.CHAIN  | false      | true
-    'repeat, needs redstone: /' + someString()        | Mode.REPEAT  | false      | true
+    'needs redstone: /' + someString()                      | Mode.CHAIN    | false         | true
+    'impulse, needs redstone: /' + someString()             | Mode.IMPULSE  | false         | true
+    'chain, needs redstone: /' + someString()               | Mode.CHAIN    | false         | true
+    'repeat, needs redstone: /' + someString()              | Mode.REPEAT   | false         | true
 
-    'always active: /' + someString()            | Mode.CHAIN  | false      | false
-    'impulse, always active: /' + someString()        | Mode.IMPULSE  | false      | false
-    'chain, always active: /' + someString()        | Mode.CHAIN  | false      | false
-    'repeat, always active: /' + someString()        | Mode.REPEAT  | false      | false
+    'always active: /' + someString()                       | Mode.CHAIN    | false         | false
+    'impulse, always active: /' + someString()              | Mode.IMPULSE  | false         | false
+    'chain, always active: /' + someString()                | Mode.CHAIN    | false         | false
+    'repeat, always active: /' + someString()               | Mode.REPEAT   | false         | false
 
-    'conditional, needs redstone: /' + someString()      | Mode.CHAIN  | true      | true
-    'impulse, conditional, needs redstone: /' + someString()| Mode.IMPULSE  | true      | true
-    'chain, conditional, needs redstone: /' + someString()  | Mode.CHAIN  | true      | true
-    'repeat, conditional, needs redstone: /' + someString()  | Mode.REPEAT  | true      | true
+    'conditional, needs redstone: /' + someString()         | Mode.CHAIN    | true          | true
+    'impulse, conditional, needs redstone: /' + someString()| Mode.IMPULSE  | true          | true
+    'chain, conditional, needs redstone: /' + someString()  | Mode.CHAIN    | true          | true
+    'repeat, conditional, needs redstone: /' + someString() | Mode.REPEAT   | true          | true
 
-    'conditional, always active: /' + someString()      | Mode.CHAIN  | true      | false
-    'impulse, conditional, always active: /' + someString()  | Mode.IMPULSE  | true      | false
-    'chain, conditional, always active: /' + someString()  | Mode.CHAIN  | true      | false
-    'repeat, conditional, always active: /' + someString()  | Mode.REPEAT  | true      | false
+    'conditional, always active: /' + someString()          | Mode.CHAIN    | true          | false
+    'impulse, conditional, always active: /' + someString() | Mode.IMPULSE  | true          | false
+    'chain, conditional, always active: /' + someString()   | Mode.CHAIN    | true          | false
+    'repeat, conditional, always active: /' + someString()  | Mode.REPEAT   | true          | false
   }
 
   @Test
@@ -82,21 +82,21 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[1] == new Command("/blockdata \${this - 1} {SuccessCount:1}")
     commands[2] == new Command(command, mode, true, needsRedstone)
     where:
-    programString                     | mode       | needsRedstone
-    'invert: /' + someString()              | Mode.CHAIN  | false
-    'impulse, invert: /' + someString()          | Mode.IMPULSE  | true
-    'chain, invert: /' + someString()          | Mode.CHAIN  | false
-    'repeat, invert: /' + someString()          | Mode.REPEAT  | true
+    programString                                       | mode          | needsRedstone
+    'invert: /' + someString()                          | Mode.CHAIN    | false
+    'impulse, invert: /' + someString()                 | Mode.IMPULSE  | true
+    'chain, invert: /' + someString()                   | Mode.CHAIN    | false
+    'repeat, invert: /' + someString()                  | Mode.REPEAT   | true
 
-    'invert, needs redstone: /' + someString()      | Mode.CHAIN  | true
-    'impulse, invert, needs redstone: /' + someString()  | Mode.IMPULSE  | true
-    'chain, invert, needs redstone: /' + someString()  | Mode.CHAIN  | true
-    'repeat, invert, needs redstone: /' + someString()  | Mode.REPEAT  | true
+    'invert, needs redstone: /' + someString()          | Mode.CHAIN    | true
+    'impulse, invert, needs redstone: /' + someString() | Mode.IMPULSE  | true
+    'chain, invert, needs redstone: /' + someString()   | Mode.CHAIN    | true
+    'repeat, invert, needs redstone: /' + someString()  | Mode.REPEAT   | true
 
-    'invert, always active: /' + someString()      | Mode.CHAIN  | false
+    'invert, always active: /' + someString()           | Mode.CHAIN    | false
     'impulse, invert, always active: /' + someString()  | Mode.IMPULSE  | false
-    'chain, invert, always active: /' + someString()  | Mode.CHAIN  | false
-    'repeat, invert, always active: /' + someString()  | Mode.REPEAT  | false
+    'chain, invert, always active: /' + someString()    | Mode.CHAIN    | false
+    'repeat, invert, always active: /' + someString()   | Mode.REPEAT   | false
   }
 
   @Test
@@ -457,6 +457,115 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[2] == new Command("/setblock \${this + 1} redstone_block", true)
     commands[3] == null
     commands[4] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
+  }
+
+  @Test
+  public void "intercept in repeating Prozess wirft Exception"() {
+    given:
+    String name = someIdentifier()
+    String identifier = someIdentifier()
+    String programString = """
+    repeat process ${name}:
+    intercept ${identifier}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    interpreter.exceptions.size() == 1
+    CompilerException ex = interpreter.exceptions[0]
+    ex.file == lastTempFile
+    ex.token.line == 3
+    ex.token.text == 'intercept'
+    ex.message == 'Encountered intercept in repeating context.'
+  }
+
+  @Test
+  public void "intercept in repeating script wirft Exception"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    repeat: /say hi
+    intercept ${identifier}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    interpreter.exceptions.size() == 1
+    CompilerException ex = interpreter.exceptions[0]
+    ex.file == lastTempFile
+    ex.token.line == 3
+    ex.token.text == 'intercept'
+    ex.message == 'Encountered intercept in repeating context.'
+  }
+
+  @Test
+  public void "intercept generiert die richtigen Commandos"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = 'intercept ' + identifier
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 6
+    commands[0] == new Command("/entitydata @e[name=${identifier}] {CustomName:\"${identifier}_INTERCEPTED\"}")
+    commands[1] == new Command("/summon ArmorStand \${this + 1} {CustomName:\"${identifier}\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+    commands[2] == null
+    commands[3] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[4] == new Command("/kill @e[name=${identifier},r=2]")
+    commands[5] == new Command("/entitydata @e[name=${identifier}_INTERCEPTED] {CustomName:\"${identifier}\"}")
+  }
+
+  @Test
+  public void "conditional: intercept generiert die richtigen Commandos"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = 'conditional: intercept ' + identifier
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 9
+    commands[0] == new Command("/blockdata \${this - 1} {SuccessCount:0}", true)
+    commands[1] == new Command("/blockdata \${this - 1} {SuccessCount:1}")
+    commands[2] == new Command("/setblock \${this + 3} redstone_block", true)
+    commands[3] == new Command("/entitydata @e[name=${identifier}] {CustomName:\"${identifier}_INTERCEPTED\"}")
+    commands[4] == new Command("/summon ArmorStand \${this + 1} {CustomName:\"${identifier}\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+    commands[5] == null
+    commands[6] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[7] == new Command("/kill @e[name=${identifier},r=2]")
+    commands[8] == new Command("/entitydata @e[name=${identifier}_INTERCEPTED] {CustomName:\"${identifier}\"}")
+  }
+
+  @Test
+  public void "invert: intercept generiert die richtigen Commandos"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = 'invert: intercept ' + identifier
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 7
+    commands[0] == new Command("/setblock \${this + 3} redstone_block", true)
+    commands[1] == new Command("/entitydata @e[name=${identifier}] {CustomName:\"${identifier}_INTERCEPTED\"}")
+    commands[2] == new Command("/summon ArmorStand \${this + 1} {CustomName:\"${identifier}\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+    commands[3] == null
+    commands[4] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[5] == new Command("/kill @e[name=${identifier},r=2]")
+    commands[6] == new Command("/entitydata @e[name=${identifier}_INTERCEPTED] {CustomName:\"${identifier}\"}")
   }
 
   @Test

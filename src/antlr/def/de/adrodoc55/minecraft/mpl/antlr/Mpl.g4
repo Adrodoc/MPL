@@ -79,6 +79,7 @@ commandDeclaration
     | stop
     | notifyDeclaration
     | waitfor
+    | intercept
   )
 ;
 
@@ -143,6 +144,11 @@ waitfor
 notifyDeclaration
 :
   NOTIFY
+;
+
+intercept
+:
+  INTERCEPT IDENTIFIER
 ;
 
 skip
@@ -251,6 +257,11 @@ WAITFOR
 NOTIFY
 :
   'notify'
+;
+
+INTERCEPT
+:
+  'intercept'
 ;
 
 SKIP

@@ -24,6 +24,7 @@ import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 import de.adrodoc55.minecraft.mpl.CommandChain;
 import de.adrodoc55.minecraft.mpl.CompilerException;
+import de.adrodoc55.minecraft.mpl.antlr.CommandBuffer.Conditional;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.AutoContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandDeclarationContext;
@@ -32,6 +33,7 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.FileContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ImportDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.InstallContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.InterceptContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModusContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.NotifyDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProcessContext;
@@ -288,15 +290,13 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterConditional(ConditionalContext ctx) {
-    Boolean conditional = null;
+    Conditional conditional = null;
     if (ctx.UNCONDITIONAL() != null) {
-      conditional = false;
+      conditional = Conditional.UNCONDITIONAL;
     } else if (ctx.CONDITIONAL() != null) {
-      conditional = true;
+      conditional = Conditional.CONDITIONAL;
     } else if (ctx.INVERT() != null) {
-      chainBuffer.add(new Command("/blockdata ${this - 1} {SuccessCount:0}", true));
-      chainBuffer.add(new Command("/blockdata ${this - 1} {SuccessCount:1}"));
-      conditional = true;
+      conditional = Conditional.INVERT;
     }
     commandBuffer.setConditional(conditional);
   }
@@ -341,11 +341,11 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterStop(StopContext ctx) {
-    String method;
+    String process;
     if (ctx.IDENTIFIER() != null) {
-      method = ctx.IDENTIFIER().getText();
+      process = ctx.IDENTIFIER().getText();
     } else if (chainBuffer.isRepeatingProcess()) {
-      method = chainBuffer.getName();
+      process = chainBuffer.getName();
     } else {
       Token symbol = ctx.STOP().getSymbol();
       String line = lines.get(symbol.getLine() - 1);
@@ -353,8 +353,51 @@ public class MplInterpreter extends MplBaseListener {
           new CompilerException(programFile, symbol, line, "Can only stop repeating processes."));
       return;
     }
-    String command = "/execute @e[name=" + method + "] ~ ~ ~ /setblock ~ ~ ~ stone";
+    String command = "/execute @e[name=" + process + "] ~ ~ ~ /setblock ~ ~ ~ stone";
     commandBuffer.setCommand(command);
+  }
+
+  @Override
+  public void enterWaitfor(WaitforContext ctx) {
+    Token symbol = ctx.WAITFOR().getSymbol();
+    String line = lines.get(symbol.getLine() - 1);
+    if (chainBuffer.isRepeatingContext()) {
+      exceptions.add(new CompilerException(programFile, symbol, line,
+          "Encountered waitfor in repeating context."));
+      return;
+    }
+    TerminalNode identifier = ctx.IDENTIFIER();
+    String process;
+    if (identifier != null) {
+      process = identifier.getText();
+    } else if (lastStartIdentifier != null) {
+      process = lastStartIdentifier;
+      lastStartIdentifier = null;
+    } else {
+      exceptions.add(new CompilerException(programFile, symbol, line,
+          "Missing Identifier. No previous start was found to wait for."));
+      return;
+    }
+    Boolean conditional = commandBuffer.isConditional();
+    if (conditional == null) {
+      conditional = false;
+    }
+    if (conditional) {
+      commandBuffer.setCommand("/summon ArmorStand ${this + 3} {CustomName:\"" + process + NOTIFY
+          + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
+      chainBuffer.add(commandBuffer.toCommand());
+      chainBuffer.add(new Command("/blockdata ${this - 1} {SuccessCount:1}"));
+      chainBuffer.add(new Command("/setblock ${this + 1} redstone_block", true));
+      chainBuffer.add(null);
+      chainBuffer.add(new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
+    } else {
+      commandBuffer.setCommand("/summon ArmorStand ${this + 1} {CustomName:\"" + process + NOTIFY
+          + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
+      chainBuffer.add(commandBuffer.toCommand());
+      chainBuffer.add(null);
+      chainBuffer.add(new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
+    }
+    commandBuffer = null;
   }
 
   @Override
@@ -374,45 +417,36 @@ public class MplInterpreter extends MplBaseListener {
   }
 
   @Override
-  public void enterWaitfor(WaitforContext ctx) {
-    Token symbol = ctx.WAITFOR().getSymbol();
+  public void enterIntercept(InterceptContext ctx) {
+    Token symbol = ctx.INTERCEPT().getSymbol();
     String line = lines.get(symbol.getLine() - 1);
     if (chainBuffer.isRepeatingContext()) {
       exceptions.add(new CompilerException(programFile, symbol, line,
-          "Encountered waitfor in repeating context."));
+          "Encountered intercept in repeating context."));
       return;
     }
     TerminalNode identifier = ctx.IDENTIFIER();
-    String method;
-    if (identifier != null) {
-      method = identifier.getText();
-    } else if (lastStartIdentifier != null) {
-      method = lastStartIdentifier;
-      lastStartIdentifier = null;
-    } else {
-      exceptions.add(new CompilerException(programFile, symbol, line,
-          "Missing Identifier. No previous start was found to wait for."));
-      return;
-    }
-    Boolean conditional = commandBuffer.getConditional();
+    String process = identifier.getText();
+    Boolean conditional = commandBuffer.isConditional();
     if (conditional == null) {
       conditional = false;
     }
     if (conditional) {
-      commandBuffer.setCommand("/summon ArmorStand ${this + 3} {CustomName:\"" + method + NOTIFY
-          + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
-      chainBuffer.add(commandBuffer.toCommand());
-      chainBuffer.add(new Command("/blockdata ${this - 1} {SuccessCount:1}"));
-      chainBuffer.add(new Command("/setblock ${this + 1} redstone_block", true));
-      chainBuffer.add(null);
-      chainBuffer.add(new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
-    } else {
-      commandBuffer.setCommand("/summon ArmorStand ${this + 1} {CustomName:\"" + method + NOTIFY
-          + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
-      chainBuffer.add(commandBuffer.toCommand());
-      chainBuffer.add(null);
-      chainBuffer.add(new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
+      if (commandBuffer.getConditional() == Conditional.CONDITIONAL) {
+        chainBuffer.add(new Command("/blockdata ${this - 1} {SuccessCount:0}", true));
+        chainBuffer.add(new Command("/blockdata ${this - 1} {SuccessCount:1}"));
+      }
+      chainBuffer.add(new Command("/setblock ${this + 3} redstone_block", true));
     }
+    chainBuffer.add(new Command(
+        "/entitydata @e[name=" + process + "] {CustomName:\"" + process + "_INTERCEPTED\"}"));
+    chainBuffer.add(new Command("/summon ArmorStand ${this + 1} {CustomName:\"" + process
+        + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
+    chainBuffer.add(null);
+    chainBuffer.add(new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
+    chainBuffer.add(new Command("/kill @e[name=" + process + ",r=2]"));
+    chainBuffer.add(new Command(
+        "/entitydata @e[name=" + process + "_INTERCEPTED] {CustomName:\"" + process + "\"}"));
     commandBuffer = null;
   }
 
@@ -420,6 +454,10 @@ public class MplInterpreter extends MplBaseListener {
   public void exitCommandDeclaration(CommandDeclarationContext ctx) {
     if (commandBuffer == null) {
       return;
+    }
+    if (commandBuffer.getConditional() == Conditional.INVERT) {
+      chainBuffer.add(new Command("/blockdata ${this - 1} {SuccessCount:0}", true));
+      chainBuffer.add(new Command("/blockdata ${this - 1} {SuccessCount:1}"));
     }
     Command command = commandBuffer.toCommand();
     chainBuffer.add(command);
