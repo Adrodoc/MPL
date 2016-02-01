@@ -3,10 +3,8 @@ package de.adrodoc55.minecraft.mpl;
 import java.util.List;
 
 import de.adrodoc55.minecraft.Coordinate3D;
-import de.adrodoc55.minecraft.Coordinate3D.Direction;
-import de.adrodoc55.minecraft.mpl.Command.Mode;
 
-public class OneCommandConverter {
+public class OneCommandConverter extends MplConverter {
 
   private static final String HEADER =
       "/summon FallingSand ~ ~1 ~ {Block:redstone_block,Time:1,Passengers:[{id:FallingSand,Block:activator_rail,Time:1,Passengers:[";
@@ -32,10 +30,7 @@ public class OneCommandConverter {
   private static StringBuilder convert(CommandBlock block) {
     String coordinate = block.getCoordinate().plus(OFFSET).toRelativeString();
     String blockId = toBlockId(block.getMode());
-    int damage = toIntDirection(block.getDirection());
-    if (block.isConditional()) {
-      damage += 8;
-    }
+    int damage = toDamageValue(block);
     StringBuilder sb = new StringBuilder("{id:MinecartCommandBlock,Command:");
     sb.append("setblock ");
     sb.append(coordinate).append(' ');
@@ -52,39 +47,4 @@ public class OneCommandConverter {
     return sb;
   }
 
-  private static String toBlockId(Mode mode) {
-    if (mode == null) {
-      throw new NullPointerException("mode == null");
-    }
-    switch (mode) {
-      case IMPULSE:
-        return "command_block";
-      case CHAIN:
-        return "chain_command_block";
-      case REPEAT:
-        return "repeating_command_block";
-    }
-    throw new IllegalArgumentException("Unknown Mode: " + mode);
-  }
-
-  private static int toIntDirection(Direction direction) {
-    if (direction == null) {
-      throw new NullPointerException("mode == null");
-    }
-    switch (direction) {
-      case DOWN:
-        return 0;
-      case UP:
-        return 1;
-      case NORTH:
-        return 2;
-      case SOUTH:
-        return 3;
-      case WEST:
-        return 4;
-      case EAST:
-        return 5;
-    }
-    throw new IllegalArgumentException("Unknown Direction: " + direction);
-  }
 }

@@ -32,24 +32,6 @@ public class CommandBlock {
     this.coordinate = coordinate;
   }
 
-  public String toPython() {
-    String x = "box.minx + " + coordinate.getX();
-    String y = "box.miny + " + coordinate.getY();
-    String z = "box.minz + " + coordinate.getZ();
-    if (command == null) {
-      return "level.setBlockAt(" + x + ", " + y + ", " + z + ", 1)";
-    } else {
-      String xyz = "(" + x + ", " + y + ", " + z + ")";
-      String command = this.command.getCommand();
-      String direction = this.direction.toString().toLowerCase();
-      String mode = this.command.getMode().toString().toLowerCase();
-      String conditional = this.command.isConditional() ? "True" : "False";
-      String auto = this.command.needsRedstone() ? "False" : "True";
-      return "create_command_block(level, " + xyz + ", '" + command + "', '" + direction + "', '"
-          + mode + "', " + conditional + ", " + auto + ")";
-    }
-  }
-
   public String getCommand() {
     return command.getCommand();
   }

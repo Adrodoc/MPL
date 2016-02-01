@@ -2,8 +2,10 @@ package de.adrodoc55.minecraft.mpl.gui;
 
 import java.awt.KeyboardFocusManager;
 import java.awt.Window;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -20,9 +22,9 @@ import org.beanfabrics.support.Operation;
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.CompilerException;
-import de.adrodoc55.minecraft.mpl.Main;
 import de.adrodoc55.minecraft.mpl.MplCompiler;
 import de.adrodoc55.minecraft.mpl.OneCommandConverter;
+import de.adrodoc55.minecraft.mpl.PythonConverter;
 import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException;
 import de.adrodoc55.minecraft.mpl.gui.MplEditorPM.Context;
 import de.adrodoc55.minecraft.mpl.gui.dialog.ExceptionDialog;
@@ -119,40 +121,27 @@ public class MplFramePM extends AbstractPM {
 
   @Operation
   public void compileFile() {
-    if (warnAboutUnsavedResources()) {
-      return;
-    }
-
-    MplEditorPM selected = editors.getSelection().getFirst();
-    if (selected == null) {
-      return;
-    }
-    File file = selected.getFile();
-    if (file == null) {
-      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-      JOptionPane.showMessageDialog(activeWindow,
-          "You need to save this File before it can be compiled!", "Compilation Failed!",
-          JOptionPane.ERROR_MESSAGE);
-      return;
-    }
     try {
-      String targetFileName = FileUtils.getFilenameWithoutExtension(file) + ".py";
+      List<CommandBlockChain> chains = compile();
+      if (chains == null) {
+        return;
+      }
+      MplEditorPM selected = editors.getSelection().getFirst();
+      if (selected == null) {
+        return;
+      }
       File dir = getCompilationDir();
       if (dir == null) {
         return;
       }
-      Main.main(file, new File(dir, targetFileName));
-    } catch (CompilationFailedException ex) {
-      ExceptionDialog dialog = ExceptionDialog.create("Compilation Failed!",
-          "The Compiler encountered Errors!", ex.toString());
-      dialog.setVisible(true);
-      Map<File, List<CompilerException>> exceptions = ex.getExceptions();
-      for (File programFile : exceptions.keySet()) {
-        for (MplEditorPM editorPm : editors) {
-          if (programFile.equals(editorPm.getFile())) {
-            editorPm.setCompilerExceptions(exceptions.get(programFile));
-          }
-        }
+      String name = FileUtils.getFilenameWithoutExtension(selected.getTitle());
+      String targetFileName = name + ".py";
+      File outputFile = new File(dir, targetFileName);
+      outputFile.getParentFile().mkdirs();
+      outputFile.createNewFile();
+      String python = PythonConverter.convert(chains, name);
+      try (BufferedWriter writer = Files.newBufferedWriter(outputFile.toPath());) {
+        writer.write(python.toString());
       }
     } catch (Exception ex) {
       ex.printStackTrace();
@@ -170,13 +159,31 @@ public class MplFramePM extends AbstractPM {
 
   @Operation
   public void compileCommand() {
-    if (warnAboutUnsavedResources()) {
+    List<CommandBlockChain> chains = compile();
+    if (chains == null) {
       return;
+    }
+    String oneCommand = OneCommandConverter.convert(chains);
+    OneCommandDialog dialog = new OneCommandDialog();
+    OneCommandDialogPM dialogPm = new OneCommandDialogPM();
+    dialog.setPresentationModel(dialogPm);
+    dialogPm.setText(oneCommand);
+    dialog.setVisible(true);
+  }
+
+  public void compileCommandUnder() {
+    chooseCompilationDir();
+    compileCommand();
+  }
+
+  private List<CommandBlockChain> compile() {
+    if (warnAboutUnsavedResources()) {
+      return null;
     }
 
     MplEditorPM selected = editors.getSelection().getFirst();
     if (selected == null) {
-      return;
+      return null;
     }
     File file = selected.getFile();
     if (file == null) {
@@ -184,16 +191,10 @@ public class MplFramePM extends AbstractPM {
       JOptionPane.showMessageDialog(activeWindow,
           "You need to save this File before it can be compiled!", "Compilation Failed!",
           JOptionPane.ERROR_MESSAGE);
-      return;
+      return null;
     }
     try {
-      List<CommandBlockChain> chains = MplCompiler.compile(file);
-      String oneCommand = OneCommandConverter.convert(chains);
-      OneCommandDialog dialog = new OneCommandDialog();
-      OneCommandDialogPM dialogPm = new OneCommandDialogPM();
-      dialog.setPresentationModel(dialogPm);
-      dialogPm.setText(oneCommand);
-      dialog.setVisible(true);
+      return MplCompiler.compile(file);
     } catch (CompilationFailedException ex) {
       ExceptionDialog dialog = ExceptionDialog.create("Compilation Failed!",
           "The Compiler encountered Errors!", ex.toString());
@@ -212,11 +213,7 @@ public class MplFramePM extends AbstractPM {
       JOptionPane.showMessageDialog(activeWindow, ex.getMessage(), ex.getClass().getSimpleName(),
           JOptionPane.ERROR_MESSAGE);
     }
-  }
-
-  public void compileCommandUnder() {
-    chooseCompilationDir();
-    compileCommand();
+    return null;
   }
 
   private File compilationDir;

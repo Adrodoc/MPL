@@ -9,10 +9,10 @@ public class FileUtils {
   }
 
   public static String getFilenameWithoutExtension(File file) {
-    return getFileNameWithoutExtension(file.getName());
+    return getFilenameWithoutExtension(file.getName());
   }
 
-  public static String getFileNameWithoutExtension(String fileName) {
+  public static String getFilenameWithoutExtension(String fileName) {
     int idx = fileName.lastIndexOf('.');
     String name = (idx == -1) ? fileName : fileName.substring(0, idx);
     return name;
