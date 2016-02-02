@@ -11,7 +11,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
-import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -41,14 +40,6 @@ import org.beanfabrics.swing.BnMenuItem;
 public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscriber {
 
   private static final long serialVersionUID = 1L;
-
-  public static void main(String[] args) throws Exception {
-    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-    MplFrame frame = new MplFrame();
-    MplFramePM pModel = new MplFramePM();
-    frame.setPresentationModel(pModel);
-    frame.setVisible(true);
-  }
 
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;

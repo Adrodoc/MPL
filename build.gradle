@@ -102,12 +102,12 @@ eclipseClasspath.dependsOn generateAntlr4
 jar {
   manifest {
     attributes(
-        'Created-By':        'Adrodoc55 (adrodoc55@googlemail.com)',
-        'Specification-Title':    productName,
-        'Specification-Version':  version,
-        'Implementation-Title':    productName,
-        'Implementation-Version':  version,
-        'Main-Class':   'de.adrodoc55.minecraft.mpl.gui.MplFrame'
+        'Created-By':               'Adrodoc55 (adrodoc55@googlemail.com)',
+        'Specification-Title':      productName,
+        'Specification-Version':    version,
+        'Implementation-Title':     productName,
+        'Implementation-Version':   version,
+        'Main-Class':               'de.adrodoc55.minecraft.mpl.gui.MplMain'
         )
   }
 }
@@ -124,12 +124,12 @@ task fatJar(type: Jar) {
   }
   manifest {
     attributes(
-        'Created-By':        'Adrodoc55 (adrodoc55@googlemail.com)',
-        'Specification-Title':    productName,
-        'Specification-Version':  version,
-        'Implementation-Title':    productName,
-        'Implementation-Version':  version,
-        'Main-Class':   'de.adrodoc55.minecraft.mpl.gui.MplFrame'
+        'Created-By':               'Adrodoc55 (adrodoc55@googlemail.com)',
+        'Specification-Title':      productName,
+        'Specification-Version':    version,
+        'Implementation-Title':     productName,
+        'Implementation-Version':   version,
+        'Main-Class':               'de.adrodoc55.minecraft.mpl.gui.MplMain'
         )
   }
 }
