@@ -603,6 +603,363 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
+  public void "if mit nur einem then wird zu conditional"() {
+    given:
+    String programString = """
+    if: /testfor @p
+    then:
+      /say then
+    end
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 2
+
+    commands[0] == new Command("/testfor @p")
+    commands[1] == new Command("/say then", true)
+  }
+
+  @Test
+  public void "if not mit nur einem then wird zu invert"() {
+    given:
+    String programString = """
+    if not: /testfor @p
+    then:
+      /say then
+    end
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 3
+
+    commands[0] == new Command('/testfor @p')
+    commands[1] == new Command('/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
+    commands[2] == new Command('/say then', true)
+  }
+
+  @Test
+  public void "if mit then und else wird zu conditional und invert"() {
+    given:
+    String programString = """
+    if: /testfor @p
+    then:
+      /say then
+    else:
+      /say else
+    end
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 4
+
+    commands[0] == new Command('/testfor @p')
+    commands[1] == new Command('/say then', true)
+    commands[2] == new Command('/testforblock ${this - 2} chain_command_block -1 {SuccessCount:0}')
+    commands[3] == new Command('/say else', true)
+  }
+
+  @Test
+  public void "if mit meheren then: erster conditional, andere SuccessCount:1"() {
+    given:
+    String programString = """
+    if: /testfor @p
+    then:
+      /say then1
+      /say then2
+      /say then3
+    end
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 7
+
+    commands[0] == new Command('/testfor @p')
+    commands[1] == new Command('/testforblock ~ ~ ~ chain_command_block', true)
+    commands[2] == new Command('/say then1', true)
+    commands[3] == new Command('/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}')
+    commands[4] == new Command('/say then2', true)
+    commands[5] == new Command('/testforblock ${this - 4} chain_command_block -1 {SuccessCount:1}')
+    commands[6] == new Command('/say then3', true)
+  }
+
+  @Test
+  public void "if not mit meheren then: alle SuccessCount:0"() {
+    given:
+    String programString = """
+    if not: /testfor @p
+    then:
+      /say then1
+      /say then2
+      /say then3
+    end
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 7
+
+    commands[0] == new Command('/testfor @p')
+    commands[1] == new Command('/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
+    commands[2] == new Command('/say then1', true)
+    commands[3] == new Command('/testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}')
+    commands[4] == new Command('/say then2', true)
+    commands[5] == new Command('/testforblock ${this - 5} chain_command_block -1 {SuccessCount:0}')
+    commands[6] == new Command('/say then3', true)
+  }
+
+  @Test
+  public void "if mit meheren then und else"() {
+    given:
+    String programString = """
+    if: /testfor @p
+    then:
+      /say then1
+      /say then2
+      /say then3
+    else:
+      /say else1
+      /say else2
+      /say else3
+    end
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 13
+
+    commands[0] == new Command('/testfor @p')
+    commands[1] == new Command('/testforblock ~ ~ ~ chain_command_block', true)
+    commands[2] == new Command('/say then1', true)
+    commands[3] == new Command('/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}')
+    commands[4] == new Command('/say then2', true)
+    commands[5] == new Command('/testforblock ${this - 4} chain_command_block -1 {SuccessCount:1}')
+    commands[6] == new Command('/say then3', true)
+    commands[7] == new Command('/testforblock ${this - 6} chain_command_block -1 {SuccessCount:0}')
+    commands[8] == new Command('/say else1', true)
+    commands[9] == new Command('/testforblock ${this - 8} chain_command_block -1 {SuccessCount:0}')
+    commands[10] == new Command('/say else2', true)
+    commands[11] == new Command('/testforblock ${this - 10} chain_command_block -1 {SuccessCount:0}')
+    commands[12] == new Command('/say else3', true)
+  }
+
+  @Test
+  public void "if not mit meheren then und else"() {
+    given:
+    String programString = """
+    if not: /testfor @p
+    then:
+      /say then1
+      /say then2
+      /say then3
+    else:
+      /say else1
+      /say else2
+      /say else3
+    end
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 14
+
+    commands[0] == new Command('/testfor @p')
+    commands[1] == new Command('/testforblock ~ ~ ~ chain_command_block', true)
+    commands[2] == new Command('/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
+    commands[3] == new Command('/say then1', true)
+    commands[4] == new Command('/testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}')
+    commands[5] == new Command('/say then2', true)
+    commands[6] == new Command('/testforblock ${this - 5} chain_command_block -1 {SuccessCount:0}')
+    commands[7] == new Command('/say then3', true)
+    commands[8] == new Command('/testforblock ${this - 7} chain_command_block -1 {SuccessCount:1}')
+    commands[9] == new Command('/say else1', true)
+    commands[10] == new Command('/testforblock ${this - 9} chain_command_block -1 {SuccessCount:1}')
+    commands[11] == new Command('/say else2', true)
+    commands[12] == new Command('/testforblock ${this - 11} chain_command_block -1 {SuccessCount:1}')
+    commands[13] == new Command('/say else3', true)
+  }
+
+  @Test
+  public void "if mit conditional im then"() {
+    given:
+    String programString = """
+    if: /testfor @p
+    then:
+      /say then1
+      contitional: /say then2
+      /say then3
+    end
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 6
+
+    commands[0] == new Command('/testfor @p')
+    commands[1] == new Command('/testforblock ~ ~ ~ chain_command_block', true)
+    commands[2] == new Command('/say then1', true)
+    commands[3] == new Command('/say then2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung false, muss auch mein vorgänger false sein.
+    commands[4] == new Command('/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}')
+    commands[5] == new Command('/say then3', true)
+  }
+
+  @Test
+  public void "if mit conditional im then (kein normalizer)"() {
+    given:
+    String programString = """
+    if: /testfor @p
+    then:
+      /say then1
+      contitional: /say then2
+    end
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 3
+
+    commands[0] == new Command('/testfor @p')
+    commands[1] == new Command('/say then1', true)
+    commands[2] == new Command('/say then2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung false, muss auch mein vorgänger false sein.
+  }
+
+  @Test
+  public void "if mit invert im then"() {
+    given:
+    String programString = """
+    if: /testfor @p
+    then:
+      /say then
+      invert: /say then2
+    end
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 5
+
+    commands[0] == new Command('/testfor @p')
+    commands[1] == new Command('/testforblock ~ ~ ~ chain_command_block', true)
+    commands[2] == new Command('/say then1', true)
+    commands[3] == new Command('/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
+    commands[4] == new Command('/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}', true)
+    commands[5] == new Command('/say then2', true)
+  }
+
+  @Test
+  public void "if mit conditional im else"() {
+    given:
+    String programString = """
+    if: /testfor @p
+    then:
+      /say then
+    else:
+      say else1
+      contitional: /say else2
+    end
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 5
+
+    commands[0] == new Command('/testfor @p')
+    commands[1] == new Command('/say then', true)
+    commands[2] == new Command('/testforblock ${this - 2} chain_command_block -1 {SuccessCount:0}')
+    commands[3] == new Command('/say else1', true)
+    commands[4] == new Command('/say else2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung true, muss auch mein vorgänger false sein.
+  }
+
+  @Test
+  public void "if mit invert im else"() {
+    given:
+    String programString = """
+    if: /testfor @p
+    then:
+      /say then
+    else:
+      say else1
+      invert: /say else2
+    end
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 7
+
+    commands[0] == new Command('/testfor @p')
+    commands[1] == new Command('/say then', true)
+    commands[2] == new Command('/testforblock ${this - 2} chain_command_block -1 {SuccessCount:0}')
+    commands[3] == new Command('/say else1', true)
+    commands[4] == new Command('/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
+    commands[5] == new Command('/testforblock ${this - 5} chain_command_block -1 {SuccessCount:0}', true)
+    commands[6] == new Command('/say else2', true)
+  }
+
+  @Test
   public void "Ein impulse Prozess deaktiviert sich selbst"() {
     given:
     String name = someIdentifier()

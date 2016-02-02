@@ -65,6 +65,7 @@ line
 :
   commandDeclaration
   | skip
+  | ifDeclaration
 ;
 
 commandDeclaration
@@ -154,6 +155,14 @@ intercept
 skip
 :
   SKIP
+;
+
+ifDeclaration
+:
+  IF NOT? ':' command THEN ':' line*
+  (
+    ELSE ':' line*
+  )? END
 ;
 
 COMMENT
@@ -267,6 +276,31 @@ INTERCEPT
 SKIP
 :
   'skip'
+;
+
+IF
+:
+  'if'
+;
+
+NOT
+:
+  'not'
+;
+
+THEN
+:
+  'then'
+;
+
+ELSE
+:
+  'else'
+;
+
+END
+:
+  'end'
 ;
 
 UNSIGNED_INT
