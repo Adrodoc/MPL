@@ -20,6 +20,7 @@ import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 import de.adrodoc55.minecraft.mpl.CommandChain;
@@ -58,8 +59,7 @@ public class MplInterpreter extends MplBaseListener {
 
   private static FileContext parse(File programFile) throws IOException {
     byte[] bytes = Files.readAllBytes(programFile.toPath());
-    ANTLRInputStream input =
-        new ANTLRInputStream(new String(bytes).replace("\r\n", "\n").replace("\r", "\n"));
+    ANTLRInputStream input = new ANTLRInputStream(FileUtils.toUnixLineEnding(new String(bytes)));
     MplLexer lexer = new MplLexer(input);
     TokenStream tokens = new CommonTokenStream(lexer);
     MplParser parser = new MplParser(tokens);

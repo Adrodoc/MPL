@@ -94,8 +94,9 @@ public class MplFramePM extends AbstractPM {
     try {
       MplEditorPM editorPm = new MplEditorPM(createDefaultContext());
       editorPm.setFile(file);
-      addMplEditorPm(editorPm);
       editorPm.load();
+      addMplEditorPm(editorPm);
+      editorPm.setUnsavedChanges(false);
     } catch (IOException ex) {
       String message = "The File '" + file.getPath() + "' couldn't be loaded!\n" + ex.getMessage();
       String title = ex.getClass().getSimpleName();
@@ -175,8 +176,8 @@ public class MplFramePM extends AbstractPM {
     String oneCommand = OneCommandConverter.convert(chains);
     OneCommandDialog dialog = new OneCommandDialog();
     OneCommandDialogPM dialogPm = new OneCommandDialogPM();
-    dialog.setPresentationModel(dialogPm);
     dialogPm.setText(oneCommand);
+    dialog.setPresentationModel(dialogPm);
     dialog.setVisible(true);
   }
 

@@ -21,6 +21,7 @@ import org.beanfabrics.model.PMManager;
 import org.beanfabrics.model.TextPM;
 import org.beanfabrics.support.Operation;
 
+import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.CompilerException;
 
 public class MplEditorPM extends AbstractPM {
@@ -160,7 +161,7 @@ public class MplEditorPM extends AbstractPM {
       return;
     }
     byte[] bytes = Files.readAllBytes(file.toPath());
-    String content = new String(bytes);
+    String content = FileUtils.toUnixLineEnding(new String(bytes));
     code.setText(content);
     resetChanges.getPropertyChangeSupport().firePropertyChange("resetChanges", null, null);
     setUnsavedChanges(false);

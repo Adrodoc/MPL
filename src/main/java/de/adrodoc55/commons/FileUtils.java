@@ -18,4 +18,8 @@ public class FileUtils {
     return name;
   }
 
+  public static String toUnixLineEnding(String text) {
+    return text.replace("\r\n", "\n").replace("\r", "\n");
+  }
+
 }
