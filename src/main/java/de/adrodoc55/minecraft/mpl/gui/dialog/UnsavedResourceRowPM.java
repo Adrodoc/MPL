@@ -6,12 +6,12 @@ import org.beanfabrics.model.PMManager;
 
 import de.adrodoc55.minecraft.mpl.gui.MplEditorPM;
 
-public class UnsavedFileRowPM extends AbstractPM {
+public class UnsavedResourceRowPM extends AbstractPM {
 
   BooleanPM save = new BooleanPM();
   final MplEditorPM editorPm;
 
-  public UnsavedFileRowPM(MplEditorPM editorPm) {
+  public UnsavedResourceRowPM(MplEditorPM editorPm) {
     save.setBoolean(true);
     this.editorPm = editorPm;
     PMManager.setup(this);

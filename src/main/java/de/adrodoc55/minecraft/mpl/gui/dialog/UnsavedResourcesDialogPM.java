@@ -10,23 +10,23 @@ import org.beanfabrics.support.Operation;
 
 import de.adrodoc55.minecraft.mpl.gui.MplEditorPM;
 
-public class UnsavedFilesDialogPM extends AbstractPM {
+public class UnsavedResourcesDialogPM extends AbstractPM {
 
-  ListPM<UnsavedFileRowPM> unsaved = new ListPM<UnsavedFileRowPM>();
+  ListPM<UnsavedResourceRowPM> unsaved = new ListPM<UnsavedResourceRowPM>();
   OperationPM ok = new OperationPM();
   OperationPM cancel = new OperationPM();
   private boolean canceled;
 
-  public UnsavedFilesDialogPM(Collection<MplEditorPM> unsavedEditors) {
+  public UnsavedResourcesDialogPM(Collection<MplEditorPM> unsavedEditors) {
     for (MplEditorPM mplEditorPM : unsavedEditors) {
-      unsaved.add(new UnsavedFileRowPM(mplEditorPM));
+      unsaved.add(new UnsavedResourceRowPM(mplEditorPM));
     }
     PMManager.setup(this);
   }
 
   @Operation
   public void ok() {
-    for (UnsavedFileRowPM unsavedFileRowPM : unsaved) {
+    for (UnsavedResourceRowPM unsavedFileRowPM : unsaved) {
       if (!unsavedFileRowPM.save.getBoolean()) {
         continue;
       }

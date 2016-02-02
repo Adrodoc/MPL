@@ -5,10 +5,10 @@ import org.beanfabrics.swing.ModelSubscriberBeanInfo;
 /**
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class UnsavedFilesDialogBeanInfo extends ModelSubscriberBeanInfo {
+public class UnsavedResourcesDialogBeanInfo extends ModelSubscriberBeanInfo {
   @Override
-  protected Class<UnsavedFilesDialog> getBeanClass() {
-    return UnsavedFilesDialog.class;
+  protected Class<UnsavedResourcesDialog> getBeanClass() {
+    return UnsavedResourcesDialog.class;
   }
 
   @Override

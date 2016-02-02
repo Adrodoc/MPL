@@ -32,8 +32,8 @@ import de.adrodoc55.minecraft.mpl.gui.MplEditorPM.Context;
 import de.adrodoc55.minecraft.mpl.gui.dialog.ExceptionDialog;
 import de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialog;
 import de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialogPM;
-import de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedFilesDialog;
-import de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedFilesDialogPM;
+import de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialog;
+import de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM;
 
 public class MplFramePM extends AbstractPM {
 
@@ -274,8 +274,8 @@ public class MplFramePM extends AbstractPM {
     }
     if (!unsaved.isEmpty()) {
       Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-      UnsavedFilesDialog dialog = new UnsavedFilesDialog(activeWindow);
-      UnsavedFilesDialogPM dialogPm = new UnsavedFilesDialogPM(unsaved);
+      UnsavedResourcesDialog dialog = new UnsavedResourcesDialog(activeWindow);
+      UnsavedResourcesDialogPM dialogPm = new UnsavedResourcesDialogPM(unsaved);
       dialog.setPresentationModel(dialogPm);
       dialog.setVisible(true);
       if (dialogPm.isCanceled()) {

@@ -27,13 +27,13 @@ import org.beanfabrics.swing.table.BnTable;
 
 /**
  * The UnsavedFilesDialog is a {@link View} on a
- * {@link de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedFilesDialogPM}.
+ * {@link de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM}.
  *
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
 @SuppressWarnings("serial")
-public class UnsavedFilesDialog extends JDialog
-    implements View<de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedFilesDialogPM>, ModelSubscriber {
+public class UnsavedResourcesDialog extends JDialog
+    implements View<de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM>, ModelSubscriber {
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
   private JLabel lblDescription;
@@ -44,15 +44,15 @@ public class UnsavedFilesDialog extends JDialog
   private JScrollPane scrollPane;
   private JPanel pnlCenter;
 
-  public UnsavedFilesDialog() {
+  public UnsavedResourcesDialog() {
     this(null);
   }
 
   /**
    * Constructs a new <code>UnsavedFilesDialog</code>.
    */
-  public UnsavedFilesDialog(Window parent) {
-    super(parent, "Unsaved Files");
+  public UnsavedResourcesDialog(Window parent) {
+    super(parent, "Unsaved Resources");
     init();
     setModal(true);
     setSize(200, 300);
@@ -87,19 +87,19 @@ public class UnsavedFilesDialog extends JDialog
     if (localModelProvider == null) {
       localModelProvider = new ModelProvider(); // @wb:location=10,430
       localModelProvider.setPresentationModelType(
-          de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedFilesDialogPM.class);
+          de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM.class);
     }
     return localModelProvider;
   }
 
   /** {@inheritDoc} */
-  public de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedFilesDialogPM getPresentationModel() {
+  public de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
   public void setPresentationModel(
-      de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedFilesDialogPM pModel) {
+      de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM pModel) {
     getLocalModelProvider().setPresentationModel(pModel);
   }
 
