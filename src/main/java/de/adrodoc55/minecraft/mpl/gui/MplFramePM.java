@@ -174,7 +174,8 @@ public class MplFramePM extends AbstractPM {
       return;
     }
     String oneCommand = OneCommandConverter.convert(chains);
-    OneCommandDialog dialog = new OneCommandDialog();
+    Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+    OneCommandDialog dialog = new OneCommandDialog(activeWindow);
     OneCommandDialogPM dialogPm = new OneCommandDialogPM();
     dialogPm.setText(oneCommand);
     dialog.setPresentationModel(dialogPm);
