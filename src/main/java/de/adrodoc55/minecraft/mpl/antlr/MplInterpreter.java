@@ -25,6 +25,7 @@ import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 import de.adrodoc55.minecraft.mpl.CommandChain;
 import de.adrodoc55.minecraft.mpl.CompilerException;
+import de.adrodoc55.minecraft.mpl.MplConverter;
 import de.adrodoc55.minecraft.mpl.antlr.CommandBuffer.Conditional;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.AutoContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandContext;
@@ -433,8 +434,7 @@ public class MplInterpreter extends MplBaseListener {
     }
     if (conditional) {
       if (commandBuffer.getConditional() == Conditional.CONDITIONAL) {
-        chainBuffer.add(new Command("/blockdata ${this - 1} {SuccessCount:0}", true));
-        chainBuffer.add(new Command("/blockdata ${this - 1} {SuccessCount:1}"));
+        addInvert(chainBuffer);
       }
       chainBuffer.add(new Command("/setblock ${this + 3} redstone_block", true));
     }
@@ -456,13 +456,28 @@ public class MplInterpreter extends MplBaseListener {
       return;
     }
     if (commandBuffer.getConditional() == Conditional.INVERT) {
-      chainBuffer.add(new Command("/blockdata ${this - 1} {SuccessCount:0}", true));
-      chainBuffer.add(new Command("/blockdata ${this - 1} {SuccessCount:1}"));
+      addInvert(chainBuffer);
     }
     Command command = commandBuffer.toCommand();
     chainBuffer.add(command);
     commandBuffer = null;
 
+  }
+
+  /**
+   * This method add's the inverting command to the given {@link ChainBuffer}.
+   *
+   * @param chainBuffer
+   */
+  private static void addInvert(ChainBuffer chainBuffer) {
+    LinkedList<Command> commands = chainBuffer.getCommands();
+    if (commands.isEmpty()) {
+      throw new IllegalArgumentException(
+          "The given ChainBuffer is empty. The first command of a chain cannot be an invert command.");
+    }
+    Command last = commands.peekLast();
+    String blockId = MplConverter.toBlockId(last.getMode());
+    chainBuffer.add(new Command("/testforblock ${this - 1} " + blockId + " -1 {SuccessCount:0}"));
   }
 
   @Override

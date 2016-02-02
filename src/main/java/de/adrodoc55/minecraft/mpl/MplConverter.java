@@ -5,7 +5,7 @@ import de.adrodoc55.minecraft.mpl.Command.Mode;
 
 public abstract class MplConverter {
 
-  protected static String toBlockId(Mode mode) {
+  public static String toBlockId(Mode mode) {
     if (mode == null) {
       throw new NullPointerException("mode == null");
     }

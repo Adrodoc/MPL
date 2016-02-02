@@ -10,6 +10,7 @@ import spock.lang.Unroll
 import de.adrodoc55.minecraft.mpl.Command
 import de.adrodoc55.minecraft.mpl.CommandChain
 import de.adrodoc55.minecraft.mpl.CompilerException
+import de.adrodoc55.minecraft.mpl.MplConverter;
 import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.Command.Mode
 
@@ -68,6 +69,9 @@ public class MplInterpreterSpec extends MplSpecBase {
   public void "Teste invert Modifier"(String programString, Mode mode, boolean needsRedstone) {
     given:
     String command = programString.find('/.+$')
+    programString = """
+      /say hi
+    """ + programString
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
@@ -78,8 +82,8 @@ public class MplInterpreterSpec extends MplSpecBase {
     List<Command> commands = chain.commands
     commands.size() == 3
 
-    commands[0] == new Command("/blockdata \${this - 1} {SuccessCount:0}", true)
-    commands[1] == new Command("/blockdata \${this - 1} {SuccessCount:1}")
+    commands[0] == new Command("/say hi")
+    commands[1] == new Command("/testforblock \${this - 1} chain_command_block -1 {SuccessCount:0}")
     commands[2] == new Command(command, mode, true, needsRedstone)
     where:
     programString                                       | mode          | needsRedstone
@@ -100,6 +104,34 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
+  @Unroll("Teste invert Modifier beruecksichtigt vorherigen command mode ('#mode')")
+  public void "Teste invert Modifier beruecksichtigt vorherigen command mode"(Mode mode) {
+    given:
+    String command = '/' + someString()
+    String lowercaseName = mode.name().toLowerCase()
+    String programString = """
+      ${lowercaseName}: ${command}
+      invert: /say hi
+    """
+    String blockId = MplConverter.toBlockId(mode)
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 3
+
+    commands[0] == new Command(command, mode, false)
+    commands[1] == new Command("/testforblock \${this - 1} ${blockId} -1 {SuccessCount:0}")
+    commands[2] == new Command("/say hi", true)
+    where:
+    mode << Mode.values()
+  }
+
+  @Test
   public void "invert modifier korrigiert alle inserts"() {
     given:
     String testString = """
@@ -116,13 +148,12 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
-    commands.size() == 6
-    commands[0] == new Command("/say \${this + 7}")
-    commands[1] == new Command("/say \${this + 3}")
-    commands[2] == new Command("/blockdata \${this - 1} {SuccessCount:0}", true)
-    commands[3] == new Command("/blockdata \${this - 1} {SuccessCount:1}")
-    commands[4] == new Command("/say \${this - 3}", true)
-    commands[5] == new Command("/say \${this - 7}")
+    commands.size() == 5
+    commands[0] == new Command("/say \${this + 6}")
+    commands[1] == new Command("/say \${this + 2}")
+    commands[2] == new Command("/testforblock \${this - 1} chain_command_block {SuccessCount:0}")
+    commands[3] == new Command("/say \${this - 2}", true)
+    commands[4] == new Command("/say \${this - 6}")
   }
 
   @Test
@@ -524,7 +555,10 @@ public class MplInterpreterSpec extends MplSpecBase {
   public void "conditional: intercept generiert die richtigen Commandos"() {
     given:
     String identifier = someIdentifier()
-    String programString = 'conditional: intercept ' + identifier
+    String programString = """
+      /say hi
+      conditional: intercept ${identifier}
+    """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
@@ -534,8 +568,8 @@ public class MplInterpreterSpec extends MplSpecBase {
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
     commands.size() == 9
-    commands[0] == new Command("/blockdata \${this - 1} {SuccessCount:0}", true)
-    commands[1] == new Command("/blockdata \${this - 1} {SuccessCount:1}")
+    commands[0] == new Command("/say hi")
+    commands[1] == new Command("/testforblock \${this - 1} chain_command_block -1 {SuccessCount:0}")
     commands[2] == new Command("/setblock \${this + 3} redstone_block", true)
     commands[3] == new Command("/entitydata @e[name=${identifier}] {CustomName:\"${identifier}_INTERCEPTED\"}")
     commands[4] == new Command("/summon ArmorStand \${this + 1} {CustomName:\"${identifier}\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
