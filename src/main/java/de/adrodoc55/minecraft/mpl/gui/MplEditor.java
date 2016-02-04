@@ -13,8 +13,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.AbstractDocument;
@@ -163,25 +161,15 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
       textPane.setEditorKit(new JaggedEditorKit());
       StyledDocument doc = textPane.getStyledDocument();
       ((AbstractDocument) doc).setDocumentFilter(getMplSyntaxFilter());
-      doc.addDocumentListener(new DocumentListener() {
-        @Override
-        public void removeUpdate(DocumentEvent e) {
-          getPresentationModel().code.setText(textPane.getText());
-        }
-
-        @Override
-        public void insertUpdate(DocumentEvent e) {
-          getPresentationModel().code.setText(textPane.getText());
-        }
-
-        @Override
-        public void changedUpdate(DocumentEvent e) {}
-      });
       getCodeObserver().addPropertyChangeListener(evt -> {
         if (getPresentationModel() != null) {
-          String text = getPresentationModel().code.getText();
-          if (!textPane.getText().equals(text)) {
-            textPane.setText(text);
+          String pmText = getPresentationModel().syntaxFilter.code.getText();
+          String docText = textPane.getText();
+          if (!docText.equals(pmText)) {
+            int oldCaretPos = textPane.getCaretPosition();
+            int newCaretPos = oldCaretPos + (pmText.length() - docText.length());
+            textPane.setText(pmText);
+            textPane.setCaretPosition(newCaretPos);
           }
         }
       });
@@ -238,7 +226,7 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
   private BnModelObserver getCodeObserver() {
     if (codeObserver == null) {
       codeObserver = new BnModelObserver();
-      codeObserver.setPath(new Path("this.code"));// @wb:location=9,379
+      codeObserver.setPath(new Path("this.syntaxFilter.code"));// @wb:location=9,379
       codeObserver.setModelProvider(getLocalModelProvider());
     }
     return codeObserver;

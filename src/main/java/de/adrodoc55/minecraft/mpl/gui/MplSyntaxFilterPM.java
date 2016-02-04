@@ -6,16 +6,24 @@ import java.util.List;
 import org.antlr.v4.runtime.Token;
 import org.beanfabrics.model.AbstractPM;
 import org.beanfabrics.model.PMManager;
+import org.beanfabrics.model.TextPM;
 
 import de.adrodoc55.minecraft.mpl.CompilerException;
+import de.adrodoc55.minecraft.mpl.gui.utils.TabToSpaceTextPM;
 
-public class MplSyntaxFilterPM extends AbstractPM {
+public class MplSyntaxFilterPM extends AbstractPM implements BnDocumentPM {
 
   private List<CompilerExceptionWrapper> exceptions;
+
+  TabToSpaceTextPM code = new TabToSpaceTextPM();
 
   public MplSyntaxFilterPM() {
     PMManager.setup(this);
   }
+
+  public TextPM getTextPM() {
+    return code;
+  };
 
   List<CompilerExceptionWrapper> getExceptions() {
     return exceptions;

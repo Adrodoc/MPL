@@ -12,11 +12,12 @@ import javax.swing.text.IconView;
 import javax.swing.text.LabelView;
 import javax.swing.text.ParagraphView;
 import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledEditorKit;
 import javax.swing.text.View;
 import javax.swing.text.ViewFactory;
 
-public class JaggedEditorKit extends StyledEditorKit {
+import de.adrodoc55.minecraft.mpl.gui.BnEditorKit;
+
+public class JaggedEditorKit extends BnEditorKit {
   private static final long serialVersionUID = 1L;
 
   public ViewFactory getViewFactory() {
