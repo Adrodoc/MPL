@@ -40,12 +40,12 @@ importDeclaration
 
 install
 :
-  INSTALL line*
+  INSTALL chain
 ;
 
 uninstall
 :
-  UNINSTALL line*
+  UNINSTALL chain
 ;
 
 process
@@ -53,10 +53,15 @@ process
   (
     IMPULSE
     | REPEAT
-  )? PROCESS IDENTIFIER ':' line*
+  )? PROCESS IDENTIFIER ':' chain
 ;
 
 skriptFile
+:
+  chain
+;
+
+chain
 :
   line*
 ;
@@ -159,10 +164,17 @@ skip
 
 ifDeclaration
 :
-  IF NOT? ':' command THEN ':' line*
-  (
-    ELSE ':' line*
-  )? END
+  IF NOT? ':' command then elseDeclaration? END
+;
+
+then
+:
+  THEN ':' chain
+;
+
+elseDeclaration
+:
+  ELSE ':' chain
 ;
 
 COMMENT

@@ -99,7 +99,7 @@ public class Command {
       return true;
     if (obj == null)
       return false;
-    if (getClass() != obj.getClass())
+    if (!Command.class.isInstance(obj))
       return false;
     Command other = (Command) obj;
     if (command == null) {

@@ -10,7 +10,7 @@ import spock.lang.Unroll
 import de.adrodoc55.minecraft.mpl.Command
 import de.adrodoc55.minecraft.mpl.CommandChain
 import de.adrodoc55.minecraft.mpl.CompilerException
-import de.adrodoc55.minecraft.mpl.MplConverter;
+import de.adrodoc55.minecraft.mpl.MplConverter
 import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.Command.Mode
 
@@ -21,16 +21,22 @@ public class MplInterpreterSpec extends MplSpecBase {
   public void "Teste basis Modifier"(String programString, Mode mode, boolean conditional, boolean needsRedstone) {
     given:
     String command = programString.find('/.+$')
+    programString = """
+    /say hi
+    ${programString}
+    """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
-    commands.size() == 1
-    commands[0] == new Command(command, mode, conditional, needsRedstone)
+    commands.size() == 2
+    commands[0] == new Command('/say hi')
+    commands[1] == new Command(command, mode, conditional, needsRedstone)
     where:
     programString                                           | mode          | conditional   | needsRedstone
     '/' + someString()                                      | Mode.CHAIN    | false         | false
@@ -75,6 +81,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -117,6 +124,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -143,6 +151,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(testString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -161,16 +170,22 @@ public class MplInterpreterSpec extends MplSpecBase {
   public void "start generiert die richtigen Commandos"(String programString, boolean conditional) {
     given:
     String identifier = programString.find('(?<=start ).+$')
+    programString = """
+    /say hi
+    ${programString}
+    """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
-    commands.size() == 1
-    commands[0] == new Command("/execute @e[name=${identifier}] ~ ~ ~ /setblock ~ ~ ~ redstone_block", conditional)
+    commands.size() == 2
+    commands[0] == new Command("/say hi")
+    commands[1] == new Command("/execute @e[name=${identifier}] ~ ~ ~ /setblock ~ ~ ~ redstone_block", conditional)
     where:
     programString                 | conditional
     'start ' + someIdentifier()          | false
@@ -182,12 +197,13 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String name = someIdentifier()
     String programString = """
-    repeat process ${name}
+    repeat process ${name}:
     stop
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -202,13 +218,14 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String name = someIdentifier()
     String programString = """
-    repeat process ${name}
+    repeat process ${name}:
     /say hi
     conditional: stop
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -244,12 +261,13 @@ public class MplInterpreterSpec extends MplSpecBase {
     String name = someIdentifier()
     String sid = someIdentifier()
     String programString = """
-    impulse process ${name}
+    impulse process ${name}:
     stop ${sid}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -265,12 +283,13 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String name = someIdentifier()
     String programString = """
-    process ${name}
+    process ${name}:
     notify
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -288,20 +307,23 @@ public class MplInterpreterSpec extends MplSpecBase {
     String name = someIdentifier()
     String programString = """
     process ${name}:
+    /say hi
     conditional: notify
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
-    commands.size() == 3
+    commands.size() == 4
     commands[0] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
-    commands[1] == new Command("/execute @e[name=${name}_NOTIFY] ~ ~ ~ /setblock ~ ~ ~ redstone_block", true)
-    commands[2] == new Command("/kill @e[name=${name}_NOTIFY]", true)
+    commands[1] == new Command("/say hi")
+    commands[2] == new Command("/execute @e[name=${name}_NOTIFY] ~ ~ ~ /setblock ~ ~ ~ redstone_block", true)
+    commands[3] == new Command("/kill @e[name=${name}_NOTIFY]", true)
   }
 
   @Test
@@ -327,13 +349,14 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String name = someIdentifier()
     String programString = """
-    repeat process ${name}
+    repeat process ${name}:
     /say hi
     notify
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -350,13 +373,14 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String name = someIdentifier()
     String programString = """
-    repeat process ${name}
+    repeat process ${name}:
     /say hi
     conditional: notify
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -420,6 +444,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -458,6 +483,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -473,21 +499,26 @@ public class MplInterpreterSpec extends MplSpecBase {
   public void "conditional: waitfor generiert die richtigen Commandos"() {
     given:
     String identifier = someIdentifier()
-    String programString = 'conditional: waitfor ' + identifier
+    String programString = """
+    /say hi
+    conditional: waitfor ${identifier}
+    """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
-    commands.size() == 5
-    commands[0] == new Command("/summon ArmorStand \${this + 3} {CustomName:\"${identifier}_NOTIFY\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true)
-    commands[1] == new Command("/blockdata \${this - 1} {SuccessCount:1}")
-    commands[2] == new Command("/setblock \${this + 1} redstone_block", true)
-    commands[3] == null
-    commands[4] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands.size() == 6
+    commands[0] == new Command("/say hi")
+    commands[1] == new Command("/summon ArmorStand \${this + 3} {CustomName:\"${identifier}_NOTIFY\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true)
+    commands[2] == new Command("/blockdata \${this - 1} {SuccessCount:1}")
+    commands[3] == new Command("/setblock \${this + 1} redstone_block", true)
+    commands[4] == null
+    commands[5] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
   }
 
   @Test
@@ -537,6 +568,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -562,6 +594,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -583,23 +616,28 @@ public class MplInterpreterSpec extends MplSpecBase {
   public void "invert: intercept generiert die richtigen Commandos"() {
     given:
     String identifier = someIdentifier()
-    String programString = 'invert: intercept ' + identifier
+    String programString = """
+    /say hi
+    invert: intercept ${identifier}
+    """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
-    commands.size() == 7
-    commands[0] == new Command("/setblock \${this + 3} redstone_block", true)
-    commands[1] == new Command("/entitydata @e[name=${identifier}] {CustomName:\"${identifier}_INTERCEPTED\"}")
-    commands[2] == new Command("/summon ArmorStand \${this + 1} {CustomName:\"${identifier}\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-    commands[3] == null
-    commands[4] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
-    commands[5] == new Command("/kill @e[name=${identifier},r=2]")
-    commands[6] == new Command("/entitydata @e[name=${identifier}_INTERCEPTED] {CustomName:\"${identifier}\"}")
+    commands.size() == 8
+    commands[0] == new Command("/say hi")
+    commands[1] == new Command("/setblock \${this + 3} redstone_block", true)
+    commands[2] == new Command("/entitydata @e[name=${identifier}] {CustomName:\"${identifier}_INTERCEPTED\"}")
+    commands[3] == new Command("/summon ArmorStand \${this + 1} {CustomName:\"${identifier}\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+    commands[4] == null
+    commands[5] == new Command("/setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[6] == new Command("/kill @e[name=${identifier},r=2]")
+    commands[7] == new Command("/entitydata @e[name=${identifier}_INTERCEPTED] {CustomName:\"${identifier}\"}")
   }
 
   @Test
@@ -614,6 +652,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -623,6 +662,94 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     commands[0] == new Command("/testfor @p")
     commands[1] == new Command("/say then", true)
+  }
+
+  @Test
+  public void "if erzeugt Exception, wenn erster then conditional"() {
+    given:
+    String programString = """
+    if: /testfor @p
+    then:
+      conditional: /say then
+    end
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List<CompilerException> exceptions = interpreter.exceptions
+    exceptions.size() == 1
+    CompilerException ex = exceptions.first()
+    ex.file == lastTempFile
+    ex.token.line == 4
+    ex.token.text == 'conditional'
+    ex.message == "The first command of a chain can only be unconditional."
+  }
+
+  @Test
+  public void "if erzeugt Exception, wenn erster invert"() {
+    given:
+    String programString = """
+    if: /testfor @p
+    then:
+      invert: /say then
+    end
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List<CompilerException> exceptions = interpreter.exceptions
+    exceptions.size() == 1
+    CompilerException ex = exceptions.first()
+    ex.file == lastTempFile
+    ex.token.line == 4
+    ex.token.text == 'invert'
+    ex.message == "The first command of a chain can only be unconditional."
+  }
+
+  @Test
+  public void "if erzeugt Exception, wenn erster else conditional"() {
+    given:
+    String programString = """
+    if: /testfor @p
+    then:
+      /say then
+    else:
+      conditional: /say else
+    end
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List<CompilerException> exceptions = interpreter.exceptions
+    exceptions.size() == 1
+    CompilerException ex = exceptions.first()
+    ex.file == lastTempFile
+    ex.token.line == 6
+    ex.token.text == 'conditional'
+    ex.message == "The first command of a chain can only be unconditional."
+  }
+
+  @Test
+  public void "if erzeugt Exception, wenn erster else invert"() {
+    given:
+    String programString = """
+    if: /testfor @p
+    then:
+      /say then
+    else:
+      invert: /say else
+    end
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    List<CompilerException> exceptions = interpreter.exceptions
+    exceptions.size() == 1
+    CompilerException ex = exceptions.first()
+    ex.file == lastTempFile
+    ex.token.line == 6
+    ex.token.text == 'invert'
+    ex.message == "The first command of a chain can only be unconditional."
   }
 
   @Test
@@ -637,6 +764,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -663,6 +791,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -677,7 +806,7 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
-  public void "if mit meheren then: erster conditional, andere SuccessCount:1"() {
+  public void "if mit meheren then erster conditional, andere SuccessCount:1"() {
     given:
     String programString = """
     if: /testfor @p
@@ -690,6 +819,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -707,7 +837,7 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
-  public void "if not mit meheren then: alle SuccessCount:0"() {
+  public void "if not mit meheren then alle SuccessCount:0"() {
     given:
     String programString = """
     if not: /testfor @p
@@ -720,6 +850,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -754,6 +885,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -794,6 +926,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -824,13 +957,14 @@ public class MplInterpreterSpec extends MplSpecBase {
     if: /testfor @p
     then:
       /say then1
-      contitional: /say then2
+      conditional: /say then2
       /say then3
     end
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -853,12 +987,13 @@ public class MplInterpreterSpec extends MplSpecBase {
     if: /testfor @p
     then:
       /say then1
-      contitional: /say then2
+      conditional: /say then2
     end
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -877,19 +1012,20 @@ public class MplInterpreterSpec extends MplSpecBase {
     String programString = """
     if: /testfor @p
     then:
-      /say then
+      /say then1
       invert: /say then2
     end
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
     CommandChain chain = chains.first()
     List<Command> commands = chain.commands
-    commands.size() == 5
+    commands.size() == 6
 
     commands[0] == new Command('/testfor @p')
     commands[1] == new Command('/testforblock ~ ~ ~ chain_command_block', true)
@@ -907,13 +1043,14 @@ public class MplInterpreterSpec extends MplSpecBase {
     then:
       /say then
     else:
-      say else1
-      contitional: /say else2
+      /say else1
+      conditional: /say else2
     end
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -936,13 +1073,14 @@ public class MplInterpreterSpec extends MplSpecBase {
     then:
       /say then
     else:
-      say else1
+      /say else1
       invert: /say else2
     end
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -964,12 +1102,13 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String name = someIdentifier()
     String programString = """
-    process ${name}
+    process ${name}:
     /say hi
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -985,12 +1124,13 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String name = someIdentifier()
     String programString = """
-    repeat process ${name}
+    repeat process ${name}:
     /say hi
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List chains = interpreter.chains
     chains.size() == 1
 
@@ -1007,16 +1147,17 @@ public class MplInterpreterSpec extends MplSpecBase {
     String id2 = someIdentifier()
     String id3 = someIdentifier()
     String programString = """
-    process ${id1}
+    process ${id1}:
     /say I am a default process
-    impulse process ${id2}
+    impulse process ${id2}:
     /say I am an impulse process, wich is actually equivalent to the default
-    repeat process ${id3}
+    repeat process ${id3}:
     /say I am a repeating process. I am completely different :)
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     List<CommandChain> chains = interpreter.chains
     chains.size() == 3
 
@@ -1061,6 +1202,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     interpreter.addFileImport(null, otherFile)
     then:
+    interpreter.exceptions.isEmpty()
     interpreter.imports.size() == 2
     interpreter.imports.containsAll([programFile, otherFile])
   }
@@ -1102,6 +1244,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     File file = lastTempFile
     then:
+    interpreter.exceptions.isEmpty()
     File parent = file.parentFile
     Map<File, Include> includeMap = interpreter.includes
     includeMap.size() == 1
@@ -1121,13 +1264,14 @@ public class MplInterpreterSpec extends MplSpecBase {
     String id1 = someIdentifier()
     String id2 = someIdentifier()
     String programString = """
-    process ${id1}
+    process ${id1}:
     /say I am a process
     conditional: start ${id2}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
+    interpreter.exceptions.isEmpty()
     Map<File, Include> includeMap = interpreter.includes
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id1);
@@ -1144,7 +1288,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     String id2 = someIdentifier()
     String programString = """
     import "newFolder"
-    process ${id1}
+    process ${id1}:
     /say I am a process
     conditional: start ${id2}
     """
@@ -1156,6 +1300,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString, file)
     then:
+    interpreter.exceptions.isEmpty()
     Map<File, Include> includeMap = interpreter.includes
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id1);
@@ -1172,7 +1317,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     String id2 = someIdentifier()
     String programString = """
     import "newFolder/newFile"
-    process ${id1}
+    process ${id1}:
     /say I am a process
     conditional: start ${id2}
     """
@@ -1183,6 +1328,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString, file)
     then:
+    interpreter.exceptions.isEmpty()
     Map<File, Include> includeMap = interpreter.includes
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id1);

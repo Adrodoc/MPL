@@ -16,15 +16,24 @@ class ChainBuffer {
   private boolean repeatingContext;
   private final LinkedList<Command> commands = new LinkedList<Command>();
 
-  public boolean add(Command e) {
-    if (e != null) {
-      if (e.getMode() == Mode.IMPULSE) {
+  public boolean add(Command command) {
+    updateContext(command);
+    return commands.add(command);
+  }
+
+  public void add(int index, Command command) {
+    updateContext(command);
+    commands.add(index, command);
+  }
+
+  private void updateContext(Command command) {
+    if (command != null) {
+      if (command.getMode() == Mode.IMPULSE) {
         setRepeatingContext(false);
-      } else if (e.getMode() == Mode.REPEAT) {
+      } else if (command.getMode() == Mode.REPEAT) {
         setRepeatingContext(true);
       }
     }
-    return commands.add(e);
   }
 
   /**

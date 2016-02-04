@@ -25,13 +25,17 @@ import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 import de.adrodoc55.minecraft.mpl.CommandChain;
 import de.adrodoc55.minecraft.mpl.CompilerException;
-import de.adrodoc55.minecraft.mpl.MplConverter;
-import de.adrodoc55.minecraft.mpl.antlr.CommandBuffer.Conditional;
+import de.adrodoc55.minecraft.mpl.InvertingCommand;
+import de.adrodoc55.minecraft.mpl.antlr.CommandBufferFactory.CommandBuffer;
+import de.adrodoc55.minecraft.mpl.antlr.CommandBufferFactory.CommandBuffer.Conditional;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.AutoContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.ChainContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ConditionalContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.ElseDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.FileContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.IfDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ImportDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.InstallContext;
@@ -53,6 +57,7 @@ public class MplInterpreter extends MplBaseListener {
 
   public static MplInterpreter interpret(File programFile) throws IOException {
     FileContext ctx = parse(programFile);
+    ctx.toStringTree();
     MplInterpreter interpreter = new MplInterpreter(programFile);
     new ParseTreeWalker().walk(interpreter, ctx);
     return interpreter;
@@ -276,11 +281,23 @@ public class MplInterpreter extends MplBaseListener {
     chainBuffer.setScript(true);
   }
 
+  private CommandBufferFactory factory;
+
+  @Override
+  public void enterChain(ChainContext ctx) {
+    factory = new CommandBufferFactory();
+  }
+
+  @Override
+  public void exitChain(ChainContext ctx) {
+    factory = null;
+  }
+
   private CommandBuffer commandBuffer;
 
   @Override
   public void enterCommandDeclaration(CommandDeclarationContext ctx) {
-    commandBuffer = new CommandBuffer();
+    commandBuffer = factory.create();
   }
 
   @Override
@@ -299,7 +316,22 @@ public class MplInterpreter extends MplBaseListener {
     } else if (ctx.INVERT() != null) {
       conditional = Conditional.INVERT;
     }
-    commandBuffer.setConditional(conditional);
+    try {
+      commandBuffer.setConditional(conditional);
+    } catch (IllegalModifierException ex) {
+      Token symbol;
+      if (ctx.CONDITIONAL() != null) {
+        symbol = ctx.CONDITIONAL().getSymbol();
+      } else if (ctx.INVERT() != null) {
+        symbol = ctx.INVERT().getSymbol();
+      } else {
+        throw new RuntimeException(
+            "IllegalModifierException was thrown, but could not find the conditional Token", ex);
+      }
+      String line = lines.get(symbol.getLine() - 1);
+      exceptions
+          .add(new CompilerException(programFile, symbol, line, ex.getLocalizedMessage(), ex));
+    }
   }
 
   @Override
@@ -316,7 +348,9 @@ public class MplInterpreter extends MplBaseListener {
   @Override
   public void enterCommand(CommandContext ctx) {
     String command = ctx.COMMAND().getText();
-    commandBuffer.setCommand(command);
+    if (commandBuffer != null) {
+      commandBuffer.setCommand(command);
+    }
   }
 
   private String lastStartIdentifier;
@@ -461,7 +495,6 @@ public class MplInterpreter extends MplBaseListener {
     Command command = commandBuffer.toCommand();
     chainBuffer.add(command);
     commandBuffer = null;
-
   }
 
   /**
@@ -475,14 +508,30 @@ public class MplInterpreter extends MplBaseListener {
       throw new IllegalArgumentException(
           "The given ChainBuffer is empty. The first command of a chain cannot be an invert command.");
     }
-    Command last = commands.peekLast();
-    String blockId = MplConverter.toBlockId(last.getMode());
-    chainBuffer.add(new Command("/testforblock ${this - 1} " + blockId + " -1 {SuccessCount:0}"));
+    Command previous = commands.peekLast();
+    chainBuffer.add(new InvertingCommand(previous));
   }
 
   @Override
   public void enterSkip(SkipContext ctx) {
     chainBuffer.add(null);
+  }
+
+  @Override
+  public void enterIfDeclaration(IfDeclarationContext ctx) {
+    chainBuffer.add(new Command(ctx.command().COMMAND().getText()));
+    boolean not = ctx.NOT() != null;
+    chainBuffer = new IfChainBuffer(not, chainBuffer);
+  }
+
+  @Override
+  public void enterElseDeclaration(ElseDeclarationContext ctx) {
+    ((IfChainBuffer) chainBuffer).switchToElseBlock();
+  }
+
+  @Override
+  public void exitIfDeclaration(IfDeclarationContext ctx) {
+    chainBuffer = ((IfChainBuffer) chainBuffer).getOriginal();
   }
 
   @Override

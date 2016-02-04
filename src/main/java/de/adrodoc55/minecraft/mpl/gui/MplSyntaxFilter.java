@@ -164,20 +164,25 @@ public class MplSyntaxFilter extends DocumentFilter
         case MplLexer.COMMENT:
           styleToken(token, getCommentStyle());
           break;
-        case MplLexer.CONDITIONAL:
-        case MplLexer.INVERT:
         case MplLexer.INCLUDE:
         case MplLexer.IMPORT:
         case MplLexer.INSTALL:
-        case MplLexer.PROCESS:
+        case MplLexer.UNINSTALL:
         case MplLexer.PROJECT:
+        case MplLexer.PROCESS:
+        case MplLexer.CONDITIONAL:
+        case MplLexer.INVERT:
         case MplLexer.START:
         case MplLexer.STOP:
         case MplLexer.WAITFOR:
         case MplLexer.NOTIFY:
         case MplLexer.INTERCEPT:
         case MplLexer.SKIP:
-        case MplLexer.UNINSTALL:
+        case MplLexer.IF:
+        case MplLexer.NOT:
+        case MplLexer.THEN:
+        case MplLexer.ELSE:
+        case MplLexer.END:
           styleToken(token, getHighFocusKeywordStyle());
           break;
         case MplLexer.IDENTIFIER:
