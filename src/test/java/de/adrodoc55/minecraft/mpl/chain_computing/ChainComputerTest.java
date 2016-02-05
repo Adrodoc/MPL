@@ -86,7 +86,7 @@ public abstract class ChainComputerTest {
 
   @Test
   // 7 + 1 = 8 = 2 ^ 3 (Der letzte Block muss Luft sein)
-  public void test_computeChain_7_nicht_conditional_Commandos_ergeben_2x2x2_Würfel_und_enthaelt_alle_Commandos() {
+  public void test_computeChain_7_nicht_conditional_Commandos_ergeben_2x2x2_WÃ¼rfel_und_enthaelt_alle_Commandos() {
     // Given:
     String name = someString();
     List<Command> commands = new ArrayList<Command>();
@@ -99,10 +99,10 @@ public abstract class ChainComputerTest {
     CommandBlockChain optimal = underTest.computeOptimalChain(input);
     // Then:
     commands.add(null); // folgender_leeren_Block
-    // 2 ^ 3 Würfel
+    // 2 ^ 3 WÃ¼rfel
     assertThat(optimal.getMin()).isEqualTo(new Coordinate3D(0, 0, 0));
     assertThat(optimal.getMax()).isEqualTo(new Coordinate3D(1, 1, 1));
-    // Enthält alle Commandos
+    // EnthÃ¤lt alle Commandos
     List<CommandBlock> blocks = optimal.getCommandBlocks();
     List<Command> actual = Lists.transform(blocks, block -> {
       return block.toCommand();
@@ -113,7 +113,7 @@ public abstract class ChainComputerTest {
 
   @Test
   // 26 + 1 = 27 = 3 ^ 3 (Der letzte Block muss Luft sein)
-  public void test_computeChain_26_nicht_conditional_Commandos_ergeben_3x3x3_Würfel_und_enthaelt_alle_Commandos() {
+  public void test_computeChain_26_nicht_conditional_Commandos_ergeben_3x3x3_WÃ¼rfel_und_enthaelt_alle_Commandos() {
     // Given:
     String name = someString();
     List<Command> commands = new ArrayList<Command>();
@@ -144,10 +144,10 @@ public abstract class ChainComputerTest {
     }
     // Then:
     commands.add(null); // folgender_leeren_Block
-    // 2 ^ 3 Würfel
+    // 2 ^ 3 WÃ¼rfel
     assertThat(optimal.getMin()).isEqualTo(new Coordinate3D(0, 0, 0));
     assertThat(optimal.getMax()).isEqualTo(new Coordinate3D(2, 2, 2));
-    // Enthält alle Commandos
+    // EnthÃ¤lt alle Commandos
     List<CommandBlock> blocks = optimal.getCommandBlocks();
     List<Command> actual = Lists.transform(blocks, block -> {
       return block.toCommand();
@@ -157,7 +157,7 @@ public abstract class ChainComputerTest {
   }
 
   @Test
-  // Conditional Commandos dürfen nicht geknickt werden.
+  // Conditional Commandos dÃ¼rfen nicht geknickt werden.
   public void test_computeChain_7_conditional_Commandos_ergibt_Kette_und_enthaelt_alle_Commandos() {
     // Given:
     String name = someString();
@@ -172,10 +172,10 @@ public abstract class ChainComputerTest {
     CommandBlockChain optimal = underTest.computeOptimalChain(input);
     // Then:
     commands.add(null); // folgender_leeren_Block
-    // 7er Kette Würfel
+    // 7er Kette WÃ¼rfel
     assertThat(optimal.getMin()).isEqualTo(new Coordinate3D(0, 0, 0));
     assertThat(optimal.getMax()).isEqualTo(new Coordinate3D(7, 0, 0));
-    // Enthält alle Commandos
+    // EnthÃ¤lt alle Commandos
     List<CommandBlock> blocks = optimal.getCommandBlocks();
     List<Command> actual = Lists.transform(blocks, block -> {
       return block.toCommand();
@@ -185,7 +185,7 @@ public abstract class ChainComputerTest {
   }
 
   @Test
-  // Conditional Commandos dürfen nicht geknickt werden.
+  // Conditional Commandos dÃ¼rfen nicht geknickt werden.
   public void test_computeChain_conditional_Commandos_werden_nicht_geknickt_und_Kette_enthaelt_alle_Commandos() {
     // Given:
     String name = someString();
@@ -219,7 +219,7 @@ public abstract class ChainComputerTest {
         }
       }
     }
-    // Enthält alle Commandos
+    // EnthÃ¤lt alle Commandos
     List<CommandBlock> blocks = commandBlocks;
     List<Command> actual = Lists.transform(blocks, block -> {
       return block.toCommand();

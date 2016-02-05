@@ -327,7 +327,7 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
-  public void "notify wirft auﬂerhalb eines Prozesses eine CompilerException"() {
+  public void "notify wirft au√üerhalb eines Prozesses eine CompilerException"() {
     given:
     String identifier = someIdentifier()
     String programString = """
@@ -975,7 +975,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[0] == new Command('/testfor @p')
     commands[1] == new Command('/testforblock ~ ~ ~ chain_command_block', true)
     commands[2] == new Command('/say then1', true)
-    commands[3] == new Command('/say then2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung false, muss auch mein vorg‰nger false sein.
+    commands[3] == new Command('/say then2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung false, muss auch mein vorg√§nger false sein.
     commands[4] == new Command('/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}')
     commands[5] == new Command('/say then3', true)
   }
@@ -1003,7 +1003,7 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     commands[0] == new Command('/testfor @p')
     commands[1] == new Command('/say then1', true)
-    commands[2] == new Command('/say then2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung false, muss auch mein vorg‰nger false sein.
+    commands[2] == new Command('/say then2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung false, muss auch mein vorg√§nger false sein.
   }
 
   @Test
@@ -1062,7 +1062,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[1] == new Command('/say then', true)
     commands[2] == new Command('/testforblock ${this - 2} chain_command_block -1 {SuccessCount:0}')
     commands[3] == new Command('/say else1', true)
-    commands[4] == new Command('/say else2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung true, muss auch mein vorg‰nger false sein.
+    commands[4] == new Command('/say else2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung true, muss auch mein vorg√§nger false sein.
   }
 
   @Test

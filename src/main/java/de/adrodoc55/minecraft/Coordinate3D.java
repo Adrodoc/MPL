@@ -138,7 +138,7 @@ public class Coordinate3D {
   }
 
   /**
-   * Einfache Skalarmultiplikation. Nicht Überlaufsicher.
+   * Einfache Skalarmultiplikation. Nicht Ãœberlaufsicher.
    *
    * @param skalar
    * @return

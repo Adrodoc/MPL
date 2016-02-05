@@ -87,7 +87,7 @@ task generateAntlr4 {
       javaexec {
         classpath configurations.antlr4
         main = 'org.antlr.v4.Tool'
-        args = ["-o", grammarDestDir, "-package", packageName, "-visitor", // ggf. Konfig auch für Listener (suche Listener)
+        args = ["-o", grammarDestDir, "-package", packageName, "-visitor", // ggf. Konfig auch fÃ¼r Listener (suche Listener)
           "${file.canonicalPath}"]
       }
     }
