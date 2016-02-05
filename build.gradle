@@ -3,7 +3,7 @@ apply plugin: 'groovy'
 apply plugin: 'eclipse'
 
 ext.productName = project.name
-version = 0.2
+version = '0.3'
 
 ext {
   libs = [
