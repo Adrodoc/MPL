@@ -22,6 +22,10 @@ task wrapper (type: Wrapper) { gradleVersion = 2.9 }
 
 repositories { mavenCentral() }
 
+tasks.withType(JavaCompile) {
+  options.encoding = 'UTF-8'
+}
+
 File antlrDefDir = file('src/antlr/def')
 File antlrGenDir = file('src/antlr/gen')
 
