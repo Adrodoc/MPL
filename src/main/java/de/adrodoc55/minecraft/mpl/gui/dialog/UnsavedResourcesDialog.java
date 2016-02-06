@@ -40,7 +40,9 @@
 package de.adrodoc55.minecraft.mpl.gui.dialog;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -71,8 +73,8 @@ import org.beanfabrics.swing.table.BnTable;
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
 @SuppressWarnings("serial")
-public class UnsavedResourcesDialog extends JDialog
-    implements View<de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM>, ModelSubscriber {
+public class UnsavedResourcesDialog extends JDialog implements
+    View<de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM>, ModelSubscriber {
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
   private JLabel lblDescription;
@@ -82,6 +84,9 @@ public class UnsavedResourcesDialog extends JDialog
   private BnTable bnTable;
   private JScrollPane scrollPane;
   private JPanel pnlCenter;
+  private JPanel pnlSelectButtons;
+  private BnButton bnbtnSelectAll;
+  private BnButton bnbtnDeselectAll;
 
   public UnsavedResourcesDialog() {
     this(null);
@@ -94,7 +99,7 @@ public class UnsavedResourcesDialog extends JDialog
     super(parent, "Unsaved Resources");
     init();
     setModal(true);
-    setSize(200, 300);
+    setSize(250, 300);
     // pack();
     setLocationRelativeTo(getParent());
   }
@@ -173,10 +178,22 @@ public class UnsavedResourcesDialog extends JDialog
   private JPanel getPnlButtons() {
     if (pnlButtons == null) {
       pnlButtons = new JPanel();
-      FlowLayout flowLayout = (FlowLayout) pnlButtons.getLayout();
-      flowLayout.setAlignment(FlowLayout.RIGHT);
-      pnlButtons.add(getBnbtnOk());
-      pnlButtons.add(getBnbtnCancel());
+      GridBagLayout gbl_pnlButtons = new GridBagLayout();
+      gbl_pnlButtons.columnWeights = new double[] {1.0, 0.0};
+      gbl_pnlButtons.rowWeights = new double[] {0.0};
+      pnlButtons.setLayout(gbl_pnlButtons);
+      GridBagConstraints gbc_bnbtnOk = new GridBagConstraints();
+      gbc_bnbtnOk.anchor = GridBagConstraints.NORTHEAST;
+      gbc_bnbtnOk.insets = new Insets(0, 0, 0, 5);
+      gbc_bnbtnOk.gridx = 0;
+      gbc_bnbtnOk.gridy = 0;
+      pnlButtons.add(getBnbtnOk(), gbc_bnbtnOk);
+      GridBagConstraints gbc_bnbtnCancel = new GridBagConstraints();
+      gbc_bnbtnCancel.insets = new Insets(0, 0, 0, 5);
+      gbc_bnbtnCancel.anchor = GridBagConstraints.NORTHWEST;
+      gbc_bnbtnCancel.gridx = 1;
+      gbc_bnbtnCancel.gridy = 0;
+      pnlButtons.add(getBnbtnCancel(), gbc_bnbtnCancel);
     }
     return pnlButtons;
   }
@@ -239,7 +256,50 @@ public class UnsavedResourcesDialog extends JDialog
       pnlCenter.setLayout(new BorderLayout(5, 5));
       pnlCenter.add(getLblDescription(), BorderLayout.NORTH);
       pnlCenter.add(getScrollPane());
+      pnlCenter.add(getPnlSelectButtons(), BorderLayout.SOUTH);
     }
     return pnlCenter;
+  }
+
+  private JPanel getPnlSelectButtons() {
+    if (pnlSelectButtons == null) {
+      pnlSelectButtons = new JPanel();
+      GridBagLayout gbl_pnlSelectButtons = new GridBagLayout();
+      gbl_pnlSelectButtons.columnWeights = new double[] {1.0, 0.0};
+      gbl_pnlSelectButtons.rowWeights = new double[] {0.0};
+      pnlSelectButtons.setLayout(gbl_pnlSelectButtons);
+      GridBagConstraints gbc_bnbtnSelectAll = new GridBagConstraints();
+      gbc_bnbtnSelectAll.insets = new Insets(0, 0, 0, 5);
+      gbc_bnbtnSelectAll.anchor = GridBagConstraints.EAST;
+      gbc_bnbtnSelectAll.gridx = 0;
+      gbc_bnbtnSelectAll.gridy = 0;
+      pnlSelectButtons.add(getBnbtnSelectAll(), gbc_bnbtnSelectAll);
+      GridBagConstraints gbc_bnbtnDeselectAll = new GridBagConstraints();
+      gbc_bnbtnDeselectAll.anchor = GridBagConstraints.WEST;
+      gbc_bnbtnDeselectAll.gridx = 1;
+      gbc_bnbtnDeselectAll.gridy = 0;
+      pnlSelectButtons.add(getBnbtnDeselectAll(), gbc_bnbtnDeselectAll);
+    }
+    return pnlSelectButtons;
+  }
+
+  private BnButton getBnbtnSelectAll() {
+    if (bnbtnSelectAll == null) {
+      bnbtnSelectAll = new BnButton();
+      bnbtnSelectAll.setPath(new Path("this.selectAll"));
+      bnbtnSelectAll.setModelProvider(getLocalModelProvider());
+      bnbtnSelectAll.setText("Select All");
+    }
+    return bnbtnSelectAll;
+  }
+
+  private BnButton getBnbtnDeselectAll() {
+    if (bnbtnDeselectAll == null) {
+      bnbtnDeselectAll = new BnButton();
+      bnbtnDeselectAll.setPath(new Path("this.deselectAll"));
+      bnbtnDeselectAll.setModelProvider(getLocalModelProvider());
+      bnbtnDeselectAll.setText("Deselect All");
+    }
+    return bnbtnDeselectAll;
   }
 }

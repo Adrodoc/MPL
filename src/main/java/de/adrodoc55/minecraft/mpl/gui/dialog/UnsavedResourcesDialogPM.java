@@ -52,6 +52,8 @@ import de.adrodoc55.minecraft.mpl.gui.MplEditorPM;
 public class UnsavedResourcesDialogPM extends AbstractPM {
 
   ListPM<UnsavedResourceRowPM> unsaved = new ListPM<UnsavedResourceRowPM>();
+  OperationPM selectAll = new OperationPM();
+  OperationPM deselectAll = new OperationPM();
   OperationPM ok = new OperationPM();
   OperationPM cancel = new OperationPM();
   private boolean canceled;
@@ -64,12 +66,26 @@ public class UnsavedResourcesDialogPM extends AbstractPM {
   }
 
   @Operation
+  public void selectAll() {
+    for (UnsavedResourceRowPM unsavedResourceRowPM : unsaved) {
+      unsavedResourceRowPM.save.setBoolean(true);
+    }
+  }
+
+  @Operation
+  public void deselectAll() {
+    for (UnsavedResourceRowPM unsavedResourceRowPM : unsaved) {
+      unsavedResourceRowPM.save.setBoolean(false);
+    }
+  }
+
+  @Operation
   public void ok() {
-    for (UnsavedResourceRowPM unsavedFileRowPM : unsaved) {
-      if (!unsavedFileRowPM.save.getBoolean()) {
+    for (UnsavedResourceRowPM unsavedResourceRowPM : unsaved) {
+      if (!unsavedResourceRowPM.save.getBoolean()) {
         continue;
       }
-      unsavedFileRowPM.editorPm.save();
+      unsavedResourceRowPM.editorPm.save();
     }
   }
 
