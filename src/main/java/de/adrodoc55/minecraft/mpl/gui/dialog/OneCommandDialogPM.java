@@ -39,13 +39,20 @@
  */
 package de.adrodoc55.minecraft.mpl.gui.dialog;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+
 import org.beanfabrics.model.AbstractPM;
+import org.beanfabrics.model.OperationPM;
 import org.beanfabrics.model.PMManager;
 import org.beanfabrics.model.TextPM;
+import org.beanfabrics.support.Operation;
 
 public class OneCommandDialogPM extends AbstractPM {
 
   TextPM oneCommand = new TextPM();
+  OperationPM copyToClipboard = new OperationPM();
 
   public OneCommandDialogPM() {
     oneCommand.setEditable(false);
@@ -54,5 +61,12 @@ public class OneCommandDialogPM extends AbstractPM {
 
   public void setText(String text) {
     oneCommand.setText(text);
+  }
+
+  @Operation
+  public void copyToClipboard() {
+    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+    StringSelection contents = new StringSelection(oneCommand.getText());
+    clipboard.setContents(contents, null);
   }
 }

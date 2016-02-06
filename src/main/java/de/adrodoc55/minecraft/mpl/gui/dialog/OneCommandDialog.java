@@ -40,9 +40,11 @@
 package de.adrodoc55.minecraft.mpl.gui.dialog;
 
 import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -60,6 +62,7 @@ import org.beanfabrics.ModelProvider;
 import org.beanfabrics.ModelSubscriber;
 import org.beanfabrics.Path;
 import org.beanfabrics.View;
+import org.beanfabrics.swing.BnButton;
 import org.beanfabrics.swing.BnTextArea;
 
 /**
@@ -75,8 +78,9 @@ public class OneCommandDialog extends JDialog
   private ModelProvider localModelProvider;
   private JScrollPane scrollPane;
   private BnTextArea bnTextArea;
-  private JPanel panel;
-  private JButton btnOk;
+  private JPanel pnlButtons;
+  private JButton btnCancel;
+  private BnButton bnbtnCopyToClipboard;
 
   public OneCommandDialog() {
     this(null);
@@ -102,8 +106,8 @@ public class OneCommandDialog extends JDialog
   private void init() {
     getContentPane().setLayout(new BorderLayout());
     getContentPane().add(getScrollPane(), BorderLayout.CENTER);
-    getContentPane().add(getPanel(), BorderLayout.SOUTH);
-    getRootPane().setDefaultButton(getBtnOk());
+    getContentPane().add(getPnlButtons(), BorderLayout.SOUTH);
+    getRootPane().setDefaultButton(getBnbtnCopyToClipboard());
     getRootPane().getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
     getRootPane().getActionMap().put("close", new AbstractAction() {
       @Override
@@ -178,24 +182,44 @@ public class OneCommandDialog extends JDialog
     return bnTextArea;
   }
 
-  private JPanel getPanel() {
-    if (panel == null) {
-      panel = new JPanel();
-      panel.add(getBtnOk());
+  private JPanel getPnlButtons() {
+    if (pnlButtons == null) {
+      pnlButtons = new JPanel();
+      GridBagLayout gbl_pnlButtons = new GridBagLayout();
+      gbl_pnlButtons.columnWeights = new double[] {0.0, 0.0};
+      gbl_pnlButtons.rowWeights = new double[] {0.0};
+      pnlButtons.setLayout(gbl_pnlButtons);
+      GridBagConstraints gbc_bnbtnCopyToClipboard = new GridBagConstraints();
+      gbc_bnbtnCopyToClipboard.anchor = GridBagConstraints.EAST;
+      gbc_bnbtnCopyToClipboard.insets = new Insets(0, 0, 0, 5);
+      gbc_bnbtnCopyToClipboard.gridx = 0;
+      gbc_bnbtnCopyToClipboard.gridy = 0;
+      pnlButtons.add(getBnbtnCopyToClipboard(), gbc_bnbtnCopyToClipboard);
+      GridBagConstraints gbc_btnCancel = new GridBagConstraints();
+      gbc_btnCancel.anchor = GridBagConstraints.NORTHWEST;
+      gbc_btnCancel.gridx = 1;
+      gbc_btnCancel.gridy = 0;
+      pnlButtons.add(getBtnCancel(), gbc_btnCancel);
     }
-    return panel;
+    return pnlButtons;
   }
 
-  private JButton getBtnOk() {
-    if (btnOk == null) {
-      btnOk = new JButton("OK");
-      btnOk.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          dispose();
-        }
-      });
+  private JButton getBtnCancel() {
+    if (btnCancel == null) {
+      btnCancel = new JButton("Cancel");
+      btnCancel.addActionListener(e -> dispose());
     }
-    return btnOk;
+    return btnCancel;
+  }
+
+  private BnButton getBnbtnCopyToClipboard() {
+    if (bnbtnCopyToClipboard == null) {
+      bnbtnCopyToClipboard = new BnButton();
+      bnbtnCopyToClipboard.setPath(new Path("this.copyToClipboard"));
+      bnbtnCopyToClipboard.setModelProvider(getLocalModelProvider());
+      bnbtnCopyToClipboard.setText("Copy to Clipboard");
+      bnbtnCopyToClipboard.addActionListener(e -> dispose());
+    }
+    return bnbtnCopyToClipboard;
   }
 }
