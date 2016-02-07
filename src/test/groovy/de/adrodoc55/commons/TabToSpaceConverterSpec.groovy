@@ -37,96 +37,118 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.utils;
+package de.adrodoc55.commons
 
 import static de.adrodoc55.TestBase.someString
 import spock.lang.Specification
 
-public class TabToSpaceTextPMSpec extends Specification {
+public class TabToSpaceConverterSpec extends Specification {
 
   void "String ohne tabs und newlines bleibt gleich"() {
     given:
-    TabToSpaceTextPM underTest = new TabToSpaceTextPM()
     String text = someString()
     when:
-    underTest.setText(text);
+    String result = TabToSpaceConverter.convertTabsToSpaces(text)
     then:
-    underTest.getText() == text
+    result == text
   }
 
   void "String ohne tabs mit verschiedenen newlines bleibt gleich"() {
     given:
-    TabToSpaceTextPM underTest = new TabToSpaceTextPM()
     String text = someString() + '\r' +someString() + '\n' + someString() + '\r\n' + someString()
     when:
-    underTest.setText(text);
+    String result = TabToSpaceConverter.convertTabsToSpaces(text)
     then:
-    underTest.getText() == text
+    result == text
   }
 
   void "String mit tab am anfang ohne newlines: tab wird durch tabwidth * spaces ersetzt"() {
     given:
-    TabToSpaceTextPM underTest = new TabToSpaceTextPM(4)
     String string = someString()
     String text = '\t' + string
     when:
-    underTest.setText(text);
+    String result = TabToSpaceConverter.convertTabsToSpaces(5, text)
     then:
-    underTest.getText() == '    ' + string
+    result == '     ' + string
   }
 
   void "String mit tab in index 2 ohne newlines: tab wird durch (tabwidth - 2) * spaces ersetzt"() {
     given:
-    TabToSpaceTextPM underTest = new TabToSpaceTextPM(4)
     String string = someString()
     String text = 'ab\t' + string
     when:
-    underTest.setText(text);
+    String result = TabToSpaceConverter.convertTabsToSpaces(5, text)
     then:
-    underTest.getText() == 'ab  ' + string
+    result == 'ab   ' + string
   }
 
   void "String mit tab am anfang jeder newline: tab wird durch tabwidth * spaces ersetzt"() {
     given:
-    TabToSpaceTextPM underTest = new TabToSpaceTextPM(4)
     String string = someString()
     String text = '\t' + someString() + '\r\t' + someString() + '\n\t' + someString() + '\r\n\t' + someString()
     when:
-    underTest.setText(text);
+    String result = TabToSpaceConverter.convertTabsToSpaces(5, text)
     then:
-    underTest.getText() == text.replace('\t', '    ')
+    result == text.replace('\t', '     ')
   }
 
   void "String mit tab am anfang einiger newlines: tab wird durch tabwidth * spaces ersetzt"() {
     given:
-    TabToSpaceTextPM underTest = new TabToSpaceTextPM(4)
     String string = someString()
     String text = '\t' + someString() + '\r\t' + someString() + '\n\t' + '\r\n'
     when:
-    underTest.setText(text);
+    String result = TabToSpaceConverter.convertTabsToSpaces(5, text)
     then:
-    underTest.getText() == text.replace('\t', '    ')
+    result == text.replace('\t', '     ')
   }
 
   void "String mit tab in index 2 in jeder newline: tab wird durch (tabwidth - 2) * spaces ersetzt()"() {
     given:
-    TabToSpaceTextPM underTest = new TabToSpaceTextPM(4)
     String string = someString()
     String text = 'ab\t' + someString() + '\rcd\t' + someString() + '\nef\t' + someString() + '\rgh\n' + someString()
     when:
-    underTest.setText(text);
+    String result = TabToSpaceConverter.convertTabsToSpaces(5, text)
     then:
-    underTest.getText() == text.replace('\t', '  ')
+    result == text.replace('\t', '   ')
   }
 
   void "String mit tab in index 2 in einigen newlines: tab wird durch (tabwidth - 2) * spaces ersetzt()"() {
     given:
-    TabToSpaceTextPM underTest = new TabToSpaceTextPM(4)
     String string = someString()
     String text = 'ab\t' + someString() + '\rcd\t' + someString() + '\nef\t' + '\rgh\n'
     when:
-    underTest.setText(text);
+    String result = TabToSpaceConverter.convertTabsToSpaces(5, text)
     then:
-    underTest.getText() == text.replace('\t', '  ')
+    result == text.replace('\t', '   ')
+  }
+
+  void "String mit 2 aufeinander folgenden tabs wird durch 2 * tabwidth spaces ersetzt"() {
+    given:
+    String string = someString()
+    String text = '\t\t'
+    when:
+    String result = TabToSpaceConverter.convertTabsToSpaces(5, text)
+    then:
+    result == '     ' + '     '
+  }
+
+  void "String mit 2 indirekt aufeinander folgenden tabs werden korrekt konvertiert"() {
+    given:
+    String string = someString()
+    String text = 'a\tab\t'
+    when:
+    String result = TabToSpaceConverter.convertTabsToSpaces(5, text)
+    then:
+    result == 'a    ' + 'ab   '
+  }
+
+  void "Offset beeinträchtigt nur für den ersten tab"() {
+    given:
+    String string = someString()
+    String text = 'a\tab\t'
+    when:
+    String result = TabToSpaceConverter.convertTabsToSpaces(2, 5, text)
+    then:
+    result == 'a  ' + 'ab   '
   }
 }

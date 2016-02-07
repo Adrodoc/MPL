@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.bntextpane;
+package org.beanfabrics.swing;
 
 import javax.swing.JTextPane;
 
@@ -47,7 +47,7 @@ import org.beanfabrics.ModelProvider;
 import org.beanfabrics.ModelSubscriber;
 import org.beanfabrics.Path;
 import org.beanfabrics.model.ITextPM;
-
+import org.beanfabrics.swing.internal.TextPMTextPane;
 
 /**
  * The <code>BnTextPane</code> is a {@link JTextPane} that can subscribe to an {@link ITextPM}.

@@ -47,7 +47,6 @@ import java.util.regex.Pattern;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import javax.swing.text.DocumentFilter;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
@@ -64,6 +63,7 @@ import org.beanfabrics.View;
 
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.gui.MplSyntaxFilterPM.CompilerExceptionWrapper;
+import de.adrodoc55.minecraft.mpl.gui.utils.TabToSpaceDocumentFilter;
 
 /**
  * The MplSyntaxFilter is a {@link View} on a
@@ -71,7 +71,7 @@ import de.adrodoc55.minecraft.mpl.gui.MplSyntaxFilterPM.CompilerExceptionWrapper
  *
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFilterPM> {
+public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<MplSyntaxFilterPM> {
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
 
@@ -144,7 +144,7 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
   private void correctExceptionIndicies(int startIndex, int offset) {
     MplSyntaxFilterPM pModel = getPresentationModel();
     if (pModel == null) {
-
+      return;
     }
     List<CompilerExceptionWrapper> exceptions = pModel.getExceptions();
     if (exceptions == null) {
@@ -163,7 +163,7 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
   private void colorExceptions() {
     MplSyntaxFilterPM pModel = getPresentationModel();
     if (pModel == null) {
-
+      return;
     }
     List<CompilerExceptionWrapper> exceptions = pModel.getExceptions();
     if (exceptions == null) {

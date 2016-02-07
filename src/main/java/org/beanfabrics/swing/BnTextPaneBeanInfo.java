@@ -37,15 +37,34 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.bntextpane;
+package org.beanfabrics.swing;
 
-import org.beanfabrics.model.PresentationModel;
-import org.beanfabrics.model.TextPM;
-import org.beanfabrics.support.Property;
+import java.awt.Image;
+import java.beans.BeanInfo;
 
-@Deprecated
-public interface BnDocumentPM extends PresentationModel {
+import org.beanfabrics.swing.ModelSubscriberBeanInfo;
 
-  @Property
-  TextPM getTextPM();
+/**
+ * @author Adrodoc55
+ */
+public class BnTextPaneBeanInfo extends ModelSubscriberBeanInfo {
+  @Override
+  protected Class<BnTextPane> getBeanClass() {
+    return BnTextPane.class;
+  }
+
+  @Override
+  protected boolean isPathBound() {
+    return false;
+  }
+
+  @Override
+  public Image getIcon(int iconKind) {
+    switch (iconKind) {
+      case BeanInfo.ICON_COLOR_16x16:
+        return loadImage("bn_textpane_obj16.gif");
+      default:
+        return null;
+    }
+  }
 }

@@ -62,7 +62,6 @@ import org.beanfabrics.support.Operation;
 
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.CompilerException;
-import de.adrodoc55.minecraft.mpl.gui.utils.TabToSpaceTextPM;
 
 public class MplEditorPM extends AbstractPM {
 
@@ -103,10 +102,9 @@ public class MplEditorPM extends AbstractPM {
 
   TextPM title = new TextPM();
   OperationPM close = new OperationPM();
-  // TabToSpaceTextPM code = new TabToSpaceTextPM();
   BooleanPM unsavedChanges = new BooleanPM();
   OperationPM resetChanges = new OperationPM();
-  TabToSpaceTextPM code = new TabToSpaceTextPM();
+  TextPM code = new TextPM();
   MplSyntaxFilterPM syntaxFilter = new MplSyntaxFilterPM();
 
   private File file;

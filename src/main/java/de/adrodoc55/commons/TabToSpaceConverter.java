@@ -37,40 +37,54 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.utils;
+package de.adrodoc55.commons;
 
 import java.util.Arrays;
 
-import org.beanfabrics.model.TextPM;
+public class TabToSpaceConverter {
 
-public class TabToSpaceTextPM extends TextPM {
-
-  private int tabWidth = 4;
-
-  public TabToSpaceTextPM() {
-    super();
+  private TabToSpaceConverter() throws Exception {
+    throw new Exception("Utils Classes cannot be instantiated");
   }
 
-  public TabToSpaceTextPM(String initialText) {
-    super(initialText);
+  /**
+   * Converts all tabs to spaces, so that each tab ends after a multiple of 4 characters after the
+   * last newline.
+   *
+   * @param text the string containing tabs
+   * @return a String without tabs
+   */
+  public static String convertTabsToSpaces(String text) {
+    return convertTabsToSpaces(0, 4, text);
   }
 
-  public TabToSpaceTextPM(int tabWidth) {
-    super();
-    this.tabWidth = tabWidth;
+  /**
+   * Converts all tabs to spaces, so that each tab ends after a multiple of {@code tabWidth}
+   * characters after the last newline.
+   *
+   * @param tabWidth the maximum number of spaces to use for a tab
+   * @param text the string containing tabs
+   * @return a String without tabs
+   */
+  public static String convertTabsToSpaces(int tabWidth, String text) {
+    return convertTabsToSpaces(0, tabWidth, text);
   }
 
-  public TabToSpaceTextPM(String initialText, int tabWith) {
-    super(initialText);
-    this.tabWidth = tabWith;
-  }
-
-  @Override
-  public void setText(String aText) {
-    StringBuilder sb = new StringBuilder(aText.length());
-    int afterLastNlIndex = 0;
+  /**
+   * Converts all tabs to spaces, so that each tab ends after a multiple of {@code tabWidth}
+   * characters after the last newline. {@code offset} can be specified, if {@code text} is part of
+   * a bigger {@code String} and does not immediately follow a newline.
+   *
+   * @param offset the number of characters between the last newline and the start of text
+   * @param tabWidth the maximum number of spaces to use for a tab
+   * @param text the string containing tabs
+   * @return a String without tabs
+   */
+  public static String convertTabsToSpaces(int offset, int tabWidth, String text) {
+    StringBuilder sb = new StringBuilder(text.length());
+    int afterLastNlIndex = -offset;
     int afterLastTabIndex = 0;
-    char[] textArray = aText.toCharArray();
+    char[] textArray = text.toCharArray();
     for (int i = 0; i < textArray.length; i++) {
       if (textArray[i] == '\r' || textArray[i] == '\n') {
         afterLastNlIndex = i + 1;
@@ -81,10 +95,13 @@ public class TabToSpaceTextPM extends TextPM {
           sb.append(' ');
         }
         afterLastTabIndex = i + 1;
+        // afterLastNlIndex muss korrigiert werden, da (spaceCount - 1) spaces nach der letzten
+        // newline eingefügt wurden. Minus 1, da ein tab bereits da war, und ersetzt wird.
+        afterLastNlIndex -= spaceCount - 1;
       }
     }
     sb.append(Arrays.copyOfRange(textArray, afterLastTabIndex, textArray.length));
-    super.setText(sb.toString());
+    return sb.toString();
   }
 
 }

@@ -37,22 +37,51 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.bntextpane;
+package de.adrodoc55.minecraft.mpl.gui.utils;
 
-import org.beanfabrics.swing.ModelSubscriberBeanInfo;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.DocumentFilter;
+import javax.swing.text.Element;
 
-/**
- * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
- */
-@Deprecated
-public class BnDocumentFilterBeanInfo extends ModelSubscriberBeanInfo {
-  @Override
-  protected Class<BnDocumentFilter> getBeanClass() {
-    return BnDocumentFilter.class;
+import de.adrodoc55.commons.TabToSpaceConverter;
+
+public class TabToSpaceDocumentFilter extends DocumentFilter {
+  private int tabWidth;
+
+  public TabToSpaceDocumentFilter() {
+    this(4);
+  }
+
+  public TabToSpaceDocumentFilter(int tabWidth) {
+    this.tabWidth = tabWidth;
   }
 
   @Override
-  protected boolean isPathBound() {
-    return false;
+  public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr)
+      throws BadLocationException {
+    Document doc = fb.getDocument();
+    int lineOffset = getOffsetInLine(doc, offset);
+    String result = TabToSpaceConverter.convertTabsToSpaces(lineOffset, tabWidth, string);
+    super.insertString(fb, offset, result, attr);
   }
+
+  @Override
+  public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
+      throws BadLocationException {
+    Document doc = fb.getDocument();
+    int lineOffset = getOffsetInLine(doc, offset);
+    String result = TabToSpaceConverter.convertTabsToSpaces(lineOffset, tabWidth, text);
+    super.replace(fb, offset, length, result, attrs);
+  }
+
+  private int getOffsetInLine(Document doc, int offset) {
+    Element root = doc.getDefaultRootElement();
+    int elementIndex = root.getElementIndex(offset);
+    int startOffset = root.getElement(elementIndex).getStartOffset();
+    int lineOffset = offset - startOffset;
+    return lineOffset;
+  }
+
 }

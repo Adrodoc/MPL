@@ -54,7 +54,7 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.View;
 import javax.swing.text.ViewFactory;
 
-import de.adrodoc55.minecraft.mpl.gui.bntextpane.BnStyledEditorKit;
+import org.beanfabrics.swing.internal.BnStyledEditorKit;
 
 public class BnJaggedEditorKit extends BnStyledEditorKit {
   private static final long serialVersionUID = 1L;

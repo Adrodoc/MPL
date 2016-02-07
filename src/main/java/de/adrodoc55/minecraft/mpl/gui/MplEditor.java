@@ -62,9 +62,9 @@ import org.beanfabrics.ModelProvider;
 import org.beanfabrics.ModelSubscriber;
 import org.beanfabrics.Path;
 import org.beanfabrics.View;
+import org.beanfabrics.swing.BnTextPane;
+import org.beanfabrics.swing.internal.BnStyledDocument;
 
-import de.adrodoc55.minecraft.mpl.gui.bntextpane.BnStyledDocument;
-import de.adrodoc55.minecraft.mpl.gui.bntextpane.BnTextPane;
 import de.adrodoc55.minecraft.mpl.gui.utils.BnJaggedEditorKit;
 import de.adrodoc55.minecraft.mpl.gui.utils.RawUndoManager;
 import de.adrodoc55.minecraft.mpl.gui.utils.RedoAction;
@@ -201,18 +201,6 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
       textPane.setEditorKit(new BnJaggedEditorKit());
       BnStyledDocument doc = textPane.getStyledDocument();
       doc.setDocumentFilter(getMplSyntaxFilter());
-      // getCodeObserver().addPropertyChangeListener(evt -> {
-      // if (getPresentationModel() != null) {
-      // String pmText = getPresentationModel().syntaxFilter.code.getText();
-      // String docText = textPane.getText();
-      // if (!docText.equals(pmText)) {
-      // int oldCaretPos = textPane.getCaretPosition();
-      // int newCaretPos = oldCaretPos + (pmText.length() - docText.length());
-      // textPane.setText(pmText);
-      // textPane.setCaretPosition(newCaretPos);
-      // }
-      // }
-      // });
       UndoManager undoManager = getUndoManager();
       textPane.getDocument().addUndoableEditListener(undoManager);
       int ctrl = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();

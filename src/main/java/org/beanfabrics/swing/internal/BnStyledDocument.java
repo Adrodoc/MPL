@@ -37,11 +37,13 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.bntextpane;
+package org.beanfabrics.swing.internal;
 
 import java.beans.PropertyChangeEvent;
 import java.io.Serializable;
 
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
@@ -92,8 +94,38 @@ public class BnStyledDocument extends DefaultStyledDocument implements View<ITex
     }
   }
 
+  /**
+   * This {@link DocumentListener} listenes for changes to this document, that are not caused by
+   * this document. For instance changes performed by an undomanager.
+   */
+  private final DocumentListener documentListener = new MyDocumentListener();
+
+  private class MyDocumentListener implements DocumentListener {
+    @Override
+    public void removeUpdate(DocumentEvent e) {
+      if (pending_modelChange == false) {
+        updatePM();
+      }
+    }
+
+    @Override
+    public void insertUpdate(DocumentEvent e) {
+      if (pending_modelChange == false) {
+        updatePM();
+      }
+    }
+
+    @Override
+    public void changedUpdate(DocumentEvent e) {
+      if (pending_modelChange == false) {
+        updatePM();
+      }
+    }
+  };
+
   public BnStyledDocument() {
     super();
+    addDocumentListener(documentListener);
   }
 
   public BnStyledDocument(ITextPM pModel) {
@@ -160,10 +192,6 @@ public class BnStyledDocument extends DefaultStyledDocument implements View<ITex
       try {
         // since'model.insertString' follows
         this.remove(0, this.getLength());
-//        int oldCaretPos = getCaretPosition();
-//         int newCaretPos = oldCaretPos + (pmText.length() - docText.length());
-//         textPane.setText(pmText);
-//         textPane.setCaretPosition(newCaretPos);
       } finally {
         this.suppressRemoveEvent = false;
       }
@@ -173,17 +201,11 @@ public class BnStyledDocument extends DefaultStyledDocument implements View<ITex
 
   public void remove(int offs, int len) throws BadLocationException {
     try {
-      String edText = isConnected() ? this.pModel.getText() : "";
+      pending_modelChange = true;
       super.remove(offs, len);
-      String newText = this.getText(0, this.getLength());
-      if (edText.equals(newText) == false) {
-        // the removal to an empty string needs to be synchronized (no
-        // model.insertString follows)
-        if (suppressRemoveEvent == false) {
-          if (this.isConnected()) {
-            this.pModel.setText(newText);
-          }
-        }
+      pending_modelChange = false;
+      if (suppressRemoveEvent == false) {
+        updatePM();
       }
     } catch (BadLocationException ex) {
       throw ex;
@@ -195,28 +217,32 @@ public class BnStyledDocument extends DefaultStyledDocument implements View<ITex
   @Override
   public void replace(int offset, int length, String text, AttributeSet attrs)
       throws BadLocationException {
-    if (this.isConnected()) {
-      String edText = this.pModel.getText();
-      super.replace(offset, length, text, attrs);
-      String newText = this.getText(0, this.getLength());
-      if (edText.equals(newText) == false) {
-        this.pModel.setText(newText);
-      }
-    }
+    pending_modelChange = true;
+    super.replace(offset, length, text, attrs);
+    pending_modelChange = false;
+    updatePM();
   }
 
   public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
-    if (this.isConnected()) {
-      String edText = this.pModel.getText();
-      super.insertString(offs, str, a);
-      String newText = this.getText(0, this.getLength());
-      if (edText.equals(newText) == false) {
-        this.pModel.setText(newText);
-      }
-    }
+    pending_modelChange = true;
+    super.insertString(offs, str, a);
+    pending_modelChange = false;
+    updatePM();
   }
 
-  public void setSuppressRemoveEvent(boolean suppressRemoveEvent) {
-    this.suppressRemoveEvent = suppressRemoveEvent;
+  private void updatePM() {
+    try {
+      if (!isConnected()) {
+        return;
+      }
+      String modelText = this.pModel.getText();
+      String newText;
+      newText = this.getText(0, this.getLength());
+      if (modelText.equals(newText) == false) {
+        this.pModel.setText(newText);
+      }
+    } catch (Throwable t) {
+      ExceptionUtil.getInstance().handleException("Error during editing.", t);
+    }
   }
 }
