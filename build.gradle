@@ -14,7 +14,7 @@ ext {
     guava:          'com.google.guava:guava:18.0',
     junit:          'junit:junit:4.12',
     pojobuilder:    'net.karneim:pojobuilder:3.4.0',
-    spock:          'org.spockframework:spock-core:1.0-groovy-2.3'
+    spock:          'org.spockframework:spock-core:1.0-groovy-2.4'
   ]
 }
 
