@@ -262,9 +262,7 @@ public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<Mp
   }
 
   private Style getDefaultStyle() {
-    Style style = doc.getStyle(StyleContext.DEFAULT_STYLE);
-    StyleConstants.setFontSize(style, 12);
-    return style;
+    return doc.getStyle(StyleContext.DEFAULT_STYLE);
   }
 
   private Style getLowFocusKeywordStyle() {

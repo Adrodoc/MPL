@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -196,11 +197,14 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
   private BnTextPane getTextPane() {
     if (textPane == null) {
       textPane = new BnTextPane();
+      textPane.setFont(new Font("Consolas", Font.PLAIN, 13));
+
       textPane.setPath(new Path("this.code"));
       textPane.setModelProvider(getLocalModelProvider());
       textPane.setEditorKit(new BnJaggedEditorKit());
       BnStyledDocument doc = textPane.getStyledDocument();
       doc.setDocumentFilter(getMplSyntaxFilter());
+
       UndoManager undoManager = getUndoManager();
       textPane.getDocument().addUndoableEditListener(undoManager);
       int ctrl = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
@@ -235,15 +239,15 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
       Path path = new Path("this.syntaxFilter");
       mplSyntaxFilter.setPath(path);
       mplSyntaxFilter.setModelProvider(getLocalModelProvider());
-      BnModelObserver syntaxObserver = new BnModelObserver();
-      syntaxObserver.setPath(path);
-      syntaxObserver.setModelProvider(getLocalModelProvider());
-      syntaxObserver.addPropertyChangeListener(new PropertyChangeListener() {
-        @Override
-        public void propertyChange(PropertyChangeEvent evt) {
-          mplSyntaxFilter.recolor();
-        }
-      });
+      // BnModelObserver syntaxObserver = new BnModelObserver();
+      // syntaxObserver.setPath(path);
+      // syntaxObserver.setModelProvider(getLocalModelProvider());
+      // syntaxObserver.addPropertyChangeListener(new PropertyChangeListener() {
+      // @Override
+      // public void propertyChange(PropertyChangeEvent evt) {
+      // mplSyntaxFilter.recolor();
+      // }
+      // });
     }
     return mplSyntaxFilter;
   }
