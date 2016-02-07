@@ -37,65 +37,34 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui;
+package de.adrodoc55.minecraft.mpl.gui.bntextpane;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.awt.Image;
+import java.beans.BeanInfo;
 
-import org.antlr.v4.runtime.Token;
-import org.beanfabrics.model.AbstractPM;
-import org.beanfabrics.model.PMManager;
+import org.beanfabrics.swing.ModelSubscriberBeanInfo;
 
-import de.adrodoc55.minecraft.mpl.CompilerException;
-
-public class MplSyntaxFilterPM extends AbstractPM {
-
-  private List<CompilerExceptionWrapper> exceptions;
-
-  public MplSyntaxFilterPM() {
-    PMManager.setup(this);
+/**
+ * @author Adrodoc55
+ */
+public class BnTextPaneBeanInfo extends ModelSubscriberBeanInfo {
+  @Override
+  protected Class<BnTextPane> getBeanClass() {
+    return BnTextPane.class;
   }
 
-  List<CompilerExceptionWrapper> getExceptions() {
-    return exceptions;
+  @Override
+  protected boolean isPathBound() {
+    return false;
   }
 
-  public void setExceptions(List<CompilerException> newExceptions) {
-    List<CompilerExceptionWrapper> oldExceptions = exceptions;
-    exceptions = new LinkedList<CompilerExceptionWrapper>();
-    for (CompilerException ex : newExceptions) {
-      exceptions.add(new CompilerExceptionWrapper(ex));
-    }
-    getPropertyChangeSupport().firePropertyChange("exceptions", oldExceptions, newExceptions);
-  }
-
-  static class CompilerExceptionWrapper {
-    private Token token;
-
-    private int startOffset;
-    private int stopOffset;
-
-    public CompilerExceptionWrapper(CompilerException ex) {
-      this.token = ex.getToken();
-      this.startOffset = 0;
-      this.stopOffset = 0;
-    }
-
-    public int getStartIndex() {
-      return token.getStartIndex() + startOffset;
-    }
-
-    public int getStopIndex() {
-      return token.getStopIndex() + 1 + stopOffset;
-    }
-
-    public void addStartOffset(int offset) {
-      this.startOffset += offset;
-    }
-
-    public void addStopOffset(int offset) {
-      this.stopOffset += offset;
+  @Override
+  public Image getIcon(int iconKind) {
+    switch (iconKind) {
+      case BeanInfo.ICON_COLOR_16x16:
+        return loadImage("bn_textpane_obj16.gif");
+      default:
+        return null;
     }
   }
-
 }

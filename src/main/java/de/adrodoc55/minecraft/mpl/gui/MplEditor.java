@@ -50,12 +50,9 @@ import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.text.AbstractDocument;
-import javax.swing.text.StyledDocument;
 import javax.swing.undo.UndoManager;
 
 import org.beanfabrics.BnModelObserver;
@@ -66,7 +63,9 @@ import org.beanfabrics.ModelSubscriber;
 import org.beanfabrics.Path;
 import org.beanfabrics.View;
 
-import de.adrodoc55.minecraft.mpl.gui.utils.JaggedEditorKit;
+import de.adrodoc55.minecraft.mpl.gui.bntextpane.BnStyledDocument;
+import de.adrodoc55.minecraft.mpl.gui.bntextpane.BnTextPane;
+import de.adrodoc55.minecraft.mpl.gui.utils.BnJaggedEditorKit;
 import de.adrodoc55.minecraft.mpl.gui.utils.RawUndoManager;
 import de.adrodoc55.minecraft.mpl.gui.utils.RedoAction;
 import de.adrodoc55.minecraft.mpl.gui.utils.TextLineNumber;
@@ -119,8 +118,8 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
   private JScrollPane scrollPane;
-  private JTextPane textPane;
-  private BnModelObserver codeObserver;
+  private BnTextPane textPane;
+  // private BnModelObserver codeObserver;
   private MplSyntaxFilter mplSyntaxFilter;
   private RawUndoManager rawUndoManager;
   private BnModelObserver resetUndoManagerObserver;
@@ -194,24 +193,26 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
     return textLineNumber;
   }
 
-  private JTextPane getTextPane() {
+  private BnTextPane getTextPane() {
     if (textPane == null) {
-      textPane = new JTextPane();
-      textPane.setEditorKit(new JaggedEditorKit());
-      StyledDocument doc = textPane.getStyledDocument();
-      ((AbstractDocument) doc).setDocumentFilter(getMplSyntaxFilter());
-      getCodeObserver().addPropertyChangeListener(evt -> {
-        if (getPresentationModel() != null) {
-          String pmText = getPresentationModel().syntaxFilter.code.getText();
-          String docText = textPane.getText();
-          if (!docText.equals(pmText)) {
-            int oldCaretPos = textPane.getCaretPosition();
-            int newCaretPos = oldCaretPos + (pmText.length() - docText.length());
-            textPane.setText(pmText);
-            textPane.setCaretPosition(newCaretPos);
-          }
-        }
-      });
+      textPane = new BnTextPane();
+      textPane.setPath(new Path("this.code"));
+      textPane.setModelProvider(getLocalModelProvider());
+      textPane.setEditorKit(new BnJaggedEditorKit());
+      BnStyledDocument doc = textPane.getStyledDocument();
+      doc.setDocumentFilter(getMplSyntaxFilter());
+      // getCodeObserver().addPropertyChangeListener(evt -> {
+      // if (getPresentationModel() != null) {
+      // String pmText = getPresentationModel().syntaxFilter.code.getText();
+      // String docText = textPane.getText();
+      // if (!docText.equals(pmText)) {
+      // int oldCaretPos = textPane.getCaretPosition();
+      // int newCaretPos = oldCaretPos + (pmText.length() - docText.length());
+      // textPane.setText(pmText);
+      // textPane.setCaretPosition(newCaretPos);
+      // }
+      // }
+      // });
       UndoManager undoManager = getUndoManager();
       textPane.getDocument().addUndoableEditListener(undoManager);
       int ctrl = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
@@ -259,17 +260,17 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
     return mplSyntaxFilter;
   }
 
-  /**
-   * @wbp.nonvisual location=129,339
-   */
-  private BnModelObserver getCodeObserver() {
-    if (codeObserver == null) {
-      codeObserver = new BnModelObserver();
-      codeObserver.setPath(new Path("this.syntaxFilter.code"));// @wb:location=9,379
-      codeObserver.setModelProvider(getLocalModelProvider());
-    }
-    return codeObserver;
-  }
+  // /**
+  // * @wbp.nonvisual location=129,339
+  // */
+  // private BnModelObserver getCodeObserver() {
+  // if (codeObserver == null) {
+  // codeObserver = new BnModelObserver();
+  // codeObserver.setPath(new Path("this.syntaxFilter.code"));// @wb:location=9,379
+  // codeObserver.setModelProvider(getLocalModelProvider());
+  // }
+  // return codeObserver;
+  // }
 
   /**
    * @wbp.nonvisual location=8,419

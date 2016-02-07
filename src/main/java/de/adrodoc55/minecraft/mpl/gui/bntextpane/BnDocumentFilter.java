@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui;
+package de.adrodoc55.minecraft.mpl.gui.bntextpane;
 
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -56,6 +56,7 @@ import org.beanfabrics.model.TextPM;
  *
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
+@Deprecated
 public class BnDocumentFilter extends DocumentFilter
     implements View<BnDocumentPM>, ModelSubscriber {
   private final Link link = new Link(this);

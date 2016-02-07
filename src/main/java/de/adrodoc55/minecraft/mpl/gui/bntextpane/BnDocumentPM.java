@@ -37,12 +37,13 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui;
+package de.adrodoc55.minecraft.mpl.gui.bntextpane;
 
 import org.beanfabrics.model.PresentationModel;
 import org.beanfabrics.model.TextPM;
 import org.beanfabrics.support.Property;
 
+@Deprecated
 public interface BnDocumentPM extends PresentationModel {
 
   @Property

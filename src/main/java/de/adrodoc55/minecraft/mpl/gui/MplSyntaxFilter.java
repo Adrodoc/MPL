@@ -47,6 +47,7 @@ import java.util.regex.Pattern;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
+import javax.swing.text.DocumentFilter;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
@@ -70,7 +71,7 @@ import de.adrodoc55.minecraft.mpl.gui.MplSyntaxFilterPM.CompilerExceptionWrapper
  *
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class MplSyntaxFilter extends BnDocumentFilter {
+public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFilterPM> {
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
 

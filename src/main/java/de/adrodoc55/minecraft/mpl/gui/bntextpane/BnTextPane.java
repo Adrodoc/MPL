@@ -37,37 +37,83 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui;
+package de.adrodoc55.minecraft.mpl.gui.bntextpane;
 
-import java.io.IOException;
-import java.io.Reader;
+import javax.swing.JTextPane;
 
-import javax.swing.text.AbstractDocument;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.DocumentFilter;
-import javax.swing.text.StyledEditorKit;
+import org.beanfabrics.IModelProvider;
+import org.beanfabrics.Link;
+import org.beanfabrics.ModelProvider;
+import org.beanfabrics.ModelSubscriber;
+import org.beanfabrics.Path;
+import org.beanfabrics.model.ITextPM;
 
-public class BnEditorKit extends StyledEditorKit {
 
+/**
+ * The <code>BnTextPane</code> is a {@link JTextPane} that can subscribe to an {@link ITextPM}.
+ *
+ * @author Adrodoc55
+ * @beaninfo
+ */
+public class BnTextPane extends TextPMTextPane implements ModelSubscriber {
   private static final long serialVersionUID = 1L;
 
-  @Override
-  public void read(Reader in, Document doc, int pos) throws IOException, BadLocationException {
-    if (!(doc instanceof AbstractDocument)) {
-      super.read(in, doc, pos);
-      return;
-    }
-    AbstractDocument abstractDocument = (AbstractDocument) doc;
-    DocumentFilter documentFilter = abstractDocument.getDocumentFilter();
-    if (!(documentFilter instanceof BnDocumentFilter)) {
-      super.read(in, doc, pos);
-      return;
-    }
-    BnDocumentFilter bnDocumentFilter = (BnDocumentFilter) documentFilter;
-    bnDocumentFilter.setEnabled(false);
-    super.read(in, doc, pos);
-    bnDocumentFilter.setEnabled(true);
+  private final Link link = new Link(this);
+
+  /**
+   * Constructs a <code>BnTextPane</code>.
+   */
+  public BnTextPane() {}
+
+  /**
+   * Constructs a <code>BnTextPane</code> and binds it to the specified model.
+   *
+   * @param pModel the model
+   */
+  public BnTextPane(ITextPM pModel) {
+    super(pModel);
   }
 
+  /**
+   * Constructs a <code>BnTextPane</code> and subscribes it for the model at the specified Path
+   * provided by the given provider.
+   *
+   * @param provider
+   * @param path
+   */
+  public BnTextPane(ModelProvider provider, Path path) {
+    this.setModelProvider(provider);
+    this.setPath(path);
+  }
+
+  /**
+   * Constructs a <code>BnTextPane</code> and subscribes it for the model at the root level provided
+   * by the given provider.
+   *
+   * @param provider
+   */
+  public BnTextPane(ModelProvider provider) {
+    this.setModelProvider(provider);
+    this.setPath(new Path());
+  }
+
+  /** {@inheritDoc} */
+  public IModelProvider getModelProvider() {
+    return link.getModelProvider();
+  }
+
+  /** {@inheritDoc} */
+  public void setModelProvider(IModelProvider provider) {
+    this.link.setModelProvider(provider);
+  }
+
+  /** {@inheritDoc} */
+  public Path getPath() {
+    return link.getPath();
+  }
+
+  /** {@inheritDoc} */
+  public void setPath(Path path) {
+    this.link.setPath(path);
+  }
 }

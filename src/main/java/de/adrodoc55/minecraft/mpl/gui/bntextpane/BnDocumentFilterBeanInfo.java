@@ -37,13 +37,14 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui;
+package de.adrodoc55.minecraft.mpl.gui.bntextpane;
 
 import org.beanfabrics.swing.ModelSubscriberBeanInfo;
 
 /**
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
+@Deprecated
 public class BnDocumentFilterBeanInfo extends ModelSubscriberBeanInfo {
   @Override
   protected Class<BnDocumentFilter> getBeanClass() {

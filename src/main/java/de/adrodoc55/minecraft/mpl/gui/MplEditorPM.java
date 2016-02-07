@@ -62,6 +62,7 @@ import org.beanfabrics.support.Operation;
 
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.CompilerException;
+import de.adrodoc55.minecraft.mpl.gui.utils.TabToSpaceTextPM;
 
 public class MplEditorPM extends AbstractPM {
 
@@ -102,9 +103,10 @@ public class MplEditorPM extends AbstractPM {
 
   TextPM title = new TextPM();
   OperationPM close = new OperationPM();
-//  TabToSpaceTextPM code = new TabToSpaceTextPM();
+  // TabToSpaceTextPM code = new TabToSpaceTextPM();
   BooleanPM unsavedChanges = new BooleanPM();
   OperationPM resetChanges = new OperationPM();
+  TabToSpaceTextPM code = new TabToSpaceTextPM();
   MplSyntaxFilterPM syntaxFilter = new MplSyntaxFilterPM();
 
   private File file;
@@ -129,7 +131,7 @@ public class MplEditorPM extends AbstractPM {
     }
     this.context = context;
     title.setText("new" + i++ + ".mpl");
-    syntaxFilter.code.addPropertyChangeListener(new PropertyChangeListener() {
+    code.addPropertyChangeListener(new PropertyChangeListener() {
       @Override
       public void propertyChange(PropertyChangeEvent evt) {
         setUnsavedChanges(true);
@@ -201,7 +203,7 @@ public class MplEditorPM extends AbstractPM {
     }
     byte[] bytes = Files.readAllBytes(file.toPath());
     String content = FileUtils.toUnixLineEnding(new String(bytes));
-    syntaxFilter.code.setText(content);
+    code.setText(content);
     resetChanges.getPropertyChangeSupport().firePropertyChange("resetChanges", null, null);
     setUnsavedChanges(false);
   }
@@ -219,7 +221,7 @@ public class MplEditorPM extends AbstractPM {
     } else {
       try {
         file.getParentFile().mkdirs();
-        byte[] bytes = syntaxFilter.code.getText().getBytes();
+        byte[] bytes = code.getText().getBytes();
         Files.write(file.toPath(), bytes);
         setUnsavedChanges(false);
       } catch (IOException ex) {
