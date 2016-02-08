@@ -50,7 +50,7 @@ public class Command {
   private boolean needsRedstone;
 
   public Command() {
-    this(null);
+    this("");
   }
 
   public Command(String command) {
