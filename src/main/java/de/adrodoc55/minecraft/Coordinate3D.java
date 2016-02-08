@@ -58,9 +58,12 @@ public class Coordinate3D {
 
   public static enum Direction {
     // @formatter:off
-    EAST(Coordinate3D.EAST, false, Axis.X), WEST(Coordinate3D.WEST, true,
-        Axis.X), UP(Coordinate3D.UP, false, Axis.Y), DOWN(Coordinate3D.DOWN, true, Axis.Y), SOUTH(
-            Coordinate3D.SOUTH, false, Axis.Z), NORTH(Coordinate3D.NORTH, true, Axis.Z);
+    EAST(Coordinate3D.EAST, false, Axis.X),
+    WEST(Coordinate3D.WEST, true, Axis.X),
+    UP(Coordinate3D.UP, false, Axis.Y),
+    DOWN(Coordinate3D.DOWN, true, Axis.Y),
+    SOUTH(Coordinate3D.SOUTH, false, Axis.Z),
+    NORTH(Coordinate3D.NORTH, true, Axis.Z);
     // @formatter:on
     public static Direction valueOf(Coordinate3D coordinate) {
       if (coordinate == null) {
@@ -71,7 +74,7 @@ public class Coordinate3D {
           return direction;
         }
       }
-      throw new IllegalArgumentException("No enum constant for coordinate" + coordinate);
+      throw new IllegalArgumentException("No enum constant for coordinate " + coordinate);
     }
 
     private final Coordinate3D relative;
