@@ -50,7 +50,8 @@ public class Program {
   private LinkedList<Command> uninstallation;
 
   // Compiler-Options
-  private Coordinate3D max;
+  private Coordinate3D max =
+      new Coordinate3D(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
   private String prefix;
   private MplOrientation orientation;
 
