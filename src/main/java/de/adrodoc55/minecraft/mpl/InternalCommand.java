@@ -39,31 +39,29 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
-public class InvertingCommand extends InternalCommand {
+public class InternalCommand extends Command {
 
-  /**
-   * Constructs a Command, wich's success is always the opposite of the given command, if the
-   * constructed command is placed directly after the given command.
-   *
-   * @param previous
-   */
-  public InvertingCommand(Command previous) {
-    this(previous.getMode());
+  public InternalCommand() {
+    super();
   }
 
-  /**
-   * Constructs a Command, wich's success is always the opposite of the previous command, if the
-   * previous command has the given mode.
-   *
-   * @param previous
-   */
-  public InvertingCommand(Mode previousMode) {
-    super(getInvert(previousMode));
+  public InternalCommand(String command) {
+    super(command);
   }
 
-  private static String getInvert(Mode previousMode) {
-    String blockId = MplConverter.toBlockId(previousMode);
-    return "/testforblock ${this - 1} " + blockId + " -1 {SuccessCount:0}";
+  public InternalCommand(String command, Boolean conditional) {
+    super(command, conditional);
   }
 
+  public InternalCommand(String command, Mode mode, Boolean conditional) {
+    super(command, mode, conditional);
+  }
+
+  public InternalCommand(String command, Mode mode, Boolean conditional, Boolean needsRedstone) {
+    super(command, mode, conditional, needsRedstone);
+  }
+
+  public boolean isInternal() {
+    return true;
+  }
 }

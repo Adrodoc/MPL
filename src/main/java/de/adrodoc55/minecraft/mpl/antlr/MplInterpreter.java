@@ -64,6 +64,7 @@ import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 import de.adrodoc55.minecraft.mpl.CommandChain;
 import de.adrodoc55.minecraft.mpl.CompilerException;
+import de.adrodoc55.minecraft.mpl.InternalCommand;
 import de.adrodoc55.minecraft.mpl.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.antlr.CommandBufferFactory.CommandBuffer;
 import de.adrodoc55.minecraft.mpl.antlr.CommandBufferFactory.CommandBuffer.Conditional;
@@ -583,8 +584,9 @@ public class MplInterpreter extends MplBaseListener {
         first.setNeedsRedstone(true);
       }
     } else {
-      commands.add(0, new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
+      commands.add(0, new InternalCommand("/setblock ${this - 1} stone", Mode.IMPULSE, false));
     }
+    commands.add(0, null);
     CommandChain chain = new CommandChain(chainBuffer.getName(), commands);
     chains.add(chain);
     chainBuffer = null;
