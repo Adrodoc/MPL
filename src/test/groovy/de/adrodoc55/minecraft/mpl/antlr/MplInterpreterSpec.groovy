@@ -684,9 +684,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String programString = """
     if: /testfor @p
-    then:
+    then (
       /say then
-    end
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -708,9 +708,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String programString = """
     if: /testfor @p
-    then:
+    then (
       conditional: /say then
-    end
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -729,9 +729,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String programString = """
     if: /testfor @p
-    then:
+    then (
       invert: /say then
-    end
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -750,11 +750,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String programString = """
     if: /testfor @p
-    then:
+    then (
       /say then
-    else:
+    ) else (
       conditional: /say else
-    end
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -773,11 +773,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String programString = """
     if: /testfor @p
-    then:
+    then (
       /say then
-    else:
+    ) else (
       invert: /say else
-    end
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -796,9 +796,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String programString = """
     if not: /testfor @p
-    then:
+    then (
       /say then
-    end
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -821,11 +821,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String programString = """
     if: /testfor @p
-    then:
+    then (
       /say then
-    else:
+    ) else (
       /say else
-    end
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -849,11 +849,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String programString = """
     if: /testfor @p
-    then:
+    then (
       /say then1
       /say then2
       /say then3
-    end
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -880,11 +880,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String programString = """
     if not: /testfor @p
-    then:
+    then (
       /say then1
       /say then2
       /say then3
-    end
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -911,15 +911,15 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String programString = """
     if: /testfor @p
-    then:
+    then (
       /say then1
       /say then2
       /say then3
-    else:
+    ) else (
       /say else1
       /say else2
       /say else3
-    end
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -952,15 +952,15 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String programString = """
     if not: /testfor @p
-    then:
+    then (
       /say then1
       /say then2
       /say then3
-    else:
+    ) else (
       /say else1
       /say else2
       /say else3
-    end
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -994,11 +994,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String programString = """
     if: /testfor @p
-    then:
+    then (
       /say then1
       conditional: /say then2
       /say then3
-    end
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1024,10 +1024,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String programString = """
     if: /testfor @p
-    then:
+    then (
       /say then1
       conditional: /say then2
-    end
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1050,10 +1050,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String programString = """
     if: /testfor @p
-    then:
+    then (
       /say then1
       invert: /say then2
-    end
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1079,12 +1079,12 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String programString = """
     if: /testfor @p
-    then:
+    then (
       /say then
-    else:
+    ) else (
       /say else1
       conditional: /say else2
-    end
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1109,12 +1109,12 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String programString = """
     if: /testfor @p
-    then:
+    then (
       /say then
-    else:
+    ) else (
       /say else1
       invert: /say else2
-    end
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)

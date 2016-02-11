@@ -219,7 +219,6 @@ public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<Mp
         case MplLexer.NOT:
         case MplLexer.THEN:
         case MplLexer.ELSE:
-        case MplLexer.END:
           styleToken(token, getHighFocusKeywordStyle());
           break;
         case MplLexer.IDENTIFIER:

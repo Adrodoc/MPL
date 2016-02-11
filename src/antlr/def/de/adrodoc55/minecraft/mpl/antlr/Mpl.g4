@@ -203,17 +203,17 @@ skip
 
 ifDeclaration
 :
-  IF NOT? ':' command then elseDeclaration? END
+  IF NOT? ':' command then elseDeclaration?
 ;
 
 then
 :
-  THEN ':' chain
+  THEN '(' chain ')'
 ;
 
 elseDeclaration
 :
-  ELSE ':' chain
+  ELSE '(' chain ')'
 ;
 
 COMMENT
@@ -347,11 +347,6 @@ THEN
 ELSE
 :
   'else'
-;
-
-END
-:
-  'end'
 ;
 
 UNSIGNED_INT
