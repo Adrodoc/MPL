@@ -1137,6 +1137,110 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
+  public void "nested if"() {
+    given:
+    String programString = """
+    if: /outer condition
+    then (
+      /say outer then1
+      if: /inner condition
+      then (
+        /say inner then
+      ) else (
+        /say inner else
+      )
+      /say outer then2
+    ) else (
+      /say outer else
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    interpreter.exceptions.isEmpty()
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 13
+
+    commands[0] == new Command('/outer condition')
+    commands[1] == new Command('/testforblock ~ ~ ~ chain_command_block', true)
+    commands[2] == new Command('/say outer then1', true)
+    commands[3] == new Command('/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}')
+    commands[4] == new Command('/inner condition', true)
+    commands[5] == new Command('/say inner then', true)
+    commands[6] == new Command('/testforblock ${this - 5} chain_command_block -1 {SuccessCount:1}')
+    commands[7] == new Command('/testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}', true)
+    commands[8] == new Command('/say inner else', true)
+    commands[9] == new Command('/testforblock ${this - 8} chain_command_block -1 {SuccessCount:1}')
+    commands[10] == new Command('/say outer then2', true)
+    commands[11] == new Command('/testforblock ${this - 10} chain_command_block -1 {SuccessCount:0}')
+    commands[12] == new Command('/say outer else', true)
+  }
+
+  @Test
+  public void "double nested if"() {
+    given:
+    String programString = """
+    if: /outer condition
+    then (
+      /say outer then1
+      if: /middle condition
+      then (
+        /say middle then1
+        if: /inner condition
+        then (
+          /say inner then
+        ) else (
+          /say inner else
+        )
+        /say middle then2
+      ) else (
+        /say middle else
+      )
+      /say outer then2
+    ) else (
+      /say outer else
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    interpreter.exceptions.isEmpty()
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 22
+
+    commands[0] == new Command('/outer condition')
+    commands[1] == new Command('/testforblock ~ ~ ~ chain_command_block', true)
+    commands[2] == new Command('/say outer then1', true)
+    commands[3] == new Command('/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}')
+    commands[4] == new Command('/middle condition', true)
+    commands[5] == new Command('/testforblock ~ ~ ~ chain_command_block', true)
+    commands[6] == new Command('/say middle then1', true)
+    commands[7] == new Command('/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}')
+    commands[8] == new Command('/inner condition', true)
+    commands[9] == new Command('/say inner then', true)
+    commands[10] == new Command('/testforblock ${this - 5} chain_command_block -1 {SuccessCount:1}', true)
+    commands[11] == new Command('/testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}', true)
+    commands[12] == new Command('/say inner else', true)
+    commands[13] == new Command('/testforblock ${this - 8} chain_command_block -1 {SuccessCount:1}')
+    commands[14] == new Command('/say middle then2', true)
+    commands[15] == new Command('/testforblock ${this - 14} chain_command_block -1 {SuccessCount:1}')
+    commands[16] == new Command('/testforblock ${this - 11} chain_command_block -1 {SuccessCount:0}', true)
+    commands[17] == new Command('/say middle else', true)
+    commands[18] == new Command('/testforblock ${this - 17} chain_command_block -1 {SuccessCount:1}')
+    commands[19] == new Command('/say outer then2', true)
+    commands[20] == new Command('/testforblock ${this - 19} chain_command_block -1 {SuccessCount:0}')
+    commands[21] == new Command('/say outer else', true)
+  }
+
+  @Test
   public void "Ein impulse Prozess deaktiviert sich selbst"() {
     given:
     String name = someIdentifier()

@@ -320,23 +320,23 @@ public class MplInterpreter extends MplBaseListener {
     chainBuffer.setScript(true);
   }
 
-  private CommandBufferFactory factory;
+  private final LinkedList<CommandBufferFactory> factory = new LinkedList<>();
 
   @Override
   public void enterChain(ChainContext ctx) {
-    factory = new CommandBufferFactory();
+    factory.push(new CommandBufferFactory());
   }
 
   @Override
   public void exitChain(ChainContext ctx) {
-    factory = null;
+    factory.pop();
   }
 
   private CommandBuffer commandBuffer;
 
   @Override
   public void enterCommandDeclaration(CommandDeclarationContext ctx) {
-    commandBuffer = factory.create();
+    commandBuffer = factory.peek().create();
   }
 
   @Override

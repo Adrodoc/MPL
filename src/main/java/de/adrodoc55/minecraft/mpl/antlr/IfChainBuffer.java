@@ -44,6 +44,7 @@ import java.util.LinkedList;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.MplConverter;
+import de.adrodoc55.minecraft.mpl.ReferencingCommand;
 
 public class IfChainBuffer extends ChainBuffer {
 
@@ -93,6 +94,9 @@ public class IfChainBuffer extends ChainBuffer {
           lastWasInverting = false;
         }
         addToOriginal(refCommand);
+        if (command instanceof ReferencingCommand) {
+          ((ReferencingCommand) command).addToRelative(-1);
+        }
         command.setConditional(true);
         return addToOriginal(command);
       }
@@ -124,8 +128,10 @@ public class IfChainBuffer extends ChainBuffer {
     }
     Command previous = original.getCommands().peekLast();
     String blockId = MplConverter.toBlockId(previous.getMode());
-    return new Command("/testforblock ${this - " + (added + 1) + "} " + blockId
-        + " -1 {SuccessCount:" + successCount + "}");
+    String head = "/testforblock ";
+    String tail = " " + blockId + " -1 {SuccessCount:" + successCount + "}";
+    int relative = -(added + 1);
+    return new ReferencingCommand(head, tail, relative);
   }
 
   public String getName() throws IllegalStateException {

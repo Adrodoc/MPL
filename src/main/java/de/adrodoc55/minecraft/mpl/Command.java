@@ -117,7 +117,7 @@ public class Command {
 
   @Override
   public String toString() {
-    return "Command [command='" + command + "', mode=" + mode + ", conditional=" + conditional
+    return "Command [command='" + getCommand() + "', mode=" + mode + ", conditional=" + conditional
         + ", needsRedstone=" + needsRedstone + "]";
   }
 
@@ -125,7 +125,7 @@ public class Command {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((command == null) ? 0 : command.hashCode());
+    result = prime * result + ((getCommand() == null) ? 0 : getCommand().hashCode());
     result = prime * result + (conditional ? 1231 : 1237);
     result = prime * result + ((mode == null) ? 0 : mode.hashCode());
     result = prime * result + (needsRedstone ? 1231 : 1237);
@@ -141,10 +141,12 @@ public class Command {
     if (!Command.class.isInstance(obj))
       return false;
     Command other = (Command) obj;
+    String command = getCommand();
+    String otherCommand = other.getCommand();
     if (command == null) {
-      if (other.command != null)
+      if (otherCommand != null)
         return false;
-    } else if (!command.equals(other.command))
+    } else if (!command.equals(otherCommand))
       return false;
     if (conditional != other.conditional)
       return false;
