@@ -236,8 +236,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String name = someIdentifier()
     String programString = """
-    repeat process ${name}:
+    repeat process ${name} (
     stop
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -257,9 +258,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String name = someIdentifier()
     String programString = """
-    repeat process ${name}:
+    repeat process ${name} (
     /say hi
     conditional: stop
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -280,8 +282,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String name = someIdentifier()
     String programString = """
-    impulse process ${name}:
+    impulse process ${name} (
     stop
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -300,8 +303,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     String name = someIdentifier()
     String sid = someIdentifier()
     String programString = """
-    impulse process ${name}:
+    impulse process ${name} (
     stop ${sid}
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -322,8 +326,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String name = someIdentifier()
     String programString = """
-    process ${name}:
+    process ${name} (
     notify
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -345,9 +350,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String name = someIdentifier()
     String programString = """
-    process ${name}:
+    process ${name} (
     /say hi
     conditional: notify
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -388,9 +394,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String name = someIdentifier()
     String programString = """
-    repeat process ${name}:
+    repeat process ${name} (
     /say hi
     notify
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -412,9 +419,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String name = someIdentifier()
     String programString = """
-    repeat process ${name}:
+    repeat process ${name} (
     /say hi
     conditional: notify
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -437,9 +445,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     String name = someIdentifier()
     String identifier = someIdentifier()
     String programString = """
-    repeat process ${name}:
+    repeat process ${name} (
     start ${identifier}
     waitfor
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -566,8 +575,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     String name = someIdentifier()
     String identifier = someIdentifier()
     String programString = """
-    repeat process ${name}:
+    repeat process ${name} (
     intercept ${identifier}
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1245,8 +1255,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String name = someIdentifier()
     String programString = """
-    process ${name}:
+    process ${name} (
     /say hi
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1267,8 +1278,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String name = someIdentifier()
     String programString = """
-    repeat process ${name}:
+    repeat process ${name} (
     /say hi
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1290,12 +1302,15 @@ public class MplInterpreterSpec extends MplSpecBase {
     String id2 = someIdentifier()
     String id3 = someIdentifier()
     String programString = """
-    process ${id1}:
+    process ${id1} (
     /say I am a default process
-    impulse process ${id2}:
+    )
+    impulse process ${id2} (
     /say I am an impulse process, wich is actually equivalent to the default
-    repeat process ${id3}:
+    )
+    repeat process ${id3} (
     /say I am a repeating process. I am completely different :)
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1374,7 +1389,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String id1 = someIdentifier()
     String programString = """
-    project ${id1}:
+    project ${id1}
     include "datei1.mpl"
     include "ordner2"
     """
@@ -1407,9 +1422,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     String id1 = someIdentifier()
     String id2 = someIdentifier()
     String programString = """
-    process ${id1}:
+    process ${id1} (
     /say I am a process
     conditional: start ${id2}
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1431,9 +1447,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     String id2 = someIdentifier()
     String programString = """
     import "newFolder"
-    process ${id1}:
+    process ${id1} (
     /say I am a process
     conditional: start ${id2}
+    )
     """
     File file = newTempFile()
     File newFolder = new File(file.parentFile, "newFolder")
@@ -1460,9 +1477,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     String id2 = someIdentifier()
     String programString = """
     import "newFolder/newFile"
-    process ${id1}:
+    process ${id1} (
     /say I am a process
     conditional: start ${id2}
+    )
     """
     File file = newTempFile()
     File newFile = new File(file.parentFile, "newFolder/newFile")
@@ -1486,11 +1504,13 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String id = someIdentifier()
     String programString = """
-    process ${id}:
+    process ${id} (
     /say I am a process
+    )
 
-    process ${id}:
+    process ${id} (
     /say I am also a process
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1501,7 +1521,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     interpreter.exceptions[0].token.text == id
     interpreter.exceptions[0].message == "Process ${id} is ambigious. Every process must have a unique name."
     interpreter.exceptions[1].file == lastTempFile
-    interpreter.exceptions[1].token.line == 5
+    interpreter.exceptions[1].token.line == 6
     interpreter.exceptions[1].token.text == id
     interpreter.exceptions[1].message == "Process ${id} is ambigious. Every process must have a unique name."
   }

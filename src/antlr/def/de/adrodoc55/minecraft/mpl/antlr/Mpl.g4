@@ -41,14 +41,9 @@ grammar Mpl;
 
 file
 :
-  (
-    include
-  )* install? uninstall?
-  (
     projectFile
     | processFile
     | skriptFile
-  )
 ;
 
 projectFile
@@ -59,7 +54,7 @@ projectFile
 project
 :
 // TODO: Prefix, Orientation, max
-  PROJECT IDENTIFIER ':'
+  PROJECT IDENTIFIER
 ;
 
 include
@@ -79,12 +74,12 @@ importDeclaration
 
 install
 :
-  INSTALL chain
+  INSTALL '(' chain ')'
 ;
 
 uninstall
 :
-  UNINSTALL chain
+  UNINSTALL '(' chain ')'
 ;
 
 process
@@ -92,7 +87,7 @@ process
   (
     IMPULSE
     | REPEAT
-  )? PROCESS IDENTIFIER ':' chain
+  )? PROCESS IDENTIFIER '(' chain ')'
 ;
 
 skriptFile
