@@ -154,6 +154,7 @@ public class MplCompiler extends MplBaseListener {
     Collection<File> files = include.getFiles();
     for (File file : files) {
       MplInterpreter interpreter = null;
+      lastException = null;
       try {
         interpreter = MplInterpreter.interpret(file);
       } catch (Exception ex) {
