@@ -85,7 +85,7 @@ public class MplChainPlacer {
   }
 
   public List<CommandBlockChain> place() {
-    for (CommandChain chain : chains) {
+    for (CommandChain chain : chains.toArray(new CommandChain[0])) {
       addChain(chain);
     }
     addUnInstallation();
