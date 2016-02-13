@@ -73,7 +73,7 @@ public class MplChainPlacer {
   private final Program program;
   private final MplOrientation orientation;
   private final List<CommandChain> chains;
-  private final int[] array;
+  private final int[] occupied;
   private final List<CommandBlockChain> result = new LinkedList<CommandBlockChain>();
   private Coordinate3D optimalSize;
 
@@ -81,7 +81,7 @@ public class MplChainPlacer {
     this.program = program;
     this.orientation = program.getOrientation();
     this.chains = program.getChains();
-    array = new int[chains.size()];
+    occupied = new int[chains.size()];
   }
 
   public List<CommandBlockChain> place() {
@@ -93,6 +93,7 @@ public class MplChainPlacer {
   }
 
   private void addChain(CommandChain chain) {
+    Coordinate3D bPos = orientation.getB().toCoordinate();
     Direction c = orientation.getC();
 
     Coordinate3D start = getStart(chain);
@@ -105,16 +106,26 @@ public class MplChainPlacer {
       for (CommandBlock block : blocks) {
         Coordinate3D currentCoord = block.getCoordinate();
         int currentC = currentCoord.get(c.getAxis());
-        // FIXME: für currentC == startC muss b += 1
-        if (startC - 1 <= currentC || currentC <= startC + 1) {
+
+        Position pos = null;
+        if (startC - 1 == currentC || currentC == startC + 1) {
+          pos = toPosition(currentCoord.minus(start), orientation);
+        } else if (startC == currentC) {
+          // Ketten in der selben c Ebene sind (in b richtung) unter der zu bauenden kette. Daher
+          // muss einmal b aufaddiert werden.
+          pos = toPosition(currentCoord.minus(start).plus(bPos), orientation);
+        }
+        if (pos == null) {
+          continue;
+        }
+        if (pos.getX() >= 0 && pos.getY() >= 0) {
           if (isTransmitter(block)) {
-            Position pos = toPosition(currentCoord.minus(start), orientation);
             forbiddenReciever.add(pos);
           } else if (isReciever(block)) {
-            Position pos = toPosition(currentCoord.minus(start), orientation);
             forbiddenTransmitter.add(pos);
           }
         }
+
       }
     }
     CommandBlockChain optimal = compute(chain, forbiddenReciever, forbiddenTransmitter);
@@ -128,7 +139,7 @@ public class MplChainPlacer {
     Direction c = orientation.getC();
 
     Coordinate3D max = optimal.getMax();
-    array[max.get(c.getAxis())] = max.get(b.getAxis()) + 1;
+    occupied[max.get(c.getAxis())] = max.get(b.getAxis()) + 1;
   }
 
   private boolean isTransmitter(CommandBlock block) {
@@ -150,10 +161,10 @@ public class MplChainPlacer {
 
     // int localMaxB = optimal.getMax().get(b.getAxis()) + 1;
     int estimatedB = estimateB(chain);
-    for (int x = 0; x < array.length; x++) {
-      int estimatedMax = array[x] + estimatedB;
-      if (estimatedMax <= optB || array[x] == 0) {
-        Coordinate3D start = cPos.mult(x).plus(bPos.mult(array[x]));
+    for (int x = 0; x < occupied.length; x++) {
+      int estimatedMax = occupied[x] + estimatedB;
+      if (estimatedMax <= optB || occupied[x] == 0) {
+        Coordinate3D start = cPos.mult(x).plus(bPos.mult(occupied[x]));
         return start;
       }
     }
