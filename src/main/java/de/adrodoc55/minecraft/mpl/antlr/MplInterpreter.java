@@ -84,7 +84,7 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.NotifyDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProcessContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProjectContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.SkipContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.SkriptFileContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.SkriptContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.StartContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.StopContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.UninstallContext;
@@ -315,7 +315,7 @@ public class MplInterpreter extends MplBaseListener {
   }
 
   @Override
-  public void enterSkriptFile(SkriptFileContext ctx) {
+  public void enterSkript(SkriptContext ctx) {
     chainBuffer = new ChainBuffer();
     chainBuffer.setScript(true);
   }
@@ -591,7 +591,7 @@ public class MplInterpreter extends MplBaseListener {
   }
 
   @Override
-  public void exitSkriptFile(SkriptFileContext ctx) {
+  public void exitSkript(SkriptContext ctx) {
     CommandChain chain = new CommandChain(null, chainBuffer.getCommands());
     chains.add(chain);
     chainBuffer = null;

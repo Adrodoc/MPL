@@ -41,9 +41,9 @@ grammar Mpl;
 
 file
 :
-    projectFile
-    | processFile
-    | skriptFile
+  projectFile
+  | processFile
+  | skriptFile
 ;
 
 projectFile
@@ -91,6 +91,11 @@ process
 ;
 
 skriptFile
+:
+  install? uninstall? skript?
+;
+
+skript
 :
   chain
 ;
