@@ -68,4 +68,8 @@ public class CommandChain {
     return commands;
   }
 
+  @Override
+  public String toString() {
+    return getName();
+  }
 }
