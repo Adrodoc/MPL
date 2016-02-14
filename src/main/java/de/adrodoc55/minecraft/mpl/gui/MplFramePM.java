@@ -52,6 +52,7 @@ import java.util.Map;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.text.JTextComponent;
 
 import org.beanfabrics.model.AbstractPM;
 import org.beanfabrics.model.ListPM;
@@ -67,10 +68,12 @@ import de.adrodoc55.minecraft.mpl.MplCompiler;
 import de.adrodoc55.minecraft.mpl.OneCommandConverter;
 import de.adrodoc55.minecraft.mpl.PythonConverter;
 import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException;
-import de.adrodoc55.minecraft.mpl.gui.MplEditorPM.Context;
 import de.adrodoc55.minecraft.mpl.gui.dialog.ExceptionDialog;
 import de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialog;
 import de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialogPM;
+import de.adrodoc55.minecraft.mpl.gui.dialog.SearchAndReplaceDialog;
+import de.adrodoc55.minecraft.mpl.gui.dialog.SearchAndReplaceDialogControler;
+import de.adrodoc55.minecraft.mpl.gui.dialog.SearchAndReplaceDialogPM;
 import de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialog;
 import de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM;
 
@@ -84,6 +87,20 @@ public class MplFramePM extends AbstractPM {
   OperationPM compileFile = new OperationPM();
   OperationPM compileFileUnder = new OperationPM();
   OperationPM compileCommand = new OperationPM();
+
+  SearchAndReplaceDialogControler sarController =
+      new SearchAndReplaceDialogControler(new SearchAndReplaceDialogPM.Context() {
+        @Override
+        public JTextComponent getComponent() {
+          MplEditorPM selected = editors.getSelection().getFirst();
+          MplEditor view = selected.getView();
+          if (view == null) {
+            return null;
+          } else {
+            return view.getTextPane();
+          }
+        }
+      });
 
   public MplFramePM() {
     PMManager.setup(this);
@@ -325,11 +342,16 @@ public class MplFramePM extends AbstractPM {
     return false;
   }
 
-  private Context createDefaultContext() {
+  private MplEditorPM.Context createDefaultContext() {
     return new MplEditorPM.Context() {
       @Override
       public void close(MplEditorPM editorPm) {
         editors.remove(editorPm);
+      }
+
+      @Override
+      public SearchAndReplaceDialog getSearchAndReplaceDialog() {
+        return sarController.getView();
       }
     };
   }

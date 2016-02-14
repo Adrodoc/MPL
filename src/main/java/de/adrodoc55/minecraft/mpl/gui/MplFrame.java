@@ -214,6 +214,8 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
       private void addMplEditor(int i, MplEditorPM editorPm) {
         MplEditor editor = new MplEditor();
         editor.setPresentationModel(editorPm);
+        editor.getTextPane().getCaret().setDot(0);
+        editorPm.setView(editor);
         tabbedPane.insertTab(editorPm.getTitle(), null, editor, null, i);
         TabCloseComponent tabComponent = new TabCloseComponent();
         tabComponent.setPresentationModel(editorPm);

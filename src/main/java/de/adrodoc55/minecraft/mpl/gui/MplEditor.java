@@ -194,7 +194,7 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
     return textLineNumber;
   }
 
-  private BnTextPane getTextPane() {
+  BnTextPane getTextPane() {
     if (textPane == null) {
       textPane = new BnTextPane();
       textPane.setFont(new Font("Consolas", Font.PLAIN, 13));
@@ -224,6 +224,20 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
             return;
           }
           pModel.save();
+        }
+      });
+
+      textPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_F, ctrl), "search and replace");
+      textPane.getActionMap().put("search and replace", new AbstractAction() {
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          MplEditorPM pModel = getPresentationModel();
+          if (pModel == null) {
+            return;
+          }
+          pModel.searchAndReplace();
         }
       });
     }

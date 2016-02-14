@@ -37,28 +37,21 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.commons;
+package de.adrodoc55.minecraft.mpl.gui.dialog;
 
-import java.io.File;
+import org.beanfabrics.swing.ModelSubscriberBeanInfo;
 
-public class FileUtils {
-
-  private FileUtils() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated");
+/**
+ * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
+ */
+public class SearchAndReplaceDialogBeanInfo extends ModelSubscriberBeanInfo {
+  @Override
+  protected Class<SearchAndReplaceDialog> getBeanClass() {
+    return SearchAndReplaceDialog.class;
   }
 
-  public static String getFilenameWithoutExtension(File file) {
-    return getFilenameWithoutExtension(file.getName());
+  @Override
+  protected boolean isPathBound() {
+    return false;
   }
-
-  public static String getFilenameWithoutExtension(String fileName) {
-    int idx = fileName.lastIndexOf('.');
-    String name = (idx == -1) ? fileName : fileName.substring(0, idx);
-    return name;
-  }
-
-  public static String toUnixLineEnding(String text) {
-    return text.replace("\r\n", "\n").replace("\r", "\n");
-  }
-
 }

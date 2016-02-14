@@ -37,28 +37,27 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.commons;
+package de.adrodoc55.commons.beanfabrics;
 
-import java.io.File;
+import java.util.Map;
 
-public class FileUtils {
+import org.beanfabrics.model.Options;
 
-  private FileUtils() throws Throwable {
+public class OptionsUtils {
+
+  private OptionsUtils() throws Throwable {
     throw new Throwable("Utils Classes cannot be instantiated");
   }
 
-  public static String getFilenameWithoutExtension(File file) {
-    return getFilenameWithoutExtension(file.getName());
+  public static void put(Options<String> options, String text) {
+    put(options, text, text);
   }
 
-  public static String getFilenameWithoutExtension(String fileName) {
-    int idx = fileName.lastIndexOf('.');
-    String name = (idx == -1) ? fileName : fileName.substring(0, idx);
-    return name;
-  }
-
-  public static String toUnixLineEnding(String text) {
-    return text.replace("\r\n", "\n").replace("\r", "\n");
+  public static <E> void put(Options<E> options, E key, String value) {
+    Map<E, String> map = options.toMap();
+    options.clear();
+    options.put(key, value);
+    options.putAll(map);
   }
 
 }

@@ -52,6 +52,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.JTextComponent;
 
 import org.beanfabrics.model.AbstractPM;
 import org.beanfabrics.model.BooleanPM;
@@ -62,6 +63,8 @@ import org.beanfabrics.support.Operation;
 
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.CompilerException;
+import de.adrodoc55.minecraft.mpl.gui.dialog.SearchAndReplaceDialog;
+import de.adrodoc55.minecraft.mpl.gui.dialog.SearchAndReplaceDialogPM;
 
 public class MplEditorPM extends AbstractPM {
 
@@ -111,9 +114,12 @@ public class MplEditorPM extends AbstractPM {
 
   public static interface Context {
     void close(MplEditorPM editorPm);
+
+    SearchAndReplaceDialog getSearchAndReplaceDialog();
   }
 
   private final Context context;
+  private MplEditor view;
 
   private static int i;
 
@@ -260,6 +266,29 @@ public class MplEditorPM extends AbstractPM {
     }
     setFile(file);
     save();
+  }
+
+  public void searchAndReplace() {
+    SearchAndReplaceDialog dialog = context.getSearchAndReplaceDialog();
+    SearchAndReplaceDialogPM pm = dialog.getPresentationModel();
+    if (pm != null) {
+      JTextComponent component = pm.getComponent();
+      if (component != null) {
+        String selected = component.getSelectedText();
+        if (selected != null) {
+          pm.setSearch(selected);
+        }
+      }
+    }
+    dialog.setVisible(true);
+  }
+
+  MplEditor getView() {
+    return view;
+  }
+
+  void setView(MplEditor view) {
+    this.view = view;
   }
 
 }
