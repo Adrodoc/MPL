@@ -72,7 +72,7 @@ public class MplChainPlacer {
 
   private final Program program;
   private final MplOrientation orientation;
-  private final List<CommandChain> chains;
+  private final LinkedList<CommandChain> chains;
   private final int[] occupied;
   private final List<CommandBlockChain> result = new LinkedList<CommandBlockChain>();
   private Coordinate3D optimalSize;
@@ -92,7 +92,11 @@ public class MplChainPlacer {
   }
 
   public List<CommandBlockChain> place() {
-    for (CommandChain chain : chains.toArray(new CommandChain[0])) {
+    // start with the longest chain
+    chains.sort((o1, o2) -> {
+      return Integer.compare(o1.getCommands().size(), o2.getCommands().size()) * -1;
+    });
+    for (CommandChain chain : chains) {
       addChain(chain);
     }
     addUnInstallation();
@@ -204,11 +208,6 @@ public class MplChainPlacer {
     Direction b = orientation.getB();
     Direction c = orientation.getC();
 
-    LinkedList<CommandChain> chains = program.getChains();
-    // start with the longest chain
-    chains.sort((o1, o2) -> {
-      return Integer.compare(o1.getCommands().size(), o2.getCommands().size()) * -1;
-    });
     CommandChain first = chains.peek();
     int maxA = program.getMax().get(a.getAxis());
     int maxB = program.getMax().get(b.getAxis());
