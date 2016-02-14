@@ -123,4 +123,9 @@ public class CommandBlock {
     return coordinate.getZ();
   }
 
+  @Override
+  public String toString() {
+    return "CommandBlock [command=" + command + ", coordinate=" + coordinate + "]";
+  }
+
 }
