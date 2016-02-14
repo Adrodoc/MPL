@@ -436,4 +436,32 @@ class MplCompilerSpec extends MplSpecBase {
     chains[1].name == 'installation'
     chains[2].name == 'uninstallation'
   }
+
+  @Test
+  public void "the commands of a custom installation/uninstallation are executed after the generated ones"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    install (
+    /say install
+    )
+    uninstall (
+    /say uninstall
+    )
+
+    process main () # If there is no process, there are no generated commands
+    """
+    when:
+    List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
+    then:
+    CommandBlockChain installation = chains.find { it.name == 'installation' }
+    installation.commandBlocks.size() == 5
+    installation.commandBlocks[3].toCommand() == new Command("say install")
+    installation.commandBlocks[4].toCommand() == null
+
+    CommandBlockChain uninstallation = chains.find { it.name == 'uninstallation' }
+    uninstallation.commandBlocks.size() == 5
+    uninstallation.commandBlocks[3].toCommand() == new Command("say uninstall")
+    uninstallation.commandBlocks[4].toCommand() == null
+  }
 }
