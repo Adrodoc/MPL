@@ -586,7 +586,6 @@ public class MplInterpreter extends MplBaseListener {
     } else {
       commands.add(0, new InternalCommand("/setblock ${this - 1} stone", Mode.IMPULSE, false));
     }
-    commands.add(0, null);
     CommandChain chain = new CommandChain(chainBuffer.getName(), commands);
     chains.add(chain);
     chainBuffer = null;

@@ -12,7 +12,9 @@ ext {
     assertj:        'org.assertj:assertj-core:3.2.0',
     beanfabrics:    'org.beanfabrics:beanfabrics-swing:1.4.0',
     guava:          'com.google.guava:guava:18.0',
+    jsr305:         'com.google.code.findbugs:jsr305:1.3.9',
     junit:          'junit:junit:4.12',
+    lombok:         'org.projectlombok:lombok:1.16.6',
     pojobuilder:    'net.karneim:pojobuilder:3.4.0',
     spock:          'org.spockframework:spock-core:1.0-groovy-2.4'
   ]
@@ -22,9 +24,7 @@ task wrapper (type: Wrapper) { gradleVersion = 2.9 }
 
 repositories { mavenCentral() }
 
-tasks.withType(JavaCompile) {
-  options.encoding = 'UTF-8'
-}
+tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
 
 File antlrDefDir = file('src/antlr/def')
 File antlrGenDir = file('src/antlr/gen')
@@ -38,7 +38,7 @@ sourceSets {
 
 configurations {
   antlr4
-  compile.extendsFrom annotationProccessing
+  compile.extendsFrom annotationProccessing, antlrCompile
 }
 
 dependencies {
@@ -47,8 +47,10 @@ dependencies {
   antlrCompile libs.antlr4_runtime
 
   compile sourceSets.antlr.output
-  compile libs.antlr4_runtime
   compile libs.beanfabrics
+  compile libs.guava
+  compile libs.jsr305
+  compile libs.lombok
 
   annotationProccessing libs.pojobuilder
 
@@ -104,26 +106,12 @@ eclipseClasspath.dependsOn generateAntlr4
 
 
 jar {
-  manifest {
-    attributes(
-        'Created-By':               'Adrodoc55 (adrodoc55@googlemail.com)',
-        'Specification-Title':      productName,
-        'Specification-Version':    version,
-        'Implementation-Title':     productName,
-        'Implementation-Version':   version,
-        'Main-Class':               'de.adrodoc55.minecraft.mpl.gui.MplMain'
-        )
-  }
-}
-
-task fatJar(type: Jar) {
-  classifier 'fat'
-  from sourceSets.main.output
-  ( configurations.compile - configurations.annotationProccessing).each { File file ->
+  from sourceSets.antlr.output.classesDir
+  (configurations.compile - configurations.annotationProccessing - sourceSets.antlr.output).each { File file ->
     if(file.isDirectory()) {
       from file
-    } else {
-      from zipTree(file)
+    } else if (file.isFile() && file.name.endsWith('.jar')) {
+      from(file) { into '/lib' }
     }
   }
   manifest {
@@ -133,11 +121,10 @@ task fatJar(type: Jar) {
         'Specification-Version':    version,
         'Implementation-Title':     productName,
         'Implementation-Version':   version,
-        'Main-Class':               'de.adrodoc55.minecraft.mpl.gui.MplMain'
+        'Main-Class':               'de.adrodoc55.minecraft.mpl.main.MplMainLauncher',
         )
   }
 }
-assemble.dependsOn fatJar
 
 tasks.withType(Test) {
   beforeTest { TestDescriptor descriptor ->

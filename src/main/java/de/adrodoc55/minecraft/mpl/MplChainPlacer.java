@@ -81,6 +81,13 @@ public class MplChainPlacer {
     this.program = program;
     this.orientation = program.getOrientation();
     this.chains = program.getChains();
+    for (CommandChain chain : chains) {
+      // The first block of each PROCESS must be a transmitter
+      if (chain.getName() == null) {
+        continue;
+      }
+      chain.getCommands().add(0, null);
+    }
     occupied = new int[chains.size()];
   }
 

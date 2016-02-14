@@ -37,10 +37,13 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui;
+package de.adrodoc55.minecraft.mpl.main;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+
+import de.adrodoc55.minecraft.mpl.gui.MplFrame;
+import de.adrodoc55.minecraft.mpl.gui.MplFramePM;
 
 public class MplMain {
 
