@@ -87,9 +87,6 @@ public class ChainLayouter {
   }
 
   private void restoreInsertionPoint() {
-    if(insertionPoint==null) {
-      System.out.println("hi");
-    }
     this.currentPosition = insertionPoint.currentPosition;
     this.placedReceivers = insertionPoint.placedReceivers;
     this.placedTransmitters = insertionPoint.placedTransmitters;
