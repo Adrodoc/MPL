@@ -114,7 +114,7 @@ public class IfChainBuffer extends ChainBuffer {
       // if we reference the success of the condition, it needs to be normalized to 1.
       // Therefor we silently add the normalizer without incrementing the counter 'added',
       // so that all other references will be shifted from the condition to the normalizer
-      Command normalizer = new Command("/testforblock ~ ~ ~ chain_command_block", true);
+      Command normalizer = new Command("testforblock ~ ~ ~ chain_command_block", true);
       // This is the index after the condition command
       int index = original.getCommands().size() - added;
       original.add(index, normalizer);
@@ -128,7 +128,7 @@ public class IfChainBuffer extends ChainBuffer {
     }
     Command previous = original.getCommands().peekLast();
     String blockId = MplConverter.toBlockId(previous.getMode());
-    String head = "/testforblock ";
+    String head = "testforblock ";
     String tail = " " + blockId + " -1 {SuccessCount:" + successCount + "}";
     int relative = -(added + 1);
     return new ReferencingCommand(head, tail, relative);

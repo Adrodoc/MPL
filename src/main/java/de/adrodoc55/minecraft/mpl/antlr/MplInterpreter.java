@@ -399,7 +399,7 @@ public class MplInterpreter extends MplBaseListener {
   public void enterStart(StartContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String process = identifier.getText();
-    String command = "/execute @e[name=" + process + "] ~ ~ ~ /setblock ~ ~ ~ redstone_block";
+    String command = "execute @e[name=" + process + "] ~ ~ ~ setblock ~ ~ ~ redstone_block";
     commandBuffer.setCommand(command);
     lastStartIdentifier = process;
     String srcProcess = chainBuffer.isProcess() ? chainBuffer.getName() : null;
@@ -428,7 +428,7 @@ public class MplInterpreter extends MplBaseListener {
           new CompilerException(programFile, symbol, line, "Can only stop repeating processes."));
       return;
     }
-    String command = "/execute @e[name=" + process + "] ~ ~ ~ /setblock ~ ~ ~ stone";
+    String command = "execute @e[name=" + process + "] ~ ~ ~ setblock ~ ~ ~ stone";
     commandBuffer.setCommand(command);
   }
 
@@ -458,19 +458,19 @@ public class MplInterpreter extends MplBaseListener {
       conditional = false;
     }
     if (conditional) {
-      commandBuffer.setCommand("/summon ArmorStand ${this + 3} {CustomName:\"" + process + NOTIFY
-          + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
+      commandBuffer.setCommand("summon ArmorStand ${this + 3} {CustomName:" + process + NOTIFY
+          + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
       chainBuffer.add(commandBuffer.toCommand());
-      chainBuffer.add(new Command("/blockdata ${this - 1} {SuccessCount:1}"));
-      chainBuffer.add(new Command("/setblock ${this + 1} redstone_block", true));
+      chainBuffer.add(new Command("blockdata ${this - 1} {SuccessCount:1}"));
+      chainBuffer.add(new Command("setblock ${this + 1} redstone_block", true));
       chainBuffer.add(null);
-      chainBuffer.add(new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
+      chainBuffer.add(new Command("setblock ${this - 1} stone", Mode.IMPULSE, false));
     } else {
-      commandBuffer.setCommand("/summon ArmorStand ${this + 1} {CustomName:\"" + process + NOTIFY
-          + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
+      commandBuffer.setCommand("summon ArmorStand ${this + 1} {CustomName:" + process + NOTIFY
+          + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
       chainBuffer.add(commandBuffer.toCommand());
       chainBuffer.add(null);
-      chainBuffer.add(new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
+      chainBuffer.add(new Command("setblock ${this - 1} stone", Mode.IMPULSE, false));
     }
     commandBuffer = null;
   }
@@ -486,9 +486,9 @@ public class MplInterpreter extends MplBaseListener {
     }
     String method = chainBuffer.getName();
     commandBuffer.setCommand(
-        "/execute @e[name=" + method + NOTIFY + "] ~ ~ ~ /setblock ~ ~ ~ redstone_block");
+        "execute @e[name=" + method + NOTIFY + "] ~ ~ ~ setblock ~ ~ ~ redstone_block");
     chainBuffer.add(commandBuffer.toCommand());
-    commandBuffer.setCommand("/kill @e[name=" + method + NOTIFY + "]");
+    commandBuffer.setCommand("kill @e[name=" + method + NOTIFY + "]");
   }
 
   @Override
@@ -510,17 +510,17 @@ public class MplInterpreter extends MplBaseListener {
       if (commandBuffer.getConditional() == Conditional.CONDITIONAL) {
         addInvert(chainBuffer);
       }
-      chainBuffer.add(new Command("/setblock ${this + 3} redstone_block", true));
+      chainBuffer.add(new Command("setblock ${this + 3} redstone_block", true));
     }
     chainBuffer.add(new Command(
-        "/entitydata @e[name=" + process + "] {CustomName:\"" + process + "_INTERCEPTED\"}"));
-    chainBuffer.add(new Command("/summon ArmorStand ${this + 1} {CustomName:\"" + process
-        + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
+        "entitydata @e[name=" + process + "] {CustomName:" + process + "_INTERCEPTED}"));
+    chainBuffer.add(new Command("summon ArmorStand ${this + 1} {CustomName:" + process
+        + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
     chainBuffer.add(null);
-    chainBuffer.add(new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
-    chainBuffer.add(new Command("/kill @e[name=" + process + ",r=2]"));
+    chainBuffer.add(new Command("setblock ${this - 1} stone", Mode.IMPULSE, false));
+    chainBuffer.add(new Command("kill @e[name=" + process + ",r=2]"));
     chainBuffer.add(new Command(
-        "/entitydata @e[name=" + process + "_INTERCEPTED] {CustomName:\"" + process + "\"}"));
+        "entitydata @e[name=" + process + "_INTERCEPTED] {CustomName:" + process + "}"));
     commandBuffer = null;
   }
 
@@ -584,7 +584,7 @@ public class MplInterpreter extends MplBaseListener {
         first.setNeedsRedstone(true);
       }
     } else {
-      commands.add(0, new InternalCommand("/setblock ${this - 1} stone", Mode.IMPULSE, false));
+      commands.add(0, new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
     }
     CommandChain chain = new CommandChain(chainBuffer.getName(), commands);
     chains.add(chain);

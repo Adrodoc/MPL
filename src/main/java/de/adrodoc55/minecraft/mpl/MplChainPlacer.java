@@ -373,13 +373,13 @@ public class MplChainPlacer {
       }
       Coordinate3D chainStart = chain.getMin();
       installation.add(new Command(
-          "/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString() + ")} {CustomName:\""
-              + chain.getName() + "\",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
+          "/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString() + ")} {CustomName:"
+              + chain.getName() + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
       uninstallation.add(new Command("/kill @e[type=ArmorStand,name=" + chain.getName() + "]"));
-      uninstallation
-          .add(new Command("/kill @e[type=ArmorStand,name=" + chain.getName() + "_NOTIFY]"));
-      uninstallation
-          .add(new Command("/kill @e[type=ArmorStand,name=" + chain.getName() + "_INTERCEPTED]"));
+      // uninstallation
+      // .add(new Command("/kill @e[type=ArmorStand,name=" + chain.getName() + "_NOTIFY]"));
+      // uninstallation
+      // .add(new Command("/kill @e[type=ArmorStand,name=" + chain.getName() + "_INTERCEPTED]"));
     }
 
     if (!installation.isEmpty() || !uninstallation.isEmpty()) {

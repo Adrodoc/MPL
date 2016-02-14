@@ -67,7 +67,7 @@ public class Command {
 
   @GeneratePojoBuilder(withBuilderInterface = Builder.class)
   public Command(String command, Mode mode, Boolean conditional, Boolean needsRedstone) {
-    this.command = command;
+    setCommand(command);
 
     this.conditional = (conditional != null) ? conditional : false;
     this.mode = (mode != null) ? mode : Mode.CHAIN;
@@ -84,7 +84,11 @@ public class Command {
   }
 
   public void setCommand(String command) {
-    this.command = command;
+    if (command != null && command.startsWith("/")) {
+      this.command = command.substring(1);
+    } else {
+      this.command = command;
+    }
   }
 
   public Mode getMode() {
