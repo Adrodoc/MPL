@@ -45,12 +45,12 @@ import java.util.List;
 public class Coordinate3D {
 
   public static final Coordinate3D SELF = new Coordinate3D(0, 0, 0);
+  public static final Coordinate3D EAST = new Coordinate3D(1, 0, 0);
+  public static final Coordinate3D WEST = new Coordinate3D(-1, 0, 0);
   public static final Coordinate3D UP = new Coordinate3D(0, 1, 0);
   public static final Coordinate3D DOWN = new Coordinate3D(0, -1, 0);
-  public static final Coordinate3D NORTH = new Coordinate3D(0, 0, -1);
   public static final Coordinate3D SOUTH = new Coordinate3D(0, 0, 1);
-  public static final Coordinate3D WEST = new Coordinate3D(-1, 0, 0);
-  public static final Coordinate3D EAST = new Coordinate3D(1, 0, 0);
+  public static final Coordinate3D NORTH = new Coordinate3D(0, 0, -1);
 
   public static enum Axis {
     X, Y, Z
@@ -246,12 +246,12 @@ public class Coordinate3D {
   private static final ArrayList<Coordinate3D> directions = new ArrayList<Coordinate3D>(6);
 
   static {
+    directions.add(EAST);
+    directions.add(WEST);
     directions.add(UP);
     directions.add(DOWN);
-    directions.add(NORTH);
     directions.add(SOUTH);
-    directions.add(WEST);
-    directions.add(EAST);
+    directions.add(NORTH);
   }
 
   private static List<Coordinate3D> getDirections() {
