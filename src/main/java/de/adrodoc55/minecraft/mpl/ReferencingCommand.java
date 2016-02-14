@@ -43,6 +43,7 @@ public class ReferencingCommand extends Command {
   private final String head;
   private final String tail;
   private int relative;
+  private boolean referenceInserted = false;
 
   public ReferencingCommand(String head, String tail, int relative) {
     this(head, tail, relative, null);
@@ -71,8 +72,17 @@ public class ReferencingCommand extends Command {
 
   @Override
   public String getCommand() {
+    if (referenceInserted) {
+      return super.getCommand();
+    }
     int abs = Math.abs(relative);
     String operator = relative < 0 ? "-" : "+";
     return head + "${this " + operator + " " + abs + "}" + tail;
+  }
+
+  @Override
+  public void setCommand(String command) {
+    super.setCommand(command);
+    referenceInserted = true;
   }
 }
