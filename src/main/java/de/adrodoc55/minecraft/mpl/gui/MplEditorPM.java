@@ -163,6 +163,11 @@ public class MplEditorPM extends AbstractPM {
     return unsavedChanges.getBoolean();
   }
 
+  /**
+   * Set's whether this editor has unsaved changes.
+   *
+   * @param unsavedChanges
+   */
   public void setUnsavedChanges(boolean unsavedChanges) {
     this.unsavedChanges.setBoolean(unsavedChanges);
   }
@@ -185,6 +190,10 @@ public class MplEditorPM extends AbstractPM {
     setTitle(file.getName());
   }
 
+  /**
+   * Checks, whether the file of this editor still exists. If the file does not exist,
+   * <code>{@link #setUnsavedChanges}(true)</code> is called, to make sure no data is lost.
+   */
   public void checkFile() {
     if (file == null) {
       return;

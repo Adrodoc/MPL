@@ -45,6 +45,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -238,14 +240,7 @@ public class MplFramePM extends AbstractPM {
     dialog.setVisible(true);
   }
 
-  void checkFiles() {
-    for (MplEditorPM editorPm : editors) {
-      editorPm.checkFile();
-    }
-  }
-
   private List<CommandBlockChain> compile() {
-    checkFiles();
     if (warnAboutUnsavedResources()) {
       return null;
     }
@@ -323,6 +318,7 @@ public class MplFramePM extends AbstractPM {
    * @return canceled - whether or not the Action should be canceled.
    */
   private boolean warnAboutUnsavedResources() {
+    checkFiles();
     LinkedList<MplEditorPM> unsaved = new LinkedList<MplEditorPM>();
     for (MplEditorPM mplEditorPm : editors) {
       if (mplEditorPm.hasUnsavedChanges()) {
@@ -330,22 +326,34 @@ public class MplFramePM extends AbstractPM {
       }
     }
     if (!unsaved.isEmpty()) {
-      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-      UnsavedResourcesDialog dialog = new UnsavedResourcesDialog(activeWindow);
-      UnsavedResourcesDialogPM dialogPm = new UnsavedResourcesDialogPM(unsaved);
-      dialog.setPresentationModel(dialogPm);
-      dialog.setVisible(true);
-      if (dialogPm.isCanceled()) {
-        return true;
-      }
+      return showUnsavedResourcesDialog(unsaved);
     }
     return false;
+  }
+
+  /**
+   * Checks for the existence of every editor's file. See {@link MplEditorPM#checkFile()} for more
+   * details.
+   */
+  void checkFiles() {
+    for (MplEditorPM editorPm : editors) {
+      editorPm.checkFile();
+    }
   }
 
   private MplEditorPM.Context createDefaultContext() {
     return new MplEditorPM.Context() {
       @Override
       public void close(MplEditorPM editorPm) {
+        boolean isIrrelevant = editorPm.code.isEmpty() && editorPm.getFile() == null;
+        if (editorPm.hasUnsavedChanges() && !isIrrelevant) {
+          ArrayList<MplEditorPM> unsaved = new ArrayList<MplEditorPM>(1);
+          unsaved.add(editorPm);
+
+          if (showUnsavedResourcesDialog(unsaved)) {
+            return;
+          }
+        }
         editors.remove(editorPm);
       }
 
@@ -354,6 +362,30 @@ public class MplFramePM extends AbstractPM {
         return sarController.getView();
       }
     };
+  }
+
+  /**
+   * Shows an {@link UnsavedResourcesDialog} to the user. Returns true if the User canceled the
+   * Action. <br>
+   * This should be called like this:<br>
+   *
+   * <pre>
+   * <code>
+   * if (showUnsavedResourcesDialog(unsaved)) {
+   *   return;
+   * }
+   * </code>
+   * </pre>
+   *
+   * @return canceled - whether or not the Action should be canceled.
+   */
+  private boolean showUnsavedResourcesDialog(Collection<MplEditorPM> unsaved) {
+    Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+    UnsavedResourcesDialog dialog = new UnsavedResourcesDialog(activeWindow);
+    UnsavedResourcesDialogPM dialogPm = new UnsavedResourcesDialogPM(unsaved);
+    dialog.setPresentationModel(dialogPm);
+    dialog.setVisible(true);
+    return dialogPm.isCanceled();
   }
 
   public void terminate() {
