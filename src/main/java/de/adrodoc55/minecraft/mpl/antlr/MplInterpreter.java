@@ -258,27 +258,38 @@ public class MplInterpreter extends MplBaseListener {
   }
 
   private ChainBuffer chainBuffer;
+  private IfBuffer ifBuffer;
+
+  private void newChainBuffer() {
+    this.chainBuffer = new ChainBuffer();
+    this.ifBuffer = new IfBuffer(chainBuffer);
+  }
+
+  private void deleteChainBuffer() {
+    chainBuffer = null;
+    ifBuffer = null;
+  }
 
   @Override
   public void enterInstall(InstallContext ctx) {
-    chainBuffer = new ChainBuffer();
+    newChainBuffer();
   }
 
   @Override
   public void exitInstall(InstallContext ctx) {
     installation.addAll(chainBuffer.getCommands());
-    chainBuffer = null;
+    deleteChainBuffer();
   }
 
   @Override
   public void enterUninstall(UninstallContext ctx) {
-    chainBuffer = new ChainBuffer();
+    newChainBuffer();
   }
 
   @Override
   public void exitUninstall(UninstallContext ctx) {
     uninstallation.addAll(chainBuffer.getCommands());
-    chainBuffer = null;
+    deleteChainBuffer();
   }
 
   @Override
@@ -290,7 +301,7 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterProcess(ProcessContext ctx) {
-    chainBuffer = new ChainBuffer();
+    newChainBuffer();
     chainBuffer.setProcess(true);
     String name = ctx.IDENTIFIER().getText();
     Token oldToken = ambigiousProcessMapping.get(name);
@@ -317,7 +328,7 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterSkript(SkriptContext ctx) {
-    chainBuffer = new ChainBuffer();
+    newChainBuffer();
     chainBuffer.setScript(true);
   }
 
@@ -557,18 +568,16 @@ public class MplInterpreter extends MplBaseListener {
     chainBuffer.add(null);
   }
 
-  private final IfBuffer ifBuffer = new IfBuffer(chainBuffer);
-
   @Override
   public void enterIfDeclaration(IfDeclarationContext ctx) {
     boolean not = ctx.NOT() != null;
     Command condition = new Command(ctx.command().COMMAND().getText());
-    ifBuffer.enterIf(not, condition);
+    chainBuffer = ifBuffer.enterIf(not, condition);
 
 
 
-    chainBuffer.add();
-    chainBuffer = new IfChainBuffer2(not, chainBuffer);
+    // chainBuffer.add();
+    // chainBuffer = new IfChainBuffer2(not, chainBuffer);
   }
 
   @Override
@@ -577,7 +586,7 @@ public class MplInterpreter extends MplBaseListener {
 
 
 
-    ((IfChainBuffer2) chainBuffer).switchToElseBlock();
+    // ((IfChainBuffer2) chainBuffer).switchToElseBlock();
   }
 
   @Override
@@ -586,7 +595,7 @@ public class MplInterpreter extends MplBaseListener {
 
 
 
-    chainBuffer = ((IfChainBuffer2) chainBuffer).getOriginal();
+    // chainBuffer = ((IfChainBuffer2) chainBuffer).getOriginal();
   }
 
   @Override
@@ -603,14 +612,14 @@ public class MplInterpreter extends MplBaseListener {
     }
     CommandChain chain = new CommandChain(chainBuffer.getName(), commands);
     chains.add(chain);
-    chainBuffer = null;
+    deleteChainBuffer();
   }
 
   @Override
   public void exitSkript(SkriptContext ctx) {
     CommandChain chain = new CommandChain(null, chainBuffer.getCommands());
     chains.add(chain);
-    chainBuffer = null;
+    deleteChainBuffer();
   }
 
 }

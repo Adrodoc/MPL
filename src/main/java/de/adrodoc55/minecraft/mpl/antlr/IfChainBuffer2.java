@@ -132,7 +132,7 @@ public class IfChainBuffer2 extends ChainBuffer {
     String head = "testforblock ";
     String tail = " " + blockId + " -1 {SuccessCount:" + successCount + "}";
     int relative = -(added + 1);
-    return new ReferencingCommand(head, tail, relative);
+    return null; //new ReferencingCommand(head, tail, relative);
   }
 
   public String getName() throws IllegalStateException {

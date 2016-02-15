@@ -47,189 +47,227 @@ import java.util.List;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 import de.adrodoc55.minecraft.mpl.MplConverter;
+import de.adrodoc55.minecraft.mpl.antlr.commands.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.antlr.commands.NormalizingCommand;
 import de.adrodoc55.minecraft.mpl.antlr.commands.ReferencingCommand;
 
 public class IfBuffer {
 
   private final ChainBuffer origin;
-  // private final LinkedList<IfNestingLayer> stack = new LinkedList<>();
-  IfNestingLayer current;
+  private final LinkedList<IfNestingLayer> stack = new LinkedList<>();
+  // IfNestingLayer current;
 
   public IfBuffer(ChainBuffer chainBuffer) {
     origin = chainBuffer;
   }
 
   public ChainBuffer enterIf(boolean not, Command condition) {
-    current = new IfNestingLayer(current, not, condition);
-    return current;
+    IfNestingLayer layer = new IfNestingLayer(not, condition);
+    stack.push(layer);
+    return layer;
   }
 
   public void switchToElseBlock() {
-    current.switchToElseBlock();
+    stack.peek().switchToElseBlock();
   }
 
   public ChainBuffer exitIf() {
-    CompressedLayerCommand compressed = LayerCompressor.compress(current);
-    current = current.parent; // pop
-    if (current == null) {
-      LinkedList<Command> decompressed = decompress(compressed);
+    CompressedLayerCommand compressed = LayerCompressor.compress(stack.pop());
+    IfNestingLayer parent = stack.peek();
+    if (parent == null) {
+      LinkedList<Command> decompressed = LayerCompressor.decompress(compressed);
       for (Command command : decompressed) {
         origin.add(command);
       }
       return origin;
     } else {
-      current.add(compressed);
-      return current;
+      parent.add(compressed);
+      return parent;
     }
   }
 
   public static class LayerCompressor {
-    private static LinkedList<Command> decompress(CompressedLayerCommand compressed) {
-      LinkedList<Command> result = new LinkedList<>();
-      result.add(new Command(compressed));
-      LinkedList<Command> layerCommands = compressed.getLayerCommands();
-      result.addAll(layerCommands);
-      return result;
-    }
-
     public static CompressedLayerCommand compress(IfNestingLayer layer) {
-      return new LayerCompressor(layer).compress();
+      return new CompressedLayerCommand(layer);
     }
 
-    private final IfNestingLayer layer;
-    LinkedList<Command> layerCommands = new LinkedList<>();
+    public static LinkedList<Command> decompress(CompressedLayerCommand compressed) {
+      return new LayerCompressor(compressed.layer).decompress();
+    }
 
-    public LayerCompressor(IfNestingLayer layer) {
+    private static LinkedList<Command> decompress(LayerCompressor parent,
+        CompressedLayerCommand compressed) {
+      return new LayerCompressor(parent, compressed.layer).decompress();
+    }
+
+    private final LayerCompressor parent;
+    private final IfNestingLayer layer;
+    private final LinkedList<Command> layerCommands = new LinkedList<>();
+
+    private boolean inElse = false;
+
+    private LayerCompressor(IfNestingLayer layer) {
+      this(null, layer);
+    }
+
+    private LayerCompressor(LayerCompressor parent, IfNestingLayer layer) {
+      this.parent = parent;
       this.layer = layer;
     }
 
-    /**
-     * Materializes and compresses the current NestingLayer into a {@link CompressedLayerCommand}.
-     *
-     * @return compressed
-     */
-    private CompressedLayerCommand compress() {
-      boolean not = layer.getNot();
-      Command condition = layer.getCondition();
-
+    private LinkedList<Command> decompress() {
+      layerCommands.add(layer.getCondition());
       boolean normalizer = layer.needsNormalizer();
       if (normalizer) {
         layerCommands.add(new NormalizingCommand());
       }
-      List<Command> thenBlock = layer.getThenBlock();
-      Iterator<Command> thenIt = thenBlock.iterator();
 
-      if (!not) {
+      Iterator<Command> thenIt = layer.getThenBlock().iterator();
+
+      if (layer.getNot()) {
+        add(thenIt, false);
+        // addAsInverts(thenIt);
+      } else {
         if (thenIt.hasNext()) { // First normal then does not need a reference
           Command firstThen = thenIt.next();
+          firstThen = new Command(firstThen);
           firstThen.setConditional(true);
           layerCommands.add(firstThen);
         }
-        addAsConditionals(thenIt, condition.getMode(), normalizer);
+        add(thenIt, true);
+        // addAsConditionals(thenIt);
       }
-      CompressedLayerCommand compressed = new CompressedLayerCommand(condition, layerCommands);
-      return compressed;
+
+      // switching to else block
+      inElse = true;
+
+      Iterator<Command> elseIt = layer.getElseBlock().iterator();
+      if (layer.getNot()) {
+        add(elseIt, true);
+        // addAsConditionals(elseIt);
+      } else {
+        add(elseIt, false);
+        // addAsInverts(elseIt);
+      }
+
+      return layerCommands;
     }
 
-    private void addAsConditionals(Iterator<Command> it, Mode conditionMode, boolean normalizer) {
-      // TODO: normalizer müsste an dieser Stelle immer true sein.
+    private void add(Iterator<Command> it, boolean dependOnSuccess) {
+      boolean lastWasInverting = false;
       while (it.hasNext()) {
         Command command = it.next();
-        if (!command.isConditional()) {
-          int relative;
+
+        LinkedList<Command> decompressed = null;
+        if (command instanceof CompressedLayerCommand) {
+          CompressedLayerCommand compressed = (CompressedLayerCommand) command;
+          decompressed = LayerCompressor.decompress(this, compressed);
+          command = decompressed.pop();
+        }
+
+        boolean isInverting = command instanceof InvertingCommand;
+        if ((lastWasInverting || !command.isConditional()) && !isInverting) {
+          boolean lastWasParentReference = false;
+          if (!dependOnSuccess) {
+            if (addParentReference(this)) {
+              lastWasParentReference = true;
+            }
+          }
+
+          int relative = getRelativeToCondition();
           Mode referencedMode;
-          if (normalizer) {
-            relative = -layerCommands.size();
-            referencedMode = layerCommands.get(0).getMode();
+          if (layer.needsNormalizer()) {
+            // Normalizers are always chain commands.
+            referencedMode = Mode.CHAIN;
           } else {
-            relative = -(layerCommands.size() + 1);
-            referencedMode = conditionMode;
+            referencedMode = layer.getCondition().getMode();
           }
           String blockId = MplConverter.toBlockId(referencedMode);
-          ReferencingCommand reference = new ReferencingCommand(relative, blockId, true);
+          ReferencingCommand reference = new ReferencingCommand(relative, blockId, dependOnSuccess);
+          reference.setConditional(lastWasInverting || lastWasParentReference);
           layerCommands.add(reference);
+          command = new Command(command);
           command.setConditional(true);
         }
         layerCommands.add(command);
-      }
-    }
 
-    private void addAsInverts(Iterator<Command> it, Mode conditionMode, boolean normalizer) {
-      while (it.hasNext()) {
-        Command command = it.next();
-        if (!command.isConditional()) {
-          addParentReference(layer);
-          int relative;
-          Mode referencedMode;
-          if (normalizer) {
-            relative = -layerCommands.size();
-            referencedMode = layerCommands.get(0).getMode();
-          } else {
-            relative = -(layerCommands.size() + 1);
-            referencedMode = conditionMode;
-          }
-          String blockId = MplConverter.toBlockId(referencedMode);
-          ReferencingCommand reference = new ReferencingCommand(relative, blockId, false);
-          layerCommands.add(reference);
-          command.setConditional(true);
+        if (decompressed != null) {
+          // Decompressed commands can't be added immediately, because the condition has to be added
+          // first.
+          layerCommands.addAll(decompressed);
         }
-        layerCommands.add(command);
+
+        lastWasInverting = isInverting;
       }
     }
 
-    private void addParentReference(IfNestingLayer layer) {
-      IfNestingLayer parent = layer.parent;
+    /**
+     * Add's a reference to the parent of the given {@link LayerCompressor}. If the parent depends
+     * on the grandparent's failure a reference to the grandparent is also added. This method is
+     * recursive and will add parent references, until the root is reached or until a layer depends
+     * on it's parent's success rather that failure.
+     *
+     * @param current
+     * @return true if any reference was added.
+     */
+    private boolean addParentReference(LayerCompressor current) {
+      LayerCompressor parent = current.parent;
       if (parent == null) {
-        return;
+        return false;
       }
-      boolean dependOnParentFailure = parent.not ^ parent.inElse;
+      IfNestingLayer parentLayer = parent.layer;
+
+      boolean dependOnParentFailure = parentLayer.not ^ parent.inElse;
       if (dependOnParentFailure) {
         // If a layer depends on it's parent's failure, it also needs a reference to it's
         // grandparent.
-        addParentReference(parent.parent);
-
-        int relative;
-        Mode referencedMode;
-        if (normalizer) {
-          relative = -layerCommands.size();
-          referencedMode = layerCommands.get(0).getMode();
-        } else {
-          relative = -(layerCommands.size() + 1);
-          referencedMode = conditionMode;
-        }
-        String blockId = MplConverter.toBlockId(referencedMode);
-        ReferencingCommand reference = new ReferencingCommand(relative, blockId, false);
-      } else {
-
+        // FIXME: conditionalität, siehe add()
+        addParentReference(parent);
       }
+      int relative = parent.getRelativeToCondition();
+      relative -= layerCommands.size() + 1; // Plus 1 für eigene condition.
+      Mode referencedMode;
+      if (parentLayer.needsNormalizer()) {
+        // Normalizers are always chain commands.
+        referencedMode = Mode.CHAIN;
+      } else {
+        referencedMode = parentLayer.getCondition().getMode();
+      }
+      String blockId = MplConverter.toBlockId(referencedMode);
+      ReferencingCommand reference =
+          new ReferencingCommand(relative, blockId, !dependOnParentFailure);
+      layerCommands.add(reference);
+      return true;
+    }
 
+    private int getRelativeToCondition() {
+      if (layer.needsNormalizer()) {
+        // Minus 1, da normalizer an 2ter Stelle.
+        return -(layerCommands.size() - 1);
+      } else {
+        return -layerCommands.size();
+      }
     }
 
   }
 
   public static class CompressedLayerCommand extends Command {
-    private final LinkedList<Command> layerCommands;
+    private final IfNestingLayer layer;
 
-    public CompressedLayerCommand(Command condition, LinkedList<Command> layerCommands) {
-      super(condition.getCommand());
-      this.layerCommands = layerCommands;
+    public CompressedLayerCommand(IfNestingLayer layer) {
+      super();
+      this.layer = layer;
     }
-
-    public LinkedList<Command> getLayerCommands() {
-      return layerCommands;
-    }
+    // TODO: throw UnsupportedOperationException für alle super methoden
   }
 
   public static class IfNestingLayer extends ChainBuffer {
-    private final IfNestingLayer parent;
     private final boolean not;
     private final Command condition;
     private final LinkedList<Command> thenBlock = new LinkedList<>();
     private boolean inElse = false;
 
-    public IfNestingLayer(IfNestingLayer parent, boolean not, Command condition) {
-      this.parent = parent;
+    public IfNestingLayer(boolean not, Command condition) {
       this.not = not;
       this.condition = condition;
     }
@@ -244,9 +282,21 @@ public class IfBuffer {
 
     public boolean needsNormalizer() {
       if (not) {
+        // Muss nicht iterieren, da der Erste nicht conditional sein kann und einmal nicht
+        // conditional ausreicht.
         return !getElseBlock().isEmpty();
       } else {
-        return getThenBlock().size() > 1;
+        Iterator<Command> it = getThenBlock().iterator();
+        if (it.hasNext()) {
+          it.next(); // Ignore the first element.
+        }
+        while (it.hasNext()) {
+          Command command = it.next();
+          if (!command.isConditional()) {
+            return true;
+          }
+        }
+        return false;
       }
     }
 
@@ -258,9 +308,12 @@ public class IfBuffer {
 
     public List<Command> getThenBlock() {
       if (!inElse) {
-        // If we are still editing the then block, refresh the elements.
-        thenBlock.clear();
-        thenBlock.addAll(commands);
+        // If we are still editing the then block and the thenBlock is not already refreshed,
+        // refresh the elements.
+        if (!thenBlock.equals(commands)) {
+          thenBlock.clear();
+          thenBlock.addAll(commands);
+        }
       }
       return Collections.unmodifiableList(thenBlock);
     }

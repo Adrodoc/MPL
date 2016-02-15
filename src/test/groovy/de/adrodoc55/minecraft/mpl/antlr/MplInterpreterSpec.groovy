@@ -52,6 +52,8 @@ import de.adrodoc55.minecraft.mpl.CompilerException
 import de.adrodoc55.minecraft.mpl.MplConverter
 import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.Command.Mode
+import de.adrodoc55.minecraft.mpl.antlr.commands.InvertingCommand
+import de.adrodoc55.minecraft.mpl.antlr.commands.NormalizingCommand
 
 public class MplInterpreterSpec extends MplSpecBase {
 
@@ -1147,10 +1149,135 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
+  public void "if not mit conditional im then"() {
+    given:
+    String programString = """
+    if not: /testfor @p
+    then (
+      /say then1
+      conditional: /say then2
+      /say then3
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    interpreter.exceptions.isEmpty()
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 6
+
+    commands[0] == new Command('testfor @p')
+    commands[1] == new Command('testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
+    commands[2] == new Command('say then1', true)
+    commands[3] == new Command('say then2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung false, muss auch mein vorgänger false sein.
+    commands[4] == new Command('testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}')
+    commands[5] == new Command('say then3', true)
+  }
+
+  @Test
+  public void "if not mit invert im then"() {
+    given:
+    String programString = """
+    if not: /testfor @p
+    then (
+      /say then1
+      invert: /say then2
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    interpreter.exceptions.isEmpty()
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 6
+
+    commands[0] == new Command('testfor @p')
+    commands[1] == new Command('testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
+    commands[2] == new Command('say then1', true)
+    commands[3] == new Command('testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
+    commands[4] == new Command('testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}', true)
+    commands[5] == new Command('say then2', true)
+  }
+
+  @Test
+  public void "if not mit conditional im else"() {
+    given:
+    String programString = """
+    if not: /testfor @p
+    then (
+      /say then
+    ) else (
+      /say else1
+      conditional: /say else2
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    interpreter.exceptions.isEmpty()
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 7
+
+    commands[0] == new Command('testfor @p')
+    commands[1] == new NormalizingCommand()
+    commands[2] == new Command('testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
+    commands[3] == new Command('say then', true)
+    commands[4] == new Command('testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}')
+    commands[5] == new Command('say else1', true)
+    commands[6] == new Command('say else2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung true, muss auch mein vorgänger false sein.
+  }
+
+  @Test
+  public void "if not mit invert im else"() {
+    given:
+    String programString = """
+    if not: /testfor @p
+    then (
+      /say then
+    ) else (
+      /say else1
+      invert: /say else2
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    interpreter.exceptions.isEmpty()
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 9
+
+    commands[0] == new Command('testfor @p')
+    commands[1] == new NormalizingCommand()
+    commands[2] == new Command('testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
+    commands[3] == new Command('say then', true)
+    commands[4] == new Command('testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}')
+    commands[5] == new Command('say else1', true)
+    commands[6] == new InvertingCommand(Mode.CHAIN)
+    commands[7] == new Command('testforblock ${this - 6} chain_command_block -1 {SuccessCount:1}', true)
+    commands[8] == new Command('say else2', true)
+  }
+
+  @Test
   public void "if am anfang eines repeating prozesses, ohne normalizer: referenzen referensieren den repeat mode"() {
     given:
     String programString = """
-    repeating process (
+    repeat process main (
       if: /testfor @p
       then (
         /say then
@@ -1221,7 +1348,7 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
-  public void "double nested if"() {
+  public void "double nested if im then teil"() {
     given:
     String programString = """
     if: /outer condition
@@ -1266,7 +1393,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[7] == new Command('testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}')
     commands[8] == new Command('inner condition', true)
     commands[9] == new Command('say inner then', true)
-    commands[10] == new Command('testforblock ${this - 5} chain_command_block -1 {SuccessCount:1}', true)
+    commands[10] == new Command('testforblock ${this - 5} chain_command_block -1 {SuccessCount:1}')
     commands[11] == new Command('testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}', true)
     commands[12] == new Command('say inner else', true)
     commands[13] == new Command('testforblock ${this - 8} chain_command_block -1 {SuccessCount:1}')
@@ -1278,6 +1405,67 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[19] == new Command('say outer then2', true)
     commands[20] == new Command('testforblock ${this - 19} chain_command_block -1 {SuccessCount:0}')
     commands[21] == new Command('say outer else', true)
+  }
+
+  @Test
+  public void "double nested if im else teil"() {
+    given:
+    String programString = """
+    if: /outer condition
+    then (
+      /say outer then
+    ) else (
+      /say outer else1
+      if: /middle condition
+      then (
+        /say middle then
+      ) else (
+        /say middle else1
+        if: /inner condition
+        then (
+          /say inner then
+        ) else (
+          /say inner else
+        )
+        /say middle else2
+      )
+      /say outer else2
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    interpreter.exceptions.isEmpty()
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 23
+
+    commands[0] == new Command('outer condition')
+    commands[1] == new Command('say outer then', true)
+    commands[2] == new Command('testforblock ${this - 2} chain_command_block -1 {SuccessCount:0}')
+    commands[3]== new Command('say outer else1', true)
+    commands[4] == new Command('testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}')
+    commands[5] == new Command('middle condition', true)
+    commands[6] == new Command('say middle then', true)
+    commands[7] == new Command('testforblock ${this - 7} chain_command_block -1 {SuccessCount:0}')
+    commands[8] == new Command('testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}', true)
+    commands[9] == new Command('say middle else1', true)
+    commands[10] == new Command('testforblock ${this - 10} chain_command_block -1 {SuccessCount:0}')
+    commands[11] == new Command('testforblock ${this - 6} chain_command_block -1 {SuccessCount:0}', true)
+    commands[12] == new Command('inner condition', true)
+    commands[13] == new Command('say inner then', true)
+    commands[14] == new Command('testforblock ${this - 14} chain_command_block -1 {SuccessCount:0}')
+    commands[15] == new Command('testforblock ${this - 10} chain_command_block -1 {SuccessCount:0}', true)
+    commands[16] == new Command('testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}', true)
+    commands[17] == new Command('say inner else', true)
+    commands[18] == new Command('testforblock ${this - 18} chain_command_block -1 {SuccessCount:0}')
+    commands[19] == new Command('testforblock ${this - 14} chain_command_block -1 {SuccessCount:0}', true)
+    commands[20] == new Command('say middle else2', true)
+    commands[21] == new Command('testforblock ${this - 21} chain_command_block -1 {SuccessCount:0}')
+    commands[22] == new Command('say outer else2', true)
   }
 
   @Test
