@@ -181,6 +181,30 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
+  public void "am anfang eines repeating prozesses referenziert ein invert modifier einen repeating command block"() {
+    given:
+    String testString = """
+    repeat process main (
+      /say hi
+      invert: /say inverted
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(testString)
+    then:
+    interpreter.exceptions.isEmpty()
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 3
+    commands[0] == new Command("say hi", Mode.REPEAT, false)
+    commands[1] == new InvertingCommand(Mode.REPEAT)
+    commands[2] == new Command("say inverted", true)
+  }
+
+  @Test
   public void "invert modifier korrigiert alle inserts"() {
     given:
     String testString = """
