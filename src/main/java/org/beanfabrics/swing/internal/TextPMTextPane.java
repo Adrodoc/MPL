@@ -68,7 +68,7 @@ public class TextPMTextPane extends JTextPane implements View<ITextPM> {
   private static final long serialVersionUID = 1L;
 
   private boolean selectAllOnFocusGainedEnabled = false;
-  private boolean reformatOnFocusLostEnabled = true;
+  private boolean reformatOnFocusLostEnabled = false;
   private final PropertyChangeListener listener = new MyWeakPropertyChangeListener();
 
   private class MyWeakPropertyChangeListener implements WeakPropertyChangeListener, Serializable {
