@@ -266,16 +266,18 @@ public class SearchAndReplaceDialogPM extends AbstractPM {
       return new ValidationState("Cannot search for empty String");
 
     }
-    try {
-      Pattern.compile(search.getText());
-    } catch (PatternSyntaxException ex) {
-      String rawMessage = ex.getLocalizedMessage();
-      if (rawMessage.contains("\n")) {
-        rawMessage = "<html>Invalid Regex:<br><pre>" + rawMessage.replaceAll("\r?\n", "<br>")
-            + "</pre></html>";
-        System.out.println(rawMessage);
+    if (regex.getBoolean()) {
+      try {
+        Pattern.compile(search.getText());
+      } catch (PatternSyntaxException ex) {
+        String rawMessage = ex.getLocalizedMessage();
+        if (rawMessage.contains("\n")) {
+          rawMessage = "<html>Invalid Regex:<br><pre>" + rawMessage.replaceAll("\r?\n", "<br>")
+              + "</pre></html>";
+          System.out.println(rawMessage);
+        }
+        return new ValidationState(rawMessage);
       }
-      return new ValidationState(rawMessage);
     }
     return null;
   }
