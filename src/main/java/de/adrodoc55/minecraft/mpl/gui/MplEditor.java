@@ -50,6 +50,7 @@ import java.beans.PropertyChangeListener;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileFilter;
@@ -183,7 +184,9 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
     if (scrollPane == null) {
       scrollPane = new JScrollPane();
       scrollPane.setRowHeaderView(getTextLineNumber());
-      scrollPane.setViewportView(getTextPane());
+      JPanel viewPortView = new JPanel(new BorderLayout());
+      viewPortView.add(getTextPane(), BorderLayout.CENTER);
+      scrollPane.setViewportView(viewPortView);
     }
     return scrollPane;
   }

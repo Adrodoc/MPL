@@ -70,6 +70,7 @@ public class BnJaggedEditorKit extends BnStyledEditorKit {
         if (kind.equals(AbstractDocument.ContentElementName)) {
           return createLabelView(elem);
         } else if (kind.equals(AbstractDocument.ParagraphElementName)) {
+          // return new MyParagraphView(elem);
           return new ParagraphView(elem);
         } else if (kind.equals(AbstractDocument.SectionElementName)) {
           return new BoxView(elem, View.Y_AXIS);
@@ -87,6 +88,32 @@ public class BnJaggedEditorKit extends BnStyledEditorKit {
     }
   }
 
+  // public static class MyParagraphView extends ParagraphView {
+  //
+  // public MyParagraphView(Element elem) {
+  // super(elem);
+  // }
+  //
+  // public void removeUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+  // super.removeUpdate(e, a, f);
+  // resetBreakSpots();
+  // }
+  //
+  // public void insertUpdate(DocumentEvent e, Shape a, ViewFactory f) {
+  // super.insertUpdate(e, a, f);
+  // resetBreakSpots();
+  // }
+  //
+  // private void resetBreakSpots() {
+  // for (int i = 0; i < layoutPool.getViewCount(); i++) {
+  // View v = layoutPool.getView(i);
+  // if (v instanceof JaggedLabelView) {
+  // ((JaggedLabelView) v).resetBreakSpots();
+  // }
+  // }
+  // }
+  //
+  // }
   public static class JaggedLabelView extends LabelView {
     public JaggedLabelView(Element elem) {
       super(elem);
@@ -122,6 +149,28 @@ public class BnJaggedEditorKit extends BnStyledEditorKit {
       }
       g.setColor(old);
     }
+
+    // boolean isResetBreakSpots = false;
+    //
+    // public View breakView(int axis, int p0, float pos, float len) {
+    // if (axis == View.X_AXIS) {
+    // resetBreakSpots();
+    // }
+    // return super.breakView(axis, p0, pos, len);
+    // }
+    //
+    // private void resetBreakSpots() {
+    // isResetBreakSpots = true;
+    // removeUpdate(null, null, null);
+    // isResetBreakSpots = false;
+    //
+    // }
+    //
+    // public void preferenceChanged(View child, boolean width, boolean height) {
+    // if (!isResetBreakSpots) {
+    // super.preferenceChanged(child, width, height);
+    // }
+    // }
 
   }
 }
