@@ -45,13 +45,20 @@ import java.awt.GridBagLayout;
 import java.awt.IllegalComponentStateException;
 import java.awt.Insets;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
@@ -111,6 +118,15 @@ public class SearchAndReplaceDialog extends JDialog
     setSize(400, 250);
     setLocationRelativeTo(getParent());
     getRootPane().setDefaultButton(getBnbtnFind());
+    InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+    ActionMap actionMap = getRootPane().getActionMap();
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
+    actionMap.put("close", new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        setVisible(false);
+      }
+    });
     addWindowFocusListener(new WindowFocusListener() {
       @Override
       public void windowGainedFocus(WindowEvent e) {
@@ -126,10 +142,23 @@ public class SearchAndReplaceDialog extends JDialog
         try {
           setOpacity(0.4f);
         } catch (IllegalComponentStateException ignore) {
-          // ignore
+          // ignore: happens when the LookAndFeel does not support window decorations.
         }
       }
     });
+  }
+
+  @Override
+  public void setVisible(boolean b) {
+    super.setVisible(b);
+    if (b) {
+      JButton defaultButton = getRootPane().getDefaultButton();
+      if (defaultButton.isEnabled()) {
+        defaultButton.requestFocusInWindow();
+      } else {
+        getBncbxSearch().requestFocusInWindow();
+      }
+    }
   }
 
   /**

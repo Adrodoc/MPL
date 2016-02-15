@@ -320,9 +320,9 @@ public class MplFramePM extends AbstractPM {
   private boolean warnAboutUnsavedResources() {
     checkFiles();
     LinkedList<MplEditorPM> unsaved = new LinkedList<MplEditorPM>();
-    for (MplEditorPM mplEditorPm : editors) {
-      if (mplEditorPm.hasUnsavedChanges()) {
-        unsaved.add(mplEditorPm);
+    for (MplEditorPM editorPm : editors) {
+      if (editorPm.hasUnsavedChanges() && isRelevant(editorPm)) {
+        unsaved.add(editorPm);
       }
     }
     if (!unsaved.isEmpty()) {
@@ -345,8 +345,7 @@ public class MplFramePM extends AbstractPM {
     return new MplEditorPM.Context() {
       @Override
       public void close(MplEditorPM editorPm) {
-        boolean isIrrelevant = editorPm.code.isEmpty() && editorPm.getFile() == null;
-        if (editorPm.hasUnsavedChanges() && !isIrrelevant) {
+        if (editorPm.hasUnsavedChanges() && isRelevant(editorPm)) {
           ArrayList<MplEditorPM> unsaved = new ArrayList<MplEditorPM>(1);
           unsaved.add(editorPm);
 
@@ -362,6 +361,10 @@ public class MplFramePM extends AbstractPM {
         return sarController.getView();
       }
     };
+  }
+
+  private boolean isRelevant(MplEditorPM editorPm) {
+    return !editorPm.code.isEmpty() || editorPm.getFile() != null;
   }
 
   /**

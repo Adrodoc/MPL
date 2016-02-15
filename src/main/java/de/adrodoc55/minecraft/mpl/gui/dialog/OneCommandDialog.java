@@ -50,7 +50,10 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -108,8 +111,10 @@ public class OneCommandDialog extends JDialog
     getContentPane().add(getScrollPane(), BorderLayout.CENTER);
     getContentPane().add(getPnlButtons(), BorderLayout.SOUTH);
     getRootPane().setDefaultButton(getBnbtnCopyToClipboard());
-    getRootPane().getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
-    getRootPane().getActionMap().put("close", new AbstractAction() {
+    InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+    ActionMap actionMap = getRootPane().getActionMap();
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
+    actionMap.put("close", new AbstractAction() {
       @Override
       public void actionPerformed(ActionEvent e) {
         dispose();

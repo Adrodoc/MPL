@@ -52,7 +52,10 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -120,8 +123,10 @@ public class ExceptionDialog extends JDialog implements View<ExceptionDialogPM>,
       }
     });
     getRootPane().setDefaultButton(getBtnOk());
-    getRootPane().getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
-    getRootPane().getActionMap().put("close", new AbstractAction() {
+    InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+    ActionMap actionMap = getRootPane().getActionMap();
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
+    actionMap.put("close", new AbstractAction() {
       @Override
       public void actionPerformed(ActionEvent e) {
         dispose();
