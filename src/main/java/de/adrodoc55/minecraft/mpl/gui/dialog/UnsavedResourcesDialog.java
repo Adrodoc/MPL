@@ -46,6 +46,9 @@ import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.Enumeration;
 
 import javax.swing.AbstractAction;
 import javax.swing.JDialog;
@@ -55,6 +58,7 @@ import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.TableColumn;
 
 import org.beanfabrics.IModelProvider;
 import org.beanfabrics.Link;
@@ -100,8 +104,14 @@ public class UnsavedResourcesDialog extends JDialog implements
     init();
     setModal(true);
     setSize(250, 300);
-    // pack();
     setLocationRelativeTo(getParent());
+    addWindowListener(new WindowAdapter() {
+      @Override
+      public void windowClosing(WindowEvent e) {
+        getBnbtnCancel().doClick();
+        super.windowClosing(e);
+      }
+    });
   }
 
   private void init() {
@@ -116,7 +126,7 @@ public class UnsavedResourcesDialog extends JDialog implements
     getRootPane().getActionMap().put("close", new AbstractAction() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        dispose();
+        getBnbtnCancel().doClick();
       }
     });
   }
@@ -231,12 +241,21 @@ public class UnsavedResourcesDialog extends JDialog implements
 
   private BnTable getBnTable() {
     if (bnTable == null) {
-      bnTable = new BnTable();
+      bnTable = new BnTable() {
+        @Override
+        protected void connect() {
+          super.connect();
+          Enumeration<TableColumn> columns = bnTable.getColumnModel().getColumns();
+          while (columns.hasMoreElements()) {
+            TableColumn column = columns.nextElement();
+            column.setResizable(false);
+          }
+        }
+      };
+      bnTable.getTableHeader().setReorderingAllowed(false);
       bnTable.setSortable(false);
-      bnTable.setShowVerticalLines(false);
-      bnTable.setShowHorizontalLines(false);
       bnTable.setShowGrid(false);
-      bnTable.setRowSelectionAllowed(false);
+      bnTable.setCellSelectionEnabled(false);
       bnTable.setPath(new Path("this.unsaved"));
       bnTable.setModelProvider(getLocalModelProvider());
       bnTable.setColumns(new BnColumnBuilder()

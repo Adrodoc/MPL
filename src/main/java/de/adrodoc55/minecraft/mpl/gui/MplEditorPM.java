@@ -134,6 +134,7 @@ public class MplEditorPM extends AbstractPM {
       throw new NullPointerException("context == null");
     }
     this.context = context;
+    title.setEditable(false); // For UnsavedResourcesDialog
     title.setText("new" + i++ + ".mpl");
     code.addPropertyChangeListener(new PropertyChangeListener() {
       @Override
