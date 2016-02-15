@@ -67,6 +67,7 @@ import org.beanfabrics.swing.BnTextPane;
 import org.beanfabrics.swing.internal.BnStyledDocument;
 
 import de.adrodoc55.minecraft.mpl.gui.utils.BnJaggedEditorKit;
+import de.adrodoc55.minecraft.mpl.gui.utils.NoWrapBnTextPane;
 import de.adrodoc55.minecraft.mpl.gui.utils.RawUndoManager;
 import de.adrodoc55.minecraft.mpl.gui.utils.RedoAction;
 import de.adrodoc55.minecraft.mpl.gui.utils.TextLineNumber;
@@ -196,9 +197,8 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
 
   BnTextPane getTextPane() {
     if (textPane == null) {
-      textPane = new BnTextPane();
+      textPane = new NoWrapBnTextPane();
       textPane.setFont(new Font("Consolas", Font.PLAIN, 13));
-
       textPane.setPath(new Path("this.code"));
       textPane.setModelProvider(getLocalModelProvider());
       textPane.setEditorKit(new BnJaggedEditorKit());
