@@ -42,10 +42,11 @@ package de.adrodoc55.minecraft.mpl.gui.dialog;
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.IllegalComponentStateException;
 import java.awt.Insets;
 import java.awt.Window;
-import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -110,12 +111,22 @@ public class SearchAndReplaceDialog extends JDialog
     setSize(400, 250);
     setLocationRelativeTo(getParent());
     getRootPane().setDefaultButton(getBnbtnFind());
-    addWindowFocusListener(new WindowAdapter() {
+    addWindowFocusListener(new WindowFocusListener() {
       @Override
       public void windowGainedFocus(WindowEvent e) {
         SearchAndReplaceDialogPM pModel = getPresentationModel();
         if (pModel != null) {
           pModel.revalidateProperties();
+        }
+        setOpacity(1);
+      }
+
+      @Override
+      public void windowLostFocus(WindowEvent e) {
+        try {
+          setOpacity(0.4f);
+        } catch (IllegalComponentStateException ignore) {
+          // ignore
         }
       }
     });

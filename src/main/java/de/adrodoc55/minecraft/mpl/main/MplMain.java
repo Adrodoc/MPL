@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.main;
 
+import javax.swing.JDialog;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
@@ -49,6 +50,7 @@ public class MplMain {
 
   public static void main(String[] args) throws Exception {
     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    JDialog.setDefaultLookAndFeelDecorated(true);
     SwingUtilities.invokeLater(() -> {
       MplFrame frame = new MplFrame();
       MplFramePM pModel = new MplFramePM();
