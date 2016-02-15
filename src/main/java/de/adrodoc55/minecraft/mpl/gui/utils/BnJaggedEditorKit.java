@@ -59,7 +59,7 @@ import org.beanfabrics.swing.internal.BnStyledEditorKit;
 public class BnJaggedEditorKit extends BnStyledEditorKit {
   private static final long serialVersionUID = 1L;
 
-  public ViewFactory getViewFactory() {
+  public JaggedViewFactory getViewFactory() {
     return new JaggedViewFactory();
   }
 
@@ -68,7 +68,7 @@ public class BnJaggedEditorKit extends BnStyledEditorKit {
       String kind = elem.getName();
       if (kind != null) {
         if (kind.equals(AbstractDocument.ContentElementName)) {
-          return new JaggedLabelView(elem);
+          return createLabelView(elem);
         } else if (kind.equals(AbstractDocument.ParagraphElementName)) {
           return new ParagraphView(elem);
         } else if (kind.equals(AbstractDocument.SectionElementName)) {
@@ -80,6 +80,10 @@ public class BnJaggedEditorKit extends BnStyledEditorKit {
         }
       } // default to text display
       return new LabelView(elem);
+    }
+
+    protected JaggedLabelView createLabelView(Element elem) {
+      return new JaggedLabelView(elem);
     }
   }
 
@@ -118,5 +122,6 @@ public class BnJaggedEditorKit extends BnStyledEditorKit {
       }
       g.setColor(old);
     }
+
   }
 }
