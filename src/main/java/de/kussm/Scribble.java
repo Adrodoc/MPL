@@ -54,9 +54,9 @@ public class Scribble {
 
   public static void main(String[] args) {
     // Directions dirs = $(EAST.repeat(16), NORTH, WEST.repeat(16), NORTH).repeat(1000);
-    // System.out.println(ChainLayouter.place(EXAMPLE_CHAIN1, dirs));
-    // System.out.println(ChainLayouter.place(EXAMPLE_CHAIN2, dirs));
     Directions dirs = $(EAST.repeat(4), NORTH, WEST.repeat(4), NORTH).repeat();
+    System.out.println(ChainLayouter.place(EXAMPLE_CHAIN1, dirs));
+    System.out.println(ChainLayouter.place(EXAMPLE_CHAIN2, dirs));
     System.out.println(ChainLayouter.place(EXAMPLE_CHAIN3, dirs));
   }
 }
