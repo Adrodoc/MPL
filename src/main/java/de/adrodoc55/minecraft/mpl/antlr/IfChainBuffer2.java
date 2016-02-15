@@ -42,11 +42,12 @@ package de.adrodoc55.minecraft.mpl.antlr;
 import java.util.LinkedList;
 
 import de.adrodoc55.minecraft.mpl.Command;
-import de.adrodoc55.minecraft.mpl.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.MplConverter;
-import de.adrodoc55.minecraft.mpl.ReferencingCommand;
+import de.adrodoc55.minecraft.mpl.antlr.commands.InvertingCommand;
+import de.adrodoc55.minecraft.mpl.antlr.commands.ReferencingCommand;
 
-public class IfChainBuffer extends ChainBuffer {
+@Deprecated
+public class IfChainBuffer2 extends ChainBuffer {
 
   private final ChainBuffer original;
   private final boolean not;
@@ -59,7 +60,7 @@ public class IfChainBuffer extends ChainBuffer {
    */
   private boolean lastWasInverting = false;
 
-  public IfChainBuffer(boolean not, ChainBuffer original) {
+  public IfChainBuffer2(boolean not, ChainBuffer original) {
     this.not = not;
     this.original = original;
   }

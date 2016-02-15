@@ -37,31 +37,36 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.antlr.commands;
 
-public class InternalCommand extends Command {
+import de.adrodoc55.minecraft.mpl.Command;
+import de.adrodoc55.minecraft.mpl.MplConverter;
 
-  public InternalCommand() {
-    super();
+public class InvertingCommand extends InternalCommand {
+
+  /**
+   * Constructs a Command, wich's success is always the opposite of the given command, if the
+   * constructed command is placed directly after the given command.
+   *
+   * @param previous
+   */
+  public InvertingCommand(Command previous) {
+    this(previous.getMode());
   }
 
-  public InternalCommand(String command) {
-    super(command);
+  /**
+   * Constructs a Command, wich's success is always the opposite of the previous command, if the
+   * previous command has the given mode.
+   *
+   * @param previous
+   */
+  public InvertingCommand(Mode previousMode) {
+    super(getInvert(previousMode));
   }
 
-  public InternalCommand(String command, Boolean conditional) {
-    super(command, conditional);
+  private static String getInvert(Mode previousMode) {
+    String blockId = MplConverter.toBlockId(previousMode);
+    return "/testforblock ${this - 1} " + blockId + " -1 {SuccessCount:0}";
   }
 
-  public InternalCommand(String command, Mode mode, Boolean conditional) {
-    super(command, mode, conditional);
-  }
-
-  public InternalCommand(String command, Mode mode, Boolean conditional, Boolean needsRedstone) {
-    super(command, mode, conditional, needsRedstone);
-  }
-
-  public boolean isInternal() {
-    return true;
-  }
 }

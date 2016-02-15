@@ -53,13 +53,14 @@ class ChainBuffer {
   private boolean script;
   private boolean repeatingProcess;
   private boolean repeatingContext;
-  private final LinkedList<Command> commands = new LinkedList<Command>();
+  protected final LinkedList<Command> commands = new LinkedList<Command>();
 
   public boolean add(Command command) {
     updateContext(command);
     return commands.add(command);
   }
 
+  @Deprecated
   public void add(int index, Command command) {
     updateContext(command);
     commands.add(index, command);

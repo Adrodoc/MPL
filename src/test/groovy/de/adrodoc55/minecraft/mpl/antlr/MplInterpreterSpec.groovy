@@ -1147,6 +1147,36 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
+  public void "if am anfang eines repeating prozesses, ohne normalizer: referenzen referensieren den repeat mode"() {
+    given:
+    String programString = """
+    repeating process (
+      if: /testfor @p
+      then (
+        /say then
+      ) else (
+        /say else
+      )
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    interpreter.exceptions.isEmpty()
+    List chains = interpreter.chains
+    chains.size() == 1
+
+    CommandChain chain = chains.first()
+    List<Command> commands = chain.commands
+    commands.size() == 4
+
+    commands[0] == new Command('testfor @p', Mode.REPEAT, false)
+    commands[1] == new Command('say then', true)
+    commands[2] == new Command('testforblock ${this - 2} repeating_command_block -1 {SuccessCount:0}')
+    commands[3] == new Command('say else', true)
+  }
+
+  @Test
   public void "nested if"() {
     given:
     String programString = """

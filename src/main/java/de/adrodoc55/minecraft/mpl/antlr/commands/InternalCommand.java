@@ -37,52 +37,30 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.antlr.commands;
 
-public class ReferencingCommand extends Command {
-  private final String head;
-  private final String tail;
-  private int relative;
-  private boolean referenceInserted = false;
+import de.adrodoc55.minecraft.mpl.Command;
 
-  public ReferencingCommand(String head, String tail, int relative) {
-    this(head, tail, relative, null);
+public class InternalCommand extends Command {
+
+  public InternalCommand() {
+    super();
   }
 
-  public ReferencingCommand(String head, String tail, int relative, Boolean conditional) {
-    this(head, tail, relative, null, conditional);
+  public InternalCommand(String command) {
+    super(command);
   }
 
-  public ReferencingCommand(String head, String tail, int relative, Mode mode,
-      Boolean conditional) {
-    this(head, tail, relative, mode, conditional, null);
+  public InternalCommand(String command, Boolean conditional) {
+    super(command, conditional);
   }
 
-  public ReferencingCommand(String head, String tail, int relative, Mode mode, Boolean conditional,
-      Boolean needsRedstone) {
-    super(null, mode, conditional, needsRedstone);
-    this.head = head;
-    this.tail = tail;
-    this.relative = relative;
+  public InternalCommand(String command, Mode mode, Boolean conditional) {
+    super(command, mode, conditional);
   }
 
-  public void addToRelative(int r) {
-    relative += r;
+  public InternalCommand(String command, Mode mode, Boolean conditional, Boolean needsRedstone) {
+    super(command, mode, conditional, needsRedstone);
   }
 
-  @Override
-  public String getCommand() {
-    if (referenceInserted) {
-      return super.getCommand();
-    }
-    int abs = Math.abs(relative);
-    String operator = relative < 0 ? "-" : "+";
-    return head + "${this " + operator + " " + abs + "}" + tail;
-  }
-
-  @Override
-  public void setCommand(String command) {
-    super.setCommand(command);
-    referenceInserted = true;
-  }
 }

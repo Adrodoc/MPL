@@ -56,6 +56,7 @@ import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException;
 import de.adrodoc55.minecraft.mpl.antlr.Include;
 import de.adrodoc55.minecraft.mpl.antlr.MplBaseListener;
 import de.adrodoc55.minecraft.mpl.antlr.MplInterpreter;
+import de.adrodoc55.minecraft.mpl.antlr.commands.InternalCommand;
 
 public class MplCompiler extends MplBaseListener {
 

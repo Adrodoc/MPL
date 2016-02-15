@@ -57,6 +57,7 @@ import java.util.function.Predicate;
 import de.adrodoc55.minecraft.Coordinate3D;
 import de.adrodoc55.minecraft.Coordinate3D.Direction;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
+import de.adrodoc55.minecraft.mpl.antlr.commands.InternalCommand;
 import de.adrodoc55.minecraft.mpl.chain_computing.IterativeChainComputer;
 import de.kussm.ChainLayouter;
 import de.kussm.chain.Chain;

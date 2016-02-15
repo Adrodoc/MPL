@@ -79,6 +79,10 @@ public class Command {
     }
   }
 
+  public Command(Command command) {
+    this(command.getCommand(), command.getMode(), command.isConditional(), command.needsRedstone());
+  }
+
   public String getCommand() {
     return command;
   }

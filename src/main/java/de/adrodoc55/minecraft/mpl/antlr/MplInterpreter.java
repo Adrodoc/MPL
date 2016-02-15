@@ -64,8 +64,6 @@ import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 import de.adrodoc55.minecraft.mpl.CommandChain;
 import de.adrodoc55.minecraft.mpl.CompilerException;
-import de.adrodoc55.minecraft.mpl.InternalCommand;
-import de.adrodoc55.minecraft.mpl.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.antlr.CommandBufferFactory.CommandBuffer;
 import de.adrodoc55.minecraft.mpl.antlr.CommandBufferFactory.CommandBuffer.Conditional;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.AutoContext;
@@ -90,6 +88,8 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.StartContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.StopContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.UninstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.WaitforContext;
+import de.adrodoc55.minecraft.mpl.antlr.commands.InternalCommand;
+import de.adrodoc55.minecraft.mpl.antlr.commands.InvertingCommand;
 
 public class MplInterpreter extends MplBaseListener {
 
@@ -485,8 +485,8 @@ public class MplInterpreter extends MplBaseListener {
       return;
     }
     String method = chainBuffer.getName();
-    commandBuffer.setCommand(
-        "execute @e[name=" + method + NOTIFY + "] ~ ~ ~ setblock ~ ~ ~ redstone_block");
+    commandBuffer
+        .setCommand("execute @e[name=" + method + NOTIFY + "] ~ ~ ~ setblock ~ ~ ~ redstone_block");
     chainBuffer.add(commandBuffer.toCommand());
     commandBuffer.setCommand("kill @e[name=" + method + NOTIFY + "]");
   }
@@ -557,21 +557,36 @@ public class MplInterpreter extends MplBaseListener {
     chainBuffer.add(null);
   }
 
+  private final IfBuffer ifBuffer = new IfBuffer(chainBuffer);
+
   @Override
   public void enterIfDeclaration(IfDeclarationContext ctx) {
-    chainBuffer.add(new Command(ctx.command().COMMAND().getText()));
     boolean not = ctx.NOT() != null;
-    chainBuffer = new IfChainBuffer(not, chainBuffer);
+    Command condition = new Command(ctx.command().COMMAND().getText());
+    ifBuffer.enterIf(not, condition);
+
+
+
+    chainBuffer.add();
+    chainBuffer = new IfChainBuffer2(not, chainBuffer);
   }
 
   @Override
   public void enterElseDeclaration(ElseDeclarationContext ctx) {
-    ((IfChainBuffer) chainBuffer).switchToElseBlock();
+    ifBuffer.switchToElseBlock();
+
+
+
+    ((IfChainBuffer2) chainBuffer).switchToElseBlock();
   }
 
   @Override
   public void exitIfDeclaration(IfDeclarationContext ctx) {
-    chainBuffer = ((IfChainBuffer) chainBuffer).getOriginal();
+    chainBuffer = ifBuffer.exitIf();
+
+
+
+    chainBuffer = ((IfChainBuffer2) chainBuffer).getOriginal();
   }
 
   @Override
