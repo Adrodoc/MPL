@@ -42,6 +42,8 @@ package de.adrodoc55.minecraft.mpl.gui.utils;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentEvent.EventType;
 import javax.swing.text.AbstractDocument;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 
@@ -59,9 +61,62 @@ public class RawUndoManager extends UndoManager {
     if (anEdit instanceof AbstractDocument.DefaultDocumentEvent) {
       AbstractDocument.DefaultDocumentEvent de = (AbstractDocument.DefaultDocumentEvent) anEdit;
       if (de.getType() == DocumentEvent.EventType.CHANGE) {
-        return false;
+        return super.addEdit(new InsignificantEdit(anEdit));
       }
     }
     return super.addEdit(anEdit);
+  }
+
+  public static class InsignificantEdit implements UndoableEdit {
+    private final UndoableEdit delegate;
+
+    public InsignificantEdit(UndoableEdit anEdit) {
+      delegate = anEdit;
+    }
+
+    public boolean isSignificant() {
+      return false;
+    }
+
+    public void undo() throws CannotUndoException {
+      delegate.undo();
+    }
+
+    public boolean canUndo() {
+      return delegate.canUndo();
+    }
+
+    public void redo() throws CannotRedoException {
+      delegate.redo();
+    }
+
+    public boolean canRedo() {
+      return delegate.canRedo();
+    }
+
+    public void die() {
+      delegate.die();
+    }
+
+    public boolean addEdit(UndoableEdit anEdit) {
+      return delegate.addEdit(anEdit);
+    }
+
+    public boolean replaceEdit(UndoableEdit anEdit) {
+      return delegate.replaceEdit(anEdit);
+    }
+
+    public String getPresentationName() {
+      return delegate.getPresentationName();
+    }
+
+    public String getUndoPresentationName() {
+      return delegate.getUndoPresentationName();
+    }
+
+    public String getRedoPresentationName() {
+      return delegate.getRedoPresentationName();
+    }
+
   }
 }

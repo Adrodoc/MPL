@@ -48,6 +48,7 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.StyledDocument;
+import javax.swing.undo.UndoManager;
 
 import org.beanfabrics.View;
 import org.beanfabrics.event.WeakPropertyChangeListener;
@@ -96,11 +97,13 @@ public class BnStyledDocument extends DefaultStyledDocument implements View<ITex
 
   /**
    * This {@link DocumentListener} listenes for changes to this document, that are not caused by
-   * this document. For instance changes performed by an undomanager.
+   * this document. For instance changes performed by an {@link UndoManager}.
    */
   private final DocumentListener documentListener = new MyDocumentListener();
 
-  private class MyDocumentListener implements DocumentListener {
+  private class MyDocumentListener implements DocumentListener, Serializable {
+    private static final long serialVersionUID = 1L;
+
     @Override
     public void removeUpdate(DocumentEvent e) {
       if (pending_modelChange == false) {
@@ -201,9 +204,12 @@ public class BnStyledDocument extends DefaultStyledDocument implements View<ITex
 
   public void remove(int offs, int len) throws BadLocationException {
     try {
-      pending_modelChange = true;
-      super.remove(offs, len);
-      pending_modelChange = false;
+      try {
+        pending_modelChange = true;
+        super.remove(offs, len);
+      } finally {
+        pending_modelChange = false;
+      }
       if (suppressRemoveEvent == false) {
         updatePM();
       }
@@ -217,16 +223,22 @@ public class BnStyledDocument extends DefaultStyledDocument implements View<ITex
   @Override
   public void replace(int offset, int length, String text, AttributeSet attrs)
       throws BadLocationException {
-    pending_modelChange = true;
-    super.replace(offset, length, text, attrs);
-    pending_modelChange = false;
+    try {
+      pending_modelChange = true;
+      super.replace(offset, length, text, attrs);
+    } finally {
+      pending_modelChange = false;
+    }
     updatePM();
   }
 
   public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
-    pending_modelChange = true;
-    super.insertString(offs, str, a);
-    pending_modelChange = false;
+    try {
+      pending_modelChange = true;
+      super.insertString(offs, str, a);
+    } finally {
+      pending_modelChange = false;
+    }
     updatePM();
   }
 
@@ -236,8 +248,7 @@ public class BnStyledDocument extends DefaultStyledDocument implements View<ITex
         return;
       }
       String modelText = this.pModel.getText();
-      String newText;
-      newText = this.getText(0, this.getLength());
+      String newText = this.getText(0, this.getLength());
       if (modelText.equals(newText) == false) {
         this.pModel.setText(newText);
       }

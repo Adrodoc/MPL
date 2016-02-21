@@ -287,6 +287,7 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
   private RawUndoManager getUndoManager() {
     if (rawUndoManager == null) {
       rawUndoManager = new RawUndoManager();
+      rawUndoManager.setLimit(Integer.MAX_VALUE);
       getResetUndoManagerObserver().addPropertyChangeListener(new PropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
