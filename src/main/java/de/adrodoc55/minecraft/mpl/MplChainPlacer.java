@@ -83,11 +83,12 @@ public class MplChainPlacer {
     this.orientation = program.getOrientation();
     this.chains = program.getChains();
     for (CommandChain chain : chains) {
-      // The first block of each PROCESS must be a transmitter
-      if (chain.getName() == null) {
+      // The first block of each chain that start's with a RECIEVER must be a TRANSMITTER
+      List<Command> commands = chain.getCommands();
+      if (commands.isEmpty() || !isReciever(commands.get(0))) {
         continue;
       }
-      chain.getCommands().add(0, null);
+      commands.add(0, null);
     }
     occupied = new int[chains.size()];
   }
@@ -159,7 +160,11 @@ public class MplChainPlacer {
   }
 
   private boolean isReciever(CommandBlock block) {
-    return block.toCommand() != null && block.getMode() != Mode.CHAIN;
+    return isReciever(block.toCommand());
+  }
+
+  private boolean isReciever(Command command) {
+    return command != null && command.getMode() != Mode.CHAIN;
   }
 
   private Coordinate3D getStart(CommandChain chain) {

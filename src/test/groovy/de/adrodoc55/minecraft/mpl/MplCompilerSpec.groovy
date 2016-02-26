@@ -377,6 +377,32 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
+  public void "a script starting with impulse can be compiled"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    impulse: /say hi
+    """
+    when:
+    List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
+    then:
+    notThrown Exception
+  }
+
+  @Test
+  public void "a script starting with repeat can be compiled"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    repeat: /say hi
+    """
+    when:
+    List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
+    then:
+    notThrown Exception
+  }
+
+  @Test
   public void "a script can be compiled"() {
     given:
     File folder = tempFolder.root
