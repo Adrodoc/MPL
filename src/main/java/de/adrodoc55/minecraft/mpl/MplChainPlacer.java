@@ -363,7 +363,7 @@ public class MplChainPlacer {
       }
     }
     if (thereAreProcesses || !installation.isEmpty() || !uninstallation.isEmpty()) {
-      // move all chains by 1 block, if installation or uninstallation are added.
+      // move all chains by 1 block, if installation or uninstallation is added.
       // when an uninstallation is added an installation is also added, therefor we don't have to
       // check both here.
       for (CommandBlockChain chain : result) {
@@ -382,7 +382,7 @@ public class MplChainPlacer {
               new Command("/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString()
                   + ")} {CustomName:" + chain.getName()
                   + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
-      uninstallation.add(0, new Command("/kill @e[type=ArmorStand,name=" + chain.getName() + "]"));
+      uninstallation.add(new Command("/kill @e[type=ArmorStand,name=" + chain.getName() + "]"));
       // uninstallation
       // .add(0,new Command("/kill @e[type=ArmorStand,name=" + chain.getName() + "_NOTIFY]"));
       // uninstallation

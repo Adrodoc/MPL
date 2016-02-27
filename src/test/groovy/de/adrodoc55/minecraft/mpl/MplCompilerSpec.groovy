@@ -464,15 +464,12 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
-  public void "the commands of a custom installation/uninstallation are executed after the generated ones"() {
+  public void "the commands of a custom installation are executed after the generated ones"() {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     install (
     /say install
-    )
-    uninstall (
-    /say uninstall
     )
 
     process main () # If there is no process, there are no generated commands
@@ -482,12 +479,41 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     CommandBlockChain installation = chains.find { it.name == 'installation' }
     installation.commandBlocks.size() == 5
-    installation.commandBlocks[3].toCommand() == new Command("say install")
+    installation.commandBlocks[0].toCommand() == null
+    installation.commandBlocks[1].getCommand().startsWith('setblock ')
+    installation.commandBlocks[2].getCommand().startsWith('summon ArmorStand ')
+    installation.commandBlocks[3].toCommand() == new Command('say install')
     installation.commandBlocks[4].toCommand() == null
+  }
 
+  /**
+   * Allowing start of processes within uninstallation may cause problems if the started process
+   * attempts to start more processes. The reason behind this is, that any newly started process is
+   * executed 1 tick later at which point all processes will have been uninstalled.<br>
+   * TODO Maybe the uninstallation should automatically insert a multi-waitfor after all custom
+   * commands for every process that has been started, but is not waited for. This would also
+   * require every process that could at least be indirectly called by the uninstallation to notify
+   */
+  @Test
+  public void "the commands of a custom uninstallation are executed before the generated ones"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    uninstall (
+    /say uninstall
+    )
+
+    process main () # If there is no process, there are no generated commands
+    """
+    when:
+    List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
+    then:
     CommandBlockChain uninstallation = chains.find { it.name == 'uninstallation' }
     uninstallation.commandBlocks.size() == 5
-    uninstallation.commandBlocks[3].toCommand() == new Command("say uninstall")
+    uninstallation.commandBlocks[0].toCommand() == null
+    uninstallation.commandBlocks[1].getCommand().startsWith('setblock ')
+    uninstallation.commandBlocks[2].toCommand() == new Command('say uninstall')
+    uninstallation.commandBlocks[3].toCommand() == new Command('kill @e[type=ArmorStand,name=main]')
     uninstallation.commandBlocks[4].toCommand() == null
   }
 }
