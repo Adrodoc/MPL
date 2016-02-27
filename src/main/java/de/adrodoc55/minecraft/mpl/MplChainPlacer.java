@@ -399,7 +399,7 @@ public class MplChainPlacer {
     }
 
     CommandBlockChain materialisedUninstallation = new IterativeChainComputer().computeOptimalChain(
-        new CommandChain("uninstallation", uninstallation), new Coordinate3D(100, 100, 0));
+        new CommandChain("uninstall", uninstallation), new Coordinate3D(100, 100, 0));
     materialisedUninstallation.move(Coordinate3D.UP);
     CommandBlockChain materialisedInstallation = new IterativeChainComputer() {
       protected boolean isCoordinateValid(Coordinate3D coordinate) {
@@ -414,7 +414,7 @@ public class MplChainPlacer {
         }
         return true;
       };
-    }.computeOptimalChain(new CommandChain("installation", installation),
+    }.computeOptimalChain(new CommandChain("install", installation),
         new Coordinate3D(100, 100, 0));
     if (!materialisedInstallation.getCommandBlocks().isEmpty()) {
       result.add(materialisedInstallation);

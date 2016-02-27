@@ -442,7 +442,7 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     chains.size() == 2
     chains[0].name == null
-    chains[1].name == 'installation'
+    chains[1].name == 'install'
   }
 
   @Test
@@ -459,8 +459,8 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     chains.size() == 3
     chains[0].name == null
-    chains[1].name == 'installation'
-    chains[2].name == 'uninstallation'
+    chains[1].name == 'install'
+    chains[2].name == 'uninstall'
   }
 
   @Test
@@ -477,7 +477,7 @@ class MplCompilerSpec extends MplSpecBase {
     when:
     List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
     then:
-    CommandBlockChain installation = chains.find { it.name == 'installation' }
+    CommandBlockChain installation = chains.find { it.name == 'install' }
     installation.commandBlocks.size() == 5
     installation.commandBlocks[0].toCommand() == null
     installation.commandBlocks[1].getCommand().startsWith('setblock ')
@@ -508,7 +508,7 @@ class MplCompilerSpec extends MplSpecBase {
     when:
     List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
     then:
-    CommandBlockChain uninstallation = chains.find { it.name == 'uninstallation' }
+    CommandBlockChain uninstallation = chains.find { it.name == 'uninstall' }
     uninstallation.commandBlocks.size() == 5
     uninstallation.commandBlocks[0].toCommand() == null
     uninstallation.commandBlocks[1].getCommand().startsWith('setblock ')
