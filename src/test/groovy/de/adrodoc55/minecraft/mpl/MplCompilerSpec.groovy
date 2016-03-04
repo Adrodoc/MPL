@@ -251,7 +251,7 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
-  public void "projekt includes are processed correctly"() {
+  public void "project includes are processed correctly"() {
     given:
     String id1 = someIdentifier()
     String id2 = someIdentifier()
@@ -284,6 +284,21 @@ class MplCompilerSpec extends MplSpecBase {
 
     CommandChain other = result.chains.find { it.name == id3 }
     other.commands.contains(new Command("/this is the ${id3} process"))
+  }
+
+  @Test
+  public void "Eine Projektdatei mit Orientation erzeugt ein Projekt mit Orientation"() {
+    given:
+    String id1 = someIdentifier()
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    project ${id1}
+    orientation = "zyx"
+    """
+    when:
+    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    then:
+    result.orientation == new MplOrientation('zyx')
   }
 
   @Test

@@ -1631,9 +1631,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     given:
     String id1 = someIdentifier()
     String programString = """
-    project ${id1}
+    project ${id1} (
     include "datei1.mpl"
     include "ordner2"
+    )
     """
     File folder = tempFolder.root
     new File(folder, 'datei1.mpl').createNewFile()

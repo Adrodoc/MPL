@@ -56,6 +56,10 @@ public class MplOrientation {
     this(EAST, UP, SOUTH);
   }
 
+  public MplOrientation(String def) {
+
+  }
+
   public MplOrientation(Direction a, Direction b, Direction c) {
     setValue(a, b, c);
   }
