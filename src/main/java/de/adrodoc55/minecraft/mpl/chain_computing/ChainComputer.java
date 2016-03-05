@@ -42,8 +42,8 @@ package de.adrodoc55.minecraft.mpl.chain_computing;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.adrodoc55.minecraft.Coordinate3D;
-import de.adrodoc55.minecraft.Coordinate3D.Direction;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.CommandBlock;
 import de.adrodoc55.minecraft.mpl.CommandBlockChain;
@@ -76,7 +76,7 @@ public interface ChainComputer {
 
       Coordinate3D nextCoordinate = coordinates.get(a + 1);
       Coordinate3D directionalCoordinate = nextCoordinate.minus(currentCoordinate);
-      Direction direction = Direction.valueOf(directionalCoordinate);
+      Direction3D direction = Direction3D.valueOf(directionalCoordinate);
 
       CommandBlock currentCommandBlock =
           new CommandBlock(currentCommand, direction, currentCoordinate);

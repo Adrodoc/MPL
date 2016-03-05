@@ -39,17 +39,17 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
-import de.adrodoc55.minecraft.Coordinate3D;
-import de.adrodoc55.minecraft.Coordinate3D.Direction;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 
 public class CommandBlock {
 
   private Command command;
-  private Direction direction;
+  private Direction3D direction;
   private Coordinate3D coordinate;
 
-  public CommandBlock(Command command, Direction direction, Coordinate3D coordinate) {
+  public CommandBlock(Command command, Direction3D direction, Coordinate3D coordinate) {
     this.command = command;
     this.direction = direction;
     this.coordinate = coordinate;
@@ -103,11 +103,11 @@ public class CommandBlock {
     command.setNeedsRedstone(needsRedstone);
   }
 
-  public Direction getDirection() {
+  public Direction3D getDirection() {
     return direction;
   }
 
-  public void setDirection(Direction direction) {
+  public void setDirection(Direction3D direction) {
     this.direction = direction;
   }
 

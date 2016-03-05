@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft;
+package de.adrodoc55.minecraft.coordinate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,54 +51,6 @@ public class Coordinate3D {
   public static final Coordinate3D DOWN = new Coordinate3D(0, -1, 0);
   public static final Coordinate3D SOUTH = new Coordinate3D(0, 0, 1);
   public static final Coordinate3D NORTH = new Coordinate3D(0, 0, -1);
-
-  public static enum Axis {
-    X, Y, Z
-  }
-
-  public static enum Direction {
-    // @formatter:off
-    EAST(Coordinate3D.EAST, false, Axis.X),
-    WEST(Coordinate3D.WEST, true, Axis.X),
-    UP(Coordinate3D.UP, false, Axis.Y),
-    DOWN(Coordinate3D.DOWN, true, Axis.Y),
-    SOUTH(Coordinate3D.SOUTH, false, Axis.Z),
-    NORTH(Coordinate3D.NORTH, true, Axis.Z);
-    // @formatter:on
-    public static Direction valueOf(Coordinate3D coordinate) {
-      if (coordinate == null) {
-        throw new NullPointerException("coordinate is null");
-      }
-      for (Direction direction : values()) {
-        if (coordinate.equals(direction.toCoordinate())) {
-          return direction;
-        }
-      }
-      throw new IllegalArgumentException("No enum constant for coordinate " + coordinate);
-    }
-
-    private final Coordinate3D relative;
-    private final boolean negative;
-    private final Axis axis;
-
-    private Direction(Coordinate3D relative, boolean negative, Axis axis) {
-      this.relative = relative;
-      this.negative = negative;
-      this.axis = axis;
-    }
-
-    public Coordinate3D toCoordinate() {
-      return relative;
-    }
-
-    public boolean isNegative() {
-      return negative;
-    }
-
-    public Axis getAxis() {
-      return axis;
-    }
-  }
 
   private final int x;
   private final int y;
@@ -148,7 +100,7 @@ public class Coordinate3D {
     return z;
   }
 
-  public int get(Axis axis) {
+  public int get(Axis3D axis) {
     switch (axis) {
       case X:
         return getX();

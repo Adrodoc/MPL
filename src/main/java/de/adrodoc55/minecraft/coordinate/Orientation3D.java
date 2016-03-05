@@ -37,54 +37,79 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.coordinate;
 
-import static de.adrodoc55.minecraft.Coordinate3D.Direction.EAST;
-import static de.adrodoc55.minecraft.Coordinate3D.Direction.SOUTH;
-import static de.adrodoc55.minecraft.Coordinate3D.Direction.UP;
+import static de.adrodoc55.minecraft.coordinate.Direction3D.EAST;
+import static de.adrodoc55.minecraft.coordinate.Direction3D.SOUTH;
+import static de.adrodoc55.minecraft.coordinate.Direction3D.UP;
 
-import de.adrodoc55.minecraft.Coordinate3D.Axis;
-import de.adrodoc55.minecraft.Coordinate3D.Direction;
+import java.util.ArrayList;
+import java.util.List;
 
-public class MplOrientation {
+public class Orientation3D {
 
-  private Direction a;
-  private Direction b;
-  private Direction c;
+  private Direction3D a;
+  private Direction3D b;
+  private Direction3D c;
 
-  public MplOrientation() {
+  public Orientation3D() {
     this(EAST, UP, SOUTH);
   }
 
-  public MplOrientation(String def) {
-
-  }
-
-  public MplOrientation(Direction a, Direction b, Direction c) {
+  public Orientation3D(Direction3D a, Direction3D b, Direction3D c) {
     setValue(a, b, c);
   }
 
-  private void setValue(Direction a, Direction b, Direction c) {
-    Axis aAxis = a.getAxis();
-    Axis bAxis = b.getAxis();
-    Axis cAxis = c.getAxis();
+  public Orientation3D(String def) {
+    char[] defArray = def.toCharArray();
+    List<Direction3D> r = new ArrayList<>(3);
+    for (int i = 0; i < defArray.length; i++) {
+      boolean negative = false;
+      if (defArray[i] == '-') {
+        negative = true;
+        i++;
+      }
+      if (i >= defArray.length) {
+        throw new IllegalArgumentException("Every '-' must be followed by an axis!");
+      }
+      char a = defArray[i];
+      Axis3D axis;
+      try {
+        axis = Axis3D.valueOf(String.valueOf(Character.toUpperCase(a)));
+      } catch (IllegalArgumentException ex) {
+        throw new IllegalArgumentException(
+            "Unknown direction '" + (negative ? "-" : "") + a + "'!");
+      }
+      Direction3D direction = Direction3D.valueOf(axis, negative);
+      r.add(direction);
+    }
+    if (r.size() != 3) {
+      throw new IllegalArgumentException("An orientation must contain 3 directions!");
+    }
+    setValue(r.get(0), r.get(1), r.get(2));
+  }
+
+  private void setValue(Direction3D a, Direction3D b, Direction3D c) {
+    Axis3D aAxis = a.getAxis();
+    Axis3D bAxis = b.getAxis();
+    Axis3D cAxis = c.getAxis();
     if (aAxis == bAxis || bAxis == cAxis || cAxis == aAxis) {
-      throw new IllegalArgumentException("All Directions must be on different Axis!");
+      throw new IllegalArgumentException("All directions must be on different axis!");
     }
     this.a = a;
     this.b = b;
     this.c = c;
   }
 
-  public Direction getA() {
+  public Direction3D getA() {
     return a;
   }
 
-  public Direction getB() {
+  public Direction3D getB() {
     return b;
   }
 
-  public Direction getC() {
+  public Direction3D getC() {
     return c;
   }
 }

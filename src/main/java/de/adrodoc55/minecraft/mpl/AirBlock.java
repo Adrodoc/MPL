@@ -39,7 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
-import de.adrodoc55.minecraft.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 
 public class AirBlock extends CommandBlock {
 

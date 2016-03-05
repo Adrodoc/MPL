@@ -61,7 +61,7 @@ import org.junit.Test;
 
 import com.google.common.collect.Lists;
 
-import de.adrodoc55.minecraft.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.CommandBlock;
 import de.adrodoc55.minecraft.mpl.CommandBlockChain;

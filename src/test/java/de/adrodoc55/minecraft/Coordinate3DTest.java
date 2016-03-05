@@ -44,6 +44,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+
 public class Coordinate3DTest {
 
   @Test

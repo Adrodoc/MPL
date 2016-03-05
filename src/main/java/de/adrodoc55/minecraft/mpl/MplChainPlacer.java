@@ -54,8 +54,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import de.adrodoc55.minecraft.Coordinate3D;
-import de.adrodoc55.minecraft.Coordinate3D.Direction;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Direction3D;
+import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 import de.adrodoc55.minecraft.mpl.antlr.commands.InternalCommand;
 import de.adrodoc55.minecraft.mpl.chain_computing.IterativeChainComputer;
@@ -72,7 +73,7 @@ public class MplChainPlacer {
   }
 
   private final Program program;
-  private final MplOrientation orientation;
+  private final Orientation3D orientation;
   private final LinkedList<CommandChain> chains;
   private final int[] occupied;
   private final List<CommandBlockChain> result = new LinkedList<CommandBlockChain>();
@@ -107,7 +108,7 @@ public class MplChainPlacer {
 
   private void addChain(CommandChain chain) {
     Coordinate3D bPos = orientation.getB().toCoordinate();
-    Direction c = orientation.getC();
+    Direction3D c = orientation.getC();
 
     Coordinate3D start = getStart(chain);
     int startC = start.get(c.getAxis());
@@ -148,8 +149,8 @@ public class MplChainPlacer {
   }
 
   private void occupyBlocks(CommandBlockChain optimal) {
-    Direction b = orientation.getB();
-    Direction c = orientation.getC();
+    Direction3D b = orientation.getB();
+    Direction3D c = orientation.getC();
 
     Coordinate3D max = optimal.getMax();
     occupied[max.get(c.getAxis())] = max.get(b.getAxis()) + 1;
@@ -168,8 +169,8 @@ public class MplChainPlacer {
   }
 
   private Coordinate3D getStart(CommandChain chain) {
-    Direction b = orientation.getB();
-    Direction c = orientation.getC();
+    Direction3D b = orientation.getB();
+    Direction3D c = orientation.getC();
     Coordinate3D bPos = b.toCoordinate();
     Coordinate3D cPos = c.toCoordinate();
 
@@ -189,7 +190,7 @@ public class MplChainPlacer {
   }
 
   private int estimateB(CommandChain chain) {
-    Direction a = orientation.getA();
+    Direction3D a = orientation.getA();
     Coordinate3D opt = getOptimalSize();
     int estimate = chain.getCommands().size() / opt.get(a.getAxis());
     return estimate + 1;
@@ -210,9 +211,9 @@ public class MplChainPlacer {
    * @return opt the optimal boundaries
    */
   private Coordinate3D calculateOptimalSize() {
-    Direction a = orientation.getA();
-    Direction b = orientation.getB();
-    Direction c = orientation.getC();
+    Direction3D a = orientation.getA();
+    Direction3D b = orientation.getB();
+    Direction3D c = orientation.getC();
 
     CommandChain first = chains.peek();
     int maxA = program.getMax().get(a.getAxis());
@@ -279,7 +280,7 @@ public class MplChainPlacer {
       nextEntry = it.next();
       Position pos = entry.getKey();
       Position nextPos = nextEntry.getKey();
-      Direction d = getDirection(pos, nextPos, orientation);
+      Direction3D d = getDirection(pos, nextPos, orientation);
       Coordinate3D coord = toCoordinate(pos, orientation);
       if (entry.getValue() == ChainLink.NO_OPERATION) {
         x--;
@@ -302,18 +303,18 @@ public class MplChainPlacer {
    * @param orientation
    * @return
    */
-  private static Direction getDirection(Position cp, Position np, MplOrientation orientation) {
+  private static Direction3D getDirection(Position cp, Position np, Orientation3D orientation) {
     // current coordinate
     Coordinate3D cc = toCoordinate(cp, orientation);
     // next coordinate
     Coordinate3D nc = toCoordinate(np, orientation);
-    return Direction.valueOf(nc.minus(cc));
+    return Direction3D.valueOf(nc.minus(cc));
   }
 
   /**
    * x -> a, y -> b
    */
-  private static Coordinate3D toCoordinate(Position pos, MplOrientation orientation) {
+  private static Coordinate3D toCoordinate(Position pos, Orientation3D orientation) {
     Coordinate3D xDir = orientation.getA().toCoordinate();
     Coordinate3D yDir = orientation.getB().toCoordinate();
     Coordinate3D coord = xDir.mult(pos.getX()).plus(yDir.mult(pos.getY()));
@@ -323,9 +324,9 @@ public class MplChainPlacer {
   /**
    * a -> x, b -> y
    */
-  private static Position toPosition(Coordinate3D coord, MplOrientation orientation) {
-    Direction a = orientation.getA();
-    Direction b = orientation.getB();
+  private static Position toPosition(Coordinate3D coord, Orientation3D orientation) {
+    Direction3D a = orientation.getA();
+    Direction3D b = orientation.getB();
     int x = coord.get(a.getAxis());
     int y = coord.get(b.getAxis());
     return Position.at(x, y);

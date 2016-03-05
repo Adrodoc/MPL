@@ -43,6 +43,7 @@ import static de.adrodoc55.TestBase.someIdentifier
 
 import org.junit.Test
 
+import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException
 import de.adrodoc55.minecraft.mpl.antlr.Include
 import de.adrodoc55.minecraft.mpl.antlr.MplInterpreter
@@ -298,7 +299,7 @@ class MplCompilerSpec extends MplSpecBase {
     when:
     Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
-    result.orientation == new MplOrientation('zyx')
+    result.orientation == new Orientation3D('zyx')
   }
 
   @Test

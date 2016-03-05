@@ -43,8 +43,8 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.adrodoc55.minecraft.Coordinate3D;
-import de.adrodoc55.minecraft.Coordinate3D.Direction;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.CommandBlock;
 import de.adrodoc55.minecraft.mpl.CommandBlockChain;
@@ -111,7 +111,7 @@ public class AStarChainComputer implements ChainComputer {
       int index = current.getIndex();
       if (commands.size() > index) {
         Command command = commands.get(index);
-        Direction direction = Direction.valueOf(following.getPos().minus(pos));
+        Direction3D direction = Direction3D.valueOf(following.getPos().minus(pos));
         CommandBlock block = new CommandBlock(command, direction, pos);
         chain.push(block);
       }

@@ -44,8 +44,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import de.adrodoc55.minecraft.Coordinate3D;
-import de.adrodoc55.minecraft.Coordinate3D.Direction;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.CommandChain;
@@ -117,26 +117,26 @@ public class IterativeChainComputer implements ChainComputer {
   }
 
   private List<Coordinate3D> getNextCoordinates() {
-    Direction[] directions;
+    Direction3D[] directions;
     currentCommand = commands.get(i);
     if (currentCommand != null && currentCommand.isConditional()) {
       if (path.size() < 2) {
         throw new IllegalStateException("The first Command can't be conditional!");
       }
       Coordinate3D previousCoordinate = path.get(i - 1);
-      Direction direction = Direction.valueOf(currentCoordinate.minus(previousCoordinate));
-      directions = new Direction[] {direction};
+      Direction3D direction = Direction3D.valueOf(currentCoordinate.minus(previousCoordinate));
+      directions = new Direction3D[] {direction};
     } else {
-      directions = Direction.values();
+      directions = Direction3D.values();
     }
     List<Coordinate3D> coords = getAdjacentCoordinates(currentCoordinate, directions);
     return coords;
   }
 
   private static List<Coordinate3D> getAdjacentCoordinates(Coordinate3D coordinate,
-      Direction[] directions) {
+      Direction3D[] directions) {
     List<Coordinate3D> coords = new ArrayList<Coordinate3D>(directions.length);
-    for (Direction direction : directions) {
+    for (Direction3D direction : directions) {
       coords.add(coordinate.plus(direction.toCoordinate()));
     }
     return coords;
@@ -154,7 +154,7 @@ public class IterativeChainComputer implements ChainComputer {
       Coordinate3D coordinate = todos.get(0);
       todos.remove(0);
       List<Coordinate3D> adjacentCoordinates =
-          getAdjacentCoordinates(coordinate, Direction.values());
+          getAdjacentCoordinates(coordinate, Direction3D.values());
       for (Coordinate3D a : adjacentCoordinates) {
         if (isCoordinateValid(a) && !validCoordinates.contains(a)) {
           validCoordinates.add(a);

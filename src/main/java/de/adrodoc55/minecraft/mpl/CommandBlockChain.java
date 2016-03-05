@@ -42,7 +42,7 @@ package de.adrodoc55.minecraft.mpl;
 import java.util.Iterator;
 import java.util.List;
 
-import de.adrodoc55.minecraft.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 
 public class CommandBlockChain {
 

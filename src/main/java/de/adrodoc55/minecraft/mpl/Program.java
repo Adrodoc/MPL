@@ -41,7 +41,8 @@ package de.adrodoc55.minecraft.mpl;
 
 import java.util.LinkedList;
 
-import de.adrodoc55.minecraft.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Orientation3D;
 
 public class Program {
 
@@ -53,7 +54,7 @@ public class Program {
   private Coordinate3D max =
       new Coordinate3D(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
   private String prefix;
-  private MplOrientation orientation;
+  private Orientation3D orientation;
 
   public Program() {
     chains = new LinkedList<CommandChain>();
@@ -101,11 +102,11 @@ public class Program {
     this.prefix = prefix;
   }
 
-  public MplOrientation getOrientation() {
+  public Orientation3D getOrientation() {
     return orientation;
   }
 
-  public void setOrientation(MplOrientation orientation) {
+  public void setOrientation(Orientation3D orientation) {
     this.orientation = orientation;
   }
 

@@ -37,69 +37,62 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.coordinate;
 
-import de.adrodoc55.minecraft.coordinate.Direction3D;
-import de.adrodoc55.minecraft.mpl.Command.Mode;
+public enum Direction3D {
+  // @formatter:off
+  EAST(Coordinate3D.EAST, false, Axis3D.X),
+  WEST(Coordinate3D.WEST, true, Axis3D.X),
+  UP(Coordinate3D.UP, false, Axis3D.Y),
+  DOWN(Coordinate3D.DOWN, true, Axis3D.Y),
+  SOUTH(Coordinate3D.SOUTH, false, Axis3D.Z),
+  NORTH(Coordinate3D.NORTH, true, Axis3D.Z);
+  // @formatter:on
 
-public abstract class MplConverter {
-
-  public static String toBlockId(Mode mode) {
-    if (mode == null) {
-      throw new NullPointerException("mode == null");
+  public static Direction3D valueOf(Coordinate3D coordinate) {
+    if (coordinate == null) {
+      throw new NullPointerException("coordinate is null");
     }
-    switch (mode) {
-      case IMPULSE:
-        return "command_block";
-      case CHAIN:
-        return "chain_command_block";
-      case REPEAT:
-        return "repeating_command_block";
+    for (Direction3D direction : values()) {
+      if (coordinate.equals(direction.toCoordinate())) {
+        return direction;
+      }
     }
-    throw new IllegalArgumentException("Unknown Mode: " + mode);
+    throw new IllegalArgumentException("No enum constant for coordinate " + coordinate);
   }
 
-  protected static int toIntBlockId(Mode mode) {
-    if (mode == null) {
-      throw new NullPointerException("mode == null");
+  public static Direction3D valueOf(Axis3D axis, boolean negative) {
+    if (axis == null) {
+      throw new NullPointerException("axis is null");
     }
-    switch (mode) {
-      case IMPULSE:
-        return 137;
-      case CHAIN:
-        return 211;
-      case REPEAT:
-        return 210;
+    for (Direction3D direction : values()) {
+      if (axis.equals(direction.getAxis()) && negative == direction.negative) {
+        return direction;
+      }
     }
-    throw new IllegalArgumentException("Unknown Mode: " + mode);
+    throw new InternalError(
+        "This can never happen, because there must be a direction for every axis & negative combination!");
   }
 
-  protected static int toDamageValue(CommandBlock block) {
-    int damage = toDamageValue(block.getDirection());
-    if (block.isConditional()) {
-      damage += 8;
-    }
-    return damage;
+  private final Coordinate3D relative;
+  private final boolean negative;
+  private final Axis3D axis;
+
+  private Direction3D(Coordinate3D relative, boolean negative, Axis3D axis) {
+    this.relative = relative;
+    this.negative = negative;
+    this.axis = axis;
   }
 
-  private static int toDamageValue(Direction3D direction) {
-    if (direction == null) {
-      throw new NullPointerException("mode == null");
-    }
-    switch (direction) {
-      case DOWN:
-        return 0;
-      case UP:
-        return 1;
-      case NORTH:
-        return 2;
-      case SOUTH:
-        return 3;
-      case WEST:
-        return 4;
-      case EAST:
-        return 5;
-    }
-    throw new IllegalArgumentException("Unknown Direction: " + direction);
+  public Coordinate3D toCoordinate() {
+    return relative;
+  }
+
+  public boolean isNegative() {
+    return negative;
+  }
+
+  public Axis3D getAxis() {
+    return axis;
   }
 }

@@ -47,7 +47,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import de.adrodoc55.minecraft.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.Command;
 
 class PathElement implements Comparable<PathElement> {

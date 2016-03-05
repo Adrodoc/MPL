@@ -42,8 +42,8 @@ package de.adrodoc55.minecraft.mpl.chain_computing;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.adrodoc55.minecraft.Coordinate3D;
-import de.adrodoc55.minecraft.Coordinate3D.Direction;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.CommandChain;
@@ -102,7 +102,7 @@ public class RecursiveChainComputer implements ChainComputer {
       previous.remove(previous.size() - 1);
       return;
     } else {
-      Direction[] directions;
+      Direction3D[] directions;
       Command currentCommand = commands.get(index);
       if (currentCommand != null && currentCommand.isConditional()) {
         if (previous.isEmpty()) {
@@ -110,22 +110,22 @@ public class RecursiveChainComputer implements ChainComputer {
         }
         Coordinate3D lastCoordinate = previous.get(previous.size() - 1);
         Coordinate3D relativeCoordinate = current.minus(lastCoordinate);
-        Direction direction = Direction.valueOf(relativeCoordinate);
-        directions = new Direction[] {direction};
+        Direction3D direction = Direction3D.valueOf(relativeCoordinate);
+        directions = new Direction3D[] {direction};
       } else {
         directions = getDirections();
       }
 
       previous.add(current);
-      for (Direction direction : directions) {
+      for (Direction3D direction : directions) {
         calculateRecursively(previous, current.plus(direction.toCoordinate()));
       }
       previous.remove(previous.size() - 1);
     }
   }
 
-  private static Direction[] getDirections() {
-    return Direction.values();
+  private static Direction3D[] getDirections() {
+    return Direction3D.values();
     // return new Coordinate3D[] { Coordinate3D.SOUTH, Coordinate3D.UP,
     // Coordinate3D.NORTH, Coordinate3D.DOWN };
   }

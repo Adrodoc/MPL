@@ -51,7 +51,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import de.adrodoc55.minecraft.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException;
 import de.adrodoc55.minecraft.mpl.antlr.Include;
 import de.adrodoc55.minecraft.mpl.antlr.MplBaseListener;
@@ -93,7 +94,7 @@ public class MplCompiler extends MplBaseListener {
     includes = new HashSet<Include>();
     includeTodos = new LinkedList<Include>();
     program = new Program();
-    program.setOrientation(new MplOrientation());
+    program.setOrientation(new Orientation3D());
     MplInterpreter main = MplInterpreter.interpret(programFile);
     addInterpreter(main);
     doIncludes();
@@ -239,7 +240,7 @@ public class MplCompiler extends MplBaseListener {
       .compile("\\$\\{\\s*origin\\s*\\+\\s*\\(\\s*(-?\\d+)\\s+(-?\\d+)\\s+(-?\\d+)\\s*\\)\\s*\\}");
 
   private static void insertRelativeCoordinates(List<CommandBlock> commandBlocks,
-      MplOrientation orientation) {
+      Orientation3D orientation) {
     for (int i = 0; i < commandBlocks.size(); i++) {
       CommandBlock current = commandBlocks.get(i);
       if (current.toCommand() == null) {
