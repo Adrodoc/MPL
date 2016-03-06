@@ -132,7 +132,7 @@ public class MplCompiler extends MplBaseListener {
       if (interpreter.isProject()) {
         CompilerException compilerException =
             new CompilerException(include.getSrcFile(), include.getToken(), include.getSrcLine(),
-                "Can't include Project " + include + ". Projects may not be included.");
+                "Can't include Project " + file.getName() + ". Projects may not be included.");
         List<CompilerException> list = exceptions.get(include.getSrcFile());
         if (list == null) {
           list = new LinkedList<CompilerException>();

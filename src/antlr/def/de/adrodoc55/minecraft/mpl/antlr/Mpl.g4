@@ -41,35 +41,54 @@ grammar Mpl;
 
 file
 :
-  projectFile
-  | processFile
-  | skriptFile
+  skriptFile
+  | projectFile
+;
+
+skriptFile
+:
+  orientation? install? uninstall? script?
+;
+
+script
+:
+  chain
 ;
 
 projectFile
 :
-  project include* install? uninstall?
-;
-
-project
-:
-// TODO: Prefix, Orientation, max
-  PROJECT IDENTIFIER
-;
-
-include
-:
-  INCLUDE STRING
-;
-
-processFile
-:
-  importDeclaration* install? uninstall? process+
+  importDeclaration*
+  (
+    project
+    | install
+    | uninstall
+    | process
+  )*
 ;
 
 importDeclaration
 :
   IMPORT STRING
+;
+
+project
+:
+// TODO: Prefix, Orientation, max
+  PROJECT IDENTIFIER '('
+  (
+    orientation
+    | include
+  )* ')'
+;
+
+orientation
+:
+  ORIENTATION STRING
+;
+
+include
+:
+  INCLUDE STRING
 ;
 
 install
@@ -90,26 +109,13 @@ process
   )? PROCESS IDENTIFIER '(' chain ')'
 ;
 
-skriptFile
-:
-  install? uninstall? skript?
-;
-
-skript
-:
-  chain
-;
-
 chain
 :
-  line*
-;
-
-line
-:
-  commandDeclaration
-  | skip
-  | ifDeclaration
+  (
+    commandDeclaration
+    | skip
+    | ifDeclaration
+  )+
 ;
 
 commandDeclaration
@@ -229,14 +235,24 @@ COMMAND
   '/' ~( '\r' | '\n' )*
 ;
 
+IMPORT
+:
+  'import'
+;
+
+PROJECT
+:
+  'project'
+;
+
 INCLUDE
 :
   'include'
 ;
 
-IMPORT
+ORIENTATION
 :
-  'import'
+  'orientation'
 ;
 
 INSTALL
@@ -247,11 +263,6 @@ INSTALL
 UNINSTALL
 :
   'uninstall'
-;
-
-PROJECT
-:
-  'project'
 ;
 
 PROCESS

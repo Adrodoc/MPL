@@ -259,9 +259,10 @@ class MplCompilerSpec extends MplSpecBase {
     String id3 = someIdentifier()
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project ${id1}
+    project ${id1} (
     include "newFolder/newFile.mpl"
     include "newFolder2"
+    )
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
@@ -294,7 +295,7 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     project ${id1} (
-    orientation = "zyx"
+    orientation "zyx"
     )
     """
     when:
@@ -390,8 +391,9 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project main
+    project main (
     include "newFolder/newFile.mpl"
+    )
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """

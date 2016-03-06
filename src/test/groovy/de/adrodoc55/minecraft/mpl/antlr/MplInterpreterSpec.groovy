@@ -1642,11 +1642,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     interpreter.exceptions[0].file == lastTempFile
     interpreter.exceptions[0].token.line == 2
     interpreter.exceptions[0].token.text == 'project'
-    interpreter.exceptions[0].message == "Only one project decalaration is permitted per file."
+    interpreter.exceptions[0].message == "A file may only contain a single project!"
     interpreter.exceptions[1].file == lastTempFile
     interpreter.exceptions[1].token.line == 3
     interpreter.exceptions[1].token.text == 'project'
-    interpreter.exceptions[1].message == "Only one project decalaration is permitted per file."
+    interpreter.exceptions[1].message == "A file may only contain a single project!"
   }
 
   @Test
@@ -1695,6 +1695,30 @@ public class MplInterpreterSpec extends MplSpecBase {
     includes[1].files.size()==1
     includes[1].files.containsAll([new File(parent, "ordner2/datei4.mpl")])
     includes[1].processName == null
+  }
+
+  @Test
+  public void "Ein Projekt kann nur eine Orientation haben"() {
+    given:
+    String id1 = someIdentifier()
+    String programString = """
+    project ${id1} (
+    orientation "zxy"
+    orientation "z-xy"
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    interpreter.exceptions.size() == 2
+    interpreter.exceptions[0].file == lastTempFile
+    interpreter.exceptions[0].token.line == 3
+    interpreter.exceptions[0].token.text == 'orientation'
+    interpreter.exceptions[0].message == "A project may only contain a single orientation!"
+    interpreter.exceptions[1].file == lastTempFile
+    interpreter.exceptions[1].token.line == 4
+    interpreter.exceptions[1].token.text == 'orientation'
+    interpreter.exceptions[1].message == "A project may only contain a single orientation!"
   }
 
   @Test
