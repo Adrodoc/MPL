@@ -288,18 +288,39 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
-  public void "Eine Projektdatei mit Orientation erzeugt ein Projekt mit Orientation"() {
+  public void "Eine Projekt mit Orientation erzeugt ein Projekt mit Orientation"() {
     given:
     String id1 = someIdentifier()
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project ${id1}
+    project ${id1} (
     orientation = "zyx"
+    )
     """
     when:
     Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.orientation == new Orientation3D('zyx')
+  }
+
+  @Test
+  public void "Projekteinstellungen gelten nur, wenn die Datei direkt compiliert wird"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    project ${someIdentifier()} (
+    include "other.mpl"
+    )
+    """
+    new File(folder, 'other.mpl').text = """
+    project ${someIdentifier()} (
+    orientation = "z-yx"
+    )
+    """
+    when:
+    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    then:
+    result.orientation == new Orientation3D()
   }
 
   @Test

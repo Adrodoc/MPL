@@ -1627,7 +1627,45 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
-  public void "Eine Projektdatei mit Includes erzeugt Includes"() {
+  public void "Pro Datei kann nur ein Projekt defniniert sein"() {
+    given:
+    String id1 = someIdentifier()
+    String id2 = someIdentifier()
+    String programString = """
+    project ${id1} ()
+    project ${id2} ()
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    interpreter.exceptions.size() == 2
+    interpreter.exceptions[0].file == lastTempFile
+    interpreter.exceptions[0].token.line == 2
+    interpreter.exceptions[0].token.text == 'project'
+    interpreter.exceptions[0].message == "Only one project decalaration is permitted per file."
+    interpreter.exceptions[1].file == lastTempFile
+    interpreter.exceptions[1].token.line == 3
+    interpreter.exceptions[1].token.text == 'project'
+    interpreter.exceptions[1].message == "Only one project decalaration is permitted per file."
+  }
+
+  @Test
+  public void "Ein Projekt kann in der selben Datei wie Prozesse deklariert sein"() {
+    given:
+    String id1 = someIdentifier()
+    String id2 = someIdentifier()
+    String programString = """
+    project ${id1} ()
+    process ${id2} ()
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    interpreter.exceptions.isEmpty()
+  }
+
+  @Test
+  public void "Ein Projekt mit Includes erzeugt Includes"() {
     given:
     String id1 = someIdentifier()
     String programString = """
