@@ -37,350 +37,352 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-grammar Mpl;
+ grammar Mpl;
 
-file
-:
-  skriptFile
-  | projectFile
-;
+ file
+ :
+   (
+     scriptFile
+     | projectFile
+   ) EOF
+ ;
 
-skriptFile
-:
-  orientation? install? uninstall? script?
-;
+ scriptFile
+ :
+   (
+     orientation
+     | install
+     | uninstall
+     | chain
+   )*
+ ;
 
-script
-:
-  chain
-;
+ projectFile
+ :
+   importDeclaration*
+   (
+     project
+     | install
+     | uninstall
+     | process
+   )*
+ ;
 
-projectFile
-:
-  importDeclaration*
-  (
-    project
-    | install
-    | uninstall
-    | process
-  )*
-;
+ importDeclaration
+ :
+   IMPORT STRING
+ ;
 
-importDeclaration
-:
-  IMPORT STRING
-;
+ project
+ :
+ // TODO: Prefix, Orientation, max
+   PROJECT IDENTIFIER '('
+   (
+     orientation
+     | include
+   )* ')'
+ ;
 
-project
-:
-// TODO: Prefix, Orientation, max
-  PROJECT IDENTIFIER '('
-  (
-    orientation
-    | include
-  )* ')'
-;
+ orientation
+ :
+   ORIENTATION STRING
+ ;
 
-orientation
-:
-  ORIENTATION STRING
-;
+ include
+ :
+   INCLUDE STRING
+ ;
 
-include
-:
-  INCLUDE STRING
-;
+ install
+ :
+   INSTALL '(' chain ')'
+ ;
 
-install
-:
-  INSTALL '(' chain ')'
-;
+ uninstall
+ :
+   UNINSTALL '(' chain ')'
+ ;
 
-uninstall
-:
-  UNINSTALL '(' chain ')'
-;
+ process
+ :
+   (
+     IMPULSE
+     | REPEAT
+   )? PROCESS IDENTIFIER '(' chain ')'
+ ;
 
-process
-:
-  (
-    IMPULSE
-    | REPEAT
-  )? PROCESS IDENTIFIER '(' chain ')'
-;
+ chain
+ :
+   (
+     commandDeclaration
+     | skip
+     | ifDeclaration
+   )+
+ ;
 
-chain
-:
-  (
-    commandDeclaration
-    | skip
-    | ifDeclaration
-  )+
-;
+ commandDeclaration
+ :
+   modifierList? command
+   |
+   (
+     conditional ':'
+   )?
+   (
+     start
+     | stop
+     | notifyDeclaration
+     | waitfor
+     | intercept
+   )
+ ;
 
-commandDeclaration
-:
-  modifierList? command
-  |
-  (
-    conditional ':'
-  )?
-  (
-    start
-    | stop
-    | notifyDeclaration
-    | waitfor
-    | intercept
-  )
-;
+ modifierList
+ :
+   (
+     modus
+     (
+       ',' conditional
+     )?
+     (
+       ',' auto
+     )?
+     | conditional
+     (
+       ',' auto
+     )?
+     | auto
+   ) ':'
+ ;
 
-modifierList
-:
-  (
-    modus
-    (
-      ',' conditional
-    )?
-    (
-      ',' auto
-    )?
-    | conditional
-    (
-      ',' auto
-    )?
-    | auto
-  ) ':'
-;
+ modus
+ :
+   IMPULSE
+   | CHAIN
+   | REPEAT
+ ;
 
-modus
-:
-  IMPULSE
-  | CHAIN
-  | REPEAT
-;
+ conditional
+ :
+   UNCONDITIONAL
+   | CONDITIONAL
+   | INVERT
+ ;
 
-conditional
-:
-  UNCONDITIONAL
-  | CONDITIONAL
-  | INVERT
-;
+ auto
+ :
+   NEEDS_REDSTONE
+   | ALWAYS_ACTIVE
+ ;
 
-auto
-:
-  NEEDS_REDSTONE
-  | ALWAYS_ACTIVE
-;
+ command
+ :
+   COMMAND
+ ;
 
-command
-:
-  COMMAND
-;
+ start
+ :
+   START IDENTIFIER
+ ;
 
-start
-:
-  START IDENTIFIER
-;
+ stop
+ :
+   STOP IDENTIFIER?
+ ;
 
-stop
-:
-  STOP IDENTIFIER?
-;
+ waitfor
+ :
+   WAITFOR IDENTIFIER?
+ ;
 
-waitfor
-:
-  WAITFOR IDENTIFIER?
-;
+ notifyDeclaration
+ :
+   NOTIFY
+ ;
 
-notifyDeclaration
-:
-  NOTIFY
-;
+ intercept
+ :
+   INTERCEPT IDENTIFIER
+ ;
 
-intercept
-:
-  INTERCEPT IDENTIFIER
-;
+ skip
+ :
+   SKIP
+ ;
 
-skip
-:
-  SKIP
-;
+ ifDeclaration
+ :
+   IF NOT? ':' command then elseDeclaration?
+ ;
 
-ifDeclaration
-:
-  IF NOT? ':' command then elseDeclaration?
-;
+ then
+ :
+   THEN '(' chain ')'
+ ;
 
-then
-:
-  THEN '(' chain ')'
-;
+ elseDeclaration
+ :
+   ELSE '(' chain ')'
+ ;
 
-elseDeclaration
-:
-  ELSE '(' chain ')'
-;
+ COMMENT
+ :
+   (
+     '//'
+     | '#'
+   ) ~( '\r' | '\n' )* -> channel ( HIDDEN )
+ ;
 
-COMMENT
-:
-  (
-    '//'
-    | '#'
-  ) ~( '\r' | '\n' )* -> channel ( HIDDEN )
-;
+ COMMAND
+ :
+   '/' ~( '\r' | '\n' )*
+ ;
 
-COMMAND
-:
-  '/' ~( '\r' | '\n' )*
-;
+ IMPORT
+ :
+   'import'
+ ;
 
-IMPORT
-:
-  'import'
-;
+ PROJECT
+ :
+   'project'
+ ;
 
-PROJECT
-:
-  'project'
-;
+ INCLUDE
+ :
+   'include'
+ ;
 
-INCLUDE
-:
-  'include'
-;
+ ORIENTATION
+ :
+   'orientation'
+ ;
 
-ORIENTATION
-:
-  'orientation'
-;
+ INSTALL
+ :
+   'install'
+ ;
 
-INSTALL
-:
-  'install'
-;
+ UNINSTALL
+ :
+   'uninstall'
+ ;
 
-UNINSTALL
-:
-  'uninstall'
-;
+ PROCESS
+ :
+   'process'
+ ;
 
-PROCESS
-:
-  'process'
-;
+ IMPULSE
+ :
+   'impulse'
+ ;
 
-IMPULSE
-:
-  'impulse'
-;
+ CHAIN
+ :
+   'chain'
+ ;
 
-CHAIN
-:
-  'chain'
-;
+ REPEAT
+ :
+   'repeat'
+ ;
 
-REPEAT
-:
-  'repeat'
-;
+ UNCONDITIONAL
+ :
+   'unconditional'
+ ;
 
-UNCONDITIONAL
-:
-  'unconditional'
-;
+ CONDITIONAL
+ :
+   'conditional'
+ ;
 
-CONDITIONAL
-:
-  'conditional'
-;
+ INVERT
+ :
+   'invert'
+ ;
 
-INVERT
-:
-  'invert'
-;
+ ALWAYS_ACTIVE
+ :
+   'always active'
+ ;
 
-ALWAYS_ACTIVE
-:
-  'always active'
-;
+ NEEDS_REDSTONE
+ :
+   'needs redstone'
+ ;
 
-NEEDS_REDSTONE
-:
-  'needs redstone'
-;
+ START
+ :
+   'start'
+ ;
 
-START
-:
-  'start'
-;
+ STOP
+ :
+   'stop'
+ ;
 
-STOP
-:
-  'stop'
-;
+ WAITFOR
+ :
+   'waitfor'
+ ;
 
-WAITFOR
-:
-  'waitfor'
-;
+ NOTIFY
+ :
+   'notify'
+ ;
 
-NOTIFY
-:
-  'notify'
-;
+ INTERCEPT
+ :
+   'intercept'
+ ;
 
-INTERCEPT
-:
-  'intercept'
-;
+ SKIP
+ :
+   'skip'
+ ;
 
-SKIP
-:
-  'skip'
-;
+ IF
+ :
+   'if'
+ ;
 
-IF
-:
-  'if'
-;
+ NOT
+ :
+   'not'
+ ;
 
-NOT
-:
-  'not'
-;
+ THEN
+ :
+   'then'
+ ;
 
-THEN
-:
-  'then'
-;
+ ELSE
+ :
+   'else'
+ ;
 
-ELSE
-:
-  'else'
-;
+ UNSIGNED_INT
+ :
+   [0-9]+
+ ;
 
-UNSIGNED_INT
-:
-  [0-9]+
-;
+ WS
+ :
+   [ \t\r\n]+ -> skip
+ ;
 
-WS
-:
-  [ \t\r\n]+ -> skip
-;
+ STRING
+ :
+   '"' .+? '"'
+ ;
 
-STRING
-:
-  '"' .+? '"'
-;
+ IDENTIFIER
+ :
+   [a-zA-Z0-9_]+
+ ;
 
-IDENTIFIER
-:
-  [a-zA-Z0-9_]+
-;
-
-UNRECOGNIZED
-:
-  .
-;
+ UNRECOGNIZED
+ :
+   .
+ ;

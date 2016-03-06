@@ -39,75 +39,30 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
-import java.util.LinkedList;
+public class Skip implements ChainPart {
+  private final boolean internal;
 
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.coordinate.Orientation3D;
-
-public class Program {
-
-  private LinkedList<CommandChain> chains;
-  private LinkedList<ChainPart> installation;
-  private LinkedList<ChainPart> uninstallation;
-
-  // Compiler-Options
-  private Coordinate3D max =
-      new Coordinate3D(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
-  private String prefix;
-  private Orientation3D orientation;
-
-  public Program() {
-    chains = new LinkedList<CommandChain>();
-    installation = new LinkedList<>();
-    uninstallation = new LinkedList<>();
+  public Skip(boolean internal) {
+    this.internal = internal;
   }
 
-  public LinkedList<CommandChain> getChains() {
-    return chains;
+  public boolean isInternal() {
+    return internal;
   }
 
-  public void setChains(LinkedList<CommandChain> chains) {
-    this.chains = chains;
+  @Override
+  public int hashCode() {
+    return 0;
   }
 
-  public LinkedList<ChainPart> getInstallation() {
-    return installation;
+  @Override
+  public boolean equals(Object obj) {
+    return true;
   }
 
-  public void setInstallation(LinkedList<ChainPart> installation) {
-    this.installation = installation;
-  }
-
-  public LinkedList<ChainPart> getUninstallation() {
-    return uninstallation;
-  }
-
-  public void setUninstallation(LinkedList<ChainPart> uninstallation) {
-    this.uninstallation = uninstallation;
-  }
-
-  public Coordinate3D getMax() {
-    return max;
-  }
-
-  public void setMax(Coordinate3D max) {
-    this.max = max;
-  }
-
-  public String getPrefix() {
-    return prefix;
-  }
-
-  public void setPrefix(String prefix) {
-    this.prefix = prefix;
-  }
-
-  public Orientation3D getOrientation() {
-    return orientation;
-  }
-
-  public void setOrientation(Orientation3D orientation) {
-    this.orientation = orientation;
+  @Override
+  public String toString() {
+    return "Skip [internal=" + internal + "]";
   }
 
 }

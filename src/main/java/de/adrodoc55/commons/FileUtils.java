@@ -40,6 +40,7 @@
 package de.adrodoc55.commons;
 
 import java.io.File;
+import java.io.IOException;
 
 public class FileUtils {
 
@@ -59,6 +60,14 @@ public class FileUtils {
 
   public static String toUnixLineEnding(String text) {
     return text.replace("\r\n", "\n").replace("\r", "\n");
+  }
+
+  public static String getCanonicalPath(File file) {
+    try {
+      return file.getCanonicalPath();
+    } catch (IOException ex) {
+      return file.getAbsolutePath();
+    }
   }
 
 }

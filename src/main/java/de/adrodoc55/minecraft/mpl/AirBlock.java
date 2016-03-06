@@ -41,10 +41,10 @@ package de.adrodoc55.minecraft.mpl;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 
-public class AirBlock extends CommandBlock {
+public class AirBlock extends MplBlock {
 
   public AirBlock(Coordinate3D coordinate) {
-    super(null, null, coordinate);
+    super(coordinate);
   }
 
 }

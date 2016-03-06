@@ -41,6 +41,7 @@ package de.adrodoc55.minecraft.mpl.antlr;
 
 import java.util.LinkedList;
 
+import de.adrodoc55.minecraft.mpl.ChainPart;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 
@@ -53,21 +54,22 @@ class ChainBuffer {
   private boolean script;
   private boolean repeatingProcess;
   private boolean repeatingContext;
-  protected final LinkedList<Command> commands = new LinkedList<Command>();
+  protected final LinkedList<ChainPart> commands = new LinkedList<>();
 
-  public boolean add(Command command) {
-    updateContext(command);
-    return commands.add(command);
+  public boolean add(ChainPart cp) {
+    updateContext(cp);
+    return commands.add(cp);
   }
 
   @Deprecated
-  public void add(int index, Command command) {
-    updateContext(command);
-    commands.add(index, command);
+  public void add(int index, ChainPart cp) {
+    updateContext(cp);
+    commands.add(index, cp);
   }
 
-  private void updateContext(Command command) {
-    if (command != null) {
+  private void updateContext(ChainPart cp) {
+    if (cp instanceof Command) {
+      Command command = (Command) cp;
       if (command.getMode() == Mode.IMPULSE) {
         setRepeatingContext(false);
       } else if (command.getMode() == Mode.REPEAT) {
@@ -148,7 +150,7 @@ class ChainBuffer {
     this.repeatingContext = repeatingContext;
   }
 
-  public LinkedList<Command> getCommands() {
+  public LinkedList<ChainPart> getCommands() {
     return commands;
   }
 

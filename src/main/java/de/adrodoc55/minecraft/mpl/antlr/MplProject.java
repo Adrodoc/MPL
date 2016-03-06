@@ -37,77 +37,64 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.antlr;
 
-import java.util.LinkedList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.coordinate.Orientation3D;
+import org.antlr.v4.runtime.Token;
 
-public class Program {
+import de.adrodoc55.commons.FileUtils;
+import de.adrodoc55.minecraft.mpl.CompilerException;
+import de.adrodoc55.minecraft.mpl.MplSource;
 
-  private LinkedList<CommandChain> chains;
-  private LinkedList<ChainPart> installation;
-  private LinkedList<ChainPart> uninstallation;
+public class MplProject extends MplFile {
 
-  // Compiler-Options
-  private Coordinate3D max =
-      new Coordinate3D(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
-  private String prefix;
-  private Orientation3D orientation;
+  private String name;
+  private Token token;
+  private final Map<String, MplProcess> map = new HashMap<>();
 
-  public Program() {
-    chains = new LinkedList<CommandChain>();
-    installation = new LinkedList<>();
-    uninstallation = new LinkedList<>();
+  public String getName() {
+    return name;
   }
 
-  public LinkedList<CommandChain> getChains() {
-    return chains;
+  public void setName(String name) {
+    this.name = name;
   }
 
-  public void setChains(LinkedList<CommandChain> chains) {
-    this.chains = chains;
+  public Token getToken() {
+    return token;
   }
 
-  public LinkedList<ChainPart> getInstallation() {
-    return installation;
+  public void setToken(Token token) {
+    this.token = token;
   }
 
-  public void setInstallation(LinkedList<ChainPart> installation) {
-    this.installation = installation;
+  public void addProcess(MplProcess process) {
+    String name = process.getName();
+    MplProcess previous = map.get(name);
+    if (previous == null) {
+      map.put(name, process);
+      return;
+    }
+    String oldMessage = "Duplicate process " + name + "!";
+    String newMessage = oldMessage;
+    MplSource oldSource = previous.getSource();
+    MplSource newSource = process.getSource();
+    if (!newSource.file.equals(oldSource.file)) {
+      oldMessage += " Was also found in " + FileUtils.getCanonicalPath(newSource.file);
+      newMessage += " Was also found in " + FileUtils.getCanonicalPath(oldSource.file);
+    }
+
+    CompilerException ex1 = new CompilerException(oldSource, oldMessage);
+    exceptions.add(ex1);
+    CompilerException ex2 = new CompilerException(newSource, newMessage);
+    exceptions.add(ex2);
   }
 
-  public LinkedList<ChainPart> getUninstallation() {
-    return uninstallation;
-  }
-
-  public void setUninstallation(LinkedList<ChainPart> uninstallation) {
-    this.uninstallation = uninstallation;
-  }
-
-  public Coordinate3D getMax() {
-    return max;
-  }
-
-  public void setMax(Coordinate3D max) {
-    this.max = max;
-  }
-
-  public String getPrefix() {
-    return prefix;
-  }
-
-  public void setPrefix(String prefix) {
-    this.prefix = prefix;
-  }
-
-  public Orientation3D getOrientation() {
-    return orientation;
-  }
-
-  public void setOrientation(Orientation3D orientation) {
-    this.orientation = orientation;
+  public Collection<MplProcess> getProcesses() {
+    return map.values();
   }
 
 }

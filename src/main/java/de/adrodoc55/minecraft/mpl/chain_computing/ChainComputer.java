@@ -44,10 +44,14 @@ import java.util.List;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
+import de.adrodoc55.minecraft.mpl.ChainPart;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.CommandBlock;
 import de.adrodoc55.minecraft.mpl.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.CommandChain;
+import de.adrodoc55.minecraft.mpl.MplBlock;
+import de.adrodoc55.minecraft.mpl.Skip;
+import de.adrodoc55.minecraft.mpl.Transmitter;
 
 public interface ChainComputer {
 
@@ -60,19 +64,20 @@ public interface ChainComputer {
 
   public default CommandBlockChain toCommandBlockChain(CommandChain input,
       List<Coordinate3D> coordinates) {
-    List<Command> commands = input.getCommands();
+    List<ChainPart> commands = input.getCommands();
     if (commands.size() >= coordinates.size()) {
       throw new IllegalArgumentException(
           "To generate a CommandBlockChain one additional Coordinate is needed!");
     }
-    List<CommandBlock> commandBlocks = new ArrayList<CommandBlock>(commands.size());
+    List<MplBlock> blocks = new ArrayList<>(commands.size());
     for (int a = 0; a < commands.size(); a++) {
-      Command currentCommand = commands.get(a);
+      ChainPart current = commands.get(a);
       Coordinate3D currentCoordinate = coordinates.get(a);
-      if (currentCommand == null) {
-        commandBlocks.add(new CommandBlock(null, null, currentCoordinate));
+      if (current instanceof Skip) {
+        blocks.add(new Transmitter(currentCoordinate));
         continue;
       }
+      Command currentCommand = (Command) current;
 
       Coordinate3D nextCoordinate = coordinates.get(a + 1);
       Coordinate3D directionalCoordinate = nextCoordinate.minus(currentCoordinate);
@@ -80,12 +85,12 @@ public interface ChainComputer {
 
       CommandBlock currentCommandBlock =
           new CommandBlock(currentCommand, direction, currentCoordinate);
-      commandBlocks.add(currentCommandBlock);
+      blocks.add(currentCommandBlock);
     }
-    if (!commandBlocks.isEmpty()) {
-      commandBlocks.add(new CommandBlock(null, null, coordinates.get(coordinates.size() - 1)));
+    if (!blocks.isEmpty()) {
+      blocks.add(new CommandBlock(null, null, coordinates.get(coordinates.size() - 1)));
     }
-    CommandBlockChain output = new CommandBlockChain(input.getName(), commandBlocks);
+    CommandBlockChain output = new CommandBlockChain(input.getName(), blocks);
     return output;
   }
 

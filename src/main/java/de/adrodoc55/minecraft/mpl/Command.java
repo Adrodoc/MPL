@@ -42,7 +42,7 @@ package de.adrodoc55.minecraft.mpl;
 import net.karneim.pojobuilder.Builder;
 import net.karneim.pojobuilder.GeneratePojoBuilder;
 
-public class Command {
+public class Command implements ChainPart {
 
   private String command;
   private Mode mode;

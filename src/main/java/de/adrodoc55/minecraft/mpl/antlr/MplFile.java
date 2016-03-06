@@ -37,70 +37,22 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.antlr;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
+import de.adrodoc55.minecraft.mpl.ChainPart;
+import de.adrodoc55.minecraft.mpl.CompilerException;
 
-public class Program {
+public class MplFile {
 
-  private LinkedList<CommandChain> chains;
-  private LinkedList<ChainPart> installation;
-  private LinkedList<ChainPart> uninstallation;
-
-  // Compiler-Options
-  private Coordinate3D max =
-      new Coordinate3D(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
-  private String prefix;
-  private Orientation3D orientation;
-
-  public Program() {
-    chains = new LinkedList<CommandChain>();
-    installation = new LinkedList<>();
-    uninstallation = new LinkedList<>();
-  }
-
-  public LinkedList<CommandChain> getChains() {
-    return chains;
-  }
-
-  public void setChains(LinkedList<CommandChain> chains) {
-    this.chains = chains;
-  }
-
-  public LinkedList<ChainPart> getInstallation() {
-    return installation;
-  }
-
-  public void setInstallation(LinkedList<ChainPart> installation) {
-    this.installation = installation;
-  }
-
-  public LinkedList<ChainPart> getUninstallation() {
-    return uninstallation;
-  }
-
-  public void setUninstallation(LinkedList<ChainPart> uninstallation) {
-    this.uninstallation = uninstallation;
-  }
-
-  public Coordinate3D getMax() {
-    return max;
-  }
-
-  public void setMax(Coordinate3D max) {
-    this.max = max;
-  }
-
-  public String getPrefix() {
-    return prefix;
-  }
-
-  public void setPrefix(String prefix) {
-    this.prefix = prefix;
-  }
+  protected Orientation3D orientation;
+  protected final List<ChainPart> installation = new ArrayList<>();
+  protected final List<ChainPart> uninstallation = new ArrayList<>();
+  protected final List<CompilerException> exceptions = new LinkedList<>();
 
   public Orientation3D getOrientation() {
     return orientation;
@@ -108,6 +60,18 @@ public class Program {
 
   public void setOrientation(Orientation3D orientation) {
     this.orientation = orientation;
+  }
+
+  public List<ChainPart> getInstallation() {
+    return installation;
+  }
+
+  public List<ChainPart> getUninstallation() {
+    return uninstallation;
+  }
+
+  public List<CompilerException> getExceptions() {
+    return exceptions;
   }
 
 }

@@ -42,7 +42,6 @@ package de.adrodoc55.minecraft.mpl.antlr;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -60,10 +59,14 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import de.adrodoc55.commons.FileUtils;
+import de.adrodoc55.minecraft.coordinate.Orientation3D;
+import de.adrodoc55.minecraft.mpl.ChainPart;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 import de.adrodoc55.minecraft.mpl.CommandChain;
 import de.adrodoc55.minecraft.mpl.CompilerException;
+import de.adrodoc55.minecraft.mpl.MplSource;
+import de.adrodoc55.minecraft.mpl.Skip;
 import de.adrodoc55.minecraft.mpl.antlr.CommandBufferFactory.CommandBuffer;
 import de.adrodoc55.minecraft.mpl.antlr.CommandBufferFactory.CommandBuffer.Conditional;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.AutoContext;
@@ -80,9 +83,11 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.InstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.InterceptContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModusContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.NotifyDeclarationContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.OrientationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProcessContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProjectContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.ScriptContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProjectFileContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.ScriptFileContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.SkipContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.StartContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.StopContext;
@@ -97,7 +102,6 @@ public class MplInterpreter extends MplBaseListener {
 
   public static MplInterpreter interpret(File programFile) throws IOException {
     FileContext ctx = parse(programFile);
-    ctx.toStringTree();
     MplInterpreter interpreter = new MplInterpreter(programFile);
     new ParseTreeWalker().walk(interpreter, ctx);
     return interpreter;
@@ -110,15 +114,12 @@ public class MplInterpreter extends MplBaseListener {
     TokenStream tokens = new CommonTokenStream(lexer);
     MplParser parser = new MplParser(tokens);
     FileContext context = parser.file();
+    // context.inspect(parser);
     return context;
   }
 
   private final File programFile;
   private final List<String> lines;
-  private final List<CompilerException> exceptions = new LinkedList<CompilerException>();
-  private final List<CommandChain> chains = new ArrayList<CommandChain>();
-  private final List<Command> installation = new ArrayList<Command>();
-  private final List<Command> uninstallation = new ArrayList<Command>();
   private final Map<String, List<Include>> includes = new HashMap<String, List<Include>>();
   private final Set<File> imports = new HashSet<File>();
 
@@ -133,26 +134,34 @@ public class MplInterpreter extends MplBaseListener {
     return programFile;
   }
 
-  private boolean project;
+  /**
+   * Every File can either be a script or a project/process file
+   */
+  private boolean isScript;
+  private MplScript script;
+  private MplProject project;
 
-  public boolean isProject() {
+  /**
+   * Every File can either be a script or a project/process file
+   */
+  public boolean isScript() {
+    return isScript;
+  }
+
+  public MplScript getScript() {
+    return script;
+  }
+
+  public MplProject getProject() {
     return project;
   }
 
-  public List<CompilerException> getExceptions() {
-    return exceptions;
-  }
-
-  public List<CommandChain> getChains() {
-    return chains;
-  }
-
-  public List<Command> getInstallation() {
-    return installation;
-  }
-
-  public List<Command> getUninstallation() {
-    return uninstallation;
+  public void addException(CompilerException ex1) {
+    if (isScript) {
+      script.exceptions.add(ex1);
+    } else {
+      project.exceptions.add(ex1);
+    }
   }
 
   /**
@@ -166,11 +175,89 @@ public class MplInterpreter extends MplBaseListener {
     return includes;
   }
 
+  // ----------------------------------------------------------------------------------------------------
+
   @Override
   public void visitErrorNode(ErrorNode node) {
     Token token = node.getSymbol();
     String line = lines.get(token.getLine() - 1);
-    exceptions.add(new CompilerException(programFile, token, line, "Mismatched input"));
+    MplSource source = new MplSource(programFile, token, line);
+    addException(new CompilerException(source, "Mismatched input"));
+  }
+
+  @Override
+  public void enterScriptFile(ScriptFileContext ctx) {
+    isScript = true;
+    script = new MplScript();
+    newChainBuffer();
+    chainBuffer.setScript(true);
+  }
+
+  @Override
+  public void enterProjectFile(ProjectFileContext ctx) {
+    isScript = false;
+    project = new MplProject();
+  }
+
+  @Override
+  public void enterImportDeclaration(ImportDeclarationContext ctx) {
+    TerminalNode string = ctx.STRING();
+    String importPath = MplLexerUtils.getContainedString(string);
+    File file = new File(programFile.getParentFile(), importPath);
+    addFileImport(ctx, file);
+  }
+
+  @Override
+  public void enterProject(ProjectContext ctx) {
+    Token oldToken = project.getToken();
+    Token newToken = ctx.PROJECT().getSymbol();
+    if (oldToken != null) {
+      String oldLine = lines.get(oldToken.getLine());
+      MplSource oldSource = new MplSource(programFile, oldToken, oldLine);
+      addException(new CompilerException(oldSource, "A file may only contain a single project!"));
+      String newLine = lines.get(newToken.getLine());
+      MplSource newSource = new MplSource(programFile, newToken, newLine);
+      addException(new CompilerException(newSource, "A file may only contain a single project!"));
+      return;
+    }
+    String name = ctx.IDENTIFIER().getText();
+    project.setName(name);
+    project.setToken(newToken);
+  }
+
+  @Override
+  public void enterOrientation(OrientationContext ctx) {
+    String def = MplLexerUtils.getContainedString(ctx.STRING());
+
+    Token newToken = ctx.ORIENTATION().getSymbol();
+
+    Orientation3D oldOrientation;
+    if (isScript) {
+      oldOrientation = script.getOrientation();
+    } else {
+      oldOrientation = project.getOrientation();
+    }
+    if (oldOrientation != null) {
+      String type = isScript ? "script" : "project";
+      Token oldToken = oldOrientation.getToken();
+      String oldLine = lines.get(oldToken.getLine());
+      MplSource oldSource = new MplSource(programFile, oldToken, oldLine);
+      addException(
+          new CompilerException(oldSource, "A " + type + " may only have a single orientation!"));
+      String newLine = lines.get(newToken.getLine());
+      MplSource newSource = new MplSource(programFile, newToken, newLine);
+      addException(
+          new CompilerException(newSource, "A " + type + " may only have a single orientation!"));
+      return;
+    }
+
+    Orientation3D newOrientation = new Orientation3D(def);
+    newOrientation.setToken(newToken);
+    if (isScript) {
+      script.setOrientation(newOrientation);
+    } else {
+      project.setOrientation(newOrientation);
+    }
   }
 
   @Override
@@ -183,21 +270,14 @@ public class MplInterpreter extends MplBaseListener {
     if (!addFile(files, file, token)) {
       return;
     }
-    Include include = new Include(programFile, token, line, files);
+    MplSource source = new MplSource(programFile, token, line);
+    Include include = new Include(source, files);
     List<Include> list = includes.get(null);
     if (list == null) {
       list = new LinkedList<Include>();
       includes.put(null, list);
     }
     list.add(include);
-  }
-
-  @Override
-  public void enterImportDeclaration(ImportDeclarationContext ctx) {
-    TerminalNode string = ctx.STRING();
-    String importPath = MplLexerUtils.getContainedString(string);
-    File file = new File(programFile.getParentFile(), importPath);
-    addFileImport(ctx, file);
   }
 
   /**
@@ -211,7 +291,8 @@ public class MplInterpreter extends MplBaseListener {
     Token token = ctx != null ? ctx.STRING().getSymbol() : null;
     String line = token != null ? lines.get(token.getLine() - 1) : null;
     if (imports.contains(file)) {
-      exceptions.add(new CompilerException(programFile, token, line, "Duplicate import."));
+      MplSource source = new MplSource(programFile, token, line);
+      addException(new CompilerException(source, "Duplicate import."));
       return;
     }
     addFile(imports, file, token);
@@ -241,32 +322,31 @@ public class MplInterpreter extends MplBaseListener {
       }
       return added;
     } else if (!file.exists()) {
-      String path;
-      try {
-        path = file.getCanonicalPath();
-      } catch (IOException ex) {
-        path = file.getAbsolutePath();
-      }
-      exceptions
-          .add(new CompilerException(programFile, token, line, "Could not find '" + path + "'"));
+      String path = FileUtils.getCanonicalPath(file);
+      MplSource source = new MplSource(programFile, token, line);
+      addException(new CompilerException(source, "Could not find '" + path + "'"));
       return false;
     } else {
-      exceptions.add(new CompilerException(programFile, token, line,
+      MplSource source = new MplSource(programFile, token, line);
+      addException(new CompilerException(source,
           "Can only import Files and Directories, not: '" + file + "'"));
       return false;
     }
   }
 
+  private final LinkedList<ChainBuffer> chainBufferStack = new LinkedList<>();
   private ChainBuffer chainBuffer;
   private IfBuffer ifBuffer;
 
   private void newChainBuffer() {
+    chainBufferStack.push(chainBuffer);
     this.chainBuffer = new ChainBuffer();
     this.ifBuffer = new IfBuffer(chainBuffer);
   }
 
   private void deleteChainBuffer() {
-    chainBuffer = null;
+    // ifBuffer is not recovered, because it is currently not required
+    chainBuffer = chainBufferStack.poll();
     ifBuffer = null;
   }
 
@@ -277,6 +357,12 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void exitInstall(InstallContext ctx) {
+    List<ChainPart> installation;
+    if (isScript) {
+      installation = script.getInstallation();
+    } else {
+      installation = project.getInstallation();
+    }
     installation.addAll(chainBuffer.getCommands());
     deleteChainBuffer();
   }
@@ -288,35 +374,23 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void exitUninstall(UninstallContext ctx) {
+    List<ChainPart> uninstallation;
+    if (isScript) {
+      uninstallation = script.getUninstallation();
+    } else {
+      uninstallation = project.getUninstallation();
+    }
     uninstallation.addAll(chainBuffer.getCommands());
     deleteChainBuffer();
   }
-
-  @Override
-  public void enterProject(ProjectContext ctx) {
-    project = true;
-  }
-
-  private Map<String, Token> ambigiousProcessMapping = new HashMap<String, Token>();
 
   @Override
   public void enterProcess(ProcessContext ctx) {
     newChainBuffer();
     chainBuffer.setProcess(true);
     String name = ctx.IDENTIFIER().getText();
-    Token oldToken = ambigiousProcessMapping.get(name);
-    Token newToken = ctx.IDENTIFIER().getSymbol();
-    if (oldToken != null) {
-      String message = "Process " + name + " is ambigious. Every process must have a unique name.";
-      CompilerException ex1 =
-          new CompilerException(programFile, oldToken, lines.get(oldToken.getLine()), message);
-      exceptions.add(ex1);
-      CompilerException ex2 =
-          new CompilerException(programFile, newToken, lines.get(newToken.getLine()), message);
-      exceptions.add(ex2);
-    }
-    ambigiousProcessMapping.put(name, newToken);
     chainBuffer.setName(name);
+
     if (ctx.REPEAT() != null) {
       chainBuffer.setRepeatingProcess(true);
       chainBuffer.setRepeatingContext(true);
@@ -324,12 +398,6 @@ public class MplInterpreter extends MplBaseListener {
       chainBuffer.setRepeatingProcess(false);
       chainBuffer.setRepeatingContext(false);
     }
-  }
-
-  @Override
-  public void enterScript(ScriptContext ctx) {
-    newChainBuffer();
-    chainBuffer.setScript(true);
   }
 
   private final LinkedList<CommandBufferFactory> factory = new LinkedList<>();
@@ -370,18 +438,19 @@ public class MplInterpreter extends MplBaseListener {
     try {
       commandBuffer.setConditional(conditional);
     } catch (IllegalModifierException ex) {
-      Token symbol;
+      Token token;
       if (ctx.CONDITIONAL() != null) {
-        symbol = ctx.CONDITIONAL().getSymbol();
+        token = ctx.CONDITIONAL().getSymbol();
       } else if (ctx.INVERT() != null) {
-        symbol = ctx.INVERT().getSymbol();
+        token = ctx.INVERT().getSymbol();
       } else {
         throw new RuntimeException(
-            "IllegalModifierException was thrown, but could not find the conditional Token", ex);
+            "IllegalModifierException was thrown, but the conditional token could not be found!",
+            ex);
       }
-      String line = lines.get(symbol.getLine() - 1);
-      exceptions
-          .add(new CompilerException(programFile, symbol, line, ex.getLocalizedMessage(), ex));
+      String line = lines.get(token.getLine() - 1);
+      MplSource source = new MplSource(programFile, token, line);
+      addException(new CompilerException(source, ex.getLocalizedMessage(), ex));
     }
   }
 
@@ -414,9 +483,10 @@ public class MplInterpreter extends MplBaseListener {
     commandBuffer.setCommand(command);
     lastStartIdentifier = process;
     String srcProcess = chainBuffer.isProcess() ? chainBuffer.getName() : null;
-    Token symbol = identifier.getSymbol();
-    String line = lines.get(symbol.getLine() - 1);
-    Include include = new Include(programFile, symbol, process, line, imports);
+    Token token = identifier.getSymbol();
+    String line = lines.get(token.getLine() - 1);
+    MplSource source = new MplSource(programFile, token, line);
+    Include include = new Include(source, process, imports);
     List<Include> list = includes.get(srcProcess);
     if (list == null) {
       list = new LinkedList<Include>();
@@ -433,10 +503,10 @@ public class MplInterpreter extends MplBaseListener {
     } else if (chainBuffer.isRepeatingProcess()) {
       process = chainBuffer.getName();
     } else {
-      Token symbol = ctx.STOP().getSymbol();
-      String line = lines.get(symbol.getLine() - 1);
-      exceptions.add(
-          new CompilerException(programFile, symbol, line, "Can only stop repeating processes."));
+      Token token = ctx.STOP().getSymbol();
+      String line = lines.get(token.getLine() - 1);
+      MplSource source = new MplSource(programFile, token, line);
+      addException(new CompilerException(source, "Can only stop repeating processes."));
       return;
     }
     String command = "execute @e[name=" + process + "] ~ ~ ~ setblock ~ ~ ~ stone";
@@ -445,11 +515,11 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterWaitfor(WaitforContext ctx) {
-    Token symbol = ctx.WAITFOR().getSymbol();
-    String line = lines.get(symbol.getLine() - 1);
+    Token token = ctx.WAITFOR().getSymbol();
+    String line = lines.get(token.getLine() - 1);
     if (chainBuffer.isRepeatingContext()) {
-      exceptions.add(new CompilerException(programFile, symbol, line,
-          "Encountered waitfor in repeating context."));
+      MplSource source = new MplSource(programFile, token, line);
+      addException(new CompilerException(source, "Encountered waitfor in repeating context."));
       return;
     }
     TerminalNode identifier = ctx.IDENTIFIER();
@@ -460,7 +530,8 @@ public class MplInterpreter extends MplBaseListener {
       process = lastStartIdentifier;
       lastStartIdentifier = null;
     } else {
-      exceptions.add(new CompilerException(programFile, symbol, line,
+      MplSource source = new MplSource(programFile, token, line);
+      addException(new CompilerException(source,
           "Missing Identifier. No previous start was found to wait for."));
       return;
     }
@@ -474,13 +545,13 @@ public class MplInterpreter extends MplBaseListener {
       chainBuffer.add(commandBuffer.toCommand());
       chainBuffer.add(new Command("blockdata ${this - 1} {SuccessCount:1}"));
       chainBuffer.add(new Command("setblock ${this + 1} redstone_block", true));
-      chainBuffer.add(null);
+      chainBuffer.add(new Skip(true));
       chainBuffer.add(new Command("setblock ${this - 1} stone", Mode.IMPULSE, false));
     } else {
       commandBuffer.setCommand("summon ArmorStand ${this + 1} {CustomName:" + process + NOTIFY
           + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
       chainBuffer.add(commandBuffer.toCommand());
-      chainBuffer.add(null);
+      chainBuffer.add(new Skip(true));
       chainBuffer.add(new Command("setblock ${this - 1} stone", Mode.IMPULSE, false));
     }
     commandBuffer = null;
@@ -489,10 +560,11 @@ public class MplInterpreter extends MplBaseListener {
   @Override
   public void enterNotifyDeclaration(NotifyDeclarationContext ctx) {
     if (!chainBuffer.isProcess()) {
-      Token symbol = ctx.NOTIFY().getSymbol();
-      String line = lines.get(symbol.getLine() - 1);
-      exceptions.add(new CompilerException(programFile, symbol, line,
-          "Encountered notify outside of a process context."));
+      Token token = ctx.NOTIFY().getSymbol();
+      String line = lines.get(token.getLine() - 1);
+      MplSource source = new MplSource(programFile, token, line);
+      addException(
+          new CompilerException(source, "Encountered notify outside of a process context."));
       return;
     }
     String method = chainBuffer.getName();
@@ -504,20 +576,25 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterIntercept(InterceptContext ctx) {
-    Token symbol = ctx.INTERCEPT().getSymbol();
-    String line = lines.get(symbol.getLine() - 1);
+    Token token = ctx.INTERCEPT().getSymbol();
+    String line = lines.get(token.getLine() - 1);
     if (chainBuffer.isRepeatingContext()) {
-      exceptions.add(new CompilerException(programFile, symbol, line,
-          "Encountered intercept in repeating context."));
+      MplSource source = new MplSource(programFile, token, line);
+      addException(new CompilerException(source, "Encountered intercept in repeating context."));
       return;
     }
+
     TerminalNode identifier = ctx.IDENTIFIER();
     String process = identifier.getText();
     Boolean conditional = commandBuffer.isConditional();
-    if (conditional == null) {
+    if (conditional == null)
+
+    {
       conditional = false;
     }
-    if (conditional) {
+    if (conditional)
+
+    {
       if (commandBuffer.getConditional() == Conditional.CONDITIONAL) {
         addInvert(chainBuffer);
       }
@@ -527,12 +604,13 @@ public class MplInterpreter extends MplBaseListener {
         "entitydata @e[name=" + process + "] {CustomName:" + process + "_INTERCEPTED}"));
     chainBuffer.add(new Command("summon ArmorStand ${this + 1} {CustomName:" + process
         + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
-    chainBuffer.add(null);
+    chainBuffer.add(new Skip(true));
     chainBuffer.add(new Command("setblock ${this - 1} stone", Mode.IMPULSE, false));
     chainBuffer.add(new Command("kill @e[name=" + process + ",r=2]"));
     chainBuffer.add(new Command(
         "entitydata @e[name=" + process + "_INTERCEPTED] {CustomName:" + process + "}"));
     commandBuffer = null;
+
   }
 
   @Override
@@ -554,18 +632,30 @@ public class MplInterpreter extends MplBaseListener {
    * @param chainBuffer
    */
   private static void addInvert(ChainBuffer chainBuffer) {
-    LinkedList<Command> commands = chainBuffer.getCommands();
+    LinkedList<ChainPart> commands = chainBuffer.getCommands();
     if (commands.isEmpty()) {
       throw new IllegalArgumentException(
           "The given ChainBuffer is empty. The first command of a chain cannot be an invert command.");
     }
-    Command previous = commands.peekLast();
-    chainBuffer.add(new InvertingCommand(previous));
+    ChainPart previous = commands.peekLast();
+    if (!(previous instanceof Command)) {
+      // TODO: Exception erzeugen
+      return;
+    }
+    chainBuffer.add(new InvertingCommand((Command) previous));
   }
 
   @Override
   public void enterSkip(SkipContext ctx) {
-    chainBuffer.add(null);
+    if (chainBuffer.getCommands().isEmpty()) {
+      Token token = ctx.SKIP().getSymbol();
+      String line = lines.get(token.getLine());
+      MplSource source = new MplSource(programFile, token, line);
+      addException(new CompilerException(source,
+          "Skip may not be the first command of a repeating process!"));
+      return;
+    }
+    chainBuffer.add(new Skip(false));
   }
 
   @Override
@@ -600,26 +690,32 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void exitProcess(ProcessContext ctx) {
-    LinkedList<Command> commands = chainBuffer.getCommands();
+    LinkedList<ChainPart> commands = chainBuffer.getCommands();
     if (chainBuffer.isRepeatingProcess()) {
       if (commands.size() > 0) {
-        Command first = commands.get(0);
-        first.setMode(Mode.REPEAT);
-        first.setNeedsRedstone(true);
+        ChainPart first = commands.get(0);
+        if (!(first instanceof Command)) {
+          throw new InternalError(
+              "The first ChainPart must be a Command! enterSkip(ctx) assures this.");
+        }
+        Command firstCommand = (Command) first;
+        firstCommand.setMode(Mode.REPEAT);
+        firstCommand.setNeedsRedstone(true);
       }
     } else {
       commands.add(0, new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
     }
-    CommandChain chain = new CommandChain(chainBuffer.getName(), commands);
-    chains.add(chain);
+    Token token = ctx.IDENTIFIER().getSymbol();
+    MplSource source = new MplSource(programFile, token, lines.get(token.getLine()));
+    MplProcess process = new MplProcess(chainBuffer.getName(), commands, source);
+    project.addProcess(process);
     deleteChainBuffer();
   }
 
   @Override
-  public void exitScript(ScriptContext ctx) {
-    CommandChain chain = new CommandChain(null, chainBuffer.getCommands());
-    chains.add(chain);
+  public void exitScriptFile(ScriptFileContext ctx) {
+    CommandChain chain = new CommandChain(chainBuffer.getCommands());
+    script.setChain(chain);
     deleteChainBuffer();
   }
-
 }

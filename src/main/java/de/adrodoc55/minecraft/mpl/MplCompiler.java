@@ -119,24 +119,23 @@ public class MplCompiler extends MplBaseListener {
       try {
         interpreter = MplInterpreter.interpret(file);
       } catch (IOException ex) {
-        CompilerException compilerException = new CompilerException(include.getSrcFile(),
-            include.getToken(), include.getSrcLine(), "Couldn't include '" + file + "'", ex);
-        List<CompilerException> list = exceptions.get(include.getSrcFile());
+        CompilerException compilerException =
+            new CompilerException(include.getSource(), "Couldn't include '" + file + "'", ex);
+        List<CompilerException> list = exceptions.get(include.getSource().file);
         if (list == null) {
           list = new LinkedList<CompilerException>();
-          exceptions.put(include.getSrcFile(), list);
+          exceptions.put(include.getSource().file, list);
         }
         list.add(compilerException);
         return;
       }
-      if (interpreter.isProject()) {
-        CompilerException compilerException =
-            new CompilerException(include.getSrcFile(), include.getToken(), include.getSrcLine(),
-                "Can't include Project " + file.getName() + ". Projects may not be included.");
-        List<CompilerException> list = exceptions.get(include.getSrcFile());
+      if (interpreter.isScript()) {
+        CompilerException compilerException = new CompilerException(include.getSource(),
+            "Can't include script " + file.getName() + ". Scripts may not be included.");
+        List<CompilerException> list = exceptions.get(include.getSource().file);
         if (list == null) {
           list = new LinkedList<CompilerException>();
-          exceptions.put(include.getSrcFile(), list);
+          exceptions.put(include.getSource().file, list);
         }
         list.add(compilerException);
         return;
@@ -239,13 +238,13 @@ public class MplCompiler extends MplBaseListener {
   private static final Pattern originPattern = Pattern
       .compile("\\$\\{\\s*origin\\s*\\+\\s*\\(\\s*(-?\\d+)\\s+(-?\\d+)\\s+(-?\\d+)\\s*\\)\\s*\\}");
 
-  private static void insertRelativeCoordinates(List<CommandBlock> commandBlocks,
-      Orientation3D orientation) {
-    for (int i = 0; i < commandBlocks.size(); i++) {
-      CommandBlock current = commandBlocks.get(i);
-      if (current.toCommand() == null) {
+  private static void insertRelativeCoordinates(List<MplBlock> blocks, Orientation3D orientation) {
+    for (int i = 0; i < blocks.size(); i++) {
+      MplBlock currentBlock = blocks.get(i);
+      if (!(currentBlock instanceof CommandBlock)) {
         continue;
       }
+      CommandBlock current = (CommandBlock) currentBlock;
 
       if (current != null) {
         Matcher thisMatcher = thisPattern.matcher(current.getCommand());
@@ -264,17 +263,16 @@ public class MplCompiler extends MplBaseListener {
               refIndex = 0;
               break;
             }
-            CommandBlock block = commandBlocks.get(refIndex);
-            if (block.toCommand() instanceof InternalCommand) {
+            MplBlock block = blocks.get(refIndex);
+            if (isInternal(block)) {
               steps++;
             }
           }
           Coordinate3D referenced;
           if (refIndex < 0) {
-            referenced =
-                commandBlocks.get(0).getCoordinate().minus(orientation.getA().toCoordinate());
+            referenced = blocks.get(0).getCoordinate().minus(orientation.getA().toCoordinate());
           } else {
-            referenced = commandBlocks.get(refIndex).getCoordinate();
+            referenced = blocks.get(refIndex).getCoordinate();
           }
           Coordinate3D relativeCoordinate = referenced.minus(current.getCoordinate());
           thisMatcher.appendReplacement(thisSb, relativeCoordinate.toRelativeString());
@@ -298,6 +296,19 @@ public class MplCompiler extends MplBaseListener {
       }
 
     }
+  }
+
+  private static boolean isInternal(MplBlock block) {
+    if (block instanceof Transmitter) {
+      Transmitter transmitter = (Transmitter) block;
+      return transmitter.isInternal();
+    }
+    if (block instanceof CommandBlock) {
+      CommandBlock commandBlock = (CommandBlock) block;
+      Command command = commandBlock.toCommand();
+      return command instanceof InternalCommand;
+    }
+    return false;
   }
 
 }

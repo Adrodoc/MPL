@@ -68,12 +68,12 @@ public class OneCommandConverter extends MplConverter {
     }
     // Appending setblock for all Commands
     for (CommandBlockChain chain : chains) {
-      List<CommandBlock> blocks = chain.getCommandBlocks();
-      for (CommandBlock block : blocks) {
-        if (block.toCommand() == null) {
+      List<MplBlock> blocks = chain.getCommandBlocks();
+      for (MplBlock block : blocks) {
+        if (!(block instanceof CommandBlock)) {
           continue;
         }
-        sb.append(convert(block));
+        sb.append(convert((CommandBlock) block));
       }
     }
     sb.append(TAIL);

@@ -48,8 +48,8 @@ public class PythonConverter extends MplConverter {
   public static String convert(List<CommandBlockChain> chains, String name) {
     StringBuilder sb = new StringBuilder(getPythonHeader(name));
     for (CommandBlockChain chain : chains) {
-      List<CommandBlock> blocks = chain.getCommandBlocks();
-      for (CommandBlock block : blocks) {
+      List<MplBlock> blocks = chain.getCommandBlocks();
+      for (MplBlock block : blocks) {
         sb.append(INDENT + convert(block) + "\n");
       }
     }
@@ -79,20 +79,26 @@ public class PythonConverter extends MplConverter {
     return pythonHeader;
   }
 
-  private static String convert(CommandBlock block) {
+  private static String convert(MplBlock block) {
     String x = "box.minx + " + block.getX();
     String y = "box.miny + " + block.getY();
     String z = "box.minz + " + block.getZ();
-    if (block.toCommand() == null) {
+    if (block instanceof AirBlock) {
+      return "level.setBlockAt(" + x + ", " + y + ", " + z + ", 0)";
+    } else if (block instanceof Transmitter) {
       return "level.setBlockAt(" + x + ", " + y + ", " + z + ", 1)";
-    } else {
+    } else if (block instanceof CommandBlock) {
+      CommandBlock commandBlock = (CommandBlock) block;
       String xyz = "(" + x + ", " + y + ", " + z + ")";
-      String command = block.getCommand();
-      int blockId = toIntBlockId(block.getMode());
-      int damage = toDamageValue(block);
-      String auto = block.needsRedstone() ? "False" : "True";
+      String command = commandBlock.getCommand();
+      int blockId = toIntBlockId(commandBlock.getMode());
+      int damage = toDamageValue(commandBlock);
+      String auto = commandBlock.needsRedstone() ? "False" : "True";
       return "create_command_block(level, " + xyz + ", '" + command + "', " + blockId + ", "
           + damage + ", " + auto + ")";
+    } else {
+      throw new IllegalArgumentException(
+          "Can't convert block of type " + block.getClass() + " to python!");
     }
   }
 

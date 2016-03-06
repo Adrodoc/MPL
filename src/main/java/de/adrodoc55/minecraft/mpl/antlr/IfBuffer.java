@@ -44,6 +44,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.adrodoc55.minecraft.mpl.ChainPart;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 import de.adrodoc55.minecraft.mpl.MplConverter;
@@ -123,16 +124,20 @@ class LayerCompressor {
       layerCommands.add(new NormalizingCommand());
     }
 
-    Iterator<Command> thenIt = layer.getThenBlock().iterator();
+    Iterator<ChainPart> thenIt = layer.getThenBlock().iterator();
 
     if (layer.isNot()) {
       add(thenIt, false);
     } else {
       if (thenIt.hasNext()) { // First normal then does not need a reference
-        Command firstThen = thenIt.next();
-        firstThen = new Command(firstThen);
-        firstThen.setConditional(true);
-        layerCommands.add(firstThen);
+        ChainPart firstThen = thenIt.next();
+        if (!(firstThen instanceof Command)) {
+          // TODO: Besseren Fehler werfen
+          throw new IllegalStateException("Skip is not allowed within if body!");
+        }
+        Command firstThenCommand = new Command((Command) firstThen);
+        firstThenCommand.setConditional(true);
+        layerCommands.add(firstThenCommand);
       }
       add(thenIt, true);
     }
@@ -140,7 +145,7 @@ class LayerCompressor {
     // switching to else block
     inElse = true;
 
-    Iterator<Command> elseIt = layer.getElseBlock().iterator();
+    Iterator<ChainPart> elseIt = layer.getElseBlock().iterator();
     if (layer.isNot()) {
       add(elseIt, true);
     } else {
@@ -150,10 +155,15 @@ class LayerCompressor {
     return layerCommands;
   }
 
-  private void add(Iterator<Command> it, boolean dependOnSuccess) {
+  private void add(Iterator<ChainPart> it, boolean dependOnSuccess) {
     boolean lastWasInverting = false;
     while (it.hasNext()) {
-      Command command = it.next();
+      ChainPart chainPart = it.next();
+      if (!(chainPart instanceof Command)) {
+        // TODO: Besseren Fehler werfen
+        throw new IllegalStateException("Skip is not allowed within if body!");
+      }
+      Command command = (Command) chainPart;
 
       CompressedLayerCommand compressed = null;
       if (command instanceof CompressedLayerCommand) {
@@ -271,7 +281,7 @@ class CompressedLayerCommand extends Command {
 class IfNestingLayer extends ChainBuffer {
   private final boolean not;
   private final Command condition;
-  private final LinkedList<Command> thenBlock = new LinkedList<>();
+  private final LinkedList<ChainPart> thenBlock = new LinkedList<>();
   private boolean inElse = false;
 
   public IfNestingLayer(boolean not, Command condition) {
@@ -293,12 +303,17 @@ class IfNestingLayer extends ChainBuffer {
       // conditional ausreicht.
       return !getElseBlock().isEmpty();
     } else {
-      Iterator<Command> it = getThenBlock().iterator();
+      Iterator<ChainPart> it = getThenBlock().iterator();
       if (it.hasNext()) {
         it.next(); // Ignore the first element.
       }
       while (it.hasNext()) {
-        Command command = it.next();
+        ChainPart chainPart = it.next();
+        if (!(chainPart instanceof Command)) {
+          // TODO: Besseren Fehler werfen
+          throw new IllegalStateException("Skip is not allowed within if body!");
+        }
+        Command command = (Command) chainPart;
         if (!command.isConditional()) {
           return true;
         }
@@ -313,7 +328,7 @@ class IfNestingLayer extends ChainBuffer {
     inElse = true;
   }
 
-  public List<Command> getThenBlock() {
+  public List<ChainPart> getThenBlock() {
     if (!inElse) {
       // If we are still editing the then block and the thenBlock is not already refreshed,
       // refresh the elements.
@@ -325,7 +340,7 @@ class IfNestingLayer extends ChainBuffer {
     return Collections.unmodifiableList(thenBlock);
   }
 
-  public List<Command> getElseBlock() {
+  public List<ChainPart> getElseBlock() {
     if (inElse) {
       return Collections.unmodifiableList(commands);
     } else {

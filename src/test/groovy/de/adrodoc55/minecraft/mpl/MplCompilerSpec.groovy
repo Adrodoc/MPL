@@ -289,6 +289,35 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
+  public void "scripts can't be included"() {
+    given:
+    String id1 = someIdentifier()
+    String id2 = someIdentifier()
+    String id3 = someIdentifier()
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    project ${id1} (
+    include "newFolder/scriptFile.mpl"
+    )
+    """
+    new File(folder, 'newFolder').mkdirs()
+    new File(folder, 'newFolder/scriptFile.mpl').text = """
+    /this is a script
+    / really !
+    """
+    when:
+    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    then:
+    CompilationFailedException ex = thrown()
+    List<CompilerException> exs = ex.exceptions.get(new File(folder, 'main.mpl'))
+    exs.size() == 1
+    exs[0].source.file == new File(folder, 'main.mpl')
+    exs[0].source.token.line == 3
+    exs[0].source.token.text == '"newFolder/scriptFile.mpl"'
+    exs[0].message == "Can't include script 'scriptFile.mpl'. Scripts may not be included."
+  }
+
+  @Test
   public void "Eine Projekt mit Orientation erzeugt ein Projekt mit Orientation"() {
     given:
     String id1 = someIdentifier()
@@ -517,12 +546,12 @@ class MplCompilerSpec extends MplSpecBase {
     List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
     then:
     CommandBlockChain installation = chains.find { it.name == 'install' }
-    installation.commandBlocks.size() == 5
-    installation.commandBlocks[0].toCommand() == null
-    installation.commandBlocks[1].getCommand().startsWith('setblock ')
-    installation.commandBlocks[2].getCommand().startsWith('summon ArmorStand ')
-    installation.commandBlocks[3].toCommand() == new Command('say install')
-    installation.commandBlocks[4].toCommand() == null
+    installation.blocks.size() == 5
+    installation.blocks[0].toCommand() == null
+    installation.blocks[1].getCommand().startsWith('setblock ')
+    installation.blocks[2].getCommand().startsWith('summon ArmorStand ')
+    installation.blocks[3].toCommand() == new Command('say install')
+    installation.blocks[4].toCommand() == null
   }
 
   /**
@@ -548,11 +577,11 @@ class MplCompilerSpec extends MplSpecBase {
     List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
     then:
     CommandBlockChain uninstallation = chains.find { it.name == 'uninstall' }
-    uninstallation.commandBlocks.size() == 5
-    uninstallation.commandBlocks[0].toCommand() == null
-    uninstallation.commandBlocks[1].getCommand().startsWith('setblock ')
-    uninstallation.commandBlocks[2].toCommand() == new Command('say uninstall')
-    uninstallation.commandBlocks[3].toCommand() == new Command('kill @e[type=ArmorStand,name=main]')
-    uninstallation.commandBlocks[4].toCommand() == null
+    uninstallation.blocks.size() == 5
+    uninstallation.blocks[0].toCommand() == null
+    uninstallation.blocks[1].getCommand().startsWith('setblock ')
+    uninstallation.blocks[2].toCommand() == new Command('say uninstall')
+    uninstallation.blocks[3].toCommand() == new Command('kill @e[type=ArmorStand,name=main]')
+    uninstallation.blocks[4].toCommand() == null
   }
 }

@@ -76,7 +76,7 @@ public class MplSyntaxFilterPM extends AbstractPM {
     private int stopOffset;
 
     public CompilerExceptionWrapper(CompilerException ex) {
-      this.token = ex.getToken();
+      this.token = ex.getSource().token;
       this.startOffset = 0;
       this.stopOffset = 0;
     }

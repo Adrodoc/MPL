@@ -47,11 +47,11 @@ import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 public class CommandBlockChain {
 
   private final String name;
-  private final List<CommandBlock> commandBlocks;
+  private final List<MplBlock> blocks;
 
-  public CommandBlockChain(String name, List<CommandBlock> commandBlocks) {
+  public CommandBlockChain(String name, List<MplBlock> commandBlocks) {
     this.name = name;
-    this.commandBlocks = commandBlocks;
+    this.blocks = commandBlocks;
   }
 
   /**
@@ -60,7 +60,7 @@ public class CommandBlockChain {
    * @param vector
    */
   public void move(Coordinate3D vector) {
-    for (CommandBlock block : commandBlocks) {
+    for (MplBlock block : blocks) {
       block.setCoordinate(block.getCoordinate().plus(vector));
     }
   }
@@ -69,22 +69,22 @@ public class CommandBlockChain {
     return name;
   }
 
-  public List<CommandBlock> getCommandBlocks() {
-    return commandBlocks;
+  public List<MplBlock> getCommandBlocks() {
+    return blocks;
   }
 
   public Coordinate3D getMin() {
-    Iterator<CommandBlock> it = commandBlocks.iterator();
+    Iterator<MplBlock> it = blocks.iterator();
     if (!it.hasNext()) {
       return new Coordinate3D();
     }
-    CommandBlock first = it.next();
+    MplBlock first = it.next();
     Coordinate3D pos = first.getCoordinate();
     int minX = pos.getX();
     int minY = pos.getY();
     int minZ = pos.getZ();
     while (it.hasNext()) {
-      CommandBlock current = it.next();
+      MplBlock current = it.next();
       Coordinate3D c = current.getCoordinate();
       minX = Math.min(minX, c.getX());
       minY = Math.min(minY, c.getY());
@@ -94,17 +94,17 @@ public class CommandBlockChain {
   }
 
   public Coordinate3D getMax() {
-    Iterator<CommandBlock> it = commandBlocks.iterator();
+    Iterator<MplBlock> it = blocks.iterator();
     if (!it.hasNext()) {
       return new Coordinate3D();
     }
-    CommandBlock first = it.next();
+    MplBlock first = it.next();
     Coordinate3D pos = first.getCoordinate();
     int maxX = pos.getX();
     int maxY = pos.getY();
     int maxZ = pos.getZ();
     while (it.hasNext()) {
-      CommandBlock current = it.next();
+      MplBlock current = it.next();
       Coordinate3D c = current.getCoordinate();
       maxX = Math.max(maxX, c.getX());
       maxY = Math.max(maxY, c.getY());

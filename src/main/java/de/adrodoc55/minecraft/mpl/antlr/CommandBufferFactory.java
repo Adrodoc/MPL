@@ -61,7 +61,7 @@ class CommandBufferFactory {
     public void setConditional(Conditional conditional) throws IllegalModifierException {
       if (conditional != Conditional.UNCONDITIONAL) {
         throw new IllegalModifierException(
-            "The first command of a chain can only be unconditional.");
+            "The first command of a chain must be unconditional!");
       }
       super.setConditional(conditional);
     }

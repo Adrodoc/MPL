@@ -39,36 +39,34 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
+import javax.annotation.Nonnull;
+
+import com.google.common.base.Preconditions;
+
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 
-public class CommandBlock {
+public class CommandBlock extends MplBlock {
 
+  @Nonnull
   private Command command;
   private Direction3D direction;
-  private Coordinate3D coordinate;
 
-  public CommandBlock(Command command, Direction3D direction, Coordinate3D coordinate) {
-    this.command = command;
-    this.direction = direction;
-    this.coordinate = coordinate;
+  public CommandBlock(@Nonnull Command command, @Nonnull Direction3D direction,
+      @Nonnull Coordinate3D coordinate) {
+    super(coordinate);
+    this.setCommand(command);
+    this.setDirection(direction);
   }
 
+  @Nonnull
   public Command toCommand() {
     return command;
   }
 
-  public void setCommand(Command command) {
-    this.command = command;
-  }
-
-  public Coordinate3D getCoordinate() {
-    return coordinate;
-  }
-
-  public void setCoordinate(Coordinate3D coordinate) {
-    this.coordinate = coordinate;
+  public void setCommand(@Nonnull Command command) {
+    this.command = Preconditions.checkNotNull(command, "command == null!");
   }
 
   public String getCommand() {
@@ -103,24 +101,13 @@ public class CommandBlock {
     command.setNeedsRedstone(needsRedstone);
   }
 
+  @Nonnull
   public Direction3D getDirection() {
     return direction;
   }
 
-  public void setDirection(Direction3D direction) {
-    this.direction = direction;
-  }
-
-  public int getX() {
-    return coordinate.getX();
-  }
-
-  public int getY() {
-    return coordinate.getY();
-  }
-
-  public int getZ() {
-    return coordinate.getZ();
+  public void setDirection(@Nonnull Direction3D direction) {
+    this.direction = Preconditions.checkNotNull(direction, "direction == null!");
   }
 
   @Override

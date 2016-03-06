@@ -39,75 +39,44 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
-import java.util.LinkedList;
+import javax.annotation.Nonnull;
+
+import com.google.common.base.Preconditions;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.coordinate.Orientation3D;
 
-public class Program {
+public abstract class MplBlock {
 
-  private LinkedList<CommandChain> chains;
-  private LinkedList<ChainPart> installation;
-  private LinkedList<ChainPart> uninstallation;
+  protected Coordinate3D coordinate;
 
-  // Compiler-Options
-  private Coordinate3D max =
-      new Coordinate3D(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
-  private String prefix;
-  private Orientation3D orientation;
-
-  public Program() {
-    chains = new LinkedList<CommandChain>();
-    installation = new LinkedList<>();
-    uninstallation = new LinkedList<>();
+  public MplBlock(@Nonnull Coordinate3D coordinate) {
+    this.setCoordinate(coordinate);
   }
 
-  public LinkedList<CommandChain> getChains() {
-    return chains;
+  @Nonnull
+  public Coordinate3D getCoordinate() {
+    return coordinate;
   }
 
-  public void setChains(LinkedList<CommandChain> chains) {
-    this.chains = chains;
+  public void setCoordinate(@Nonnull Coordinate3D coordinate) {
+    this.coordinate = Preconditions.checkNotNull(coordinate, "coordinate == null!");
   }
 
-  public LinkedList<ChainPart> getInstallation() {
-    return installation;
+  public int getX() {
+    return coordinate.getX();
   }
 
-  public void setInstallation(LinkedList<ChainPart> installation) {
-    this.installation = installation;
+  public int getY() {
+    return coordinate.getY();
   }
 
-  public LinkedList<ChainPart> getUninstallation() {
-    return uninstallation;
+  public int getZ() {
+    return coordinate.getZ();
   }
 
-  public void setUninstallation(LinkedList<ChainPart> uninstallation) {
-    this.uninstallation = uninstallation;
-  }
-
-  public Coordinate3D getMax() {
-    return max;
-  }
-
-  public void setMax(Coordinate3D max) {
-    this.max = max;
-  }
-
-  public String getPrefix() {
-    return prefix;
-  }
-
-  public void setPrefix(String prefix) {
-    this.prefix = prefix;
-  }
-
-  public Orientation3D getOrientation() {
-    return orientation;
-  }
-
-  public void setOrientation(Orientation3D orientation) {
-    this.orientation = orientation;
+  @Override
+  public String toString() {
+    return "MplBlock [coordinate=" + coordinate + "]";
   }
 
 }

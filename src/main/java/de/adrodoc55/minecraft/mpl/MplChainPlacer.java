@@ -85,7 +85,7 @@ public class MplChainPlacer {
     this.chains = program.getChains();
     for (CommandChain chain : chains) {
       // The first block of each chain that start's with a RECIEVER must be a TRANSMITTER
-      List<Command> commands = chain.getCommands();
+      List<ChainPart> commands = chain.getCommands();
       if (commands.isEmpty() || !isReciever(commands.get(0))) {
         continue;
       }
@@ -116,8 +116,8 @@ public class MplChainPlacer {
     Set<Position> forbiddenTransmitter = new HashSet<>();
     Set<Position> forbiddenReciever = new HashSet<>();
     for (CommandBlockChain materialized : result) {
-      List<CommandBlock> blocks = materialized.getCommandBlocks();
-      for (CommandBlock block : blocks) {
+      List<MplBlock> blocks = materialized.getCommandBlocks();
+      for (MplBlock block : blocks) {
         Coordinate3D currentCoord = block.getCoordinate();
         int currentC = currentCoord.get(c.getAxis());
 
@@ -156,16 +156,26 @@ public class MplChainPlacer {
     occupied[max.get(c.getAxis())] = max.get(b.getAxis()) + 1;
   }
 
-  private boolean isTransmitter(CommandBlock block) {
-    return block.toCommand() == null && !(block instanceof AirBlock);
+  private boolean isTransmitter(MplBlock block) {
+    return block instanceof Transmitter;
   }
 
-  private boolean isReciever(CommandBlock block) {
-    return isReciever(block.toCommand());
+  private boolean isReciever(MplBlock block) {
+    if (block instanceof CommandBlock) {
+      CommandBlock commandBlock = (CommandBlock) block;
+      return isReciever(commandBlock.toCommand());
+    } else {
+      return false;
+    }
   }
 
-  private boolean isReciever(Command command) {
-    return command != null && command.getMode() != Mode.CHAIN;
+  private boolean isReciever(ChainPart chainPart) {
+    if (chainPart instanceof Command) {
+      Command command = (Command) chainPart;
+      return command.getMode() != Mode.CHAIN;
+    } else {
+      return false;
+    }
   }
 
   private Coordinate3D getStart(CommandChain chain) {
@@ -236,10 +246,10 @@ public class MplChainPlacer {
   private int getLongestSuccessiveConditionalCount() {
     int result = 0;
     for (CommandChain chain : chains) {
-      List<Command> commands = chain.getCommands();
+      List<ChainPart> commands = chain.getCommands();
       int successiveConditionalCount = 0;
-      for (Command command : commands) {
-        if (command != null && command.isConditional()) {
+      for (ChainPart command : commands) {
+        if (command instanceof Command && ((Command) command).isConditional()) {
           successiveConditionalCount++;
         } else {
           result = Math.max(result, successiveConditionalCount);
@@ -260,7 +270,7 @@ public class MplChainPlacer {
 
   private CommandBlockChain compute(CommandChain chain, Set<Position> forbiddenReceivers,
       Set<Position> forbiddenTransmitters) {
-    List<CommandBlock> blocks = new LinkedList<CommandBlock>();
+    List<MplBlock> blocks = new LinkedList<>();
     Chain linkChain = toChainLinkChain(chain);
     // recievers are not allowed at x=0 because the start transmitters of all chains are at x=0
     Predicate<Position> isRecieverAllowed =
@@ -286,8 +296,14 @@ public class MplChainPlacer {
         x--;
         blocks.add(new CommandBlock(new InternalCommand(), d, coord));
       } else {
-        Command command = chain.getCommands().get(x);
-        blocks.add(new CommandBlock(command, d, coord));
+        ChainPart chainPart = chain.getCommands().get(x);
+        if (chainPart instanceof Command) {
+          Command command = (Command) chainPart;
+          blocks.add(new CommandBlock(command, d, coord));
+        } else if (chainPart instanceof Skip) {
+          Skip skip = (Skip) chainPart;
+          blocks.add(new Transmitter(skip.isInternal(), coord));
+        }
       }
     }
     // last block is always air
@@ -333,15 +349,18 @@ public class MplChainPlacer {
   }
 
   private static Chain toChainLinkChain(CommandChain chain) {
-    List<Command> commands = chain.getCommands();
-    ArrayList<ChainLink> chainLinks = new ArrayList<ChainLink>(commands.size());
-    for (Command command : commands) {
-      if (command == null) {
+    List<ChainPart> chainParts = chain.getCommands();
+    ArrayList<ChainLink> chainLinks = new ArrayList<ChainLink>(chainParts.size());
+    for (ChainPart chainPart : chainParts) {
+      if (chainPart instanceof Skip) {
         chainLinks.add(ChainLink.TRANSMITTER);
-      } else if (command.getMode() != Mode.CHAIN) {
-        chainLinks.add(ChainLink.RECEIVER);
-      } else if (command.isConditional()) {
-        chainLinks.add(ChainLink.CONDITIONAL);
+      } else if (chainPart instanceof Command) {
+        Command command = (Command) chainPart;
+        if (command.getMode() != Mode.CHAIN) {
+          chainLinks.add(ChainLink.RECEIVER);
+        } else if (command.isConditional()) {
+          chainLinks.add(ChainLink.CONDITIONAL);
+        }
       } else {
         chainLinks.add(ChainLink.NORMAL);
       }
@@ -353,8 +372,8 @@ public class MplChainPlacer {
   }
 
   private void addUnInstallation() {
-    List<Command> installation = program.getInstallation();
-    List<Command> uninstallation = program.getUninstallation();
+    List<ChainPart> installation = program.getInstallation();
+    List<ChainPart> uninstallation = program.getUninstallation();
 
     boolean thereAreProcesses = false;
     for (CommandBlockChain chain : result) {
@@ -407,16 +426,15 @@ public class MplChainPlacer {
         if (!super.isCoordinateValid(coordinate)) {
           return false;
         }
-        List<CommandBlock> commandBlocks = materialisedUninstallation.getCommandBlocks();
-        for (CommandBlock block : commandBlocks) {
+        List<MplBlock> commandBlocks = materialisedUninstallation.getCommandBlocks();
+        for (MplBlock block : commandBlocks) {
           if (block.getCoordinate().equals(coordinate)) {
             return false;
           }
         }
         return true;
       };
-    }.computeOptimalChain(new CommandChain("install", installation),
-        new Coordinate3D(100, 100, 0));
+    }.computeOptimalChain(new CommandChain("install", installation), new Coordinate3D(100, 100, 0));
     if (!materialisedInstallation.getCommandBlocks().isEmpty()) {
       result.add(materialisedInstallation);
     }

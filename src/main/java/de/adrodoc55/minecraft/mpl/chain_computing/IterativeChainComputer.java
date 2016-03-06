@@ -46,6 +46,7 @@ import java.util.Set;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
+import de.adrodoc55.minecraft.mpl.ChainPart;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.CommandChain;
@@ -56,10 +57,10 @@ public class IterativeChainComputer implements ChainComputer {
   private Coordinate3D max;
 
   private int optimalScore;
-  private List<Command> commands;
+  private List<ChainPart> commands;
   private List<Coordinate3D> path;
   private int i;
-  private Command currentCommand;
+  private ChainPart currentCommand;
   private Coordinate3D currentCoordinate;
 
   private static final int MAX_TRIES = 1000000;
@@ -119,7 +120,7 @@ public class IterativeChainComputer implements ChainComputer {
   private List<Coordinate3D> getNextCoordinates() {
     Direction3D[] directions;
     currentCommand = commands.get(i);
-    if (currentCommand != null && currentCommand.isConditional()) {
+    if (currentCommand instanceof Command && ((Command) currentCommand).isConditional()) {
       if (path.size() < 2) {
         throw new IllegalStateException("The first Command can't be conditional!");
       }

@@ -39,75 +39,33 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
-import java.util.LinkedList;
+import java.io.File;
 
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.coordinate.Orientation3D;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
 
-public class Program {
+import org.antlr.v4.runtime.Token;
 
-  private LinkedList<CommandChain> chains;
-  private LinkedList<ChainPart> installation;
-  private LinkedList<ChainPart> uninstallation;
+import com.google.common.base.Preconditions;
 
-  // Compiler-Options
-  private Coordinate3D max =
-      new Coordinate3D(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
-  private String prefix;
-  private Orientation3D orientation;
+public class MplSource {
 
-  public Program() {
-    chains = new LinkedList<CommandChain>();
-    installation = new LinkedList<>();
-    uninstallation = new LinkedList<>();
+  @Nonnull
+  public final File file;
+  @Nonnull
+  public final Token token;
+  @Nonnull
+  public final String line;
+
+  public MplSource(@Nonnull File file, @Nonnull Token token, @Nonnull String line)
+      throws NullPointerException {
+    this.file = Preconditions.checkNotNull(file, "file == null!");
+    this.token = Preconditions.checkNotNull(token, "token == null!");
+    this.line = Preconditions.checkNotNull(line, "line == null!");
   }
 
-  public LinkedList<CommandChain> getChains() {
-    return chains;
+  @Nonnegative
+  public int getLineNumber() {
+    return token.getLine();
   }
-
-  public void setChains(LinkedList<CommandChain> chains) {
-    this.chains = chains;
-  }
-
-  public LinkedList<ChainPart> getInstallation() {
-    return installation;
-  }
-
-  public void setInstallation(LinkedList<ChainPart> installation) {
-    this.installation = installation;
-  }
-
-  public LinkedList<ChainPart> getUninstallation() {
-    return uninstallation;
-  }
-
-  public void setUninstallation(LinkedList<ChainPart> uninstallation) {
-    this.uninstallation = uninstallation;
-  }
-
-  public Coordinate3D getMax() {
-    return max;
-  }
-
-  public void setMax(Coordinate3D max) {
-    this.max = max;
-  }
-
-  public String getPrefix() {
-    return prefix;
-  }
-
-  public void setPrefix(String prefix) {
-    this.prefix = prefix;
-  }
-
-  public Orientation3D getOrientation() {
-    return orientation;
-  }
-
-  public void setOrientation(Orientation3D orientation) {
-    this.orientation = orientation;
-  }
-
 }

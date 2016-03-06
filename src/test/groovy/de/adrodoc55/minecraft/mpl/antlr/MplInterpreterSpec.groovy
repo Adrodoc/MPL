@@ -48,9 +48,9 @@ import org.junit.Test
 import spock.lang.Unroll
 import de.adrodoc55.minecraft.mpl.Command
 import de.adrodoc55.minecraft.mpl.CommandChain
-import de.adrodoc55.minecraft.mpl.CompilerException
 import de.adrodoc55.minecraft.mpl.MplConverter
 import de.adrodoc55.minecraft.mpl.MplSpecBase
+import de.adrodoc55.minecraft.mpl.Skip
 import de.adrodoc55.minecraft.mpl.Command.Mode
 import de.adrodoc55.minecraft.mpl.antlr.commands.InvertingCommand
 import de.adrodoc55.minecraft.mpl.antlr.commands.NormalizingCommand
@@ -69,12 +69,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
-
-    CommandChain chain = chains.first()
-    List<Command> commands = chain.commands
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
+    List<Command> commands = script.chain.commands
     commands.size() == 2
     commands[0] == new Command('say hi')
     commands[1] == new Command(command, mode, conditional, needsRedstone)
@@ -122,11 +119,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 3
 
@@ -165,11 +161,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 3
 
@@ -181,10 +176,49 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
-  public void "am anfang eines repeating prozesses referenziert ein invert modifier einen repeating command block"() {
+  public void "invert nach skip wirft exception"() {
     given:
     String testString = """
-    repeat process main (
+    /say hi
+    skip
+    invert: /say inverted
+    """
+    when:
+    MplInterpreter interpreter = interpret(testString)
+    then:
+    MplScript script = interpreter.script
+    script.exceptions.size() == 1
+    script.exceptions[0].source.file == lastTempFile
+    script.exceptions[0].source.token.line == 4
+    script.exceptions[0].source.token.text == 'invert'
+    script.exceptions[0].message == "Invert modifier may not follow a skip!"
+  }
+
+  @Test
+  public void "skip at the start of a repeat process throws exception"() {
+    given:
+    String testString = """
+    repeat process name (
+    skip
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(testString)
+    then:
+    MplProject project = interpreter.project
+    project.exceptions.size() == 1
+    project.exceptions[0].source.file == lastTempFile
+    project.exceptions[0].source.token.line == 3
+    project.exceptions[0].source.token.text == 'skip'
+    project.exceptions[0].message == "Skip may not be the first command of a repeating process!"
+  }
+
+  @Test
+  public void "am anfang eines repeating prozesses referenziert ein invert modifier einen repeating command block"() {
+    given:
+    String name = someIdentifier()
+    String testString = """
+    repeat process ${name} (
       /say hi
       invert: /say inverted
     )
@@ -192,12 +226,15 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(testString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+    Collection<MplProcess> processes = project.processes
+    processes.size() == 1
 
-    CommandChain chain = chains.first()
-    List<Command> commands = chain.commands
+    CommandChain process = processes.first()
+    process.name == name
+
+    List<Command> commands = process.commands
     commands.size() == 3
     commands[0] == new Command("say hi", Mode.REPEAT, false)
     commands[1] == new InvertingCommand(Mode.REPEAT)
@@ -216,11 +253,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(testString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 5
     commands[0] == new Command("say \${this + 6}")
@@ -242,11 +278,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 2
     commands[0] == new Command("say hi")
@@ -269,12 +304,16 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
-    List<Command> commands = chain.commands
+    Collection<MplProcess> processes = project.processes
+    processes.size() == 1
+
+    CommandChain process = processes.first()
+    process.name == name
+
+    List<Command> commands = process.commands
     commands.size() == 1
     commands[0] == new Command("execute @e[name=${name}] ~ ~ ~ setblock ~ ~ ~ stone", Mode.REPEAT, false)
   }
@@ -292,12 +331,16 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
-    List<Command> commands = chain.commands
+    Collection<MplProcess> processes = project.processes
+    processes.size() == 1
+
+    CommandChain process = processes.first()
+    process.name == name
+
+    List<Command> commands = process.commands
     commands.size() == 2
     commands[0] == new Command("say hi", Mode.REPEAT, false)
     commands[1] == new Command("execute @e[name=${name}] ~ ~ ~ setblock ~ ~ ~ stone", true)
@@ -315,12 +358,12 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.size() == 1
-    CompilerException ex = interpreter.exceptions[0]
-    ex.file == lastTempFile
-    ex.token.line == 3
-    ex.token.text == 'stop'
-    ex.message == 'Can only stop repeating processes.'
+    MplProject project = interpreter.project
+    project.exceptions.size() == 1
+    project.exceptions[0].source.file == lastTempFile
+    project.exceptions[0].source.token.line == 3
+    project.exceptions[0].source.token.text == 'stop'
+    project.exceptions[0].message == 'Can only stop repeating processes.'
   }
 
   @Test
@@ -336,12 +379,16 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
-    List<Command> commands = chain.commands
+    Collection<MplProcess> processes = project.processes
+    processes.size() == 1
+
+    CommandChain process = processes.first()
+    process.name == name
+
+    List<Command> commands = process.commands
     commands.size() == 2
     commands[0] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands[1] == new Command("execute @e[name=${sid}] ~ ~ ~ setblock ~ ~ ~ stone")
@@ -359,12 +406,16 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
-    List<Command> commands = chain.commands
+    Collection<MplProcess> processes = project.processes
+    processes.size() == 1
+
+    CommandChain process = processes.first()
+    process.name == name
+
+    List<Command> commands = process.commands
     commands.size() == 3
     commands[0] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands[1] == new Command("execute @e[name=${name}_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block")
@@ -384,12 +435,16 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
-    List<Command> commands = chain.commands
+    Collection<MplProcess> processes = project.processes
+    processes.size() == 1
+
+    CommandChain process = processes.first()
+    process.name == name
+
+    List<Command> commands = process.commands
     commands.size() == 4
     commands[0] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands[1] == new Command("say hi")
@@ -407,12 +462,12 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.size() == 1
-    CompilerException ex = interpreter.exceptions[0]
-    ex.file == lastTempFile
-    ex.token.line == 2
-    ex.token.text == 'notify'
-    ex.message == 'Encountered notify outside of a process context.'
+    MplScript script = interpreter.script
+    script.exceptions.size() == 1
+    script.exceptions[0].source.file == lastTempFile
+    script.exceptions[0].source.token.line == 2
+    script.exceptions[0].source.token.text == 'notify'
+    script.exceptions[0].message == 'Encountered notify outside of a process context.'
   }
 
   @Test
@@ -428,12 +483,15 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+    Collection<MplProcess> processes = project.processes
+    processes.size() == 1
 
-    CommandChain chain = chains.first()
-    List<Command> commands = chain.commands
+    CommandChain process = processes.first()
+    process.name == name
+
+    List<Command> commands = process.commands
     commands.size() == 3
     commands[0] == new Command("say hi", Mode.REPEAT, false)
     commands[1] == new Command("execute @e[name=${name}_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block")
@@ -453,12 +511,16 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
-    List<Command> commands = chain.commands
+    Collection<MplProcess> processes = project.processes
+    processes.size() == 1
+
+    CommandChain process = processes.first()
+    process.name == name
+
+    List<Command> commands = process.commands
     commands.size() == 3
     commands[0] == new Command("say hi", Mode.REPEAT, false)
     commands[1] == new Command("execute @e[name=${name}_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block", true)
@@ -479,12 +541,12 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.size() == 1
-    CompilerException ex = interpreter.exceptions[0]
-    ex.file == lastTempFile
-    ex.token.line == 4
-    ex.token.text == 'waitfor'
-    ex.message == 'Encountered waitfor in repeating context.'
+    MplProject project = interpreter.project
+    project.exceptions.size() == 1
+    project.exceptions[0].source.file == lastTempFile
+    project.exceptions[0].source.token.line == 4
+    project.exceptions[0].source.token.text == 'waitfor'
+    project.exceptions[0].message == 'Encountered waitfor in repeating context.'
   }
 
   @Test
@@ -499,12 +561,12 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.size() == 1
-    CompilerException ex = interpreter.exceptions[0]
-    ex.file == lastTempFile
-    ex.token.line == 4
-    ex.token.text == 'waitfor'
-    ex.message == 'Encountered waitfor in repeating context.'
+    MplScript script = interpreter.script
+    script.exceptions.size() == 1
+    script.exceptions[0].source.file == lastTempFile
+    script.exceptions[0].source.token.line == 4
+    script.exceptions[0].source.token.text == 'waitfor'
+    script.exceptions[0].message == 'Encountered waitfor in repeating context.'
   }
 
   @Test
@@ -518,16 +580,15 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 4
     commands[0] == new Command("execute @e[name=${identifier}] ~ ~ ~ setblock ~ ~ ~ redstone_block")
     commands[1] == new Command("summon ArmorStand \${this + 1} {CustomName:${identifier}_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-    commands[2] == null
+    commands[2] == new Skip()
     commands[3] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
   }
 
@@ -541,12 +602,12 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.size() == 1
-    CompilerException ex = interpreter.exceptions[0]
-    ex.file == lastTempFile
-    ex.token.line == 2
-    ex.token.text == 'waitfor'
-    ex.message == 'Missing Identifier. No previous start was found to wait for.'
+    MplScript script = interpreter.script
+    script.exceptions.size() == 1
+    script.exceptions[0].source.file == lastTempFile
+    script.exceptions[0].source.token.line == 2
+    script.exceptions[0].source.token.text == 'waitfor'
+    script.exceptions[0].message == 'Missing Identifier. No previous start was found to wait for.'
   }
 
   @Test
@@ -557,15 +618,14 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 3
     commands[0] == new Command("summon ArmorStand \${this + 1} {CustomName:${identifier}_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-    commands[1] == null
+    commands[1] == new Skip()
     commands[2] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
   }
 
@@ -580,18 +640,17 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 6
     commands[0] == new Command("say hi")
     commands[1] == new Command("summon ArmorStand \${this + 3} {CustomName:${identifier}_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true)
     commands[2] == new Command("blockdata \${this - 1} {SuccessCount:1}")
     commands[3] == new Command("setblock \${this + 1} redstone_block", true)
-    commands[4] == null
+    commands[4] == new Skip()
     commands[5] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
   }
 
@@ -608,12 +667,12 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.size() == 1
-    CompilerException ex = interpreter.exceptions[0]
-    ex.file == lastTempFile
-    ex.token.line == 3
-    ex.token.text == 'intercept'
-    ex.message == 'Encountered intercept in repeating context.'
+    MplProject project = interpreter.project
+    project.exceptions.size() == 1
+    project.exceptions[0].source.file == lastTempFile
+    project.exceptions[0].source.token.line == 3
+    project.exceptions[0].source.token.text == 'intercept'
+    project.exceptions[0].message == 'Encountered intercept in repeating context.'
   }
 
   @Test
@@ -627,12 +686,12 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.size() == 1
-    CompilerException ex = interpreter.exceptions[0]
-    ex.file == lastTempFile
-    ex.token.line == 3
-    ex.token.text == 'intercept'
-    ex.message == 'Encountered intercept in repeating context.'
+    MplScript script = interpreter.script
+    script.exceptions.size() == 1
+    script.exceptions[0].source.file == lastTempFile
+    script.exceptions[0].source.token.line == 3
+    script.exceptions[0].source.token.text == 'intercept'
+    script.exceptions[0].message == 'Encountered intercept in repeating context.'
   }
 
   @Test
@@ -643,16 +702,15 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 6
     commands[0] == new Command("entitydata @e[name=${identifier}] {CustomName:${identifier}_INTERCEPTED}")
     commands[1] == new Command("summon ArmorStand \${this + 1} {CustomName:${identifier},NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-    commands[2] == null
+    commands[2] == new Skip()
     commands[3] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands[4] == new Command("kill @e[name=${identifier},r=2]")
     commands[5] == new Command("entitydata @e[name=${identifier}_INTERCEPTED] {CustomName:${identifier}}")
@@ -669,11 +727,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 9
     commands[0] == new Command("say hi")
@@ -681,7 +738,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[2] == new Command("setblock \${this + 3} redstone_block", true)
     commands[3] == new Command("entitydata @e[name=${identifier}] {CustomName:${identifier}_INTERCEPTED}")
     commands[4] == new Command("summon ArmorStand \${this + 1} {CustomName:${identifier},NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-    commands[5] == null
+    commands[5] == new Skip()
     commands[6] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands[7] == new Command("kill @e[name=${identifier},r=2]")
     commands[8] == new Command("entitydata @e[name=${identifier}_INTERCEPTED] {CustomName:${identifier}}")
@@ -698,18 +755,17 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 8
     commands[0] == new Command("say hi")
     commands[1] == new Command("setblock \${this + 3} redstone_block", true)
     commands[2] == new Command("entitydata @e[name=${identifier}] {CustomName:${identifier}_INTERCEPTED}")
     commands[3] == new Command("summon ArmorStand \${this + 1} {CustomName:${identifier},NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-    commands[4] == null
+    commands[4] == new Skip()
     commands[5] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands[6] == new Command("kill @e[name=${identifier},r=2]")
     commands[7] == new Command("entitydata @e[name=${identifier}_INTERCEPTED] {CustomName:${identifier}}")
@@ -727,11 +783,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 2
 
@@ -751,13 +806,12 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    List<CompilerException> exceptions = interpreter.exceptions
-    exceptions.size() == 1
-    CompilerException ex = exceptions.first()
-    ex.file == lastTempFile
-    ex.token.line == 4
-    ex.token.text == 'conditional'
-    ex.message == "The first command of a chain can only be unconditional."
+    MplScript script = interpreter.script
+    script.exceptions.size() == 1
+    script.exceptions[0].source.file == lastTempFile
+    script.exceptions[0].source.token.line == 4
+    script.exceptions[0].source.token.text == 'conditional'
+    script.exceptions[0].message == "The first command of a chain must be unconditional!"
   }
 
   @Test
@@ -772,13 +826,12 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    List<CompilerException> exceptions = interpreter.exceptions
-    exceptions.size() == 1
-    CompilerException ex = exceptions.first()
-    ex.file == lastTempFile
-    ex.token.line == 4
-    ex.token.text == 'invert'
-    ex.message == "The first command of a chain can only be unconditional."
+    MplScript script = interpreter.script
+    script.exceptions.size() == 1
+    script.exceptions[0].source.file == lastTempFile
+    script.exceptions[0].source.token.line == 4
+    script.exceptions[0].source.token.text == 'invert'
+    script.exceptions[0].message == "The first command of a chain must be unconditional!"
   }
 
   @Test
@@ -795,13 +848,12 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    List<CompilerException> exceptions = interpreter.exceptions
-    exceptions.size() == 1
-    CompilerException ex = exceptions.first()
-    ex.file == lastTempFile
-    ex.token.line == 6
-    ex.token.text == 'conditional'
-    ex.message == "The first command of a chain can only be unconditional."
+    MplScript script = interpreter.script
+    script.exceptions.size() == 1
+    script.exceptions[0].source.file == lastTempFile
+    script.exceptions[0].source.token.line == 6
+    script.exceptions[0].source.token.text == 'conditional'
+    script.exceptions[0].message == "The first command of a chain must be unconditional!"
   }
 
   @Test
@@ -818,13 +870,12 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    List<CompilerException> exceptions = interpreter.exceptions
-    exceptions.size() == 1
-    CompilerException ex = exceptions.first()
-    ex.file == lastTempFile
-    ex.token.line == 6
-    ex.token.text == 'invert'
-    ex.message == "The first command of a chain can only be unconditional."
+    MplScript script = interpreter.script
+    script.exceptions.size() == 1
+    script.exceptions[0].source.file == lastTempFile
+    script.exceptions[0].source.token.line == 6
+    script.exceptions[0].source.token.text == 'invert'
+    script.exceptions[0].message == "The first command of a chain must be unconditional!"
   }
 
   @Test
@@ -839,11 +890,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 3
 
@@ -866,11 +916,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 4
 
@@ -894,11 +943,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 7
 
@@ -925,11 +973,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 7
 
@@ -960,11 +1007,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 13
 
@@ -1001,11 +1047,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 14
 
@@ -1039,11 +1084,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 6
 
@@ -1068,11 +1112,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 3
 
@@ -1094,11 +1137,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 6
 
@@ -1125,11 +1167,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 5
 
@@ -1155,11 +1196,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 7
 
@@ -1186,11 +1226,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 6
 
@@ -1215,11 +1254,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 6
 
@@ -1246,11 +1284,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 7
 
@@ -1278,11 +1315,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 9
 
@@ -1300,8 +1336,9 @@ public class MplInterpreterSpec extends MplSpecBase {
   @Test
   public void "if am anfang eines repeating prozesses, ohne normalizer: referenzen referensieren den repeat mode"() {
     given:
+    String name = someIdentifier()
     String programString = """
-    repeat process main (
+    repeat process ${name} (
       if: /testfor @p
       then (
         /say then
@@ -1313,12 +1350,16 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+    Collection<MplProcess> processes = project.processes
+    processes.size() == 1
 
-    CommandChain chain = chains.first()
-    List<Command> commands = chain.commands
+    CommandChain process = processes.first()
+    process.name == name
+
+    List<Command> commands = process.commands
+
     commands.size() == 4
 
     commands[0] == new Command('testfor @p', Mode.REPEAT, false)
@@ -1348,11 +1389,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 13
 
@@ -1399,11 +1439,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 22
 
@@ -1459,11 +1498,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    CommandChain chain = chains.first()
+    CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands.size() == 23
 
@@ -1504,12 +1542,15 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+    Collection<MplProcess> processes = project.processes
+    processes.size() == 1
 
-    CommandChain chain = chains.first()
-    List<Command> commands = chain.commands
+    CommandChain process = processes.first()
+    process.name == name
+
+    List<Command> commands = process.commands
     commands.size() == 2
     commands[0] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands[1] == new Command("say hi")
@@ -1527,12 +1568,15 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List chains = interpreter.chains
-    chains.size() == 1
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+    Collection<MplProcess> processes = project.processes
+    processes.size() == 1
 
-    CommandChain chain = chains.first()
-    List<Command> commands = chain.commands
+    CommandChain process = processes.first()
+    process.name == name
+
+    List<Command> commands = process.commands
     commands.size() == 1
     commands[0] == new Command("say hi", Mode.REPEAT, false)
   }
@@ -1557,24 +1601,26 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
-    List<CommandChain> chains = interpreter.chains
-    chains.size() == 3
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
 
-    chains[0].name == id1
-    List<Command> commands1 = chains[0].commands
+    Collection<MplProcess> processes = project.processes
+    processes.size() == 3
+
+    MplProcess process1 = processes.find { it.name == id1 }
+    List<Command> commands1 = process1.commands
     commands1.size() == 2
     commands1[0] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands1[1] == new Command("say I am a default process")
 
-    chains[1].name == id2
-    List<Command> commands2 = chains[1].commands
+    MplProcess process2 = processes.find { it.name == id2 }
+    List<Command> commands2 = process2.commands
     commands2.size() == 2
     commands2[0] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands2[1] == new Command("say I am an impulse process, wich is actually equivalent to the default")
 
-    chains[2].name == id3
-    List<Command> commands3 = chains[2].commands
+    MplProcess process3 = processes.find { it.name == id3 }
+    List<Command> commands3 = process3.commands
     commands3.size() == 1
     commands3[0] == new Command("say I am a repeating process. I am completely different :)", Mode.REPEAT, false)
   }
@@ -1602,7 +1648,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     interpreter.addFileImport(null, otherFile)
     then:
-    interpreter.exceptions.isEmpty()
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+
     interpreter.imports.size() == 2
     interpreter.imports.containsAll([programFile, otherFile])
   }
@@ -1619,15 +1667,15 @@ public class MplInterpreterSpec extends MplSpecBase {
     interpreter.addFileImport(null, otherFile)
     interpreter.addFileImport(null, otherFile)
     then:
-    interpreter.exceptions.size() == 1
-    CompilerException ex = interpreter.exceptions.first()
-    ex.file == programFile
-    ex.token == null
-    ex.message == 'Duplicate import.'
+    MplProject project = interpreter.project
+    project.exceptions.size() == 1
+    project.exceptions[0].source.file == programFile
+    project.exceptions[0].source.token == null
+    project.exceptions[0].message == 'Duplicate import.'
   }
 
   @Test
-  public void "Pro Datei kann nur ein Projekt defniniert sein"() {
+  public void "Pro Datei kann nur ein Projekt definiert sein"() {
     given:
     String id1 = someIdentifier()
     String id2 = someIdentifier()
@@ -1638,15 +1686,16 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.size() == 2
-    interpreter.exceptions[0].file == lastTempFile
-    interpreter.exceptions[0].token.line == 2
-    interpreter.exceptions[0].token.text == 'project'
-    interpreter.exceptions[0].message == "A file may only contain a single project!"
-    interpreter.exceptions[1].file == lastTempFile
-    interpreter.exceptions[1].token.line == 3
-    interpreter.exceptions[1].token.text == 'project'
-    interpreter.exceptions[1].message == "A file may only contain a single project!"
+    MplProject project = interpreter.project
+    project.exceptions.size() == 2
+    project.exceptions[0].source.file == lastTempFile
+    project.exceptions[0].source.token.line == 2
+    project.exceptions[0].source.token.text == 'project'
+    project.exceptions[0].message == "A file may only contain a single project!"
+    project.exceptions[1].source.file == lastTempFile
+    project.exceptions[1].source.token.line == 3
+    project.exceptions[1].source.token.text == 'project'
+    project.exceptions[1].message == "A file may only contain a single project!"
   }
 
   @Test
@@ -1661,7 +1710,42 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+  }
+
+  @Test
+  public void "Multiple install/uninstall blocks are concatenated"() {
+    given:
+    String id1 = someIdentifier()
+    String programString = """
+    install (
+      /say hi
+    )
+
+    install (
+      /say hi2
+    )
+
+    uninstall (
+      /say hi3
+    )
+
+    uninstall (
+      /say hi4
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplScript script = interpreter.script
+    script.installation.size() == 2
+    script.installation[0] == new Command('say hi')
+    script.installation[1] == new Command('say hi2')
+
+    script.uninstallation.size() == 2
+    script.uninstallation[0] == new Command('say hi3')
+    script.uninstallation[1] == new Command('say hi4')
   }
 
   @Test
@@ -1683,7 +1767,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     File file = lastTempFile
     then:
-    interpreter.exceptions.isEmpty()
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+
     File parent = file.parentFile
     Map<File, Include> includeMap = interpreter.includes
     includeMap.size() == 1
@@ -1710,15 +1796,38 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.size() == 2
-    interpreter.exceptions[0].file == lastTempFile
-    interpreter.exceptions[0].token.line == 3
-    interpreter.exceptions[0].token.text == 'orientation'
-    interpreter.exceptions[0].message == "A project may only contain a single orientation!"
-    interpreter.exceptions[1].file == lastTempFile
-    interpreter.exceptions[1].token.line == 4
-    interpreter.exceptions[1].token.text == 'orientation'
-    interpreter.exceptions[1].message == "A project may only contain a single orientation!"
+    MplProject project = interpreter.project
+    project.exceptions.size() == 2
+    project.exceptions[0].source.file == lastTempFile
+    project.exceptions[0].source.token.line == 3
+    project.exceptions[0].source.token.text == 'orientation'
+    project.exceptions[0].message == "A project may only have a single orientation!"
+    project.exceptions[1].source.file == lastTempFile
+    project.exceptions[1].source.token.line == 4
+    project.exceptions[1].source.token.text == 'orientation'
+    project.exceptions[1].message == "A project may only have a single orientation!"
+  }
+
+  @Test
+  public void "Ein Script kann nur eine Orientation haben"() {
+    given:
+    String programString = """
+    orientation "zxy"
+    orientation "z-xy"
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplScript script = interpreter.script
+    script.exceptions.size() == 2
+    script.exceptions[0].source.file == lastTempFile
+    script.exceptions[0].source.token.line == 2
+    script.exceptions[0].source.token.text == 'orientation'
+    script.exceptions[0].message == "A script may only have a single orientation!"
+    script.exceptions[1].source.file == lastTempFile
+    script.exceptions[1].source.token.line == 3
+    script.exceptions[1].source.token.text == 'orientation'
+    script.exceptions[1].message == "A script may only have a single orientation!"
   }
 
   @Test
@@ -1735,7 +1844,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.isEmpty()
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+
     Map<File, Include> includeMap = interpreter.includes
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id1);
@@ -1765,7 +1876,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString, file)
     then:
-    interpreter.exceptions.isEmpty()
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+
     Map<File, Include> includeMap = interpreter.includes
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id1);
@@ -1794,7 +1907,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString, file)
     then:
-    interpreter.exceptions.isEmpty()
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+
     Map<File, Include> includeMap = interpreter.includes
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id1);
@@ -1820,14 +1935,15 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    interpreter.exceptions.size() == 2
-    interpreter.exceptions[0].file == lastTempFile
-    interpreter.exceptions[0].token.line == 2
-    interpreter.exceptions[0].token.text == id
-    interpreter.exceptions[0].message == "Process ${id} is ambigious. Every process must have a unique name."
-    interpreter.exceptions[1].file == lastTempFile
-    interpreter.exceptions[1].token.line == 6
-    interpreter.exceptions[1].token.text == id
-    interpreter.exceptions[1].message == "Process ${id} is ambigious. Every process must have a unique name."
+    MplProject project = interpreter.project
+    project.exceptions.size() == 2
+    project.exceptions[0].source.file == lastTempFile
+    project.exceptions[0].source.token.line == 2
+    project.exceptions[0].source.token.text == id
+    project.exceptions[0].message == "Duplicate process ${id}!"
+    project.exceptions[1].source.file == lastTempFile
+    project.exceptions[1].source.token.line == 6
+    project.exceptions[1].source.token.text == id
+    project.exceptions[1].message == "Duplicate process ${id}!"
   }
 }

@@ -42,54 +42,29 @@ package de.adrodoc55.minecraft.mpl.antlr;
 import java.io.File;
 import java.util.Collection;
 
-import org.antlr.v4.runtime.Token;
+import de.adrodoc55.minecraft.mpl.MplSource;
 
 public class Include {
-  private final File srcFile;
-  private final Token token;
+  private final MplSource source;
   private final String processName;
-  private final String line;
   private final Collection<File> files;
 
-  public Include(File srcFile, Token token, String line, Collection<File> imports) {
-    this(srcFile, token, null, line, imports);
+  public Include(MplSource source, Collection<File> imports) {
+    this(source, null, imports);
   }
 
-  public Include(File srcFile, Token token, String processName, String line,
-      Collection<File> imports) {
-    this.srcFile = srcFile;
-    this.token = token;
+  public Include(MplSource source, String processName, Collection<File> imports) {
+    this.source = source;
     this.processName = processName;
-    this.line = line;
     files = imports;
   }
 
-  public File getSrcFile() {
-    return srcFile;
-  }
-
-  public Token getToken() {
-    return token;
-  }
-
-  public int getSrcLineNumber() {
-    return token.getLine();
-  }
-
-  public int getStartIndex() {
-    return token.getStartIndex();
-  }
-
-  public int getStopIndex() {
-    return token.getStopIndex();
+  public MplSource getSource() {
+    return source;
   }
 
   public String getProcessName() {
     return processName;
-  }
-
-  public String getSrcLine() {
-    return line;
   }
 
   public Collection<File> getFiles() {

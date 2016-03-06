@@ -46,8 +46,16 @@ import static de.adrodoc55.minecraft.coordinate.Direction3D.UP;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import org.antlr.v4.runtime.Token;
+
+import com.google.common.base.Preconditions;
+
 public class Orientation3D {
 
+  private Token token;
   private Direction3D a;
   private Direction3D b;
   private Direction3D c;
@@ -56,11 +64,15 @@ public class Orientation3D {
     this(EAST, UP, SOUTH);
   }
 
-  public Orientation3D(Direction3D a, Direction3D b, Direction3D c) {
+  public Orientation3D(@Nonnull Direction3D a, @Nonnull Direction3D b, @Nonnull Direction3D c) {
+    Preconditions.checkNotNull(a, "a == null!");
+    Preconditions.checkNotNull(b, "b == null!");
+    Preconditions.checkNotNull(c, "c == null!");
     setValue(a, b, c);
   }
 
-  public Orientation3D(String def) {
+  public Orientation3D(@Nonnull String def) {
+    Preconditions.checkNotNull(def, "def == null!");
     char[] defArray = def.toCharArray();
     List<Direction3D> r = new ArrayList<>(3);
     for (int i = 0; i < defArray.length; i++) {
@@ -101,14 +113,26 @@ public class Orientation3D {
     this.c = c;
   }
 
+  @Nullable
+  public Token getToken() {
+    return token;
+  }
+
+  public void setToken(@Nullable Token token) {
+    this.token = token;
+  }
+
+  @Nonnull
   public Direction3D getA() {
     return a;
   }
 
+  @Nonnull
   public Direction3D getB() {
     return b;
   }
 
+  @Nonnull
   public Direction3D getC() {
     return c;
   }

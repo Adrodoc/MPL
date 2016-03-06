@@ -39,32 +39,29 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
-import java.util.LinkedList;
 import java.util.List;
+
+import com.google.common.collect.ImmutableList;
 
 public class CommandChain {
 
-  private final String name;
-  private final List<Command> commands;
+  protected final String name;
+  protected final List<ChainPart> commands;
 
-  public CommandChain() {
-    this(null);
+  public CommandChain(List<ChainPart> commands) {
+    this(null, commands);
   }
 
-  public CommandChain(String name) {
-    this(name, new LinkedList<Command>());
-  }
-
-  public CommandChain(String name, List<Command> commands) {
+  public CommandChain(String name, List<ChainPart> commands) {
     this.name = name;
-    this.commands = commands;
+    this.commands = ImmutableList.copyOf(commands);
   }
 
   public String getName() {
     return name;
   }
 
-  public List<Command> getCommands() {
+  public List<ChainPart> getCommands() {
     return commands;
   }
 
