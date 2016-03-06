@@ -113,4 +113,8 @@ public class CommandBlockChain {
     return new Coordinate3D(maxX, maxY, maxZ);
   }
 
+  @Override
+  public String toString() {
+    return getName();
+  }
 }
