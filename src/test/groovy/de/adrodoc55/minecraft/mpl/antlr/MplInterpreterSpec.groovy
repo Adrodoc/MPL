@@ -588,7 +588,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands.size() == 4
     commands[0] == new Command("execute @e[name=${identifier}] ~ ~ ~ setblock ~ ~ ~ redstone_block")
     commands[1] == new Command("summon ArmorStand \${this + 1} {CustomName:${identifier}_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-    commands[2] == new Skip()
+    commands[2] == new Skip(true)
     commands[3] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
   }
 
@@ -625,7 +625,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     List<Command> commands = chain.commands
     commands.size() == 3
     commands[0] == new Command("summon ArmorStand \${this + 1} {CustomName:${identifier}_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-    commands[1] == new Skip()
+    commands[1] == new Skip(true)
     commands[2] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
   }
 
@@ -650,7 +650,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[1] == new Command("summon ArmorStand \${this + 3} {CustomName:${identifier}_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true)
     commands[2] == new Command("blockdata \${this - 1} {SuccessCount:1}")
     commands[3] == new Command("setblock \${this + 1} redstone_block", true)
-    commands[4] == new Skip()
+    commands[4] == new Skip(true)
     commands[5] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
   }
 
@@ -710,7 +710,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands.size() == 6
     commands[0] == new Command("entitydata @e[name=${identifier}] {CustomName:${identifier}_INTERCEPTED}")
     commands[1] == new Command("summon ArmorStand \${this + 1} {CustomName:${identifier},NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-    commands[2] == new Skip()
+    commands[2] == new Skip(true)
     commands[3] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands[4] == new Command("kill @e[name=${identifier},r=2]")
     commands[5] == new Command("entitydata @e[name=${identifier}_INTERCEPTED] {CustomName:${identifier}}")
@@ -738,7 +738,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[2] == new Command("setblock \${this + 3} redstone_block", true)
     commands[3] == new Command("entitydata @e[name=${identifier}] {CustomName:${identifier}_INTERCEPTED}")
     commands[4] == new Command("summon ArmorStand \${this + 1} {CustomName:${identifier},NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-    commands[5] == new Skip()
+    commands[5] == new Skip(true)
     commands[6] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands[7] == new Command("kill @e[name=${identifier},r=2]")
     commands[8] == new Command("entitydata @e[name=${identifier}_INTERCEPTED] {CustomName:${identifier}}")
@@ -765,7 +765,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[1] == new Command("setblock \${this + 3} redstone_block", true)
     commands[2] == new Command("entitydata @e[name=${identifier}] {CustomName:${identifier}_INTERCEPTED}")
     commands[3] == new Command("summon ArmorStand \${this + 1} {CustomName:${identifier},NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-    commands[4] == new Skip()
+    commands[4] == new Skip(true)
     commands[5] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands[6] == new Command("kill @e[name=${identifier},r=2]")
     commands[7] == new Command("entitydata @e[name=${identifier}_INTERCEPTED] {CustomName:${identifier}}")
