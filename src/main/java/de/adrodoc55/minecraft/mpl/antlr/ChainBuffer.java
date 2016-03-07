@@ -80,8 +80,7 @@ class ChainBuffer {
 
   /**
    * Returns the name of the current Context. The name is defined by the identifier if this is a
-   * process and by the name of the file if this is a project. If this is a script this method will
-   * throw an {@link IllegalStateException}
+   * process. If this is a script this method will throw an {@link IllegalStateException}
    *
    * @return name
    * @throws IllegalStateException

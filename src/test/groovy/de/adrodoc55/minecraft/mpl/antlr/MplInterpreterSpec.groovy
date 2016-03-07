@@ -46,6 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 import spock.lang.Unroll
+import de.adrodoc55.minecraft.mpl.ChainPart
 import de.adrodoc55.minecraft.mpl.Command
 import de.adrodoc55.minecraft.mpl.CommandChain
 import de.adrodoc55.minecraft.mpl.MplConverter
@@ -290,6 +291,54 @@ public class MplInterpreterSpec extends MplSpecBase {
     programString                               | conditional
     'start ' + someIdentifier()                 | false
     'conditional: start ' + someIdentifier()    | true
+  }
+
+  @Test
+  public void "start kann in install verwendet werden"() {
+    given:
+    String id = someIdentifier()
+    String programString = """
+    install (
+    start ${id}
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
+
+    List<ChainPart> installation = script.installation
+    installation.size() == 1
+    installation[0] == new Command("execute @e[name=${id}] ~ ~ ~ setblock ~ ~ ~ redstone_block")
+  }
+
+  @Test
+  public void "start kann in processen verwendet werden"() {
+    given:
+    String name = someIdentifier()
+    String id = someIdentifier()
+    String programString = """
+    process ${name} (
+    start ${id}
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+
+    Collection<MplProcess> processes = project.processes
+    processes.size() == 1
+
+    CommandChain process = processes.first()
+    process.name == name
+
+    List<Command> commands = process.commands
+    commands.size() == 2
+    commands[0] == new Command('setblock \${this - 1} stone', Mode.IMPULSE, false)
+    commands[1] == new Command("execute @e[name=${id}] ~ ~ ~ setblock ~ ~ ~ redstone_block")
   }
 
   @Test
@@ -1828,6 +1877,72 @@ public class MplInterpreterSpec extends MplSpecBase {
     script.exceptions[1].source.token.line == 3
     script.exceptions[1].source.token.text == 'orientation'
     script.exceptions[1].message == "A script may only have a single orientation!"
+  }
+
+  @Test
+  public void "Ein Script erzeugt niemals ein include"() {
+    given:
+    String programString = """
+    start other
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
+
+    Map<File, Include> includeMap = interpreter.includes
+    includeMap.size() == 0
+  }
+
+  @Test
+  public void "Eine Prozessdatei, die versucht einen eigenen Prozess zu starten erzeugt kein Include. Prozess definition erst nachher"() {
+    given:
+    String id1 = someIdentifier()
+    String id2 = someIdentifier()
+    String programString = """
+    process ${id1} (
+    /say I am a process
+    conditional: start ${id2}
+    )
+
+    process ${id2} (
+    /say I am the second process
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+
+    Map<File, Include> includeMap = interpreter.includes
+    includeMap.size() == 0
+  }
+
+  @Test
+  public void "Eine Prozessdatei, die versucht einen eigenen Prozess zu starten erzeugt kein Include. Prozess definition bereits vorher"() {
+    given:
+    String id1 = someIdentifier()
+    String id2 = someIdentifier()
+    String programString = """
+    process ${id1} (
+    /say I am a process
+    )
+
+    process ${id2} (
+    /say I am the second process
+    conditional: start ${id1}
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+
+    Map<File, Include> includeMap = interpreter.includes
+    includeMap.size() == 0
   }
 
   @Test

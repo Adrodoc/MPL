@@ -102,4 +102,9 @@ public class Include {
     return true;
   }
 
+  @Override
+  public String toString() {
+    return "Include [processName=" + processName + "]";
+  }
+
 }
