@@ -669,29 +669,16 @@ public class MplInterpreter extends MplBaseListener {
     boolean not = ctx.NOT() != null;
     Command condition = new Command(ctx.command().COMMAND().getText());
     chainBuffer = ifBuffer.enterIf(not, condition);
-
-
-
-    // chainBuffer.add();
-    // chainBuffer = new IfChainBuffer2(not, chainBuffer);
   }
 
   @Override
   public void enterElseDeclaration(ElseDeclarationContext ctx) {
     ifBuffer.switchToElseBlock();
-
-
-
-    // ((IfChainBuffer2) chainBuffer).switchToElseBlock();
   }
 
   @Override
   public void exitIfDeclaration(IfDeclarationContext ctx) {
     chainBuffer = ifBuffer.exitIf();
-
-
-
-    // chainBuffer = ((IfChainBuffer2) chainBuffer).getOriginal();
   }
 
   @Override
