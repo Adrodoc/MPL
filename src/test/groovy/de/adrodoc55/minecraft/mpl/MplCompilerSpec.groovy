@@ -43,10 +43,9 @@ import static de.adrodoc55.TestBase.someIdentifier
 
 import org.junit.Test
 
-import de.adrodoc55.minecraft.coordinate.Orientation3D;
+import de.adrodoc55.minecraft.coordinate.Orientation3D
 import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException
-import de.adrodoc55.minecraft.mpl.antlr.Include
-import de.adrodoc55.minecraft.mpl.antlr.MplInterpreter
+import de.adrodoc55.minecraft.mpl.antlr.MplProject
 
 class MplCompilerSpec extends MplSpecBase {
 
@@ -64,13 +63,13 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
-    result.chains.size() == 2
-    CommandChain main = result.chains.find { it.name == 'main' }
+    result.processes.size() == 2
+    CommandChain main = result.processes.find { it.name == 'main' }
     main.commands.contains(new Command('/this is the main process'))
 
-    CommandChain other = result.chains.find { it.name == 'other' }
+    CommandChain other = result.processes.find { it.name == 'other' }
     other.commands.contains(new Command('/this is the other process'))
   }
 
@@ -89,10 +88,10 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
-    result.chains.size() == 1
-    CommandChain main = result.chains.find { it.name == 'main' }
+    result.processes.size() == 1
+    CommandChain main = result.processes.find { it.name == 'main' }
     main.commands.contains(new Command('/this is the main process'))
   }
 
@@ -112,13 +111,13 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
-    result.chains.size() == 2
-    CommandChain main = result.chains.find { it.name == 'main' }
+    result.processes.size() == 2
+    CommandChain main = result.processes.find { it.name == 'main' }
     main.commands.contains(new Command('/this is the main process'))
 
-    CommandChain other = result.chains.find { it.name == 'other' }
+    CommandChain other = result.processes.find { it.name == 'other' }
     other.commands.contains(new Command('/this is the other process'))
   }
 
@@ -139,10 +138,10 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
-    result.chains.size() == 1
-    CommandChain main = result.chains.find { it.name == 'main' }
+    result.processes.size() == 1
+    CommandChain main = result.processes.find { it.name == 'main' }
     main.commands.contains(new Command('/this is the main process'))
   }
 
@@ -164,13 +163,13 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
-    result.chains.size() == 2
-    CommandChain main = result.chains.find { it.name == 'main' }
+    result.processes.size() == 2
+    CommandChain main = result.processes.find { it.name == 'main' }
     main.commands.contains(new Command('/this is the main process'))
 
-    CommandChain other = result.chains.find { it.name == 'other' }
+    CommandChain other = result.processes.find { it.name == 'other' }
     other.commands.contains(new Command('/this is the other process'))
   }
 
@@ -191,10 +190,10 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
-    result.chains.size() == 1
-    CommandChain main = result.chains.find { it.name == 'main' }
+    result.processes.size() == 1
+    CommandChain main = result.processes.find { it.name == 'main' }
     main.commands.contains(new Command('/this is the main process'))
   }
 
@@ -216,13 +215,13 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
-    result.chains.size() == 2
-    CommandChain main = result.chains.find { it.name == 'main' }
+    result.processes.size() == 2
+    CommandChain main = result.processes.find { it.name == 'main' }
     main.commands.contains(new Command('/this is the main process'))
 
-    CommandChain other = result.chains.find { it.name == 'other' }
+    CommandChain other = result.processes.find { it.name == 'other' }
     other.commands.contains(new Command('/this is the other process'))
   }
 
@@ -241,13 +240,13 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
-    result.chains.size() == 2
-    CommandChain main = result.chains.find { it.name == 'main' }
+    result.processes.size() == 2
+    CommandChain main = result.processes.find { it.name == 'main' }
     main.commands.contains(new Command('/this is the main process'))
 
-    CommandChain other = result.chains.find { it.name == 'other' }
+    CommandChain other = result.processes.find { it.name == 'other' }
     other.commands.contains(new Command('/this is the other process'))
   }
 
@@ -271,13 +270,13 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
-    result.chains.size() == 2
-    CommandChain main = result.chains.find { it.name == 'main' }
+    result.processes.size() == 2
+    CommandChain main = result.processes.find { it.name == 'main' }
     main.commands.contains(new Command('/this is the main process'))
 
-    CommandChain other = result.chains.find { it.name == 'other' }
+    CommandChain other = result.processes.find { it.name == 'other' }
     other.commands.contains(new Command('/this is the other process in the same file'))
   }
 
@@ -307,14 +306,14 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
-    result.chains.size() == 2
+    result.processes.size() == 2
 
-    CommandChain main = result.chains.find { it.name == id2 }
+    CommandChain main = result.processes.find { it.name == id2 }
     main.commands.contains(new Command("/this is the ${id2} process"))
 
-    CommandChain other = result.chains.find { it.name == id3 }
+    CommandChain other = result.processes.find { it.name == id3 }
     other.commands.contains(new Command("/this is the ${id3} process"))
   }
 
@@ -341,7 +340,7 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
     CompilationFailedException ex = thrown()
     Collection<CompilerException> exs = ex.exceptions.get(new File('main.mpl'))
@@ -367,7 +366,7 @@ class MplCompilerSpec extends MplSpecBase {
     / really !
     """
     when:
-    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
     CompilationFailedException ex = thrown()
     List<CompilerException> exs = ex.exceptions.get(new File(folder, 'main.mpl'))
@@ -389,7 +388,7 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.orientation == new Orientation3D('zyx')
   }
@@ -409,7 +408,7 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.orientation == new Orientation3D()
   }
@@ -436,10 +435,10 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
-    result.chains.size() == 1
-    CommandChain main = result.chains.find { it.name == 'main' }
+    result.processes.size() == 1
+    CommandChain main = result.processes.find { it.name == 'main' }
     main.commands.contains(new Command('/this is the main process'))
   }
 
@@ -468,7 +467,7 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
     CompilationFailedException ex = thrown()
     List<CompilerException> exs = ex.exceptions.get(new File(folder, 'main.mpl'))
@@ -495,13 +494,13 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
-    result.chains.size() == 2
-    CommandChain main = result.chains.find { it.name == 'main' }
+    result.processes.size() == 2
+    CommandChain main = result.processes.find { it.name == 'main' }
     main.commands.contains(new Command('/this is the main process'))
 
-    CommandChain other = result.chains.find { it.name == 'other' }
+    CommandChain other = result.processes.find { it.name == 'other' }
     other.commands.contains(new Command('/this is the other process'))
   }
 

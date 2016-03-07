@@ -46,6 +46,9 @@ import static org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 import spock.lang.Unroll
+
+import com.google.common.collect.ListMultimap
+
 import de.adrodoc55.minecraft.mpl.ChainPart
 import de.adrodoc55.minecraft.mpl.Command
 import de.adrodoc55.minecraft.mpl.CommandChain
@@ -1820,8 +1823,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     project.exceptions.isEmpty()
 
     File parent = file.parentFile
-    Map<File, Include> includeMap = interpreter.includes
-    includeMap.size() == 1
+
+    ListMultimap<String, Include> includeMap = interpreter.includes
+    includeMap.size() == 2
     List<Include> includes = includeMap.get(null); // null indicates that the whole file should be included
     includes.size() == 2
     includes[0].files.size()==1
@@ -1891,7 +1895,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplScript script = interpreter.script
     script.exceptions.isEmpty()
 
-    Map<File, Include> includeMap = interpreter.includes
+    ListMultimap<String, Include> includeMap = interpreter.includes
     includeMap.size() == 0
   }
 
@@ -1921,7 +1925,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplProject project = interpreter.project
     project.exceptions.isEmpty()
 
-    Map<File, Include> includeMap = interpreter.includes
+    ListMultimap<String, Include> includeMap = interpreter.includes
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id1);
     includes.size() == 1
@@ -1956,7 +1960,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplProject project = interpreter.project
     project.exceptions.isEmpty()
 
-    Map<File, Include> includeMap = interpreter.includes
+    ListMultimap<String, Include> includeMap = interpreter.includes
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id2);
     includes.size() == 1
@@ -1982,7 +1986,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplProject project = interpreter.project
     project.exceptions.isEmpty()
 
-    Map<File, Include> includeMap = interpreter.includes
+    ListMultimap<String, Include> includeMap = interpreter.includes
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id1);
     includes.size() == 1
@@ -2014,7 +2018,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplProject project = interpreter.project
     project.exceptions.isEmpty()
 
-    Map<File, Include> includeMap = interpreter.includes
+    ListMultimap<String, Include> includeMap = interpreter.includes
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id1);
     includes.size() == 1
@@ -2045,7 +2049,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplProject project = interpreter.project
     project.exceptions.isEmpty()
 
-    Map<File, Include> includeMap = interpreter.includes
+    ListMultimap<String, Include> includeMap = interpreter.includes
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id1);
     includes.size() == 1
