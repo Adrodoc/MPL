@@ -45,11 +45,9 @@ import java.nio.file.Files;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -488,12 +486,6 @@ public class MplInterpreter extends MplBaseListener {
     if (isScript) {
       return;
     }
-    Collection<MplProcess> processes = project.getProcesses();
-    for (MplProcess mplProcess : processes) {
-      if (process.equals(mplProcess.getName())) {
-        return;
-      }
-    }
 
     String srcProcess = chainBuffer.isProcess() ? chainBuffer.getName() : null;
     Token token = identifier.getSymbol();
@@ -723,20 +715,7 @@ public class MplInterpreter extends MplBaseListener {
     MplSource source = new MplSource(programFile, token, lines.get(token.getLine()));
     MplProcess process = new MplProcess(chainBuffer.getName(), commands, source);
     project.addProcess(process);
-    removeIncludes(chainBuffer.getName());
     deleteChainBuffer();
-  }
-
-  private void removeIncludes(String process) {
-    Set<Entry<String, List<Include>>> entrySet = includes.entrySet();
-    for (Iterator<Entry<String, List<Include>>> it = entrySet.iterator(); it.hasNext();) {
-      Entry<String, List<Include>> entry = it.next();
-      for (Include include : entry.getValue()) {
-        if (process.equals(include.getProcessName())) {
-          it.remove();
-        }
-      }
-    }
   }
 
   @Override

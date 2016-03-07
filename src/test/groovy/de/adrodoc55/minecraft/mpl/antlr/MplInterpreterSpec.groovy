@@ -1895,8 +1895,13 @@ public class MplInterpreterSpec extends MplSpecBase {
     includeMap.size() == 0
   }
 
+  /**
+   * Grund hierfür ist: die Abhängigkeiten eines jeden Prozesses müssen durch die Includes
+   * dokumentiert werden, da bei imports nur einzelne Prozesse includiert werden und deren
+   * Abhängigkeiten sonst verloren gehen würden.
+   */
   @Test
-  public void "Eine Prozessdatei, die versucht einen eigenen Prozess zu starten erzeugt kein Include. Prozess definition erst nachher"() {
+  public void "Eine Prozessdatei, die versucht einen eigenen Prozess zu starten erzeugt auch ein Include. Prozess definition erst nachher"() {
     given:
     String id1 = someIdentifier()
     String id2 = someIdentifier()
@@ -1917,11 +1922,21 @@ public class MplInterpreterSpec extends MplSpecBase {
     project.exceptions.isEmpty()
 
     Map<File, Include> includeMap = interpreter.includes
-    includeMap.size() == 0
+    includeMap.size() == 1
+    List<Include> includes = includeMap.get(id1);
+    includes.size() == 1
+    includes[0].files.size() == 1
+    includes[0].files.containsAll([lastTempFile])
+    includes[0].processName == id2
   }
 
+  /**
+   * Grund hierfür ist: die Abhängigkeiten eines jeden Prozesses müssen durch die Includes
+   * dokumentiert werden, da bei imports nur einzelne Prozesse includiert werden und deren
+   * Abhängigkeiten sonst verloren gehen würden.
+   */
   @Test
-  public void "Eine Prozessdatei, die versucht einen eigenen Prozess zu starten erzeugt kein Include. Prozess definition bereits vorher"() {
+  public void "Eine Prozessdatei, die versucht einen eigenen Prozess zu starten erzeugt auch ein Include. Prozess definition bereits vorher"() {
     given:
     String id1 = someIdentifier()
     String id2 = someIdentifier()
@@ -1942,7 +1957,12 @@ public class MplInterpreterSpec extends MplSpecBase {
     project.exceptions.isEmpty()
 
     Map<File, Include> includeMap = interpreter.includes
-    includeMap.size() == 0
+    includeMap.size() == 1
+    List<Include> includes = includeMap.get(id2);
+    includes.size() == 1
+    includes[0].files.size() == 1
+    includes[0].files.containsAll([lastTempFile])
+    includes[0].processName == id1
   }
 
   @Test
