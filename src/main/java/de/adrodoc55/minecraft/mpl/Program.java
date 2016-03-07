@@ -44,6 +44,7 @@ import java.util.LinkedList;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 
+@Deprecated
 public class Program {
 
   private LinkedList<CommandChain> chains;

@@ -41,6 +41,8 @@ package de.adrodoc55.minecraft.mpl.antlr;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.base.Preconditions;
 
 import de.adrodoc55.minecraft.mpl.ChainPart;
@@ -49,15 +51,28 @@ import de.adrodoc55.minecraft.mpl.MplSource;
 
 public class MplProcess extends CommandChain {
 
+  protected final String name;
   protected final MplSource source;
 
-  public MplProcess(String name, List<ChainPart> commands, MplSource source) {
-    super(name, commands);
+  public MplProcess(@Nonnull String name, @Nonnull List<ChainPart> commands,
+      @Nonnull MplSource source) {
+    super(commands);
+    this.name = Preconditions.checkNotNull(name, "name == null!");
     this.source = Preconditions.checkNotNull(source, "source == null!");
   }
 
+  @Nonnull
+  public String getName() {
+    return name;
+  }
+
+  @Nonnull
   public MplSource getSource() {
     return source;
   }
 
+  @Override
+  public String toString() {
+    return getName();
+  }
 }

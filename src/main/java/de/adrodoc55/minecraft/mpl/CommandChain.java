@@ -41,32 +41,23 @@ package de.adrodoc55.minecraft.mpl;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 public class CommandChain {
 
-  protected final String name;
   protected final List<ChainPart> commands;
 
-  public CommandChain(List<ChainPart> commands) {
-    this(null, commands);
-  }
-
-  public CommandChain(String name, List<ChainPart> commands) {
-    this.name = name;
+  public CommandChain(@Nonnull List<ChainPart> commands) {
+    Preconditions.checkNotNull(commands, "commands == null!");
     this.commands = ImmutableList.copyOf(commands);
   }
 
-  public String getName() {
-    return name;
-  }
-
+  @Nonnull
   public List<ChainPart> getCommands() {
     return commands;
   }
 
-  @Override
-  public String toString() {
-    return getName();
-  }
 }

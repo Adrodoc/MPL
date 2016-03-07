@@ -40,20 +40,23 @@
 package de.adrodoc55.minecraft.mpl.antlr;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.antlr.v4.runtime.Token;
 
+import com.google.common.base.Preconditions;
+
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.CompilerException;
 import de.adrodoc55.minecraft.mpl.MplSource;
 
-public class MplProject extends MplFile {
+public class MplProject extends MplProgram {
 
   private String name;
-  private Token token;
-  private final Map<String, MplProcess> map = new HashMap<>();
+  private Token projectToken;
+  private final Map<String, MplProcess> processMap = new HashMap<>();
 
   public String getName() {
     return name;
@@ -63,19 +66,20 @@ public class MplProject extends MplFile {
     this.name = name;
   }
 
-  public Token getToken() {
-    return token;
+  public Token getProjectToken() {
+    return projectToken;
   }
 
   public void setToken(Token token) {
-    this.token = token;
+    this.projectToken = token;
   }
 
   public void addProcess(MplProcess process) {
+    Preconditions.checkNotNull(process, "process == null!");
     String name = process.getName();
-    MplProcess previous = map.get(name);
+    MplProcess previous = processMap.get(name);
     if (previous == null) {
-      map.put(name, process);
+      processMap.put(name, process);
       return;
     }
     String oldMessage = "Duplicate process " + name + "!";
@@ -86,15 +90,25 @@ public class MplProject extends MplFile {
       oldMessage += " Was also found in " + FileUtils.getCanonicalPath(newSource.file);
       newMessage += " Was also found in " + FileUtils.getCanonicalPath(oldSource.file);
     }
-
     CompilerException ex1 = new CompilerException(oldSource, oldMessage);
     exceptions.add(ex1);
     CompilerException ex2 = new CompilerException(newSource, newMessage);
     exceptions.add(ex2);
   }
 
+  public boolean containsProcess(String name) {
+    return processMap.containsKey(name);
+  }
+
+  public MplProcess getProcess(String name) {
+    return processMap.get(name);
+  }
+
+  /**
+   * Read only!
+   */
   public Collection<MplProcess> getProcesses() {
-    return map.values();
+    return Collections.unmodifiableCollection(processMap.values());
   }
 
 }

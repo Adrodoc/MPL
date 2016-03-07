@@ -43,11 +43,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -57,6 +55,9 @@ import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
+
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.ListMultimap;
 
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
@@ -121,7 +122,7 @@ public class MplInterpreter extends MplBaseListener {
 
   private final File programFile;
   private final List<String> lines;
-  private final Map<String, List<Include>> includes = new HashMap<>();
+  private final ListMultimap<String, Include> includes = LinkedListMultimap.create();
   private final Set<File> imports = new HashSet<>();
 
   private MplInterpreter(File programFile) throws IOException {
@@ -157,7 +158,7 @@ public class MplInterpreter extends MplBaseListener {
     return project;
   }
 
-  public void addException(CompilerException ex1) {
+  private void addException(CompilerException ex1) {
     if (isScript) {
       script.exceptions.add(ex1);
     } else {
@@ -172,7 +173,7 @@ public class MplInterpreter extends MplBaseListener {
    *
    * @return
    */
-  public Map<String, List<Include>> getIncludes() {
+  public ListMultimap<String, Include> getIncludes() {
     return includes;
   }
 
@@ -210,7 +211,7 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterProject(ProjectContext ctx) {
-    Token oldToken = project.getToken();
+    Token oldToken = project.getProjectToken();
     Token newToken = ctx.PROJECT().getSymbol();
     if (oldToken != null) {
       String oldLine = lines.get(oldToken.getLine());
@@ -273,19 +274,14 @@ public class MplInterpreter extends MplBaseListener {
     }
     MplSource source = new MplSource(programFile, token, line);
     Include include = new Include(source, files);
-    List<Include> list = includes.get(null);
-    if (list == null) {
-      list = new LinkedList<Include>();
-      includes.put(null, list);
-    }
-    list.add(include);
+    includes.put(null, include);
   }
 
   /**
    * Adds the file to the list of imports that will be used to search processes. If the file is a
    * directory all direct subfiles will be added, this is not recursive.
    *
-   * @param token the token that this import originated from
+   * @param projectToken the token that this import originated from
    * @param file the file to import
    */
   private void addFileImport(ImportDeclarationContext ctx, File file) {
@@ -492,13 +488,7 @@ public class MplInterpreter extends MplBaseListener {
     String line = lines.get(token.getLine() - 1);
     MplSource source = new MplSource(programFile, token, line);
     Include include = new Include(source, process, imports);
-
-    List<Include> list = includes.get(srcProcess);
-    if (list == null) {
-      list = new LinkedList<Include>();
-      includes.put(srcProcess, list);
-    }
-    list.add(include);
+    includes.put(srcProcess, include);
   }
 
   @Override

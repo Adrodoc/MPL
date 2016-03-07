@@ -47,7 +47,7 @@ import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.ChainPart;
 import de.adrodoc55.minecraft.mpl.CompilerException;
 
-public class MplFile {
+public abstract class MplProgram {
 
   protected Orientation3D orientation;
   protected final List<ChainPart> installation = new ArrayList<>();

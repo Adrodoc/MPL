@@ -41,7 +41,7 @@ package de.adrodoc55.minecraft.mpl.antlr;
 
 import de.adrodoc55.minecraft.mpl.CommandChain;
 
-public class MplScript extends MplFile {
+public class MplScript extends MplProgram {
 
   private CommandChain chain;
 

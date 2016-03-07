@@ -43,7 +43,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -51,19 +50,28 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
+
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException;
 import de.adrodoc55.minecraft.mpl.antlr.Include;
 import de.adrodoc55.minecraft.mpl.antlr.MplBaseListener;
 import de.adrodoc55.minecraft.mpl.antlr.MplInterpreter;
+import de.adrodoc55.minecraft.mpl.antlr.MplProcess;
+import de.adrodoc55.minecraft.mpl.antlr.MplProgram;
+import de.adrodoc55.minecraft.mpl.antlr.MplProject;
 import de.adrodoc55.minecraft.mpl.antlr.commands.InternalCommand;
 
 public class MplCompiler extends MplBaseListener {
 
   public static List<CommandBlockChain> compile(File programFile)
       throws IOException, CompilationFailedException {
-    Program program = assembleProgram(programFile);
+    MplProgram program = assembleProgram(programFile);
     List<CommandBlockChain> chains = MplChainPlacer.place(program);
     for (CommandBlockChain chain : chains) {
       insertRelativeCoordinates(chain.getCommandBlocks(), program.getOrientation());
@@ -71,34 +79,60 @@ public class MplCompiler extends MplBaseListener {
     return chains;
   }
 
-  public static Program assembleProgram(File programFile)
+  public static MplProgram assembleProgram(File programFile)
       throws IOException, CompilationFailedException {
     MplCompiler compiler = new MplCompiler();
-    Program program = compiler.assemble(programFile);
-    if (!compiler.exceptions.isEmpty()) {
-      throw new CompilationFailedException(compiler.exceptions);
+    MplProgram program = compiler.assemble(programFile);
+    List<CompilerException> exceptions = program.getExceptions();
+    if (!exceptions.isEmpty()) {
+      ImmutableListMultimap<File, CompilerException> index =
+          Multimaps.index(exceptions, ex -> ex.getSource().file);
+      throw new CompilationFailedException(index);
     }
     return program;
   }
 
-  private Map<File, List<CompilerException>> exceptions =
-      new HashMap<File, List<CompilerException>>();
-  private Map<File, Set<String>> programTree = new HashMap<File, Set<String>>();
-  private Set<Include> includes;
+  private SetMultimap<File, String> programContent = HashMultimap.create();
   private LinkedList<Include> includeTodos;
-  private Program program;
+  private MplProject project;
+
+  private Map<File, MplInterpreter> interpreterCache = new HashMap<>();
+
+  private MplInterpreter interpret(File file) throws IOException {
+    MplInterpreter interpreter = interpreterCache.get(file);
+    if (interpreter == null) {
+      interpreter = MplInterpreter.interpret(file);
+    }
+    return interpreter;
+  }
 
   private MplCompiler() {}
 
-  private Program assemble(File programFile) throws IOException {
-    includes = new HashSet<Include>();
+  private MplProgram assemble(File programFile) throws IOException {
     includeTodos = new LinkedList<Include>();
-    program = new Program();
-    program.setOrientation(new Orientation3D());
-    MplInterpreter main = MplInterpreter.interpret(programFile);
+    MplInterpreter main = interpret(programFile);
+    if (main.isScript()) {
+      return main.getScript();
+    }
+    project = main.getProject();
+
+    ListMultimap<String, Include> includes = main.getIncludes();
+    for (Include include : includes.values()) {
+      String processName = include.getProcessName();
+      MplProcess process = main.getProject().getProcess(processName);
+      if (process != null) {
+        continue; // Skip includes that reference the same file
+      }
+      if (include.getProcessName() == null) {
+        massInclude(include);
+      } else {
+        processInclude(include);
+      }
+    }
+
     addInterpreter(main);
     doIncludes();
-    return program;
+    return project;
   }
 
   private void doIncludes() {
@@ -113,122 +147,104 @@ public class MplCompiler extends MplBaseListener {
     }
   }
 
+  private void processInclude(Include include) {
+    String processName = include.getProcessName();
+    Exception lastException = null;
+    List<MplInterpreter> found = new LinkedList<>();
+    for (File file : include.getFiles()) {
+      MplInterpreter interpreter = null;
+      lastException = null;
+      try {
+        interpreter = interpret(file);
+      } catch (Exception ex) {
+        lastException = ex;
+        continue;
+      }
+      if (interpreter.isScript()) {
+        continue;
+      }
+      MplProject project = interpreter.getProject();
+      if (project.containsProcess(processName)) {
+        found.add(interpreter);
+      }
+    }
+
+    if (found.isEmpty()) {
+      CompilerException ex = new CompilerException(include.getSource(),
+          "Could not resolve process " + processName, lastException);
+      project.getExceptions().add(ex);
+    } else if (found.size() > 1) {
+      CompilerException ex = createAmbigiousProcessException(include, found);
+      project.getExceptions().add(ex);
+    } else {
+      MplInterpreter interpreter = found.get(0);
+      addInterpreter(interpreter);
+      addProcess(interpreter, processName);
+    }
+  }
+
+  public CompilerException createAmbigiousProcessException(Include include,
+      List<MplInterpreter> found) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < found.size() - 1; i++) {
+      MplInterpreter interpreter = found.get(i);
+      File programFile = interpreter.getProgramFile();
+      sb.append(programFile);
+      if (i + 1 < found.size() - 1) {
+        sb.append(", ");
+      }
+    }
+    sb.append(" and ");
+    sb.append(found.get(found.size() - 1).getProgramFile());
+    CompilerException ex = new CompilerException(include.getSource(),
+        "Process " + include.getProcessName() + " is ambigious. It was found in '" + sb + "!");
+    return ex;
+  }
+
+  public void addProcess(MplInterpreter interpreter, String processName) {
+    MplProcess process = interpreter.getProject().getProcess(processName);
+    Set<String> processNames = programContent.get(process.getSource().file);
+    if (!processNames.contains(process.getName())) {
+      project.addProcess(process);
+      includeTodos.addAll(interpreter.getIncludes().get(processName));
+    }
+  }
+
   private void massInclude(Include include) {
     for (File file : include.getFiles()) {
       MplInterpreter interpreter = null;
       try {
-        interpreter = MplInterpreter.interpret(file);
+        interpreter = interpret(file);
       } catch (IOException ex) {
         CompilerException compilerException =
             new CompilerException(include.getSource(), "Couldn't include '" + file + "'", ex);
-        List<CompilerException> list = exceptions.get(include.getSource().file);
-        if (list == null) {
-          list = new LinkedList<CompilerException>();
-          exceptions.put(include.getSource().file, list);
-        }
-        list.add(compilerException);
+        project.getExceptions().add(compilerException);
         return;
       }
       if (interpreter.isScript()) {
         CompilerException compilerException = new CompilerException(include.getSource(),
             "Can't include script " + file.getName() + ". Scripts may not be included.");
-        List<CompilerException> list = exceptions.get(include.getSource().file);
-        if (list == null) {
-          list = new LinkedList<CompilerException>();
-          exceptions.put(include.getSource().file, list);
-        }
-        list.add(compilerException);
+        project.getExceptions().add(compilerException);
         return;
       }
       addInterpreter(interpreter);
-    }
-
-  }
-
-  private void processInclude(Include include) {
-    String processName = include.getProcessName();
-    Exception lastException = null;
-    File found = null;
-    Collection<File> files = include.getFiles();
-    for (File file : files) {
-      MplInterpreter interpreter = null;
-      lastException = null;
-      try {
-        interpreter = MplInterpreter.interpret(file);
-      } catch (Exception ex) {
-        lastException = ex;
-      }
-      if (lastException != null) {
-        continue;
-      }
-      List<CommandChain> chains = interpreter.getChains();
-      for (CommandChain chain : chains) {
-        if (processName.equals(chain.getName())) {
-          if (found != null) {
-            CompilerException compilerException = new CompilerException(include.getSrcFile(),
-                include.getToken(), include.getSrcLine(), "Process " + processName
-                    + " is ambigious. It was found in '" + found + "' and '" + file + "'");
-            List<CompilerException> list = exceptions.get(include.getSrcFile());
-            if (list == null) {
-              list = new LinkedList<CompilerException>();
-              exceptions.put(include.getSrcFile(), list);
-            }
-            list.add(compilerException);
-            return;
-          }
-          found = file;
-          addInterpreter(interpreter, processName);
-        }
-      }
-    }
-    if (found == null) {
-      CompilerException compilerException =
-          new CompilerException(include.getSrcFile(), include.getToken(), include.getSrcLine(),
-              "Could not resolve process " + processName, lastException);
-      List<CompilerException> list = exceptions.get(include.getSrcFile());
-      if (list == null) {
-        list = new LinkedList<CompilerException>();
-        exceptions.put(include.getSrcFile(), list);
-      }
-      list.add(compilerException);
-      return;
+      addAllProcesses(interpreter);
     }
   }
 
-  private void addInterpreter(MplInterpreter interpreter) {
-    addInterpreter(interpreter, null);
+  public void addAllProcesses(MplInterpreter interpreter) {
+    Collection<MplProcess> processes = interpreter.getProject().getProcesses();
+    for (MplProcess process : processes) {
+      addProcess(interpreter, process.getName());
+    }
   }
 
-  private void addInterpreter(MplInterpreter interpreter, String process) {
-    File programFile = interpreter.getProgramFile();
-    Set<String> alreadyIncluded = programTree.get(programFile);
-    if (alreadyIncluded == null) {
-      program.getInstallation().addAll(interpreter.getInstallation());
-      program.getUninstallation().addAll(interpreter.getUninstallation());
-      alreadyIncluded = new HashSet<String>();
-      programTree.put(programFile, alreadyIncluded);
-      if (!interpreter.getExceptions().isEmpty()) {
-        exceptions.put(programFile, interpreter.getExceptions());
-      }
-    }
-
-    for (CommandChain chain : interpreter.getChains()) {
-      if (process == null || process.equals(chain.getName())) {
-        if (alreadyIncluded.add(chain.getName())) {
-          program.getChains().add(chain);
-        }
-      }
-    }
-    Map<String, List<Include>> includeMapping = interpreter.getIncludes();
-    for (String key : includeMapping.keySet()) {
-      if (process == null || process.equals(key)) {
-        List<Include> includes = includeMapping.get(key);
-        for (Include include : includes) {
-          if (this.includes.add(include)) {
-            includeTodos.add(include);
-          }
-        }
-      }
+  public void addInterpreter(MplInterpreter interpreter) {
+    if (programContent.containsKey(interpreter.getProgramFile())) {
+      MplProject project = interpreter.getProject();
+      this.project.getExceptions().addAll(project.getExceptions());
+      this.project.getInstallation().addAll(project.getInstallation());
+      this.project.getUninstallation().addAll(project.getUninstallation());
     }
   }
 
@@ -292,9 +308,7 @@ public class MplCompiler extends MplBaseListener {
         }
         originMatcher.appendTail(originSb);
         current.setCommand(originSb.toString());
-
       }
-
     }
   }
 

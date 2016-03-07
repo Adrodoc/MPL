@@ -252,6 +252,36 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
+  public void "a process from the same file is not ambigious with an imported process and will win"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    process main (
+    /this is the main process
+    start other
+    )
+
+    process other (
+    /this is the other process in the same file
+    )
+    """
+    new File(folder, 'other.mpl').text = """
+    process other (
+    /this is the other process from the other file
+    )
+    """
+    when:
+    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    then:
+    result.chains.size() == 2
+    CommandChain main = result.chains.find { it.name == 'main' }
+    main.commands.contains(new Command('/this is the main process'))
+
+    CommandChain other = result.chains.find { it.name == 'other' }
+    other.commands.contains(new Command('/this is the other process in the same file'))
+  }
+
+  @Test
   public void "project includes are processed correctly"() {
     given:
     String id1 = someIdentifier()
@@ -286,6 +316,37 @@ class MplCompilerSpec extends MplSpecBase {
 
     CommandChain other = result.chains.find { it.name == id3 }
     other.commands.contains(new Command("/this is the ${id3} process"))
+  }
+
+  @Test
+  public void "including two processes with the same name throws ambigious process Exception"() {
+    given:
+    String id1 = someIdentifier()
+    String id2 = someIdentifier()
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    project ${id1} (
+    include "other1.mpl"
+    include "other2.mpl"
+    )
+    """
+    new File(folder, 'other1.mpl').text = """
+    process ${id2} (
+    /this is the ${id2} process
+    )
+    """
+    new File(folder, 'other2.mpl').text = """
+    process ${id2} (
+    /this is the second ${id2} process
+    )
+    """
+    when:
+    Program result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    then:
+    CompilationFailedException ex = thrown()
+    Collection<CompilerException> exs = ex.exceptions.get(new File('main.mpl'))
+    exs.size() == 2
+    exs.first().message == "Duplicate process ${id2}! It was found..."
   }
 
   @Test

@@ -43,11 +43,13 @@ import java.io.File;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
 
 import org.antlr.v4.runtime.Token;
 
 import com.google.common.base.Preconditions;
 
+@Immutable
 public class MplSource {
 
   @Nonnull
@@ -68,4 +70,5 @@ public class MplSource {
   public int getLineNumber() {
     return token.getLine();
   }
+
 }

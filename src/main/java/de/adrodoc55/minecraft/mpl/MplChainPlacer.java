@@ -58,6 +58,7 @@ import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
+import de.adrodoc55.minecraft.mpl.antlr.MplProgram;
 import de.adrodoc55.minecraft.mpl.antlr.commands.InternalCommand;
 import de.adrodoc55.minecraft.mpl.chain_computing.IterativeChainComputer;
 import de.kussm.ChainLayouter;
@@ -68,21 +69,21 @@ import de.kussm.position.Position;
 
 public class MplChainPlacer {
 
-  public static List<CommandBlockChain> place(Program program) {
+  public static List<CommandBlockChain> place(MplProgram program) {
     return new MplChainPlacer(program).place();
   }
 
-  private final Program program;
+  private final MplProgram program;
   private final Orientation3D orientation;
   private final LinkedList<CommandChain> chains;
   private final int[] occupied;
   private final List<CommandBlockChain> result = new LinkedList<CommandBlockChain>();
   private Coordinate3D optimalSize;
 
-  private MplChainPlacer(Program program) {
+  private MplChainPlacer(MplProgram program) {
     this.program = program;
     this.orientation = program.getOrientation();
-    this.chains = program.getChains();
+    this.chains = new LinkedList<>(program.getChains());
     for (CommandChain chain : chains) {
       // The first block of each chain that start's with a RECIEVER must be a TRANSMITTER
       List<ChainPart> commands = chain.getCommands();
