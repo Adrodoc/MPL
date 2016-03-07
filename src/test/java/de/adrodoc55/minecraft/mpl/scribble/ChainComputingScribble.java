@@ -43,8 +43,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import de.adrodoc55.minecraft.mpl.ChainPart;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
+import de.adrodoc55.minecraft.mpl.Skip;
 import de.adrodoc55.minecraft.mpl.antlr.MplInterpreter;
 
 public class ChainComputingScribble {
@@ -52,16 +54,20 @@ public class ChainComputingScribble {
     File file = new File(
         "C:/Users/adrian/Programme/workspace/ApertureCraftVanilla/src/main/minecraft/ACV_validateDirections.txt");
     MplInterpreter interpreter = MplInterpreter.interpret(file);
-    List<Command> commands = interpreter.getChains().get(0).getCommands();
+    List<ChainPart> chainParts =
+        interpreter.getProject().getProcesses().iterator().next().getCommands();
     StringBuilder sb = new StringBuilder("TRANSMITTER");
-    for (Command command : commands) {
+    for (ChainPart chainPart : chainParts) {
       sb.append(", ");
-      if (command == null) {
+      if (chainPart instanceof Skip) {
         sb.append("TRANSMITTER");
-      } else if (command.getMode() != Mode.CHAIN) {
-        sb.append("RECEIVER");
-      } else if (command.isConditional()) {
-        sb.append("CONDITIONAL");
+      } else if (chainPart instanceof Command) {
+        Command command = (Command) chainPart;
+        if (command.getMode() != Mode.CHAIN) {
+          sb.append("RECEIVER");
+        } else if (command.isConditional()) {
+          sb.append("CONDITIONAL");
+        }
       } else {
         sb.append("NORMAL");
       }

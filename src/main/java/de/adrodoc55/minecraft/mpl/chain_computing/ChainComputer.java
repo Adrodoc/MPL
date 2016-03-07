@@ -44,6 +44,7 @@ import java.util.List;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
+import de.adrodoc55.minecraft.mpl.AirBlock;
 import de.adrodoc55.minecraft.mpl.ChainPart;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.CommandBlock;
@@ -74,7 +75,8 @@ public interface ChainComputer {
       ChainPart current = commands.get(a);
       Coordinate3D currentCoordinate = coordinates.get(a);
       if (current instanceof Skip) {
-        blocks.add(new Transmitter(currentCoordinate));
+        Skip skip = (Skip) current;
+        blocks.add(new Transmitter(skip.isInternal(), currentCoordinate));
         continue;
       }
       Command currentCommand = (Command) current;
@@ -88,7 +90,7 @@ public interface ChainComputer {
       blocks.add(currentCommandBlock);
     }
     if (!blocks.isEmpty()) {
-      blocks.add(new CommandBlock(null, null, coordinates.get(coordinates.size() - 1)));
+      blocks.add(new AirBlock(coordinates.get(coordinates.size() - 1)));
     }
     CommandBlockChain output = new CommandBlockChain(input.getName(), blocks);
     return output;

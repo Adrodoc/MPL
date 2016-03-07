@@ -62,10 +62,11 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.Command;
+import de.adrodoc55.minecraft.mpl.ChainPart;
 import de.adrodoc55.minecraft.mpl.CommandBlock;
 import de.adrodoc55.minecraft.mpl.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.CommandChain;
+import de.adrodoc55.minecraft.mpl.MplBlock;
 
 public abstract class ChainComputerTest {
   protected ChainComputer underTest;
@@ -77,7 +78,7 @@ public abstract class ChainComputerTest {
   public void test_computeChain_Erzeugte_Kette_enthaelt_alle_Commandos_plus_einen_folgenden_leeren_Block() {
     // Given:
     String name = someString();
-    List<Command> commands = new ArrayList<Command>();
+    List<ChainPart> commands = new ArrayList<>();
 
     int anzahl = someInt(10);
     commands.add($some($Command().withConditional(false)));
@@ -91,9 +92,13 @@ public abstract class ChainComputerTest {
     // Then:
     commands.add(null); // folgender_leeren_Block
 
-    List<CommandBlock> blocks = optimal.getCommandBlocks();
-    List<Command> actual = Lists.transform(blocks, block -> {
-      return block.toCommand();
+    List<MplBlock> blocks = optimal.getCommandBlocks();
+    List<ChainPart> actual = Lists.transform(blocks, block -> {
+      if (block instanceof CommandBlock) {
+        CommandBlock commandBlock = (CommandBlock) block;
+        return commandBlock.toCommand();
+      }
+      return null;
     });
     assertThat(actual).containsExactlyElementsOf(commands);
   }
@@ -102,7 +107,7 @@ public abstract class ChainComputerTest {
   public void test_computeChain_Erster_Command_darf_nicht_conditional_sein() {
     // Given:
     String name = someString();
-    List<Command> commands = new ArrayList<Command>();
+    List<ChainPart> commands = new ArrayList<>();
 
     int anzahl = someInt(10);
     commands.add($some($Command().withConditional(true)));
@@ -128,7 +133,7 @@ public abstract class ChainComputerTest {
   public void test_computeChain_7_nicht_conditional_Commandos_ergeben_2x2x2_Würfel_und_enthaelt_alle_Commandos() {
     // Given:
     String name = someString();
-    List<Command> commands = new ArrayList<Command>();
+    List<ChainPart> commands = new ArrayList<>();
     for (int a = 0; a < 7; a++) {
       commands.add($some($Command().withConditional(false)));
     }
@@ -142,10 +147,13 @@ public abstract class ChainComputerTest {
     assertThat(optimal.getMin()).isEqualTo(new Coordinate3D(0, 0, 0));
     assertThat(optimal.getMax()).isEqualTo(new Coordinate3D(1, 1, 1));
     // Enthält alle Commandos
-    List<CommandBlock> blocks = optimal.getCommandBlocks();
-    List<Command> actual = Lists.transform(blocks, block -> {
-      return block.toCommand();
-
+    List<MplBlock> blocks = optimal.getCommandBlocks();
+    List<ChainPart> actual = Lists.transform(blocks, block -> {
+      if (block instanceof CommandBlock) {
+        CommandBlock commandBlock = (CommandBlock) block;
+        return commandBlock.toCommand();
+      }
+      return null;
     });
     assertThat(actual).containsExactlyElementsOf(commands);
   }
@@ -155,7 +163,7 @@ public abstract class ChainComputerTest {
   public void test_computeChain_26_nicht_conditional_Commandos_ergeben_3x3x3_Würfel_und_enthaelt_alle_Commandos() {
     // Given:
     String name = someString();
-    List<Command> commands = new ArrayList<Command>();
+    List<ChainPart> commands = new ArrayList<>();
     for (int a = 0; a < 26; a++) {
       commands.add($some($Command().withConditional(false)));
     }
@@ -187,10 +195,13 @@ public abstract class ChainComputerTest {
     assertThat(optimal.getMin()).isEqualTo(new Coordinate3D(0, 0, 0));
     assertThat(optimal.getMax()).isEqualTo(new Coordinate3D(2, 2, 2));
     // Enthält alle Commandos
-    List<CommandBlock> blocks = optimal.getCommandBlocks();
-    List<Command> actual = Lists.transform(blocks, block -> {
-      return block.toCommand();
-
+    List<MplBlock> blocks = optimal.getCommandBlocks();
+    List<ChainPart> actual = Lists.transform(blocks, block -> {
+      if (block instanceof CommandBlock) {
+        CommandBlock commandBlock = (CommandBlock) block;
+        return commandBlock.toCommand();
+      }
+      return null;
     });
     assertThat(actual).containsExactlyElementsOf(commands);
   }
@@ -200,7 +211,7 @@ public abstract class ChainComputerTest {
   public void test_computeChain_7_conditional_Commandos_ergibt_Kette_und_enthaelt_alle_Commandos() {
     // Given:
     String name = someString();
-    List<Command> commands = new ArrayList<Command>();
+    List<ChainPart> commands = new ArrayList<>();
     commands.add($some($Command().withConditional(false)));
     for (int a = 1; a < 7; a++) {
       commands.add($some($Command().withConditional(true)));
@@ -215,10 +226,13 @@ public abstract class ChainComputerTest {
     assertThat(optimal.getMin()).isEqualTo(new Coordinate3D(0, 0, 0));
     assertThat(optimal.getMax()).isEqualTo(new Coordinate3D(7, 0, 0));
     // Enthält alle Commandos
-    List<CommandBlock> blocks = optimal.getCommandBlocks();
-    List<Command> actual = Lists.transform(blocks, block -> {
-      return block.toCommand();
-
+    List<MplBlock> blocks = optimal.getCommandBlocks();
+    List<ChainPart> actual = Lists.transform(blocks, block -> {
+      if (block instanceof CommandBlock) {
+        CommandBlock commandBlock = (CommandBlock) block;
+        return commandBlock.toCommand();
+      }
+      return null;
     });
     assertThat(actual).containsExactlyElementsOf(commands);
   }
@@ -228,7 +242,7 @@ public abstract class ChainComputerTest {
   public void test_computeChain_conditional_Commandos_werden_nicht_geknickt_und_Kette_enthaelt_alle_Commandos() {
     // Given:
     String name = someString();
-    List<Command> commands = new ArrayList<Command>();
+    List<ChainPart> commands = new ArrayList<>();
     commands.add($some($Command().withConditional(false)));
     for (int a = 1; a < 7; a++) {
       commands.add($some($Command()));
@@ -240,29 +254,35 @@ public abstract class ChainComputerTest {
     // Then:
     commands.add(null); // folgender_leeren_Block
 
-    List<CommandBlock> commandBlocks = optimal.getCommandBlocks();
+    List<MplBlock> commandBlocks = optimal.getCommandBlocks();
     for (int a = 0; a < commandBlocks.size(); a++) {
-      CommandBlock commandBlock = commandBlocks.get(a);
-      if (commandBlock.isConditional()) {
-        Coordinate3D currentCoordinate = commandBlock.getCoordinate();
-        Coordinate3D relativeCoordinate = commandBlock.getDirection().toCoordinate();
+      MplBlock block = commandBlocks.get(a);
+      if (block instanceof CommandBlock) {
+        CommandBlock commandBlock = (CommandBlock) block;
+        if (commandBlock.isConditional()) {
+          Coordinate3D currentCoordinate = commandBlock.getCoordinate();
+          Coordinate3D relativeCoordinate = commandBlock.getDirection().toCoordinate();
 
-        Coordinate3D expectedPreviousCoordinate = currentCoordinate.minus(relativeCoordinate);
-        Coordinate3D actualPreviousCoordinate = commandBlocks.get(a - 1).getCoordinate();
-        assertThat(actualPreviousCoordinate).isEqualTo(expectedPreviousCoordinate);
+          Coordinate3D expectedPreviousCoordinate = currentCoordinate.minus(relativeCoordinate);
+          Coordinate3D actualPreviousCoordinate = commandBlocks.get(a - 1).getCoordinate();
+          assertThat(actualPreviousCoordinate).isEqualTo(expectedPreviousCoordinate);
 
-        if (a + 1 < commandBlocks.size()) {
-          Coordinate3D expectedNextCoordinate = currentCoordinate.plus(relativeCoordinate);
-          Coordinate3D actualNextCoordinate = commandBlocks.get(a + 1).getCoordinate();
-          assertThat(actualNextCoordinate).isEqualTo(expectedNextCoordinate);
+          if (a + 1 < commandBlocks.size()) {
+            Coordinate3D expectedNextCoordinate = currentCoordinate.plus(relativeCoordinate);
+            Coordinate3D actualNextCoordinate = commandBlocks.get(a + 1).getCoordinate();
+            assertThat(actualNextCoordinate).isEqualTo(expectedNextCoordinate);
+          }
         }
       }
     }
     // Enthält alle Commandos
-    List<CommandBlock> blocks = commandBlocks;
-    List<Command> actual = Lists.transform(blocks, block -> {
-      return block.toCommand();
-
+    List<MplBlock> blocks = commandBlocks;
+    List<ChainPart> actual = Lists.transform(blocks, block -> {
+      if (block instanceof CommandBlock) {
+        CommandBlock commandBlock = (CommandBlock) block;
+        return commandBlock.toCommand();
+      }
+      return null;
     });
     assertThat(actual).containsExactlyElementsOf(commands);
   }
@@ -271,14 +291,14 @@ public abstract class ChainComputerTest {
   public void test_computeChain_Erzeugte_Kette_ist_leer_wenn_initiale_kette_leer_war() {
     // Given:
     String name = someString();
-    List<Command> commands = new ArrayList<Command>();
+    List<ChainPart> commands = new ArrayList<>();
     CommandChain input = new CommandChain(name, commands);
 
     // When:
     CommandBlockChain optimal = underTest.computeOptimalChain(input);
     // Then:
 
-    List<CommandBlock> actual = optimal.getCommandBlocks();
+    List<MplBlock> actual = optimal.getCommandBlocks();
     assertThat(actual).isEmpty();
   }
 
