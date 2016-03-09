@@ -69,7 +69,7 @@ public class CommandBlockChain {
     return name;
   }
 
-  public List<MplBlock> getCommandBlocks() {
+  public List<MplBlock> getBlocks() {
     return blocks;
   }
 

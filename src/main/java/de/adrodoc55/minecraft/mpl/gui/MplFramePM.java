@@ -50,7 +50,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -62,6 +61,8 @@ import org.beanfabrics.model.OperationPM;
 import org.beanfabrics.model.PMManager;
 import org.beanfabrics.model.Selection;
 import org.beanfabrics.support.Operation;
+
+import com.google.common.collect.ListMultimap;
 
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.CommandBlockChain;
@@ -267,7 +268,7 @@ public class MplFramePM extends AbstractPM {
       ExceptionDialog dialog = ExceptionDialog.create("Compilation Failed!",
           "The Compiler encountered Errors!", ex.toString());
       dialog.setVisible(true);
-      Map<File, List<CompilerException>> exceptions = ex.getExceptions();
+      ListMultimap<File, CompilerException> exceptions = ex.getExceptions();
       for (File programFile : exceptions.keySet()) {
         for (MplEditorPM editorPm : editors) {
           if (programFile.equals(editorPm.getFile())) {

@@ -43,16 +43,26 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.ChainPart;
 import de.adrodoc55.minecraft.mpl.CompilerException;
 
 public abstract class MplProgram {
 
+  protected Coordinate3D max;
   protected Orientation3D orientation;
   protected final List<ChainPart> installation = new ArrayList<>();
   protected final List<ChainPart> uninstallation = new ArrayList<>();
   protected final List<CompilerException> exceptions = new LinkedList<>();
+
+  public Coordinate3D getMax() {
+    return max;
+  }
+
+  public void setMax(Coordinate3D max) {
+    this.max = max;
+  }
 
   public Orientation3D getOrientation() {
     return orientation;

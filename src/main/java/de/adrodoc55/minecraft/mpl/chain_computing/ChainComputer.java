@@ -53,7 +53,9 @@ import de.adrodoc55.minecraft.mpl.CommandChain;
 import de.adrodoc55.minecraft.mpl.MplBlock;
 import de.adrodoc55.minecraft.mpl.Skip;
 import de.adrodoc55.minecraft.mpl.Transmitter;
+import de.adrodoc55.minecraft.mpl.antlr.MplProcess;
 
+@Deprecated
 public interface ChainComputer {
 
   public default CommandBlockChain computeOptimalChain(CommandChain input) {
@@ -92,7 +94,8 @@ public interface ChainComputer {
     if (!blocks.isEmpty()) {
       blocks.add(new AirBlock(coordinates.get(coordinates.size() - 1)));
     }
-    CommandBlockChain output = new CommandBlockChain(input.getName(), blocks);
+    String name = input instanceof MplProcess ? ((MplProcess) input).getName() : null;
+    CommandBlockChain output = new CommandBlockChain(name, blocks);
     return output;
   }
 

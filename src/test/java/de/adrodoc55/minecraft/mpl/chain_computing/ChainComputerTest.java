@@ -92,7 +92,7 @@ public abstract class ChainComputerTest {
     // Then:
     commands.add(null); // folgender_leeren_Block
 
-    List<MplBlock> blocks = optimal.getCommandBlocks();
+    List<MplBlock> blocks = optimal.getBlocks();
     List<ChainPart> actual = Lists.transform(blocks, block -> {
       if (block instanceof CommandBlock) {
         CommandBlock commandBlock = (CommandBlock) block;
@@ -147,7 +147,7 @@ public abstract class ChainComputerTest {
     assertThat(optimal.getMin()).isEqualTo(new Coordinate3D(0, 0, 0));
     assertThat(optimal.getMax()).isEqualTo(new Coordinate3D(1, 1, 1));
     // Enthält alle Commandos
-    List<MplBlock> blocks = optimal.getCommandBlocks();
+    List<MplBlock> blocks = optimal.getBlocks();
     List<ChainPart> actual = Lists.transform(blocks, block -> {
       if (block instanceof CommandBlock) {
         CommandBlock commandBlock = (CommandBlock) block;
@@ -195,7 +195,7 @@ public abstract class ChainComputerTest {
     assertThat(optimal.getMin()).isEqualTo(new Coordinate3D(0, 0, 0));
     assertThat(optimal.getMax()).isEqualTo(new Coordinate3D(2, 2, 2));
     // Enthält alle Commandos
-    List<MplBlock> blocks = optimal.getCommandBlocks();
+    List<MplBlock> blocks = optimal.getBlocks();
     List<ChainPart> actual = Lists.transform(blocks, block -> {
       if (block instanceof CommandBlock) {
         CommandBlock commandBlock = (CommandBlock) block;
@@ -226,7 +226,7 @@ public abstract class ChainComputerTest {
     assertThat(optimal.getMin()).isEqualTo(new Coordinate3D(0, 0, 0));
     assertThat(optimal.getMax()).isEqualTo(new Coordinate3D(7, 0, 0));
     // Enthält alle Commandos
-    List<MplBlock> blocks = optimal.getCommandBlocks();
+    List<MplBlock> blocks = optimal.getBlocks();
     List<ChainPart> actual = Lists.transform(blocks, block -> {
       if (block instanceof CommandBlock) {
         CommandBlock commandBlock = (CommandBlock) block;
@@ -254,7 +254,7 @@ public abstract class ChainComputerTest {
     // Then:
     commands.add(null); // folgender_leeren_Block
 
-    List<MplBlock> commandBlocks = optimal.getCommandBlocks();
+    List<MplBlock> commandBlocks = optimal.getBlocks();
     for (int a = 0; a < commandBlocks.size(); a++) {
       MplBlock block = commandBlocks.get(a);
       if (block instanceof CommandBlock) {
@@ -298,7 +298,7 @@ public abstract class ChainComputerTest {
     CommandBlockChain optimal = underTest.computeOptimalChain(input);
     // Then:
 
-    List<MplBlock> actual = optimal.getCommandBlocks();
+    List<MplBlock> actual = optimal.getBlocks();
     assertThat(actual).isEmpty();
   }
 

@@ -48,7 +48,7 @@ public class PythonConverter extends MplConverter {
   public static String convert(List<CommandBlockChain> chains, String name) {
     StringBuilder sb = new StringBuilder(getPythonHeader(name));
     for (CommandBlockChain chain : chains) {
-      List<MplBlock> blocks = chain.getCommandBlocks();
+      List<MplBlock> blocks = chain.getBlocks();
       for (MplBlock block : blocks) {
         sb.append(INDENT + convert(block) + "\n");
       }

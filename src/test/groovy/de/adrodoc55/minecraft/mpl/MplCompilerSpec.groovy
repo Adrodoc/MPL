@@ -573,6 +573,7 @@ class MplCompilerSpec extends MplSpecBase {
     chains[1].name == 'install'
   }
 
+  // FIXME: WARUM???
   @Test
   public void "having an uninstallation also produces an installation"() {
     given:

@@ -50,7 +50,9 @@ import de.adrodoc55.minecraft.mpl.ChainPart;
 import de.adrodoc55.minecraft.mpl.Command;
 import de.adrodoc55.minecraft.mpl.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.CommandChain;
+import de.adrodoc55.minecraft.mpl.antlr.MplProcess;
 
+@Deprecated
 public class IterativeChainComputer implements ChainComputer {
 
   private Coordinate3D min;
@@ -110,8 +112,9 @@ public class IterativeChainComputer implements ChainComputer {
       }
     }
     if (optimal.isEmpty()) {
+      String name = chain instanceof MplProcess ? ((MplProcess) chain).getName() : null;
       throw new IllegalStateException(
-          "Couldn't find a Solution for '" + chain.getName() + "' within " + MAX_TRIES + " tries!");
+          "Couldn't find a Solution for '" + name + "' within " + MAX_TRIES + " tries!");
     }
     CommandBlockChain output = toCommandBlockChain(chain, optimal);
     return output;

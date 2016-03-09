@@ -74,7 +74,7 @@ public class MplCompiler extends MplBaseListener {
     MplProgram program = assembleProgram(programFile);
     List<CommandBlockChain> chains = MplChainPlacer.place(program);
     for (CommandBlockChain chain : chains) {
-      insertRelativeCoordinates(chain.getCommandBlocks(), program.getOrientation());
+      insertRelativeCoordinates(chain.getBlocks(), program.getOrientation());
     }
     return chains;
   }
