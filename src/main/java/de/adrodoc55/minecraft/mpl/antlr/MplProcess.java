@@ -46,24 +46,28 @@ import javax.annotation.Nonnull;
 import com.google.common.base.Preconditions;
 
 import de.adrodoc55.minecraft.mpl.ChainPart;
-import de.adrodoc55.minecraft.mpl.CommandChain;
 import de.adrodoc55.minecraft.mpl.MplSource;
+import de.adrodoc55.minecraft.mpl.NamedCommandChain;
 
-public class MplProcess extends CommandChain {
+public class MplProcess extends NamedCommandChain {
 
-  protected final String name;
   protected final MplSource source;
+
+  /**
+   * This constructor is for tests only!
+   *
+   * @param name
+   * @param commands
+   */
+  private MplProcess(@Nonnull String name, @Nonnull List<ChainPart> commands) throws Throwable {
+    super(name, commands);
+    this.source = null;
+  }
 
   public MplProcess(@Nonnull String name, @Nonnull List<ChainPart> commands,
       @Nonnull MplSource source) {
-    super(commands);
-    this.name = Preconditions.checkNotNull(name, "name == null!");
+    super(name, commands);
     this.source = Preconditions.checkNotNull(source, "source == null!");
-  }
-
-  @Nonnull
-  public String getName() {
-    return name;
   }
 
   @Nonnull

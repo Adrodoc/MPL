@@ -65,7 +65,7 @@ public abstract class MplChainPlacer {
       MplScript script = (MplScript) program;
       return new MplScriptPlacer(script).place();
     }
-    throw new IllegalArgumentException
+    throw new IllegalArgumentException("Unknown MplProgram class: " + program.getClass());
   }
 
   protected final MplProgram program;
@@ -76,7 +76,13 @@ public abstract class MplChainPlacer {
   }
 
   protected Orientation3D getOrientation() {
-    return program.getOrientation();
+    Orientation3D orientation = program.getOrientation();
+    if (orientation != null) {
+      return orientation;
+    } else {
+      // Default Orientation
+      return new Orientation3D();
+    }
   }
 
   protected List<ChainPart> getInstallation() {

@@ -51,9 +51,9 @@ import de.adrodoc55.minecraft.mpl.CommandBlock;
 import de.adrodoc55.minecraft.mpl.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.CommandChain;
 import de.adrodoc55.minecraft.mpl.MplBlock;
+import de.adrodoc55.minecraft.mpl.NamedCommandChain;
 import de.adrodoc55.minecraft.mpl.Skip;
 import de.adrodoc55.minecraft.mpl.Transmitter;
-import de.adrodoc55.minecraft.mpl.antlr.MplProcess;
 
 @Deprecated
 public interface ChainComputer {
@@ -94,7 +94,7 @@ public interface ChainComputer {
     if (!blocks.isEmpty()) {
       blocks.add(new AirBlock(coordinates.get(coordinates.size() - 1)));
     }
-    String name = input instanceof MplProcess ? ((MplProcess) input).getName() : null;
+    String name = input instanceof NamedCommandChain ? ((NamedCommandChain) input).getName() : null;
     CommandBlockChain output = new CommandBlockChain(name, blocks);
     return output;
   }

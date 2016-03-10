@@ -1,9 +1,12 @@
 package de.adrodoc55.minecraft.mpl
 
-import de.adrodoc55.minecraft.mpl.antlr.MplProcess;
-import de.adrodoc55.minecraft.mpl.antlr.MplProject;
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$Command
+import static de.adrodoc55.minecraft.mpl.MplTestBase.some
+import spock.lang.Specification
+import de.adrodoc55.minecraft.mpl.antlr.MplProcess
+import de.adrodoc55.minecraft.mpl.antlr.MplProject
 
-class MplProjectPlacerSpec {
+class MplProjectPlacerSpec extends Specification {
 
   void 'Placing an empty project returns an empty list'() {
     given:
@@ -17,8 +20,9 @@ class MplProjectPlacerSpec {
   void 'Empty processes are ignored'() {
     given:
     MplProject project = new MplProject()
-    MplProcess process = new MplProcess(name, commands, source)
+    MplProcess process = new MplProcess('testProcess', [])
     project.addProcess(process)
+    project.getInstallation().add(some($Command()))
     when:
     List<CommandBlockChain> result = new MplProjectPlacer(project).place()
     then:
@@ -28,8 +32,7 @@ class MplProjectPlacerSpec {
   void 'Empty installation is ignored'() {
     given:
     MplProject project = new MplProject()
-    MplProcess process = new MplProcess(name, commands, source)
-    project.addProcess(process)
+    project.getInstallation()
     when:
     List<CommandBlockChain> result = new MplProjectPlacer(project).place()
     then:
@@ -46,5 +49,4 @@ class MplProjectPlacerSpec {
     then:
     result.isEmpty()
   }
-
 }

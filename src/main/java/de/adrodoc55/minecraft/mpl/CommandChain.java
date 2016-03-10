@@ -44,7 +44,6 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 
 public class CommandChain {
 
@@ -52,7 +51,7 @@ public class CommandChain {
 
   public CommandChain(@Nonnull List<ChainPart> commands) {
     Preconditions.checkNotNull(commands, "commands == null!");
-    this.commands = ImmutableList.copyOf(commands);
+    this.commands = commands;
   }
 
   @Nonnull

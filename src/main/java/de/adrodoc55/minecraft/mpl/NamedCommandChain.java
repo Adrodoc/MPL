@@ -37,55 +37,26 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.antlr;
+package de.adrodoc55.minecraft.mpl;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.coordinate.Orientation3D;
-import de.adrodoc55.minecraft.mpl.ChainPart;
-import de.adrodoc55.minecraft.mpl.CompilerException;
+import javax.annotation.Nonnull;
 
-public abstract class MplProgram {
+import com.google.common.base.Preconditions;
 
-  protected Coordinate3D max;
-  protected Orientation3D orientation;
-  protected final List<ChainPart> installation = new ArrayList<>();
-  protected final List<ChainPart> uninstallation = new ArrayList<>();
-  protected final List<CompilerException> exceptions = new LinkedList<>();
+public class NamedCommandChain extends CommandChain {
 
-  public Coordinate3D getMax() {
-    if (max != null) {
-      return max;
-    } else {
-      return new Coordinate3D(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
-    }
+  protected final String name;
+
+  public NamedCommandChain(String name, List<ChainPart> commands) {
+    super(commands);
+    this.name = Preconditions.checkNotNull(name, "name == null!");
   }
 
-  public void setMax(Coordinate3D max) {
-    this.max = max;
-  }
-
-  public Orientation3D getOrientation() {
-    return orientation;
-  }
-
-  public void setOrientation(Orientation3D orientation) {
-    this.orientation = orientation;
-  }
-
-  public List<ChainPart> getInstallation() {
-    return installation;
-  }
-
-  public List<ChainPart> getUninstallation() {
-    return uninstallation;
-  }
-
-  public List<CompilerException> getExceptions() {
-    return exceptions;
+  @Nonnull
+  public String getName() {
+    return name;
   }
 
 }

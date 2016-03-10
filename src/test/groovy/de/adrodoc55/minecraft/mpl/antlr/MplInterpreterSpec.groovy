@@ -52,12 +52,13 @@ import com.google.common.collect.ListMultimap
 import de.adrodoc55.minecraft.mpl.ChainPart
 import de.adrodoc55.minecraft.mpl.Command
 import de.adrodoc55.minecraft.mpl.CommandChain
-import de.adrodoc55.minecraft.mpl.MplConverter
 import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.Skip
 import de.adrodoc55.minecraft.mpl.Command.Mode
+import de.adrodoc55.minecraft.mpl.antlr.commands.InternalCommand
 import de.adrodoc55.minecraft.mpl.antlr.commands.InvertingCommand
 import de.adrodoc55.minecraft.mpl.antlr.commands.NormalizingCommand
+import de.adrodoc55.minecraft.mpl.antlr.commands.ReferencingCommand
 
 public class MplInterpreterSpec extends MplSpecBase {
 
@@ -76,9 +77,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplScript script = interpreter.script
     script.exceptions.isEmpty()
     List<Command> commands = script.chain.commands
-    commands.size() == 2
     commands[0] == new Command('say hi')
     commands[1] == new Command(command, mode, conditional, needsRedstone)
+    commands.size() == 2
     where:
     programString                                           | mode          | conditional   | needsRedstone
     '/' + someString()                                      | Mode.CHAIN    | false         | false
@@ -128,11 +129,10 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 3
-
     commands[0] == new Command("say hi")
-    commands[1] == new Command("testforblock \${this - 1} chain_command_block -1 {SuccessCount:0}")
+    commands[1] == new InvertingCommand(Mode.CHAIN)
     commands[2] == new Command(command, mode, true, needsRedstone)
+    commands.size() == 3
     where:
     programString                                       | mode          | needsRedstone
     'invert: /' + someString()                          | Mode.CHAIN    | false
@@ -161,7 +161,6 @@ public class MplInterpreterSpec extends MplSpecBase {
       ${lowercaseName}: ${command}
       invert: /say hi
     """
-    String blockId = MplConverter.toBlockId(mode)
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
@@ -170,11 +169,10 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 3
-
     commands[0] == new Command(command, mode, false)
-    commands[1] == new Command("testforblock \${this - 1} ${blockId} -1 {SuccessCount:0}")
+    commands[1] == new InvertingCommand(mode)
     commands[2] == new Command("say hi", true)
+    commands.size() == 3
     where:
     mode << Mode.values()
   }
@@ -191,11 +189,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(testString)
     then:
     MplScript script = interpreter.script
-    script.exceptions.size() == 1
     script.exceptions[0].source.file == lastTempFile
     script.exceptions[0].source.token.line == 4
     script.exceptions[0].source.token.text == 'invert'
     script.exceptions[0].message == "Invert modifier may not follow a skip!"
+    script.exceptions.size() == 1
   }
 
   @Test
@@ -210,11 +208,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(testString)
     then:
     MplProject project = interpreter.project
-    project.exceptions.size() == 1
     project.exceptions[0].source.file == lastTempFile
     project.exceptions[0].source.token.line == 3
     project.exceptions[0].source.token.text == 'skip'
     project.exceptions[0].message == "Skip may not be the first command of a repeating process!"
+    project.exceptions.size() == 1
   }
 
   @Test
@@ -235,14 +233,14 @@ public class MplInterpreterSpec extends MplSpecBase {
     Collection<MplProcess> processes = project.processes
     processes.size() == 1
 
-    CommandChain process = processes.first()
+    MplProcess process = processes.first()
     process.name == name
 
     List<Command> commands = process.commands
-    commands.size() == 3
     commands[0] == new Command("say hi", Mode.REPEAT, false)
     commands[1] == new InvertingCommand(Mode.REPEAT)
     commands[2] == new Command("say inverted", true)
+    commands.size() == 3
   }
 
   @Test
@@ -262,12 +260,12 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 5
     commands[0] == new Command("say \${this + 6}")
     commands[1] == new Command("say \${this + 2}")
     commands[2] == new Command("testforblock \${this - 1} chain_command_block {SuccessCount:0}")
     commands[3] == new Command("say \${this - 2}", true)
     commands[4] == new Command("say \${this - 6}")
+    commands.size() == 5
   }
 
   @Test
@@ -287,9 +285,9 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 2
     commands[0] == new Command("say hi")
     commands[1] == new Command("execute @e[name=${identifier}] ~ ~ ~ setblock ~ ~ ~ redstone_block", conditional)
+    commands.size() == 2
     where:
     programString                               | conditional
     'start ' + someIdentifier()                 | false
@@ -312,8 +310,8 @@ public class MplInterpreterSpec extends MplSpecBase {
     script.exceptions.isEmpty()
 
     List<ChainPart> installation = script.installation
-    installation.size() == 1
     installation[0] == new Command("execute @e[name=${id}] ~ ~ ~ setblock ~ ~ ~ redstone_block")
+    installation.size() == 1
   }
 
   @Test
@@ -335,13 +333,13 @@ public class MplInterpreterSpec extends MplSpecBase {
     Collection<MplProcess> processes = project.processes
     processes.size() == 1
 
-    CommandChain process = processes.first()
+    MplProcess process = processes.first()
     process.name == name
 
     List<Command> commands = process.commands
-    commands.size() == 2
-    commands[0] == new Command('setblock \${this - 1} stone', Mode.IMPULSE, false)
+    commands[0] == new InternalCommand('setblock \${this - 1} stone', Mode.IMPULSE, false)
     commands[1] == new Command("execute @e[name=${id}] ~ ~ ~ setblock ~ ~ ~ redstone_block")
+    commands.size() == 2
   }
 
   @Test
@@ -362,12 +360,12 @@ public class MplInterpreterSpec extends MplSpecBase {
     Collection<MplProcess> processes = project.processes
     processes.size() == 1
 
-    CommandChain process = processes.first()
+    MplProcess process = processes.first()
     process.name == name
 
     List<Command> commands = process.commands
-    commands.size() == 1
     commands[0] == new Command("execute @e[name=${name}] ~ ~ ~ setblock ~ ~ ~ stone", Mode.REPEAT, false)
+    commands.size() == 1
   }
 
   @Test
@@ -389,13 +387,13 @@ public class MplInterpreterSpec extends MplSpecBase {
     Collection<MplProcess> processes = project.processes
     processes.size() == 1
 
-    CommandChain process = processes.first()
+    MplProcess process = processes.first()
     process.name == name
 
     List<Command> commands = process.commands
-    commands.size() == 2
     commands[0] == new Command("say hi", Mode.REPEAT, false)
     commands[1] == new Command("execute @e[name=${name}] ~ ~ ~ setblock ~ ~ ~ stone", true)
+    commands.size() == 2
   }
 
   @Test
@@ -411,11 +409,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProject project = interpreter.project
-    project.exceptions.size() == 1
     project.exceptions[0].source.file == lastTempFile
     project.exceptions[0].source.token.line == 3
     project.exceptions[0].source.token.text == 'stop'
     project.exceptions[0].message == 'Can only stop repeating processes.'
+    project.exceptions.size() == 1
   }
 
   @Test
@@ -437,13 +435,13 @@ public class MplInterpreterSpec extends MplSpecBase {
     Collection<MplProcess> processes = project.processes
     processes.size() == 1
 
-    CommandChain process = processes.first()
+    MplProcess process = processes.first()
     process.name == name
 
     List<Command> commands = process.commands
-    commands.size() == 2
-    commands[0] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[0] == new InternalCommand("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands[1] == new Command("execute @e[name=${sid}] ~ ~ ~ setblock ~ ~ ~ stone")
+    commands.size() == 2
   }
 
   @Test
@@ -464,14 +462,14 @@ public class MplInterpreterSpec extends MplSpecBase {
     Collection<MplProcess> processes = project.processes
     processes.size() == 1
 
-    CommandChain process = processes.first()
+    MplProcess process = processes.first()
     process.name == name
 
     List<Command> commands = process.commands
-    commands.size() == 3
-    commands[0] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
-    commands[1] == new Command("execute @e[name=${name}_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block")
+    commands[0] == new InternalCommand("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[1] == new InternalCommand("execute @e[name=${name}_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block")
     commands[2] == new Command("kill @e[name=${name}_NOTIFY]")
+    commands.size() == 3
   }
 
   @Test
@@ -493,15 +491,46 @@ public class MplInterpreterSpec extends MplSpecBase {
     Collection<MplProcess> processes = project.processes
     processes.size() == 1
 
-    CommandChain process = processes.first()
+    MplProcess process = processes.first()
     process.name == name
 
     List<Command> commands = process.commands
-    commands.size() == 4
-    commands[0] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[0] == new InternalCommand("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands[1] == new Command("say hi")
-    commands[2] == new Command("execute @e[name=${name}_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block", true)
+    commands[2] == new InternalCommand("execute @e[name=${name}_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block", true)
     commands[3] == new Command("kill @e[name=${name}_NOTIFY]", true)
+    commands.size() == 4
+  }
+
+  @Test
+  public void "invert: notify generiert die richtigen Commandos"() {
+    given:
+    String name = someIdentifier()
+    String programString = """
+    process ${name} (
+    /say hi
+    invert: notify
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+
+    Collection<MplProcess> processes = project.processes
+    processes.size() == 1
+
+    MplProcess process = processes.first()
+    process.name == name
+
+    List<Command> commands = process.commands
+    commands[0] == new InternalCommand("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[1] == new Command("say hi")
+    commands[2] == new InvertingCommand(Mode.CHAIN)
+    commands[3] == new InternalCommand("execute @e[name=${name}_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block", true)
+    commands[4] == new Command("kill @e[name=${name}_NOTIFY]", true)
+    commands.size() == 5
   }
 
   @Test
@@ -515,11 +544,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplScript script = interpreter.script
-    script.exceptions.size() == 1
     script.exceptions[0].source.file == lastTempFile
     script.exceptions[0].source.token.line == 2
     script.exceptions[0].source.token.text == 'notify'
     script.exceptions[0].message == 'Encountered notify outside of a process context.'
+    script.exceptions.size() == 1
   }
 
   @Test
@@ -540,14 +569,14 @@ public class MplInterpreterSpec extends MplSpecBase {
     Collection<MplProcess> processes = project.processes
     processes.size() == 1
 
-    CommandChain process = processes.first()
+    MplProcess process = processes.first()
     process.name == name
 
     List<Command> commands = process.commands
-    commands.size() == 3
     commands[0] == new Command("say hi", Mode.REPEAT, false)
-    commands[1] == new Command("execute @e[name=${name}_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block")
+    commands[1] == new InternalCommand("execute @e[name=${name}_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block")
     commands[2] == new Command("kill @e[name=${name}_NOTIFY]")
+    commands.size() == 3
   }
 
   @Test
@@ -569,14 +598,14 @@ public class MplInterpreterSpec extends MplSpecBase {
     Collection<MplProcess> processes = project.processes
     processes.size() == 1
 
-    CommandChain process = processes.first()
+    MplProcess process = processes.first()
     process.name == name
 
     List<Command> commands = process.commands
-    commands.size() == 3
     commands[0] == new Command("say hi", Mode.REPEAT, false)
-    commands[1] == new Command("execute @e[name=${name}_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block", true)
+    commands[1] == new InternalCommand("execute @e[name=${name}_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block", true)
     commands[2] == new Command("kill @e[name=${name}_NOTIFY]", true)
+    commands.size() == 3
   }
 
   @Test
@@ -594,11 +623,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProject project = interpreter.project
-    project.exceptions.size() == 1
     project.exceptions[0].source.file == lastTempFile
     project.exceptions[0].source.token.line == 4
     project.exceptions[0].source.token.text == 'waitfor'
     project.exceptions[0].message == 'Encountered waitfor in repeating context.'
+    project.exceptions.size() == 1
   }
 
   @Test
@@ -614,11 +643,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplScript script = interpreter.script
-    script.exceptions.size() == 1
     script.exceptions[0].source.file == lastTempFile
     script.exceptions[0].source.token.line == 4
     script.exceptions[0].source.token.text == 'waitfor'
     script.exceptions[0].message == 'Encountered waitfor in repeating context.'
+    script.exceptions.size() == 1
   }
 
   @Test
@@ -637,11 +666,11 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 4
     commands[0] == new Command("execute @e[name=${identifier}] ~ ~ ~ setblock ~ ~ ~ redstone_block")
-    commands[1] == new Command("summon ArmorStand \${this + 1} {CustomName:${identifier}_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-    commands[2] == new Skip(true)
-    commands[3] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[1] == new InternalCommand("summon ArmorStand \${this + 1} {CustomName:${identifier}_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+    commands[2] == new Skip(false) // Nicht internal, da waitfor manuell referenziert werden können soll
+    commands[3] == new InternalCommand("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands.size() == 4
   }
 
   @Test
@@ -655,11 +684,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplScript script = interpreter.script
-    script.exceptions.size() == 1
     script.exceptions[0].source.file == lastTempFile
     script.exceptions[0].source.token.line == 2
     script.exceptions[0].source.token.text == 'waitfor'
     script.exceptions[0].message == 'Missing Identifier. No previous start was found to wait for.'
+    script.exceptions.size() == 1
   }
 
   @Test
@@ -675,10 +704,10 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
+    commands[0] == new InternalCommand("summon ArmorStand \${this + 1} {CustomName:${identifier}_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+    commands[1] == new Skip(false) // Nicht internal, da waitfor manuell referenziert werden können soll
+    commands[2] == new InternalCommand("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands.size() == 3
-    commands[0] == new Command("summon ArmorStand \${this + 1} {CustomName:${identifier}_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-    commands[1] == new Skip(true)
-    commands[2] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
   }
 
   @Test
@@ -697,13 +726,13 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 6
     commands[0] == new Command("say hi")
-    commands[1] == new Command("summon ArmorStand \${this + 3} {CustomName:${identifier}_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true)
-    commands[2] == new Command("blockdata \${this - 1} {SuccessCount:1}")
-    commands[3] == new Command("setblock \${this + 1} redstone_block", true)
-    commands[4] == new Skip(true)
-    commands[5] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[1] == new InternalCommand("summon ArmorStand \${this + 3} {CustomName:${identifier}_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true)
+    commands[2] == new InternalCommand("blockdata \${this - 1} {SuccessCount:1}")
+    commands[3] == new InternalCommand("setblock \${this + 1} redstone_block", true)
+    commands[4] == new Skip(false) // Nicht internal, da waitfor manuell referenziert werden können soll
+    commands[5] == new InternalCommand("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands.size() == 6
   }
 
   @Test
@@ -720,11 +749,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProject project = interpreter.project
-    project.exceptions.size() == 1
     project.exceptions[0].source.file == lastTempFile
     project.exceptions[0].source.token.line == 3
     project.exceptions[0].source.token.text == 'intercept'
     project.exceptions[0].message == 'Encountered intercept in repeating context.'
+    project.exceptions.size() == 1
   }
 
   @Test
@@ -739,11 +768,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplScript script = interpreter.script
-    script.exceptions.size() == 1
     script.exceptions[0].source.file == lastTempFile
     script.exceptions[0].source.token.line == 3
     script.exceptions[0].source.token.text == 'intercept'
     script.exceptions[0].message == 'Encountered intercept in repeating context.'
+    script.exceptions.size() == 1
   }
 
   @Test
@@ -759,13 +788,13 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
+    commands[0] == new InternalCommand("entitydata @e[name=${identifier}] {CustomName:${identifier}_INTERCEPTED}")
+    commands[1] == new InternalCommand("summon ArmorStand \${this + 1} {CustomName:${identifier},NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+    commands[2] == new Skip(false) // Nicht internal, da intercept manuell referenziert werden können soll
+    commands[3] == new InternalCommand("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[4] == new InternalCommand("kill @e[name=${identifier},r=2]")
+    commands[5] == new InternalCommand("entitydata @e[name=${identifier}_INTERCEPTED] {CustomName:${identifier}}")
     commands.size() == 6
-    commands[0] == new Command("entitydata @e[name=${identifier}] {CustomName:${identifier}_INTERCEPTED}")
-    commands[1] == new Command("summon ArmorStand \${this + 1} {CustomName:${identifier},NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-    commands[2] == new Skip(true)
-    commands[3] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
-    commands[4] == new Command("kill @e[name=${identifier},r=2]")
-    commands[5] == new Command("entitydata @e[name=${identifier}_INTERCEPTED] {CustomName:${identifier}}")
   }
 
   @Test
@@ -784,16 +813,16 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 9
     commands[0] == new Command("say hi")
-    commands[1] == new Command("testforblock \${this - 1} chain_command_block -1 {SuccessCount:0}")
-    commands[2] == new Command("setblock \${this + 3} redstone_block", true)
-    commands[3] == new Command("entitydata @e[name=${identifier}] {CustomName:${identifier}_INTERCEPTED}")
-    commands[4] == new Command("summon ArmorStand \${this + 1} {CustomName:${identifier},NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-    commands[5] == new Skip(true)
-    commands[6] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
-    commands[7] == new Command("kill @e[name=${identifier},r=2]")
-    commands[8] == new Command("entitydata @e[name=${identifier}_INTERCEPTED] {CustomName:${identifier}}")
+    commands[1] == new InvertingCommand(Mode.CHAIN)
+    commands[2] == new InternalCommand("setblock \${this + 3} redstone_block", true)
+    commands[3] == new InternalCommand("entitydata @e[name=${identifier}] {CustomName:${identifier}_INTERCEPTED}")
+    commands[4] == new InternalCommand("summon ArmorStand \${this + 1} {CustomName:${identifier},NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+    commands[5] == new Skip(false) // Nicht internal, da intercept manuell referenziert werden können soll
+    commands[6] == new InternalCommand("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[7] == new InternalCommand("kill @e[name=${identifier},r=2]")
+    commands[8] == new InternalCommand("entitydata @e[name=${identifier}_INTERCEPTED] {CustomName:${identifier}}")
+    commands.size() == 9
   }
 
   @Test
@@ -812,15 +841,15 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 8
     commands[0] == new Command("say hi")
-    commands[1] == new Command("setblock \${this + 3} redstone_block", true)
-    commands[2] == new Command("entitydata @e[name=${identifier}] {CustomName:${identifier}_INTERCEPTED}")
-    commands[3] == new Command("summon ArmorStand \${this + 1} {CustomName:${identifier},NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-    commands[4] == new Skip(true)
-    commands[5] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
-    commands[6] == new Command("kill @e[name=${identifier},r=2]")
-    commands[7] == new Command("entitydata @e[name=${identifier}_INTERCEPTED] {CustomName:${identifier}}")
+    commands[1] == new InternalCommand("setblock \${this + 3} redstone_block", true)
+    commands[2] == new InternalCommand("entitydata @e[name=${identifier}] {CustomName:${identifier}_INTERCEPTED}")
+    commands[3] == new InternalCommand("summon ArmorStand \${this + 1} {CustomName:${identifier},NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+    commands[4] == new Skip(false) // Nicht internal, da intercept manuell referenziert werden können soll
+    commands[5] == new InternalCommand("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[6] == new InternalCommand("kill @e[name=${identifier},r=2]")
+    commands[7] == new InternalCommand("entitydata @e[name=${identifier}_INTERCEPTED] {CustomName:${identifier}}")
+    commands.size() == 8
   }
 
   @Test
@@ -840,10 +869,9 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 2
-
     commands[0] == new Command("testfor @p")
     commands[1] == new Command("say then", true)
+    commands.size() == 2
   }
 
   @Test
@@ -859,11 +887,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplScript script = interpreter.script
-    script.exceptions.size() == 1
     script.exceptions[0].source.file == lastTempFile
     script.exceptions[0].source.token.line == 4
     script.exceptions[0].source.token.text == 'conditional'
     script.exceptions[0].message == "The first command of a chain must be unconditional!"
+    script.exceptions.size() == 1
   }
 
   @Test
@@ -879,11 +907,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplScript script = interpreter.script
-    script.exceptions.size() == 1
     script.exceptions[0].source.file == lastTempFile
     script.exceptions[0].source.token.line == 4
     script.exceptions[0].source.token.text == 'invert'
     script.exceptions[0].message == "The first command of a chain must be unconditional!"
+    script.exceptions.size() == 1
   }
 
   @Test
@@ -901,11 +929,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplScript script = interpreter.script
-    script.exceptions.size() == 1
     script.exceptions[0].source.file == lastTempFile
     script.exceptions[0].source.token.line == 6
     script.exceptions[0].source.token.text == 'conditional'
     script.exceptions[0].message == "The first command of a chain must be unconditional!"
+    script.exceptions.size() == 1
   }
 
   @Test
@@ -923,11 +951,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplScript script = interpreter.script
-    script.exceptions.size() == 1
     script.exceptions[0].source.file == lastTempFile
     script.exceptions[0].source.token.line == 6
     script.exceptions[0].source.token.text == 'invert'
     script.exceptions[0].message == "The first command of a chain must be unconditional!"
+    script.exceptions.size() == 1
   }
 
   @Test
@@ -947,11 +975,10 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 3
-
     commands[0] == new Command('testfor @p')
-    commands[1] == new Command('testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
+    commands[1] == new ReferencingCommand(-1, 'chain_command_block', false)
     commands[2] == new Command('say then', true)
+    commands.size() == 3
   }
 
   @Test
@@ -973,12 +1000,11 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 4
-
     commands[0] == new Command('testfor @p')
     commands[1] == new Command('say then', true)
-    commands[2] == new Command('testforblock ${this - 2} chain_command_block -1 {SuccessCount:0}')
+    commands[2] == new ReferencingCommand(-2, 'chain_command_block', false)
     commands[3] == new Command('say else', true)
+    commands.size() == 4
   }
 
   @Test
@@ -1000,15 +1026,14 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 7
-
     commands[0] == new Command('testfor @p')
-    commands[1] == new Command('testforblock ~ ~ ~ chain_command_block', true)
+    commands[1] == new NormalizingCommand()
     commands[2] == new Command('say then1', true)
-    commands[3] == new Command('testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}')
+    commands[3] == new ReferencingCommand(-2, 'chain_command_block', true)
     commands[4] == new Command('say then2', true)
-    commands[5] == new Command('testforblock ${this - 4} chain_command_block -1 {SuccessCount:1}')
+    commands[5] == new ReferencingCommand(-4, 'chain_command_block', true)
     commands[6] == new Command('say then3', true)
+    commands.size() == 7
   }
 
   @Test
@@ -1030,15 +1055,14 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 7
-
     commands[0] == new Command('testfor @p')
-    commands[1] == new Command('testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
+    commands[1] == new ReferencingCommand(-1, 'chain_command_block', false)
     commands[2] == new Command('say then1', true)
-    commands[3] == new Command('testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}')
+    commands[3] == new ReferencingCommand(-3, 'chain_command_block', false)
     commands[4] == new Command('say then2', true)
-    commands[5] == new Command('testforblock ${this - 5} chain_command_block -1 {SuccessCount:0}')
+    commands[5] == new ReferencingCommand(-5, 'chain_command_block', false)
     commands[6] == new Command('say then3', true)
+    commands.size() == 7
   }
 
   @Test
@@ -1064,21 +1088,20 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 13
-
     commands[0] == new Command('testfor @p')
-    commands[1] == new Command('testforblock ~ ~ ~ chain_command_block', true)
+    commands[1] == new NormalizingCommand()
     commands[2] == new Command('say then1', true)
-    commands[3] == new Command('testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}')
+    commands[3] == new ReferencingCommand(-2, 'chain_command_block', true)
     commands[4] == new Command('say then2', true)
-    commands[5] == new Command('testforblock ${this - 4} chain_command_block -1 {SuccessCount:1}')
+    commands[5] == new ReferencingCommand(-4, 'chain_command_block', true)
     commands[6] == new Command('say then3', true)
-    commands[7] == new Command('testforblock ${this - 6} chain_command_block -1 {SuccessCount:0}')
+    commands[7] == new ReferencingCommand(-6, 'chain_command_block', false)
     commands[8] == new Command('say else1', true)
-    commands[9] == new Command('testforblock ${this - 8} chain_command_block -1 {SuccessCount:0}')
+    commands[9] == new ReferencingCommand(-8, 'chain_command_block', false)
     commands[10] == new Command('say else2', true)
-    commands[11] == new Command('testforblock ${this - 10} chain_command_block -1 {SuccessCount:0}')
+    commands[11] == new ReferencingCommand(-10, 'chain_command_block', false)
     commands[12] == new Command('say else3', true)
+    commands.size() == 13
   }
 
   @Test
@@ -1104,22 +1127,21 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 14
-
     commands[0] == new Command('testfor @p')
-    commands[1] == new Command('testforblock ~ ~ ~ chain_command_block', true)
-    commands[2] == new Command('testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
+    commands[1] == new NormalizingCommand()
+    commands[2] == new ReferencingCommand(-1, 'chain_command_block', false)
     commands[3] == new Command('say then1', true)
-    commands[4] == new Command('testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}')
+    commands[4] == new ReferencingCommand(-3, 'chain_command_block', false)
     commands[5] == new Command('say then2', true)
-    commands[6] == new Command('testforblock ${this - 5} chain_command_block -1 {SuccessCount:0}')
+    commands[6] == new ReferencingCommand(-5, 'chain_command_block', false)
     commands[7] == new Command('say then3', true)
-    commands[8] == new Command('testforblock ${this - 7} chain_command_block -1 {SuccessCount:1}')
+    commands[8] == new ReferencingCommand(-7, 'chain_command_block', true)
     commands[9] == new Command('say else1', true)
-    commands[10] == new Command('testforblock ${this - 9} chain_command_block -1 {SuccessCount:1}')
+    commands[10] == new ReferencingCommand(-9, 'chain_command_block', true)
     commands[11] == new Command('say else2', true)
-    commands[12] == new Command('testforblock ${this - 11} chain_command_block -1 {SuccessCount:1}')
+    commands[12] == new ReferencingCommand(-11, 'chain_command_block', true)
     commands[13] == new Command('say else3', true)
+    commands.size() == 14
   }
 
   @Test
@@ -1141,14 +1163,13 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 6
-
     commands[0] == new Command('testfor @p')
-    commands[1] == new Command('testforblock ~ ~ ~ chain_command_block', true)
+    commands[1] == new NormalizingCommand()
     commands[2] == new Command('say then1', true)
     commands[3] == new Command('say then2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung false, muss auch mein vorgänger false sein.
-    commands[4] == new Command('testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}')
+    commands[4] == new ReferencingCommand(-3, 'chain_command_block', true)
     commands[5] == new Command('say then3', true)
+    commands.size() == 6
   }
 
   @Test
@@ -1169,11 +1190,10 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 3
-
     commands[0] == new Command('testfor @p')
     commands[1] == new Command('say then1', true)
     commands[2] == new Command('say then2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung false, muss auch mein vorgänger false sein.
+    commands.size() == 3
   }
 
   @Test
@@ -1194,14 +1214,13 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 6
-
     commands[0] == new Command('testfor @p')
-    commands[1] == new Command('testforblock ~ ~ ~ chain_command_block', true)
+    commands[1] == new NormalizingCommand()
     commands[2] == new Command('say then1', true)
-    commands[3] == new Command('testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
-    commands[4] == new Command('testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}', true)
+    commands[3] == new InvertingCommand(Mode.CHAIN)
+    commands[4] == new ReferencingCommand(-3, 'chain_command_block', true, true)
     commands[5] == new Command('say then2', true)
+    commands.size() == 6
   }
 
   @Test
@@ -1224,13 +1243,12 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 5
-
     commands[0] == new Command('testfor @p')
     commands[1] == new Command('say then', true)
-    commands[2] == new Command('testforblock ${this - 2} chain_command_block -1 {SuccessCount:0}')
+    commands[2] == new ReferencingCommand(-2, 'chain_command_block', false)
     commands[3] == new Command('say else1', true)
     commands[4] == new Command('say else2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung true, muss auch mein vorgänger false sein.
+    commands.size() == 5
   }
 
   @Test
@@ -1253,15 +1271,14 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 7
-
     commands[0] == new Command('testfor @p')
     commands[1] == new Command('say then', true)
-    commands[2] == new Command('testforblock ${this - 2} chain_command_block -1 {SuccessCount:0}')
+    commands[2] == new ReferencingCommand(-2, 'chain_command_block', false)
     commands[3] == new Command('say else1', true)
-    commands[4] == new Command('testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
-    commands[5] == new Command('testforblock ${this - 5} chain_command_block -1 {SuccessCount:0}', true)
+    commands[4] == new InvertingCommand(Mode.CHAIN)
+    commands[5] == new ReferencingCommand(-5, 'chain_command_block', false, true)
     commands[6] == new Command('say else2', true)
+    commands.size() == 7
   }
 
   @Test
@@ -1283,14 +1300,13 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 6
-
     commands[0] == new Command('testfor @p')
-    commands[1] == new Command('testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
+    commands[1] == new ReferencingCommand(-1, 'chain_command_block', false)
     commands[2] == new Command('say then1', true)
     commands[3] == new Command('say then2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung false, muss auch mein vorgänger false sein.
-    commands[4] == new Command('testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}')
+    commands[4] == new ReferencingCommand(-4, 'chain_command_block', false)
     commands[5] == new Command('say then3', true)
+    commands.size() == 6
   }
 
   @Test
@@ -1311,14 +1327,13 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 6
-
     commands[0] == new Command('testfor @p')
-    commands[1] == new Command('testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
+    commands[1] == new ReferencingCommand(-1, 'chain_command_block', false)
     commands[2] == new Command('say then1', true)
-    commands[3] == new Command('testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
-    commands[4] == new Command('testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}', true)
+    commands[3] == new InvertingCommand(Mode.CHAIN)
+    commands[4] == new ReferencingCommand(-4, 'chain_command_block', false, true)
     commands[5] == new Command('say then2', true)
+    commands.size() == 6
   }
 
   @Test
@@ -1341,15 +1356,14 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 7
-
     commands[0] == new Command('testfor @p')
     commands[1] == new NormalizingCommand()
-    commands[2] == new Command('testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
+    commands[2] == new ReferencingCommand(-1, 'chain_command_block', false)
     commands[3] == new Command('say then', true)
-    commands[4] == new Command('testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}')
+    commands[4] == new ReferencingCommand(-3, 'chain_command_block', true)
     commands[5] == new Command('say else1', true)
     commands[6] == new Command('say else2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung true, muss auch mein vorgänger false sein.
+    commands.size() == 7
   }
 
   @Test
@@ -1372,17 +1386,16 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 9
-
     commands[0] == new Command('testfor @p')
     commands[1] == new NormalizingCommand()
-    commands[2] == new Command('testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}')
+    commands[2] == new ReferencingCommand(-1, 'chain_command_block', false)
     commands[3] == new Command('say then', true)
-    commands[4] == new Command('testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}')
+    commands[4] == new ReferencingCommand(-3, 'chain_command_block', true)
     commands[5] == new Command('say else1', true)
     commands[6] == new InvertingCommand(Mode.CHAIN)
-    commands[7] == new Command('testforblock ${this - 6} chain_command_block -1 {SuccessCount:1}', true)
+    commands[7] == new ReferencingCommand(-6, 'chain_command_block', true, true)
     commands[8] == new Command('say else2', true)
+    commands.size() == 9
   }
 
   @Test
@@ -1407,17 +1420,15 @@ public class MplInterpreterSpec extends MplSpecBase {
     Collection<MplProcess> processes = project.processes
     processes.size() == 1
 
-    CommandChain process = processes.first()
+    MplProcess process = processes.first()
     process.name == name
 
     List<Command> commands = process.commands
-
-    commands.size() == 4
-
     commands[0] == new Command('testfor @p', Mode.REPEAT, false)
     commands[1] == new Command('say then', true)
-    commands[2] == new Command('testforblock ${this - 2} repeating_command_block -1 {SuccessCount:0}')
+    commands[2] == new ReferencingCommand(-2, 'repeating_command_block', false)
     commands[3] == new Command('say else', true)
+    commands.size() == 4
   }
 
   @Test
@@ -1446,21 +1457,20 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 13
-
     commands[0] == new Command('outer condition')
-    commands[1] == new Command('testforblock ~ ~ ~ chain_command_block', true)
+    commands[1] == new NormalizingCommand()
     commands[2] == new Command('say outer then1', true)
-    commands[3] == new Command('testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}')
+    commands[3] == new ReferencingCommand(-2, 'chain_command_block', true)
     commands[4] == new Command('inner condition', true)
     commands[5] == new Command('say inner then', true)
-    commands[6] == new Command('testforblock ${this - 5} chain_command_block -1 {SuccessCount:1}')
-    commands[7] == new Command('testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}', true)
+    commands[6] == new ReferencingCommand(-5, 'chain_command_block', true)
+    commands[7] == new ReferencingCommand(-3, 'chain_command_block', false, true)
     commands[8] == new Command('say inner else', true)
-    commands[9] == new Command('testforblock ${this - 8} chain_command_block -1 {SuccessCount:1}')
+    commands[9] == new ReferencingCommand(-8, 'chain_command_block', true)
     commands[10] == new Command('say outer then2', true)
-    commands[11] == new Command('testforblock ${this - 10} chain_command_block -1 {SuccessCount:0}')
+    commands[11] == new ReferencingCommand(-10, 'chain_command_block', false)
     commands[12] == new Command('say outer else', true)
+    commands.size() == 13
   }
 
   @Test
@@ -1496,30 +1506,29 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 22
-
     commands[0] == new Command('outer condition')
-    commands[1] == new Command('testforblock ~ ~ ~ chain_command_block', true)
+    commands[1] == new NormalizingCommand()
     commands[2] == new Command('say outer then1', true)
-    commands[3] == new Command('testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}')
+    commands[3] == new ReferencingCommand(-2, 'chain_command_block', true)
     commands[4] == new Command('middle condition', true)
-    commands[5] == new Command('testforblock ~ ~ ~ chain_command_block', true)
+    commands[5] == new NormalizingCommand()
     commands[6] == new Command('say middle then1', true)
-    commands[7] == new Command('testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}')
+    commands[7] == new ReferencingCommand(-2, 'chain_command_block', true)
     commands[8] == new Command('inner condition', true)
     commands[9] == new Command('say inner then', true)
-    commands[10] == new Command('testforblock ${this - 5} chain_command_block -1 {SuccessCount:1}')
-    commands[11] == new Command('testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}', true)
+    commands[10] == new ReferencingCommand(-5, 'chain_command_block', true)
+    commands[11] == new ReferencingCommand(-3, 'chain_command_block', false, true)
     commands[12] == new Command('say inner else', true)
-    commands[13] == new Command('testforblock ${this - 8} chain_command_block -1 {SuccessCount:1}')
+    commands[13] == new ReferencingCommand(-8, 'chain_command_block', true)
     commands[14] == new Command('say middle then2', true)
-    commands[15] == new Command('testforblock ${this - 14} chain_command_block -1 {SuccessCount:1}')
-    commands[16] == new Command('testforblock ${this - 11} chain_command_block -1 {SuccessCount:0}', true)
+    commands[15] == new ReferencingCommand(-14, 'chain_command_block', true)
+    commands[16] == new ReferencingCommand(-11, 'chain_command_block', false, true)
     commands[17] == new Command('say middle else', true)
-    commands[18] == new Command('testforblock ${this - 17} chain_command_block -1 {SuccessCount:1}')
+    commands[18] == new ReferencingCommand(-17, 'chain_command_block', true)
     commands[19] == new Command('say outer then2', true)
-    commands[20] == new Command('testforblock ${this - 19} chain_command_block -1 {SuccessCount:0}')
+    commands[20] == new ReferencingCommand(-19, 'chain_command_block', false)
     commands[21] == new Command('say outer else', true)
+    commands.size() == 22
   }
 
   @Test
@@ -1555,31 +1564,30 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
-    commands.size() == 23
-
     commands[0] == new Command('outer condition')
     commands[1] == new Command('say outer then', true)
-    commands[2] == new Command('testforblock ${this - 2} chain_command_block -1 {SuccessCount:0}')
+    commands[2] == new ReferencingCommand(-2, 'chain_command_block', false)
     commands[3]== new Command('say outer else1', true)
-    commands[4] == new Command('testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}')
+    commands[4] == new ReferencingCommand(-4, 'chain_command_block', false)
     commands[5] == new Command('middle condition', true)
     commands[6] == new Command('say middle then', true)
-    commands[7] == new Command('testforblock ${this - 7} chain_command_block -1 {SuccessCount:0}')
-    commands[8] == new Command('testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}', true)
+    commands[7] == new ReferencingCommand(-7, 'chain_command_block', false)
+    commands[8] == new ReferencingCommand(-3, 'chain_command_block', false, true)
     commands[9] == new Command('say middle else1', true)
-    commands[10] == new Command('testforblock ${this - 10} chain_command_block -1 {SuccessCount:0}')
-    commands[11] == new Command('testforblock ${this - 6} chain_command_block -1 {SuccessCount:0}', true)
+    commands[10] == new ReferencingCommand(-10, 'chain_command_block', false)
+    commands[11] == new ReferencingCommand(-6, 'chain_command_block', false, true)
     commands[12] == new Command('inner condition', true)
     commands[13] == new Command('say inner then', true)
-    commands[14] == new Command('testforblock ${this - 14} chain_command_block -1 {SuccessCount:0}')
-    commands[15] == new Command('testforblock ${this - 10} chain_command_block -1 {SuccessCount:0}', true)
-    commands[16] == new Command('testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}', true)
+    commands[14] == new ReferencingCommand(-14, 'chain_command_block', false)
+    commands[15] == new ReferencingCommand(-10, 'chain_command_block', false, true)
+    commands[16] == new ReferencingCommand(-4, 'chain_command_block', false, true)
     commands[17] == new Command('say inner else', true)
-    commands[18] == new Command('testforblock ${this - 18} chain_command_block -1 {SuccessCount:0}')
-    commands[19] == new Command('testforblock ${this - 14} chain_command_block -1 {SuccessCount:0}', true)
+    commands[18] == new ReferencingCommand(-18, 'chain_command_block', false)
+    commands[19] == new ReferencingCommand(-14, 'chain_command_block', false, true)
     commands[20] == new Command('say middle else2', true)
-    commands[21] == new Command('testforblock ${this - 21} chain_command_block -1 {SuccessCount:0}')
+    commands[21] == new ReferencingCommand(-21, 'chain_command_block', false)
     commands[22] == new Command('say outer else2', true)
+    commands.size() == 23
   }
 
   @Test
@@ -1599,13 +1607,13 @@ public class MplInterpreterSpec extends MplSpecBase {
     Collection<MplProcess> processes = project.processes
     processes.size() == 1
 
-    CommandChain process = processes.first()
+    MplProcess process = processes.first()
     process.name == name
 
     List<Command> commands = process.commands
-    commands.size() == 2
-    commands[0] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[0] == new InternalCommand("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands[1] == new Command("say hi")
+    commands.size() == 2
   }
 
   @Test
@@ -1625,12 +1633,12 @@ public class MplInterpreterSpec extends MplSpecBase {
     Collection<MplProcess> processes = project.processes
     processes.size() == 1
 
-    CommandChain process = processes.first()
+    MplProcess process = processes.first()
     process.name == name
 
     List<Command> commands = process.commands
-    commands.size() == 1
     commands[0] == new Command("say hi", Mode.REPEAT, false)
+    commands.size() == 1
   }
 
   @Test
@@ -1661,20 +1669,20 @@ public class MplInterpreterSpec extends MplSpecBase {
 
     MplProcess process1 = processes.find { it.name == id1 }
     List<Command> commands1 = process1.commands
-    commands1.size() == 2
-    commands1[0] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands1[0] == new InternalCommand("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands1[1] == new Command("say I am a default process")
+    commands1.size() == 2
 
     MplProcess process2 = processes.find { it.name == id2 }
     List<Command> commands2 = process2.commands
-    commands2.size() == 2
-    commands2[0] == new Command("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands2[0] == new InternalCommand("setblock \${this - 1} stone", Mode.IMPULSE, false)
     commands2[1] == new Command("say I am an impulse process, wich is actually equivalent to the default")
+    commands2.size() == 2
 
     MplProcess process3 = processes.find { it.name == id3 }
     List<Command> commands3 = process3.commands
-    commands3.size() == 1
     commands3[0] == new Command("say I am a repeating process. I am completely different :)", Mode.REPEAT, false)
+    commands3.size() == 1
   }
 
   @Test
@@ -1685,8 +1693,8 @@ public class MplInterpreterSpec extends MplSpecBase {
     neighbourFile.createNewFile()
     MplInterpreter interpreter = new MplInterpreter(programFile)
     expect:
-    interpreter.imports.size() == 2
     interpreter.imports.containsAll([programFile, neighbourFile])
+    interpreter.imports.size() == 2
   }
 
   @Test
@@ -1703,8 +1711,8 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplProject project = interpreter.project
     project.exceptions.isEmpty()
 
-    interpreter.imports.size() == 2
     interpreter.imports.containsAll([programFile, otherFile])
+    interpreter.imports.size() == 2
   }
 
   @Test
@@ -1720,10 +1728,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     interpreter.addFileImport(null, otherFile)
     then:
     MplProject project = interpreter.project
-    project.exceptions.size() == 1
     project.exceptions[0].source.file == programFile
     project.exceptions[0].source.token == null
     project.exceptions[0].message == 'Duplicate import.'
+    project.exceptions.size() == 1
   }
 
   @Test
@@ -1739,7 +1747,6 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProject project = interpreter.project
-    project.exceptions.size() == 2
     project.exceptions[0].source.file == lastTempFile
     project.exceptions[0].source.token.line == 2
     project.exceptions[0].source.token.text == 'project'
@@ -1748,6 +1755,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     project.exceptions[1].source.token.line == 3
     project.exceptions[1].source.token.text == 'project'
     project.exceptions[1].message == "A file may only contain a single project!"
+    project.exceptions.size() == 2
   }
 
   @Test
@@ -1791,13 +1799,13 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplScript script = interpreter.script
-    script.installation.size() == 2
     script.installation[0] == new Command('say hi')
     script.installation[1] == new Command('say hi2')
+    script.installation.size() == 2
 
-    script.uninstallation.size() == 2
     script.uninstallation[0] == new Command('say hi3')
     script.uninstallation[1] == new Command('say hi4')
+    script.uninstallation.size() == 2
   }
 
   @Test
@@ -1827,13 +1835,13 @@ public class MplInterpreterSpec extends MplSpecBase {
     ListMultimap<String, Include> includeMap = interpreter.includes
     includeMap.size() == 2
     List<Include> includes = includeMap.get(null); // null indicates that the whole file should be included
-    includes.size() == 2
-    includes[0].files.size()==1
     includes[0].files.containsAll([new File(parent, "datei1.mpl")])
+    includes[0].files.size() == 1
     includes[0].processName == null
-    includes[1].files.size()==1
     includes[1].files.containsAll([new File(parent, "ordner2/datei4.mpl")])
+    includes[1].files.size() == 1
     includes[1].processName == null
+    includes.size() == 2
   }
 
   @Test
@@ -1850,7 +1858,6 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProject project = interpreter.project
-    project.exceptions.size() == 2
     project.exceptions[0].source.file == lastTempFile
     project.exceptions[0].source.token.line == 3
     project.exceptions[0].source.token.text == 'orientation'
@@ -1859,6 +1866,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     project.exceptions[1].source.token.line == 4
     project.exceptions[1].source.token.text == 'orientation'
     project.exceptions[1].message == "A project may only have a single orientation!"
+    project.exceptions.size() == 2
   }
 
   @Test
@@ -1872,7 +1880,6 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplScript script = interpreter.script
-    script.exceptions.size() == 2
     script.exceptions[0].source.file == lastTempFile
     script.exceptions[0].source.token.line == 2
     script.exceptions[0].source.token.text == 'orientation'
@@ -1881,6 +1888,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     script.exceptions[1].source.token.line == 3
     script.exceptions[1].source.token.text == 'orientation'
     script.exceptions[1].message == "A script may only have a single orientation!"
+    script.exceptions.size() == 2
   }
 
   @Test
@@ -1895,8 +1903,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplScript script = interpreter.script
     script.exceptions.isEmpty()
 
-    ListMultimap<String, Include> includeMap = interpreter.includes
-    includeMap.size() == 0
+    interpreter.includes.isEmpty()
   }
 
   /**
@@ -1928,10 +1935,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     ListMultimap<String, Include> includeMap = interpreter.includes
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id1);
-    includes.size() == 1
-    includes[0].files.size() == 1
     includes[0].files.containsAll([lastTempFile])
+    includes[0].files.size() == 1
     includes[0].processName == id2
+    includes.size() == 1
   }
 
   /**
@@ -1963,10 +1970,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     ListMultimap<String, Include> includeMap = interpreter.includes
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id2);
-    includes.size() == 1
-    includes[0].files.size() == 1
     includes[0].files.containsAll([lastTempFile])
+    includes[0].files.size() == 1
     includes[0].processName == id1
+    includes.size() == 1
   }
 
   @Test
@@ -1989,10 +1996,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     ListMultimap<String, Include> includeMap = interpreter.includes
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id1);
-    includes.size() == 1
-    includes[0].files.size() == 1
     includes[0].files.containsAll([lastTempFile])
+    includes[0].files.size() == 1
     includes[0].processName == id2
+    includes.size() == 1
   }
 
   @Test
@@ -2021,10 +2028,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     ListMultimap<String, Include> includeMap = interpreter.includes
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id1);
-    includes.size() == 1
-    includes[0].files.size() == 2
     includes[0].files.containsAll([lastTempFile, newFile])
+    includes[0].files.size() == 2
     includes[0].processName == id2
+    includes.size() == 1
   }
 
   @Test
@@ -2052,10 +2059,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     ListMultimap<String, Include> includeMap = interpreter.includes
     includeMap.size() == 1
     List<Include> includes = includeMap.get(id1);
-    includes.size() == 1
-    includes[0].files.size() == 2
     includes[0].files.containsAll([lastTempFile, newFile])
+    includes[0].files.size() == 2
     includes[0].processName == id2
+    includes.size() == 1
   }
 
   @Test
@@ -2075,7 +2082,6 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProject project = interpreter.project
-    project.exceptions.size() == 2
     project.exceptions[0].source.file == lastTempFile
     project.exceptions[0].source.token.line == 2
     project.exceptions[0].source.token.text == id
@@ -2084,5 +2090,6 @@ public class MplInterpreterSpec extends MplSpecBase {
     project.exceptions[1].source.token.line == 6
     project.exceptions[1].source.token.text == id
     project.exceptions[1].message == "Duplicate process ${id}!"
+    project.exceptions.size() == 2
   }
 }

@@ -115,7 +115,7 @@ public class MplProjectPlacer extends MplChainPlacer {
     result.add(optimal);
   }
 
-  private Coordinate3D estimateStart(MplProcess chain) {
+  private Coordinate3D estimateStart(MplProcess process) {
     Orientation3D orientation = getOrientation();
     Direction3D b = orientation.getB();
     Direction3D c = orientation.getC();
@@ -126,7 +126,7 @@ public class MplProjectPlacer extends MplChainPlacer {
     int optB = opt.get(b.getAxis());
 
     // int localMaxB = optimal.getMax().get(b.getAxis()) + 1;
-    int estimatedB = estimateB(chain);
+    int estimatedB = estimateB(process);
     for (int x = 0; x < occupied.length; x++) {
       int estimatedMax = occupied[x] + estimatedB;
       if (estimatedMax <= optB || occupied[x] == 0) {
@@ -134,7 +134,7 @@ public class MplProjectPlacer extends MplChainPlacer {
         return start;
       }
     }
-    throw new IllegalStateException("could not find a start for chain " + chain.getName());
+    throw new IllegalStateException("could not find a start for chain " + process.getName());
   }
 
   private int estimateB(CommandChain chain) {
@@ -343,16 +343,16 @@ public class MplProjectPlacer extends MplChainPlacer {
 
     if (!installation.isEmpty()) {
       installation.add(0, new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
-      installation.add(0, null);
+      installation.add(0, new Skip(false /* First TRANSMITTER can be referenced */));
     }
     if (!uninstallation.isEmpty()) {
       uninstallation.add(0, new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
-      uninstallation.add(0, null);
+      uninstallation.add(0, new Skip(false /* First TRANSMITTER can be referenced */));
     }
 
-    CommandBlockChain materialisedUninstallation = new IterativeChainComputer()
-        .computeOptimalChain(new CommandChain(uninstallation), new Coordinate3D(100, 100, 0));
-    materialisedUninstallation.move(Coordinate3D.UP);
+    CommandBlockChain materialisedUninstallation = new IterativeChainComputer().computeOptimalChain(
+        new NamedCommandChain("uninstall", uninstallation), new Coordinate3D(100, 100, 0));
+    materialisedUninstallation.move(getOrientation().getB().toCoordinate());
     CommandBlockChain materialisedInstallation = new IterativeChainComputer() {
       protected boolean isCoordinateValid(Coordinate3D coordinate) {
         if (!super.isCoordinateValid(coordinate)) {
@@ -366,7 +366,8 @@ public class MplProjectPlacer extends MplChainPlacer {
         }
         return true;
       };
-    }.computeOptimalChain(new CommandChain(installation), new Coordinate3D(100, 100, 0));
+    }.computeOptimalChain(new NamedCommandChain("install", installation),
+        new Coordinate3D(100, 100, 0));
     if (!materialisedInstallation.getBlocks().isEmpty()) {
       result.add(materialisedInstallation);
     }

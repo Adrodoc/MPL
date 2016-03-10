@@ -536,19 +536,17 @@ public class MplInterpreter extends MplBaseListener {
       conditional = false;
     }
     if (conditional) {
-      commandBuffer.setCommand("summon ArmorStand ${this + 3} {CustomName:" + process + NOTIFY
-          + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
-      chainBuffer.add(commandBuffer.toCommand());
-      chainBuffer.add(new Command("blockdata ${this - 1} {SuccessCount:1}"));
-      chainBuffer.add(new Command("setblock ${this + 1} redstone_block", true));
-      chainBuffer.add(new Skip(true));
-      chainBuffer.add(new Command("setblock ${this - 1} stone", Mode.IMPULSE, false));
+      chainBuffer.add(new InternalCommand("summon ArmorStand ${this + 3} {CustomName:" + process
+          + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true));
+      chainBuffer.add(new InternalCommand("blockdata ${this - 1} {SuccessCount:1}"));
+      chainBuffer.add(new InternalCommand("setblock ${this + 1} redstone_block", true));
+      chainBuffer.add(new Skip(false));
+      chainBuffer.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
     } else {
-      commandBuffer.setCommand("summon ArmorStand ${this + 1} {CustomName:" + process + NOTIFY
-          + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
-      chainBuffer.add(commandBuffer.toCommand());
-      chainBuffer.add(new Skip(true));
-      chainBuffer.add(new Command("setblock ${this - 1} stone", Mode.IMPULSE, false));
+      chainBuffer.add(new InternalCommand("summon ArmorStand ${this + 1} {CustomName:" + process
+          + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
+      chainBuffer.add(new Skip(false));
+      chainBuffer.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
     }
     commandBuffer = null;
   }
@@ -563,11 +561,16 @@ public class MplInterpreter extends MplBaseListener {
           new CompilerException(source, "Encountered notify outside of a process context."));
       return;
     }
+    if (commandBuffer.getConditional() == Conditional.INVERT) {
+      addInvert(chainBuffer);
+    }
     String method = chainBuffer.getName();
-    commandBuffer
-        .setCommand("execute @e[name=" + method + NOTIFY + "] ~ ~ ~ setblock ~ ~ ~ redstone_block");
-    chainBuffer.add(commandBuffer.toCommand());
-    commandBuffer.setCommand("kill @e[name=" + method + NOTIFY + "]");
+    Boolean conditional = commandBuffer.isConditional();
+    chainBuffer.add(new InternalCommand(
+        "execute @e[name=" + method + NOTIFY + "] ~ ~ ~ setblock ~ ~ ~ redstone_block",
+        conditional));
+    chainBuffer.add(new Command("kill @e[name=" + method + NOTIFY + "]", conditional));
+    commandBuffer = null;
   }
 
   @Override
@@ -594,16 +597,16 @@ public class MplInterpreter extends MplBaseListener {
       if (commandBuffer.getConditional() == Conditional.CONDITIONAL) {
         addInvert(chainBuffer);
       }
-      chainBuffer.add(new Command("setblock ${this + 3} redstone_block", true));
+      chainBuffer.add(new InternalCommand("setblock ${this + 3} redstone_block", true));
     }
-    chainBuffer.add(new Command(
+    chainBuffer.add(new InternalCommand(
         "entitydata @e[name=" + process + "] {CustomName:" + process + INTERCEPTED + "}"));
-    chainBuffer.add(new Command("summon ArmorStand ${this + 1} {CustomName:" + process
+    chainBuffer.add(new InternalCommand("summon ArmorStand ${this + 1} {CustomName:" + process
         + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
-    chainBuffer.add(new Skip(true));
-    chainBuffer.add(new Command("setblock ${this - 1} stone", Mode.IMPULSE, false));
-    chainBuffer.add(new Command("kill @e[name=" + process + ",r=2]"));
-    chainBuffer.add(new Command(
+    chainBuffer.add(new Skip(false));
+    chainBuffer.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
+    chainBuffer.add(new InternalCommand("kill @e[name=" + process + ",r=2]"));
+    chainBuffer.add(new InternalCommand(
         "entitydata @e[name=" + process + INTERCEPTED + "] {CustomName:" + process + "}"));
     commandBuffer = null;
 

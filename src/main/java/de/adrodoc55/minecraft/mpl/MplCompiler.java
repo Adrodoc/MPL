@@ -261,54 +261,51 @@ public class MplCompiler extends MplBaseListener {
         continue;
       }
       CommandBlock current = (CommandBlock) currentBlock;
-
-      if (current != null) {
-        Matcher thisMatcher = thisPattern.matcher(current.getCommand());
-        StringBuffer thisSb = new StringBuffer();
-        while (thisMatcher.find()) {
-          boolean minus = thisMatcher.group(1).equals("-");
-          int relative = Integer.parseInt(thisMatcher.group(2));
-          int direction = 1;
-          if (minus) {
-            direction = -1;
-          }
-          int refIndex = i;
-          for (int steps = relative; steps > 0; steps--) {
-            refIndex += direction;
-            if (refIndex < 0) {
-              refIndex = 0;
-              break;
-            }
-            MplBlock block = blocks.get(refIndex);
-            if (isInternal(block)) {
-              steps++;
-            }
-          }
-          Coordinate3D referenced;
+      Matcher thisMatcher = thisPattern.matcher(current.getCommand());
+      StringBuffer thisSb = new StringBuffer();
+      while (thisMatcher.find()) {
+        boolean minus = thisMatcher.group(1).equals("-");
+        int relative = Integer.parseInt(thisMatcher.group(2));
+        int direction = 1;
+        if (minus) {
+          direction = -1;
+        }
+        int refIndex = i;
+        for (int steps = relative; steps > 0; steps--) {
+          refIndex += direction;
           if (refIndex < 0) {
-            referenced = blocks.get(0).getCoordinate().minus(orientation.getA().toCoordinate());
-          } else {
-            referenced = blocks.get(refIndex).getCoordinate();
+            refIndex = 0;
+            break;
           }
-          Coordinate3D relativeCoordinate = referenced.minus(current.getCoordinate());
-          thisMatcher.appendReplacement(thisSb, relativeCoordinate.toRelativeString());
+          MplBlock block = blocks.get(refIndex);
+          if (!isInternal(current) && isInternal(block)) {
+            steps++;
+          }
         }
-        thisMatcher.appendTail(thisSb);
-        current.setCommand(thisSb.toString());
-
-        Matcher originMatcher = originPattern.matcher(current.getCommand());
-        StringBuffer originSb = new StringBuffer();
-        while (originMatcher.find()) {
-          int x = Integer.parseInt(originMatcher.group(1));
-          int y = Integer.parseInt(originMatcher.group(2));
-          int z = Integer.parseInt(originMatcher.group(3));
-          Coordinate3D referenced = new Coordinate3D(x, y, z);
-          Coordinate3D relativeCoordinate = current.getCoordinate().mult(-1).plus(referenced);
-          originMatcher.appendReplacement(originSb, relativeCoordinate.toRelativeString());
+        Coordinate3D referenced;
+        if (refIndex < 0) {
+          referenced = blocks.get(0).getCoordinate().minus(orientation.getA().toCoordinate());
+        } else {
+          referenced = blocks.get(refIndex).getCoordinate();
         }
-        originMatcher.appendTail(originSb);
-        current.setCommand(originSb.toString());
+        Coordinate3D relativeCoordinate = referenced.minus(current.getCoordinate());
+        thisMatcher.appendReplacement(thisSb, relativeCoordinate.toRelativeString());
       }
+      thisMatcher.appendTail(thisSb);
+      current.setCommand(thisSb.toString());
+
+      Matcher originMatcher = originPattern.matcher(current.getCommand());
+      StringBuffer originSb = new StringBuffer();
+      while (originMatcher.find()) {
+        int x = Integer.parseInt(originMatcher.group(1));
+        int y = Integer.parseInt(originMatcher.group(2));
+        int z = Integer.parseInt(originMatcher.group(3));
+        Coordinate3D referenced = new Coordinate3D(x, y, z);
+        Coordinate3D relativeCoordinate = current.getCoordinate().mult(-1).plus(referenced);
+        originMatcher.appendReplacement(originSb, relativeCoordinate.toRelativeString());
+      }
+      originMatcher.appendTail(originSb);
+      current.setCommand(originSb.toString());
     }
   }
 

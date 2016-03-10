@@ -42,7 +42,7 @@ package de.adrodoc55.minecraft.mpl.chain_computing;
 import static de.adrodoc55.TestBase.someInt;
 import static de.adrodoc55.TestBase.someString;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$Command;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$some;
+import static de.adrodoc55.minecraft.mpl.MplTestBase.some;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -67,6 +67,7 @@ import de.adrodoc55.minecraft.mpl.CommandBlock;
 import de.adrodoc55.minecraft.mpl.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.CommandChain;
 import de.adrodoc55.minecraft.mpl.MplBlock;
+import de.adrodoc55.minecraft.mpl.NamedCommandChain;
 
 public abstract class ChainComputerTest {
   protected ChainComputer underTest;
@@ -81,11 +82,11 @@ public abstract class ChainComputerTest {
     List<ChainPart> commands = new ArrayList<>();
 
     int anzahl = someInt(10);
-    commands.add($some($Command().withConditional(false)));
+    commands.add(some($Command().withConditional(false)));
     for (int a = 1; a < anzahl; a++) {
-      commands.add($some($Command()));
+      commands.add(some($Command()));
     }
-    CommandChain input = new CommandChain(name, commands);
+    CommandChain input = new NamedCommandChain(name, commands);
 
     // When:
     CommandBlockChain optimal = underTest.computeOptimalChain(input);
@@ -110,11 +111,11 @@ public abstract class ChainComputerTest {
     List<ChainPart> commands = new ArrayList<>();
 
     int anzahl = someInt(10);
-    commands.add($some($Command().withConditional(true)));
+    commands.add(some($Command().withConditional(true)));
     for (int a = 1; a < anzahl; a++) {
-      commands.add($some($Command()));
+      commands.add(some($Command()));
     }
-    CommandChain input = new CommandChain(name, commands);
+    CommandChain input = new NamedCommandChain(name, commands);
 
     // When:
     try {
@@ -135,9 +136,9 @@ public abstract class ChainComputerTest {
     String name = someString();
     List<ChainPart> commands = new ArrayList<>();
     for (int a = 0; a < 7; a++) {
-      commands.add($some($Command().withConditional(false)));
+      commands.add(some($Command().withConditional(false)));
     }
-    CommandChain input = new CommandChain(name, commands);
+    CommandChain input = new NamedCommandChain(name, commands);
 
     // When:
     CommandBlockChain optimal = underTest.computeOptimalChain(input);
@@ -165,9 +166,9 @@ public abstract class ChainComputerTest {
     String name = someString();
     List<ChainPart> commands = new ArrayList<>();
     for (int a = 0; a < 26; a++) {
-      commands.add($some($Command().withConditional(false)));
+      commands.add(some($Command().withConditional(false)));
     }
-    CommandChain input = new CommandChain(name, commands);
+    CommandChain input = new NamedCommandChain(name, commands);
 
     // When:
     ExecutorService executor = Executors.newCachedThreadPool();
@@ -212,11 +213,11 @@ public abstract class ChainComputerTest {
     // Given:
     String name = someString();
     List<ChainPart> commands = new ArrayList<>();
-    commands.add($some($Command().withConditional(false)));
+    commands.add(some($Command().withConditional(false)));
     for (int a = 1; a < 7; a++) {
-      commands.add($some($Command().withConditional(true)));
+      commands.add(some($Command().withConditional(true)));
     }
-    CommandChain input = new CommandChain(name, commands);
+    CommandChain input = new NamedCommandChain(name, commands);
 
     // When:
     CommandBlockChain optimal = underTest.computeOptimalChain(input);
@@ -243,11 +244,11 @@ public abstract class ChainComputerTest {
     // Given:
     String name = someString();
     List<ChainPart> commands = new ArrayList<>();
-    commands.add($some($Command().withConditional(false)));
+    commands.add(some($Command().withConditional(false)));
     for (int a = 1; a < 7; a++) {
-      commands.add($some($Command()));
+      commands.add(some($Command()));
     }
-    CommandChain input = new CommandChain(name, commands);
+    CommandChain input = new NamedCommandChain(name, commands);
 
     // When:
     CommandBlockChain optimal = underTest.computeOptimalChain(input);
@@ -292,7 +293,7 @@ public abstract class ChainComputerTest {
     // Given:
     String name = someString();
     List<ChainPart> commands = new ArrayList<>();
-    CommandChain input = new CommandChain(name, commands);
+    CommandChain input = new NamedCommandChain(name, commands);
 
     // When:
     CommandBlockChain optimal = underTest.computeOptimalChain(input);

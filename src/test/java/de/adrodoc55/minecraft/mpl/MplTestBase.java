@@ -45,7 +45,7 @@ import de.adrodoc55.minecraft.mpl.Command.Mode;
 
 public class MplTestBase extends TestBase {
 
-  public static <P> P $some(Builder<P> builder) {
+  public static <P> P some(Builder<P> builder) {
     return builder.build();
   }
 

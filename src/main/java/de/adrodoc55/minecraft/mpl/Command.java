@@ -133,7 +133,7 @@ public class Command implements ChainPart {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((getCommand() == null) ? 0 : getCommand().hashCode());
+    result = prime * result + ((command == null) ? 0 : command.hashCode());
     result = prime * result + (conditional ? 1231 : 1237);
     result = prime * result + ((mode == null) ? 0 : mode.hashCode());
     result = prime * result + (needsRedstone ? 1231 : 1237);
@@ -146,15 +146,13 @@ public class Command implements ChainPart {
       return true;
     if (obj == null)
       return false;
-    if (!Command.class.isInstance(obj))
+    if (getClass() != obj.getClass())
       return false;
     Command other = (Command) obj;
-    String command = getCommand();
-    String otherCommand = other.getCommand();
     if (command == null) {
-      if (otherCommand != null)
+      if (other.command != null)
         return false;
-    } else if (!command.equals(otherCommand))
+    } else if (!command.equals(other.command))
       return false;
     if (conditional != other.conditional)
       return false;
