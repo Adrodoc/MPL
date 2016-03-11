@@ -46,7 +46,8 @@ import de.adrodoc55.commons.FileUtils;
  */
 public class CompilerException extends Exception {
 
-  private static final long serialVersionUID = 2588890897512612205L;
+  private static final long serialVersionUID = 1L;
+
   private MplSource source;
 
   public CompilerException(MplSource source, String message) {
