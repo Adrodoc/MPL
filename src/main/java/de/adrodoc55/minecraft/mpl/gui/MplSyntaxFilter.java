@@ -80,7 +80,7 @@ public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<Mp
    * Constructs a new <code>MplSyntaxFilter</code>.
    */
   public MplSyntaxFilter() {
-    super();
+    super(2);
   }
 
   public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
