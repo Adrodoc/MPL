@@ -37,33 +37,38 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.compilation;
 
-import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import java.io.File;
 
-public class MplTestBase extends TestBase {
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
 
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+import org.antlr.v4.runtime.Token;
+
+import com.google.common.base.Preconditions;
+
+@Immutable
+public class MplSource {
+
+  @Nonnull
+  public final File file;
+  @Nonnull
+  public final Token token;
+  @Nonnull
+  public final String line;
+
+  public MplSource(@Nonnull File file, @Nonnull Token token, @Nonnull String line)
+      throws NullPointerException {
+    this.file = Preconditions.checkNotNull(file, "file == null!");
+    this.token = Preconditions.checkNotNull(token, "token == null!");
+    this.line = Preconditions.checkNotNull(line, "line == null!");
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
-  }
-
-  private static String someCommand() {
-    return "/" + someString();
-  }
-
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  @Nonnegative
+  public int getLineNumber() {
+    return token.getLine();
   }
 
 }

@@ -39,9 +39,12 @@
  */
 package de.adrodoc55;
 
+import java.util.LinkedList;
 import java.util.Random;
 
 import org.assertj.core.api.Assertions;
+
+import net.karneim.pojobuilder.Builder;
 
 public class TestBase extends Assertions {
 
@@ -55,7 +58,16 @@ public class TestBase extends Assertions {
     return RANDOM.nextInt(bound);
   }
 
-  private static int somePositiveInt() {
+  /**
+   * @param lowerBound inclusive
+   * @param upperBound exclusive
+   * @return
+   */
+  public static int someInt(int lowerBound, int upperBound) {
+    return RANDOM.nextInt(upperBound - lowerBound) + lowerBound;
+  }
+
+  public static int somePositiveInt() {
     return RANDOM.nextInt(Integer.MAX_VALUE);
   }
 
@@ -63,12 +75,24 @@ public class TestBase extends Assertions {
     return "String" + someInt();
   }
 
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
-  }
-
   public static boolean someBoolean() {
     return RANDOM.nextBoolean();
+  }
+
+  public static <P> P some(Builder<P> builder) {
+    return builder.build();
+  }
+
+  public static <P> LinkedList<P> listOf(Builder<P> builder) {
+    return listOf(someInt(100), builder);
+  }
+
+  public static <P> LinkedList<P> listOf(int count, Builder<P> builder) {
+    LinkedList<P> list = new LinkedList<>();
+    for (int i = 0; i < count; i++) {
+      list.add(builder.build());
+    }
+    return list;
   }
 
 }

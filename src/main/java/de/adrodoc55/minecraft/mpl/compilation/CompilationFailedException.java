@@ -37,33 +37,34 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.compilation;
 
-import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import java.io.File;
+import java.util.Map.Entry;
 
-public class MplTestBase extends TestBase {
+import com.google.common.collect.ListMultimap;
 
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+public class CompilationFailedException extends Exception {
+
+  private static final long serialVersionUID = 1L;
+
+  private final ListMultimap<File, CompilerException> exceptions;
+
+  public CompilationFailedException(ListMultimap<File, CompilerException> exceptions) {
+    this.exceptions = exceptions;
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
+  public ListMultimap<File, CompilerException> getExceptions() {
+    return exceptions;
   }
 
-  private static String someCommand() {
-    return "/" + someString();
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    for (Entry<File, CompilerException> it : exceptions.entries()) {
+      sb.append(it.toString());
+      sb.append('\n');
+    }
+    return sb.toString();
   }
-
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
-  }
-
 }

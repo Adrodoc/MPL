@@ -37,33 +37,35 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.commands;
 
-import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
 
-public class MplTestBase extends TestBase {
+public class InvertingCommand extends InternalCommand {
 
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+  /**
+   * Constructs a Command, wich's success is always the opposite of the given command, if the
+   * constructed command is placed directly after the given command.
+   *
+   * @param previous
+   */
+  public InvertingCommand(Command previous) {
+    this(previous.getMode());
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
+  /**
+   * Constructs a Command, wich's success is always the opposite of the previous command, if the
+   * previous command has the given mode.
+   *
+   * @param previous
+   */
+  public InvertingCommand(Mode previousMode) {
+    super(getInvert(previousMode));
   }
 
-  private static String someCommand() {
-    return "/" + someString();
-  }
-
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  private static String getInvert(Mode previousMode) {
+    String blockId = MplConverter.toBlockId(previousMode);
+    return "/testforblock ${this - 1} " + blockId + " -1 {SuccessCount:0}";
   }
 
 }

@@ -46,7 +46,7 @@ import org.antlr.v4.runtime.Token;
 import org.beanfabrics.model.AbstractPM;
 import org.beanfabrics.model.PMManager;
 
-import de.adrodoc55.minecraft.mpl.CompilerException;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 
 public class MplSyntaxFilterPM extends AbstractPM {
 
@@ -76,7 +76,7 @@ public class MplSyntaxFilterPM extends AbstractPM {
     private int stopOffset;
 
     public CompilerExceptionWrapper(CompilerException ex) {
-      this.token = ex.getToken();
+      this.token = ex.getSource().token;
       this.startOffset = 0;
       this.stopOffset = 0;
     }

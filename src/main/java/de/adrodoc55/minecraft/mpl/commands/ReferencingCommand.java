@@ -37,33 +37,42 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.commands;
 
-import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+public class ReferencingCommand extends InternalCommand {
+  private static final String HEAD = "testforblock ";
+  private final String tail;
+  private int relative;
+  private boolean referenceInserted = false;
 
-public class MplTestBase extends TestBase {
-
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+  public ReferencingCommand(int relative, String blockId, boolean success) {
+    this(relative, blockId, success, null);
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
+  public ReferencingCommand(int relative, String blockId, boolean success, Boolean conditional) {
+    super(null, conditional);
+    this.relative = relative;
+    int successCount = success ? 1 : 0;
+    tail = " " + blockId + " -1 {SuccessCount:" + successCount + "}";
   }
 
-  private static String someCommand() {
-    return "/" + someString();
+  public void addToRelative(int r) {
+    relative += r;
   }
 
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  @Override
+  public String getCommand() {
+    if (referenceInserted) {
+      return super.getCommand();
+    }
+    int abs = Math.abs(relative);
+    String operator = relative < 0 ? "-" : "+";
+    return HEAD + "${this " + operator + " " + abs + "}" + tail;
   }
 
+  @Override
+  public void setCommand(String command) {
+    super.setCommand(command);
+    referenceInserted = true;
+  }
 }

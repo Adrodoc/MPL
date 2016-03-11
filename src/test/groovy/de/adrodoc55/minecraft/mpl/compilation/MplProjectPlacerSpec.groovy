@@ -37,33 +37,39 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.compilation
 
-import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import static de.adrodoc55.minecraft.mpl.MplTestBase.Command
+import static de.adrodoc55.minecraft.mpl.MplTestBase.some
+import spock.lang.Specification
+import de.adrodoc55.minecraft.coordinate.Orientation3D
+import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain
+import de.adrodoc55.minecraft.mpl.chain.MplProcess
+import de.adrodoc55.minecraft.mpl.program.MplProject
 
-public class MplTestBase extends TestBase {
+class MplProjectPlacerSpec extends Specification {
 
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+  void 'Placing an empty project returns an empty list'() {
+    given:
+    MplProject project = new MplProject()
+    project.setOrientation(new Orientation3D())
+    when:
+    List<CommandBlockChain> result = new MplProjectPlacer(project).place()
+    then:
+    result.isEmpty()
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
-  }
-
-  private static String someCommand() {
-    return "/" + someString();
-  }
-
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  void 'Empty processes are ignored'() {
+    given:
+    MplProject project = new MplProject()
+    project.setOrientation(new Orientation3D())
+    MplProcess process = new MplProcess('testProcess', [])
+    project.addProcess(process)
+    project.getInstallation().add(some(Command()))
+    when:
+    List<CommandBlockChain> result = new MplProjectPlacer(project).place()
+    then:
+    result.isEmpty()
   }
 
 }

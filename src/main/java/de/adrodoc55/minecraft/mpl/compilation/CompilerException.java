@@ -37,33 +37,43 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.compilation;
 
-import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import de.adrodoc55.commons.FileUtils;
 
-public class MplTestBase extends TestBase {
+public class CompilerException extends Exception {
 
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+  private static final long serialVersionUID = 2588890897512612205L;
+  private MplSource source;
+
+  public CompilerException(MplSource source, String message) {
+    super(message);
+    init(source);
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
+  public CompilerException(MplSource source, String message, Throwable cause) {
+    super(message, cause);
+    init(source);
   }
 
-  private static String someCommand() {
-    return "/" + someString();
+  private void init(MplSource source) {
+    this.source = source;
   }
 
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  public MplSource getSource() {
+    return source;
   }
 
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    String path = FileUtils.getCanonicalPath(source.file);
+    sb.append(path).append(':').append(source.token.getLine()).append(":\n");
+    sb.append(this.getLocalizedMessage()).append("\n");
+    sb.append(source.line).append("\n");
+    int count = source.token.getCharPositionInLine();
+    sb.append(new String(new char[count]).replace('\0', ' '));
+    sb.append("^");
+    return sb.toString();
+  }
 }

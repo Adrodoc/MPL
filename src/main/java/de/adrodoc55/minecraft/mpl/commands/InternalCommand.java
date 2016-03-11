@@ -37,33 +37,28 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.commands;
 
-import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+public class InternalCommand extends Command {
 
-public class MplTestBase extends TestBase {
-
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+  public InternalCommand() {
+    super();
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
+  public InternalCommand(String command) {
+    super(command);
   }
 
-  private static String someCommand() {
-    return "/" + someString();
+  public InternalCommand(String command, Boolean conditional) {
+    super(command, conditional);
   }
 
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  public InternalCommand(String command, Mode mode, Boolean conditional) {
+    super(command, mode, conditional);
+  }
+
+  public InternalCommand(String command, Mode mode, Boolean conditional, Boolean needsRedstone) {
+    super(command, mode, conditional, needsRedstone);
   }
 
 }

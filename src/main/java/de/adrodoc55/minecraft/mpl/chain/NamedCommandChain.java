@@ -37,33 +37,28 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.chain;
 
-import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import java.util.List;
 
-public class MplTestBase extends TestBase {
+import javax.annotation.Nonnull;
 
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+import com.google.common.base.Preconditions;
+
+import de.adrodoc55.minecraft.mpl.commands.ChainPart;
+
+public class NamedCommandChain extends CommandChain {
+
+  protected final String name;
+
+  public NamedCommandChain(@Nonnull String name, List<ChainPart> commands) {
+    super(commands);
+    this.name = Preconditions.checkNotNull(name, "name == null!");
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
-  }
-
-  private static String someCommand() {
-    return "/" + someString();
-  }
-
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  @Nonnull
+  public String getName() {
+    return name;
   }
 
 }

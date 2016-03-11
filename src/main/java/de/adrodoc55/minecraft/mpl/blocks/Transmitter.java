@@ -37,33 +37,25 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.blocks;
 
-import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 
-public class MplTestBase extends TestBase {
+public class Transmitter extends MplBlock {
+  private final boolean internal;
 
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+  public Transmitter(boolean internal, Coordinate3D coordinate) {
+    super(coordinate);
+    this.internal = internal;
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
+  public boolean isInternal() {
+    return internal;
   }
 
-  private static String someCommand() {
-    return "/" + someString();
-  }
-
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  @Override
+  public String toString() {
+    return "Transmitter [internal=" + internal + ", coordinate=" + coordinate + "]";
   }
 
 }
