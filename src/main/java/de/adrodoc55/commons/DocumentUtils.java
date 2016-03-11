@@ -43,6 +43,9 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
+/**
+ * @author Adrodoc55
+ */
 public class DocumentUtils {
 
   private DocumentUtils() throws Throwable {

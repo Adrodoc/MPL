@@ -75,6 +75,7 @@ import org.beanfabrics.swing.BnComboBox;
 /**
  * The SearchAndReplaceDialog is a {@link View} on a {@link SearchAndReplaceDialogPM}.
  *
+ * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
 @SuppressWarnings("serial")

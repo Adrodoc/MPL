@@ -7,6 +7,9 @@ import javax.swing.WindowConstants;
 
 import de.adrodoc55.minecraft.mpl.gui.dialog.SearchAndReplaceDialogPM.Context;
 
+/**
+ * @author Adrodoc55
+ */
 public class SearchAndReplaceDialogControler {
 
   private final Context context;

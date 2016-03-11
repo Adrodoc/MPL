@@ -48,6 +48,9 @@ import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.commands.ChainPart;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 
+/**
+ * @author Adrodoc55
+ */
 public abstract class MplProgram {
 
   protected Coordinate3D max;

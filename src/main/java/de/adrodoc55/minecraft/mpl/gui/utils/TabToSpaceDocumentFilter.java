@@ -47,6 +47,9 @@ import javax.swing.text.Element;
 
 import de.adrodoc55.commons.TabToSpaceConverter;
 
+/**
+ * @author Adrodoc55
+ */
 public class TabToSpaceDocumentFilter extends DocumentFilter {
   private int tabWidth;
 

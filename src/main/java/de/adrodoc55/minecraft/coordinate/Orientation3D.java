@@ -53,6 +53,9 @@ import org.antlr.v4.runtime.Token;
 
 import com.google.common.base.Preconditions;
 
+/**
+ * @author Adrodoc55
+ */
 public class Orientation3D {
 
   private Token token;

@@ -41,6 +41,9 @@ package de.adrodoc55.commons;
 
 import java.util.regex.Pattern;
 
+/**
+ * @author Adrodoc55
+ */
 public class RegexUtils {
   private static final Pattern SPECIAL_REGEX_CHARS =
       Pattern.compile("[\\{\\}\\(\\)\\[\\]\\.\\+\\*\\?\\^\\$\\|\\\\]");

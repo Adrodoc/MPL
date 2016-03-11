@@ -44,6 +44,9 @@ import java.util.Map.Entry;
 
 import com.google.common.collect.ListMultimap;
 
+/**
+ * @author Adrodoc55
+ */
 public class CompilationFailedException extends Exception {
 
   private static final long serialVersionUID = 1L;

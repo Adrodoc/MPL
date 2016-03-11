@@ -44,6 +44,9 @@ import java.util.Collection;
 
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 
+/**
+ * @author Adrodoc55
+ */
 public class Include {
   private final MplSource source;
   private final String processName;

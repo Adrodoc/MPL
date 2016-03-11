@@ -53,6 +53,9 @@ import de.adrodoc55.minecraft.mpl.chain.MplProcess;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 
+/**
+ * @author Adrodoc55
+ */
 public class MplProject extends MplProgram {
 
   private String name;

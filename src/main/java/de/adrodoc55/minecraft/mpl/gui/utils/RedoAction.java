@@ -45,6 +45,9 @@ import javax.swing.AbstractAction;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.UndoManager;
 
+/**
+ * @author Adrodoc55
+ */
 public class RedoAction extends AbstractAction {
 
   private static final long serialVersionUID = -4557132973085610799L;

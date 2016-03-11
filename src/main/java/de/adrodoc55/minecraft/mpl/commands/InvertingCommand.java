@@ -41,6 +41,9 @@ package de.adrodoc55.minecraft.mpl.commands;
 
 import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
 
+/**
+ * @author Adrodoc55
+ */
 public class InvertingCommand extends InternalCommand {
 
   /**

@@ -45,6 +45,9 @@ import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 
+/**
+ * @author Adrodoc55
+ */
 public class PythonConverter extends MplConverter {
 
   private static final String INDENT = "    ";

@@ -49,6 +49,9 @@ import org.beanfabrics.support.Operation;
 
 import de.adrodoc55.minecraft.mpl.gui.MplEditorPM;
 
+/**
+ * @author Adrodoc55
+ */
 public class UnsavedResourcesDialogPM extends AbstractPM {
 
   ListPM<UnsavedResourceRowPM> unsaved = new ListPM<UnsavedResourceRowPM>();

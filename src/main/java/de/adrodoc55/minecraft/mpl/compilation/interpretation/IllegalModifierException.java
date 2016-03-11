@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation.interpretation;
 
+/**
+ * @author Adrodoc55
+ */
 public class IllegalModifierException extends Exception {
 
   private static final long serialVersionUID = 1L;

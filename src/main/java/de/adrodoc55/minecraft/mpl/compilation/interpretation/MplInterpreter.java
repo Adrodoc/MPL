@@ -103,6 +103,9 @@ import de.adrodoc55.minecraft.mpl.compilation.interpretation.CommandBufferFactor
 import de.adrodoc55.minecraft.mpl.program.MplProject;
 import de.adrodoc55.minecraft.mpl.program.MplScript;
 
+/**
+ * @author Adrodoc55
+ */
 public class MplInterpreter extends MplBaseListener {
 
   private static final String NOTIFY = "_NOTIFY";

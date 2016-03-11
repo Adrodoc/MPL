@@ -66,6 +66,9 @@ import de.adrodoc55.commons.RegexUtils;
 import de.adrodoc55.commons.StringUnescaper;
 import de.adrodoc55.commons.beanfabrics.OptionsUtils;
 
+/**
+ * @author Adrodoc55
+ */
 public class SearchAndReplaceDialogPM extends AbstractPM {
 
   public static interface Context {

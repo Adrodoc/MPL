@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.commands;
 
+/**
+ * @author Adrodoc55
+ */
 public class ReferencingCommand extends InternalCommand {
   private static final String HEAD = "testforblock ";
   private final String tail;

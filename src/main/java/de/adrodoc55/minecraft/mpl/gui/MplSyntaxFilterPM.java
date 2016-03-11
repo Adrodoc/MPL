@@ -48,6 +48,9 @@ import org.beanfabrics.model.PMManager;
 
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 
+/**
+ * @author Adrodoc55
+ */
 public class MplSyntaxFilterPM extends AbstractPM {
 
   private List<CompilerExceptionWrapper> exceptions;

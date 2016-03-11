@@ -50,8 +50,7 @@ import javax.swing.undo.UndoableEdit;
 /**
  * This UndoManager will ignore Edits of Type {@link EventType}.CHANGE.
  *
- * @author Adrian
- *
+ * @author Adrodoc55
  */
 public class RawUndoManager extends UndoManager {
 

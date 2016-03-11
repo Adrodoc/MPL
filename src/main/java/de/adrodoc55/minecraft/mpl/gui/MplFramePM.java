@@ -79,6 +79,9 @@ import de.adrodoc55.minecraft.mpl.gui.dialog.SearchAndReplaceDialogPM;
 import de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialog;
 import de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM;
 
+/**
+ * @author Adrodoc55
+ */
 public class MplFramePM extends AbstractPM {
 
   ListPM<MplEditorPM> editors = new ListPM<MplEditorPM>();

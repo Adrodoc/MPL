@@ -41,6 +41,9 @@ package de.adrodoc55.commons;
 
 import java.util.Arrays;
 
+/**
+ * @author Adrodoc55
+ */
 public class TabToSpaceConverter {
 
   private TabToSpaceConverter() throws Throwable {

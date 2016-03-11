@@ -46,6 +46,9 @@ import javax.swing.UIManager;
 import de.adrodoc55.minecraft.mpl.gui.MplFrame;
 import de.adrodoc55.minecraft.mpl.gui.MplFramePM;
 
+/**
+ * @author Adrodoc55
+ */
 public class MplMain {
 
   public static void main(String[] args) throws Exception {

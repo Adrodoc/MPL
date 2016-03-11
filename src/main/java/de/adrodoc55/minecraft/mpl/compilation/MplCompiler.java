@@ -75,6 +75,9 @@ import de.adrodoc55.minecraft.mpl.compilation.interpretation.MplInterpreter;
 import de.adrodoc55.minecraft.mpl.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.program.MplProject;
 
+/**
+ * @author Adrodoc55
+ */
 public class MplCompiler extends MplBaseListener {
 
   public static MplCompilationResult compile(File programFile)

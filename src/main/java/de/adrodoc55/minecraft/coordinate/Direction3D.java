@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.coordinate;
 
+/**
+ * @author Adrodoc55
+ */
 public enum Direction3D {
   // @formatter:off
   EAST(Coordinate3D.EAST, false, Axis3D.X),

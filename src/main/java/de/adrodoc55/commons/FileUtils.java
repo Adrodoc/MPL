@@ -42,6 +42,9 @@ package de.adrodoc55.commons;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * @author Adrodoc55
+ */
 public class FileUtils {
 
   private FileUtils() throws Throwable {

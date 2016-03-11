@@ -44,6 +44,9 @@ import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
+/**
+ * @author Adrodoc55
+ */
 @Immutable
 public class Coordinate3D {
 

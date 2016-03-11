@@ -50,6 +50,9 @@ import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 
+/**
+ * @author Adrodoc55
+ */
 public class CommandBlockChain {
 
   private final String name;

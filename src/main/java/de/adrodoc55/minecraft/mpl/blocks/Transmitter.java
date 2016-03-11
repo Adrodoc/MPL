@@ -41,6 +41,9 @@ package de.adrodoc55.minecraft.mpl.blocks;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 
+/**
+ * @author Adrodoc55
+ */
 public class Transmitter extends MplBlock {
   private final boolean internal;
 

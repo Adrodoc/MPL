@@ -41,6 +41,9 @@ package de.adrodoc55.minecraft.mpl.main;
 
 import com.jdotsoft.jarloader.JarClassLoader;
 
+/**
+ * @author Adrodoc55
+ */
 public class MplMainLauncher {
 
   public static void main(String[] args) throws Throwable {

@@ -45,6 +45,9 @@ import de.adrodoc55.minecraft.mpl.commands.ChainPart;
 import de.adrodoc55.minecraft.mpl.commands.Command;
 import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
 
+/**
+ * @author Adrodoc55
+ */
 class ChainBuffer {
 
   private String name;

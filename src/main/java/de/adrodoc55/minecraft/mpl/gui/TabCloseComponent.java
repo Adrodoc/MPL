@@ -63,6 +63,7 @@ import org.beanfabrics.swing.BnLabel;
 /**
  * The TabCloseComponent is a {@link View} on a {@link MplEditorPM}.
  *
+ * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
 @SuppressWarnings("serial")

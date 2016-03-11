@@ -43,6 +43,9 @@ import java.util.Map;
 
 import org.beanfabrics.model.Options;
 
+/**
+ * @author Adrodoc55
+ */
 public class OptionsUtils {
 
   private OptionsUtils() throws Throwable {

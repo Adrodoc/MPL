@@ -69,6 +69,7 @@ import de.adrodoc55.minecraft.mpl.gui.utils.TabToSpaceDocumentFilter;
  * The MplSyntaxFilter is a {@link View} on a
  * {@link de.adrodoc55.minecraft.mpl.gui.MplSyntaxFilterPM}.
  *
+ * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
 public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<MplSyntaxFilterPM> {

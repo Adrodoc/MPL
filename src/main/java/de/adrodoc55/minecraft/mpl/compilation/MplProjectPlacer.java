@@ -58,6 +58,9 @@ import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
 import de.adrodoc55.minecraft.mpl.program.MplProject;
 import de.kussm.direction.Directions;
 
+/**
+ * @author Adrodoc55
+ */
 public class MplProjectPlacer extends MplChainPlacer {
 
   private final LinkedList<MplProcess> processes;

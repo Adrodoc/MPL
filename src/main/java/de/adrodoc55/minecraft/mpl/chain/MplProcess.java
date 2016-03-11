@@ -48,6 +48,9 @@ import com.google.common.base.Preconditions;
 import de.adrodoc55.minecraft.mpl.commands.ChainPart;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 
+/**
+ * @author Adrodoc55
+ */
 public class MplProcess extends NamedCommandChain {
 
   protected final MplSource source;

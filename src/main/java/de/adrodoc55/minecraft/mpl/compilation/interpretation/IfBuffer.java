@@ -52,6 +52,9 @@ import de.adrodoc55.minecraft.mpl.commands.ReferencingCommand;
 import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
 import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
 
+/**
+ * @author Adrodoc55
+ */
 class IfBuffer {
   private final ChainBuffer origin;
   private final LinkedList<IfNestingLayer> stack = new LinkedList<>();
@@ -88,6 +91,9 @@ class IfBuffer {
 
 
 
+/**
+ * @author Adrodoc55
+ */
 class LayerCompressor {
   public static CompressedLayerCommand compress(IfNestingLayer layer) {
     return new CompressedLayerCommand(layer);
@@ -263,6 +269,9 @@ class LayerCompressor {
 
 
 
+/**
+ * @author Adrodoc55
+ */
 class CompressedLayerCommand extends Command {
   private final IfNestingLayer layer;
 
@@ -278,6 +287,9 @@ class CompressedLayerCommand extends Command {
 
 
 
+/**
+ * @author Adrodoc55
+ */
 class IfNestingLayer extends ChainBuffer {
   private final boolean not;
   private final Command condition;

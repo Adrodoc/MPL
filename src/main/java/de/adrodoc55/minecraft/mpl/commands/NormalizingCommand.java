@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.commands;
 
+/**
+ * @author Adrodoc55
+ */
 public class NormalizingCommand extends InternalCommand {
   public NormalizingCommand() {
     super("testforblock ~ ~ ~ chain_command_block", true);

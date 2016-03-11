@@ -45,6 +45,9 @@ import javax.swing.AbstractAction;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 
+/**
+ * @author Adrodoc55
+ */
 public class UndoAction extends AbstractAction {
 
   private static final long serialVersionUID = -1330600449731063166L;

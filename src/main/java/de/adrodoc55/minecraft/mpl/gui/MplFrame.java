@@ -74,6 +74,7 @@ import org.beanfabrics.swing.BnMenuItem;
 /**
  * The MplFrame is a {@link View} on a {@link MplFramePM}.
  *
+ * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
 public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscriber {

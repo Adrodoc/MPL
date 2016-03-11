@@ -49,6 +49,9 @@ import org.beanfabrics.model.PMManager;
 import org.beanfabrics.model.TextPM;
 import org.beanfabrics.support.Operation;
 
+/**
+ * @author Adrodoc55
+ */
 public class OneCommandDialogPM extends AbstractPM {
 
   TextPM oneCommand = new TextPM();

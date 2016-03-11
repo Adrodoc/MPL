@@ -39,6 +39,9 @@
  */
 package net.karneim.pojobuilder;
 
+/**
+ * @author Adrodoc55
+ */
 public interface Builder<P> {
   P build();
 }

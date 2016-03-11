@@ -45,6 +45,9 @@ import com.google.common.base.Preconditions;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 
+/**
+ * @author Adrodoc55
+ */
 public abstract class MplBlock {
 
   protected Coordinate3D coordinate;

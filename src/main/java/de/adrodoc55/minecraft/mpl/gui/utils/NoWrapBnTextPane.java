@@ -48,6 +48,9 @@ import org.beanfabrics.Path;
 import org.beanfabrics.model.ITextPM;
 import org.beanfabrics.swing.BnTextPane;
 
+/**
+ * @author Adrodoc55
+ */
 public class NoWrapBnTextPane extends BnTextPane {
 
   private static final long serialVersionUID = 1L;

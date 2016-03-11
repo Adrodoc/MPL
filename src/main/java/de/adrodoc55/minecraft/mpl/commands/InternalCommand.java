@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.commands;
 
+/**
+ * @author Adrodoc55
+ */
 public class InternalCommand extends Command {
 
   public InternalCommand() {

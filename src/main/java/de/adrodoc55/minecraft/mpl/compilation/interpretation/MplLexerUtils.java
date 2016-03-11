@@ -43,6 +43,9 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 
+/**
+ * @author Adrodoc55
+ */
 public class MplLexerUtils {
 
   private MplLexerUtils() throws Exception {

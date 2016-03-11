@@ -50,6 +50,9 @@ import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 
+/**
+ * @author Adrodoc55
+ */
 public class OneCommandConverter extends MplConverter {
 
   private static final String HEADER =

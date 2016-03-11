@@ -45,6 +45,9 @@ import org.beanfabrics.model.PMManager;
 
 import de.adrodoc55.minecraft.mpl.gui.MplEditorPM;
 
+/**
+ * @author Adrodoc55
+ */
 public class UnsavedResourceRowPM extends AbstractPM {
 
   BooleanPM save = new BooleanPM();

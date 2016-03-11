@@ -72,6 +72,7 @@ import org.beanfabrics.swing.BnTextArea;
  * The OneCommandDialog is a {@link View} on a
  * {@link de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialogPM}.
  *
+ * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
 @SuppressWarnings("serial")

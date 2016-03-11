@@ -41,6 +41,9 @@ package de.adrodoc55.minecraft.mpl.compilation;
 
 import de.adrodoc55.commons.FileUtils;
 
+/**
+ * @author Adrodoc55
+ */
 public class CompilerException extends Exception {
 
   private static final long serialVersionUID = 2588890897512612205L;

@@ -42,6 +42,9 @@ package de.adrodoc55.minecraft.mpl.commands;
 import net.karneim.pojobuilder.Builder;
 import net.karneim.pojobuilder.GeneratePojoBuilder;
 
+/**
+ * @author Adrodoc55
+ */
 public class Command implements ChainPart {
 
   private String command;

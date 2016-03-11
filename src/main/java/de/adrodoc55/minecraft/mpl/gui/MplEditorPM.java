@@ -66,6 +66,9 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.gui.dialog.SearchAndReplaceDialog;
 import de.adrodoc55.minecraft.mpl.gui.dialog.SearchAndReplaceDialogPM;
 
+/**
+ * @author Adrodoc55
+ */
 public class MplEditorPM extends AbstractPM {
 
   private static JFileChooser chooser;

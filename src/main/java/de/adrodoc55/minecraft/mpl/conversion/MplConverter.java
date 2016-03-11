@@ -43,6 +43,9 @@ import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
 
+/**
+ * @author Adrodoc55
+ */
 public abstract class MplConverter {
 
   public static String toBlockId(Mode mode) {

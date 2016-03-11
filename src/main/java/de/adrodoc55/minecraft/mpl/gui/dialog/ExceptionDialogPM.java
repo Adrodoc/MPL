@@ -43,6 +43,9 @@ import org.beanfabrics.model.AbstractPM;
 import org.beanfabrics.model.PMManager;
 import org.beanfabrics.model.TextPM;
 
+/**
+ * @author Adrodoc55
+ */
 public class ExceptionDialogPM extends AbstractPM {
 
   TextPM title = new TextPM();

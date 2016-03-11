@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.coordinate;
 
+/**
+ * @author Adrodoc55
+ */
 public enum Axis3D {
   X, Y, Z
 }

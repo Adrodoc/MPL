@@ -56,6 +56,9 @@ import javax.swing.text.ViewFactory;
 
 import org.beanfabrics.swing.internal.BnStyledEditorKit;
 
+/**
+ * @author Adrodoc55
+ */
 public class BnJaggedEditorKit extends BnStyledEditorKit {
   private static final long serialVersionUID = 1L;
 
@@ -63,6 +66,9 @@ public class BnJaggedEditorKit extends BnStyledEditorKit {
     return new JaggedViewFactory();
   }
 
+  /**
+   * @author Adrodoc55
+   */
   public static class JaggedViewFactory implements ViewFactory {
     public View create(Element elem) {
       String kind = elem.getName();
@@ -114,6 +120,9 @@ public class BnJaggedEditorKit extends BnStyledEditorKit {
   // }
   //
   // }
+  /**
+   * @author Adrodoc55
+   */
   public static class JaggedLabelView extends LabelView {
     public JaggedLabelView(Element elem) {
       super(elem);

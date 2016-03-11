@@ -81,6 +81,9 @@ import de.kussm.chain.ChainLink;
 import de.kussm.direction.Directions;
 import de.kussm.position.Position;
 
+/**
+ * @author Adrodoc55
+ */
 public abstract class MplChainPlacer {
 
   public static List<CommandBlockChain> place(MplProgram program) {

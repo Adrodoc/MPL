@@ -47,6 +47,9 @@ import com.google.common.base.Preconditions;
 
 import de.adrodoc55.minecraft.mpl.commands.ChainPart;
 
+/**
+ * @author Adrodoc55
+ */
 public class NamedCommandChain extends CommandChain {
 
   protected final String name;

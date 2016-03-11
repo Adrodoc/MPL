@@ -54,6 +54,9 @@ import de.adrodoc55.minecraft.mpl.commands.Skip;
 import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
 import de.adrodoc55.minecraft.mpl.program.MplScript;
 
+/**
+ * @author Adrodoc55
+ */
 public class MplScriptPlacer extends MplChainPlacer {
   private final CommandChain chain;
 

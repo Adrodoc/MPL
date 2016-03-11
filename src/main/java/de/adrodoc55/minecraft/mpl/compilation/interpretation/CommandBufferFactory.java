@@ -42,6 +42,9 @@ package de.adrodoc55.minecraft.mpl.compilation.interpretation;
 import de.adrodoc55.minecraft.mpl.commands.Command;
 import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
 
+/**
+ * @author Adrodoc55
+ */
 class CommandBufferFactory {
   private boolean first = true;
 
@@ -54,21 +57,29 @@ class CommandBufferFactory {
     }
   }
 
+  /**
+   * @author Adrodoc55
+   */
   static class UnconditionalCommandBuffer extends CommandBuffer {
     private UnconditionalCommandBuffer() {}
 
     @Override
     public void setConditional(Conditional conditional) throws IllegalModifierException {
       if (conditional != Conditional.UNCONDITIONAL) {
-        throw new IllegalModifierException(
-            "The first command of a chain must be unconditional!");
+        throw new IllegalModifierException("The first command of a chain must be unconditional!");
       }
       super.setConditional(conditional);
     }
   }
 
+  /**
+   * @author Adrodoc55
+   */
   static class CommandBuffer {
 
+    /**
+     * @author Adrodoc55
+     */
     public static enum Conditional {
       UNCONDITIONAL, CONDITIONAL, INVERT
     }

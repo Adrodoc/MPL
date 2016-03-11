@@ -77,6 +77,7 @@ import org.beanfabrics.swing.table.BnTable;
  * The UnsavedFilesDialog is a {@link View} on a
  * {@link de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM}.
  *
+ * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
 @SuppressWarnings("serial")

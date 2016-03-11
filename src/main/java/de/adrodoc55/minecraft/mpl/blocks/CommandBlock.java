@@ -48,6 +48,9 @@ import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.commands.Command;
 import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
 
+/**
+ * @author Adrodoc55
+ */
 public class CommandBlock extends MplBlock {
 
   @Nonnull
