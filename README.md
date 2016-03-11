@@ -1,5 +1,5 @@
-Minecraft Programming Language (MPL)
-====================================
+Minecraft Programming Language (MPL), forked by glatteis
+========================================================
 
 Author: Adrodoc55
 
@@ -15,3 +15,5 @@ While MPL can be used to create very complex commandblock applications, it is al
 To use the commandblock generator you don't even need to know about any Mpl-specific syntax.
 
 You can find a tutorial for Mpl [here](https://github.com/Adrodoc55/MPL/wiki/Tutorial)
+
+This is a forked version, I will add some of my own ideas to it.
