@@ -37,33 +37,44 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.commands;
 
-import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+public class Skip implements ChainPart {
+  private final boolean internal;
 
-public class MplTestBase extends TestBase {
-
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+  public Skip(boolean internal) {
+    this.internal = internal;
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
+  public boolean isInternal() {
+    return internal;
   }
 
-  private static String someCommand() {
-    return "/" + someString();
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + (internal ? 1231 : 1237);
+    return result;
   }
 
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    Skip other = (Skip) obj;
+    if (internal != other.internal)
+      return false;
+    return true;
+  }
+
+  @Override
+  public String toString() {
+    return "Skip [internal=" + internal + "]";
   }
 
 }

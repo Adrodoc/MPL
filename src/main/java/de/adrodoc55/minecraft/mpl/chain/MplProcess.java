@@ -37,33 +37,45 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.chain;
 
-import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import java.util.List;
 
-public class MplTestBase extends TestBase {
+import javax.annotation.Nonnull;
 
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+import com.google.common.base.Preconditions;
+
+import de.adrodoc55.minecraft.mpl.commands.ChainPart;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+
+public class MplProcess extends NamedCommandChain {
+
+  protected final MplSource source;
+
+  /**
+   * This constructor is for tests only!
+   *
+   * @param name
+   * @param commands
+   */
+  private MplProcess(@Nonnull String name, @Nonnull List<ChainPart> commands) throws Throwable {
+    super(name, commands);
+    this.source = null;
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
+  public MplProcess(@Nonnull String name, @Nonnull List<ChainPart> commands,
+      @Nonnull MplSource source) {
+    super(name, commands);
+    this.source = Preconditions.checkNotNull(source, "source == null!");
   }
 
-  private static String someCommand() {
-    return "/" + someString();
+  @Nonnull
+  public MplSource getSource() {
+    return source;
   }
 
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  @Override
+  public String toString() {
+    return getName();
   }
-
 }

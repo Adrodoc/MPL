@@ -37,33 +37,36 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.compilation;
 
-import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public class MplTestBase extends TestBase {
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Orientation3D;
+import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
+
+public class MplCompilationResult {
+  private final Orientation3D orientation;
+  private final ImmutableMap<Coordinate3D, MplBlock> blocks;
+
+  public MplCompilationResult(@Nullable Orientation3D orientation,
+      @Nonnull ImmutableMap<Coordinate3D, MplBlock> blocks) {
+    this.orientation = orientation != null ? orientation : new Orientation3D();
+    this.blocks = Preconditions.checkNotNull(blocks, "blocks == null!");
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
+  @Nonnull
+  public Orientation3D getOrientation() {
+    return orientation;
   }
 
-  private static String someCommand() {
-    return "/" + someString();
-  }
-
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  @Nonnull
+  public ImmutableMap<Coordinate3D, MplBlock> getBlocks() {
+    return blocks;
   }
 
 }

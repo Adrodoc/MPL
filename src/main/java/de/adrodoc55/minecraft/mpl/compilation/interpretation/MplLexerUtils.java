@@ -37,33 +37,25 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.compilation.interpretation;
 
-import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
-public class MplTestBase extends TestBase {
+import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+public class MplLexerUtils {
+
+  private MplLexerUtils() throws Exception {
+    throw new Exception("Utils Classes cannot be instantiated");
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
-  }
-
-  private static String someCommand() {
-    return "/" + someString();
-  }
-
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  public static String getContainedString(TerminalNode stringNode) {
+    if (stringNode.getSymbol().getType() != MplLexer.STRING) {
+      throw new IllegalArgumentException("The Given TerminalNode is not of type MplLexer.STRING!");
+    }
+    String wholeString = stringNode.getText();
+    String containedString = wholeString.substring(1, wholeString.length() - 1);
+    return containedString;
   }
 
 }

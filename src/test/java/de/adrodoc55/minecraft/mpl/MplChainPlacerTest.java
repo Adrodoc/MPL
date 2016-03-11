@@ -5,6 +5,9 @@ import java.util.List;
 
 import org.junit.Test;
 
+import de.adrodoc55.minecraft.mpl.commands.Command;
+import de.adrodoc55.minecraft.mpl.compilation.MplChainPlacer;
+
 public class MplChainPlacerTest extends MplTestBase {
 
   @Test

@@ -37,33 +37,19 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.program;
 
-import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 
-public class MplTestBase extends TestBase {
+public class MplScript extends MplProgram {
 
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+  private CommandChain chain;
+
+  public CommandChain getChain() {
+    return chain;
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
+  public void setChain(CommandChain chain) {
+    this.chain = chain;
   }
-
-  private static String someCommand() {
-    return "/" + someString();
-  }
-
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
-  }
-
 }

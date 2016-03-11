@@ -37,33 +37,71 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.blocks;
 
-import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import javax.annotation.Nonnull;
 
-public class MplTestBase extends TestBase {
+import com.google.common.base.Preconditions;
 
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+
+public abstract class MplBlock {
+
+  protected Coordinate3D coordinate;
+
+  public MplBlock(@Nonnull Coordinate3D coordinate) {
+    this.setCoordinate(coordinate);
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
+  @Nonnull
+  public Coordinate3D getCoordinate() {
+    return coordinate;
   }
 
-  private static String someCommand() {
-    return "/" + someString();
+  public void setCoordinate(@Nonnull Coordinate3D coordinate) {
+    this.coordinate = Preconditions.checkNotNull(coordinate, "coordinate == null!");
   }
 
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  public int getX() {
+    return coordinate.getX();
+  }
+
+  public int getY() {
+    return coordinate.getY();
+  }
+
+  public int getZ() {
+    return coordinate.getZ();
+  }
+
+  @Override
+  public String toString() {
+    return "MplBlock [coordinate=" + coordinate + "]";
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((coordinate == null) ? 0 : coordinate.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    MplBlock other = (MplBlock) obj;
+    if (coordinate == null) {
+      if (other.coordinate != null)
+        return false;
+    } else if (!coordinate.equals(other.coordinate))
+      return false;
+    return true;
   }
 
 }

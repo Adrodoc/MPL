@@ -37,33 +37,70 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.conversion;
 
-import de.adrodoc55.TestBase;
+import de.adrodoc55.minecraft.coordinate.Direction3D;
+import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
 
-public class MplTestBase extends TestBase {
+public abstract class MplConverter {
 
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+  public static String toBlockId(Mode mode) {
+    if (mode == null) {
+      throw new NullPointerException("mode == null");
+    }
+    switch (mode) {
+      case IMPULSE:
+        return "command_block";
+      case CHAIN:
+        return "chain_command_block";
+      case REPEAT:
+        return "repeating_command_block";
+    }
+    throw new IllegalArgumentException("Unknown Mode: " + mode);
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
+  protected static int toIntBlockId(Mode mode) {
+    if (mode == null) {
+      throw new NullPointerException("mode == null");
+    }
+    switch (mode) {
+      case IMPULSE:
+        return 137;
+      case CHAIN:
+        return 211;
+      case REPEAT:
+        return 210;
+    }
+    throw new IllegalArgumentException("Unknown Mode: " + mode);
   }
 
-  private static String someCommand() {
-    return "/" + someString();
+  protected static int toDamageValue(CommandBlock block) {
+    int damage = toDamageValue(block.getDirection());
+    if (block.isConditional()) {
+      damage += 8;
+    }
+    return damage;
   }
 
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  private static int toDamageValue(Direction3D direction) {
+    if (direction == null) {
+      throw new NullPointerException("mode == null");
+    }
+    switch (direction) {
+      case DOWN:
+        return 0;
+      case UP:
+        return 1;
+      case NORTH:
+        return 2;
+      case SOUTH:
+        return 3;
+      case WEST:
+        return 4;
+      case EAST:
+        return 5;
+    }
+    throw new IllegalArgumentException("Unknown Direction: " + direction);
   }
-
 }

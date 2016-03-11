@@ -37,33 +37,58 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.program;
 
-import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
-public class MplTestBase extends TestBase {
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Orientation3D;
+import de.adrodoc55.minecraft.mpl.commands.ChainPart;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+public abstract class MplProgram {
+
+  protected Coordinate3D max;
+  protected Orientation3D orientation;
+  protected final List<ChainPart> installation = new ArrayList<>();
+  protected final List<ChainPart> uninstallation = new ArrayList<>();
+  protected final List<CompilerException> exceptions = new LinkedList<>();
+
+  public Coordinate3D getMax() {
+    if (max != null) {
+      return max;
+    } else {
+      return new Coordinate3D(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+    }
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
+  public void setMax(Coordinate3D max) {
+    if (max.getX() < 0 || max.getY() < 0 || max.getZ() < 0) {
+      throw new IllegalArgumentException("The max coordinate of a program must be positive!");
+    }
+    this.max = max;
   }
 
-  private static String someCommand() {
-    return "/" + someString();
+  public Orientation3D getOrientation() {
+    return orientation;
   }
 
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  public void setOrientation(Orientation3D orientation) {
+    this.orientation = orientation;
+  }
+
+  public List<ChainPart> getInstallation() {
+    return installation;
+  }
+
+  public List<ChainPart> getUninstallation() {
+    return uninstallation;
+  }
+
+  public List<CompilerException> getExceptions() {
+    return exceptions;
   }
 
 }

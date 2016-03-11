@@ -37,33 +37,83 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.blocks;
 
-import de.adrodoc55.TestBase;
+import javax.annotation.Nonnull;
+
+import com.google.common.base.Preconditions;
+
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Direction3D;
+import de.adrodoc55.minecraft.mpl.commands.Command;
 import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
 
-public class MplTestBase extends TestBase {
+public class CommandBlock extends MplBlock {
 
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+  @Nonnull
+  private Command command;
+  private Direction3D direction;
+
+  public CommandBlock(@Nonnull Command command, @Nonnull Direction3D direction,
+      @Nonnull Coordinate3D coordinate) {
+    super(coordinate);
+    this.setCommand(command);
+    this.setDirection(direction);
   }
 
-  public static CommandBuilder Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
+  @Nonnull
+  public Command toCommand() {
+    return command;
   }
 
-  private static String someCommand() {
-    return "/" + someString();
+  public void setCommand(@Nonnull Command command) {
+    this.command = Preconditions.checkNotNull(command, "command == null!");
   }
 
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  public String getCommand() {
+    return command.getCommand();
+  }
+
+  public void setCommand(String command) {
+    this.command.setCommand(command);
+  }
+
+  public boolean isConditional() {
+    return command != null ? command.isConditional() : false;
+  }
+
+  public void setConditional(boolean conditional) {
+    command.setConditional(conditional);
+  }
+
+  public Mode getMode() {
+    return command != null ? command.getMode() : null;
+  }
+
+  public void setMode(Mode mode) {
+    command.setMode(mode);
+  }
+
+  public boolean needsRedstone() {
+    return command != null ? command.needsRedstone() : false;
+  }
+
+  public void setNeedsRedstone(boolean needsRedstone) {
+    command.setNeedsRedstone(needsRedstone);
+  }
+
+  @Nonnull
+  public Direction3D getDirection() {
+    return direction;
+  }
+
+  public void setDirection(@Nonnull Direction3D direction) {
+    this.direction = Preconditions.checkNotNull(direction, "direction == null!");
+  }
+
+  @Override
+  public String toString() {
+    return "CommandBlock [command=" + command + ", coordinate=" + coordinate + "]";
   }
 
 }

@@ -64,12 +64,12 @@ import org.beanfabrics.support.Operation;
 import com.google.common.collect.ListMultimap;
 
 import de.adrodoc55.commons.FileUtils;
-import de.adrodoc55.minecraft.mpl.CompilerException;
-import de.adrodoc55.minecraft.mpl.MplCompilationResult;
-import de.adrodoc55.minecraft.mpl.MplCompiler;
-import de.adrodoc55.minecraft.mpl.OneCommandConverter;
-import de.adrodoc55.minecraft.mpl.PythonConverter;
-import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException;
+import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
+import de.adrodoc55.minecraft.mpl.conversion.OneCommandConverter;
+import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
 import de.adrodoc55.minecraft.mpl.gui.dialog.ExceptionDialog;
 import de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialog;
 import de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialogPM;
