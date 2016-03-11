@@ -49,7 +49,7 @@ public class NamedCommandChain extends CommandChain {
 
   protected final String name;
 
-  public NamedCommandChain(String name, List<ChainPart> commands) {
+  public NamedCommandChain(@Nonnull String name, List<ChainPart> commands) {
     super(commands);
     this.name = Preconditions.checkNotNull(name, "name == null!");
   }

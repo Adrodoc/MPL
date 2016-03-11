@@ -39,20 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
-import static de.kussm.direction.Direction.EAST;
-import static de.kussm.direction.Direction.NORTH;
-import static de.kussm.direction.Direction.WEST;
-import static de.kussm.direction.Directions.$;
-
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import de.adrodoc55.minecraft.coordinate.Axis3D;
@@ -62,13 +51,7 @@ import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 import de.adrodoc55.minecraft.mpl.antlr.MplProcess;
 import de.adrodoc55.minecraft.mpl.antlr.MplProject;
-import de.adrodoc55.minecraft.mpl.antlr.commands.InternalCommand;
-import de.adrodoc55.minecraft.mpl.chain_computing.IterativeChainComputer;
-import de.kussm.ChainLayouter;
-import de.kussm.chain.Chain;
-import de.kussm.chain.ChainLink;
 import de.kussm.direction.Directions;
-import de.kussm.position.Position;
 
 public class MplProjectPlacer extends MplChainPlacer {
 
@@ -83,13 +66,14 @@ public class MplProjectPlacer extends MplChainPlacer {
     // The first block of each chain that start's with a RECIEVER must be a TRANSMITTER
     for (MplProcess process : processes) {
       List<ChainPart> commands = process.getCommands();
-      if (commands.isEmpty() || !isReciever(commands.get(0))) {
+      if (commands.isEmpty() || !isReceiver(commands.get(0))) {
         continue;
       }
       commands.add(0, new Skip(false /* First TRANSMITTER can be referenced */));
     }
   }
 
+  @Override
   public List<CommandBlockChain> place() {
     // start with the longest chain
     processes.sort((o1, o2) -> {
@@ -99,23 +83,18 @@ public class MplProjectPlacer extends MplChainPlacer {
       addChain(process);
     }
     addUnInstallation();
-    return result;
+    return chains;
   }
 
   private void addChain(MplProcess process) {
-    Coordinate3D start = estimateStart(process);
-
-    Set<Position> forbiddenTransmitter = new HashSet<>();
-    Set<Position> forbiddenReciever = new HashSet<>();
-    fillForbiddenPositions(start, forbiddenTransmitter, forbiddenReciever);
-
-    CommandBlockChain optimal = compute(process, forbiddenReciever, forbiddenTransmitter);
-    optimal.move(start);
-    occupyBlocks(optimal);
-    result.add(optimal);
+    Coordinate3D start = findStart(process);
+    Directions template = newDirectionsTemplate(getOptimalSize(), getOrientation());
+    CommandBlockChain materialized = generateFlat(process, start, template);
+    occupyBlocks(materialized);
+    chains.add(materialized);
   }
 
-  private Coordinate3D estimateStart(MplProcess process) {
+  private Coordinate3D findStart(MplProcess process) {
     Orientation3D orientation = getOrientation();
     Direction3D b = orientation.getB();
     Direction3D c = orientation.getC();
@@ -125,11 +104,10 @@ public class MplProjectPlacer extends MplChainPlacer {
     Coordinate3D opt = getOptimalSize();
     int optB = opt.get(b.getAxis());
 
-    // int localMaxB = optimal.getMax().get(b.getAxis()) + 1;
     int estimatedB = estimateB(process);
     for (int x = 0; x < occupied.length; x++) {
-      int estimatedMax = occupied[x] + estimatedB;
-      if (estimatedMax <= optB || occupied[x] == 0) {
+      int estimatedMax = occupied[x] + Math.abs(estimatedB);
+      if (estimatedMax <= Math.abs(optB) || occupied[x] == 0) {
         Coordinate3D start = cPos.mult(x).plus(bPos.mult(occupied[x]));
         return start;
       }
@@ -137,88 +115,32 @@ public class MplProjectPlacer extends MplChainPlacer {
     throw new IllegalStateException("could not find a start for chain " + process.getName());
   }
 
+  /**
+   * Estimate the required size of the chain in the b-Direction. A result of 2 relates to a 2 block
+   * height for the default orientation. A result of -2 relates to a 2 block height for an
+   * orientation with negative b.
+   *
+   * @param chain
+   * @return
+   */
   private int estimateB(CommandChain chain) {
-    Direction3D a = getOrientation().getA();
+    int chainSize = chain.getCommands().size();
     Coordinate3D opt = getOptimalSize();
-    int estimate = chain.getCommands().size() / opt.get(a.getAxis());
-    return estimate + 1;
-  }
+    Axis3D aAxis = getOrientation().getA().getAxis();
+    int optA = opt.get(aAxis);
+    int estimate = (int) Math.ceil((double) chainSize / (double) Math.abs(optA));
 
-  private void fillForbiddenPositions(Coordinate3D start, Set<Position> forbiddenTransmitter,
-      Set<Position> forbiddenReciever) {
-    Orientation3D orientation = getOrientation();
-    Axis3D cAxis = orientation.getC().getAxis();
-    int startC = start.get(cAxis);
-    for (CommandBlockChain materialized : result) {
-      for (MplBlock block : materialized.getBlocks()) {
-        Coordinate3D currentCoord = block.getCoordinate();
-        int currentC = currentCoord.get(cAxis);
-
-        Position pos;
-        if (startC - 1 == currentC || currentC == startC + 1) {
-          pos = toPosition(currentCoord.minus(start), orientation);
-        } else if (startC == currentC) {
-          // Ketten in der selben c Ebene sind (in b richtung) unter der zu bauenden kette. Daher
-          // muss einmal b aufaddiert werden.
-          Coordinate3D b = orientation.getB().toCoordinate();
-          pos = toPosition(currentCoord.minus(start).plus(b), orientation);
-        } else {
-          continue;
-        }
-        // Only look at positive positions
-        if (pos.getX() >= 0 && pos.getY() >= 0) {
-          if (isTransmitter(block)) {
-            forbiddenReciever.add(pos);
-          } else if (isReciever(block)) {
-            forbiddenTransmitter.add(pos);
-          }
-        }
-      }
+    Axis3D bAxis = getOrientation().getB().getAxis();
+    if (opt.get(bAxis) < 0) {
+      estimate *= -1;
     }
-  }
 
-  private CommandBlockChain compute(MplProcess chain, Set<Position> forbiddenReceivers,
-      Set<Position> forbiddenTransmitters) {
-    List<ChainPart> commands = chain.getCommands();
-    Chain linkChain = toChainLinkChain(commands);
-
-    LinkedHashMap<Position, ChainLink> placed =
-        place(linkChain, forbiddenReceivers, forbiddenTransmitters);
-
-    List<MplBlock> blocks = toBlocks(commands, placed);
-    return new CommandBlockChain(chain.getName(), blocks);
-  }
-
-  private LinkedHashMap<Position, ChainLink> place(Chain linkChain,
-      Set<Position> forbiddenReceivers, Set<Position> forbiddenTransmitters) {
-    // recievers are not allowed at x=0 because the start transmitters of all chains are at x=0
-    Predicate<Position> isRecieverAllowed =
-        pos -> !forbiddenReceivers.contains(pos) && pos.getX() != 0;
-
-    // transmitters are not allowed at x=1 because the start recievers of all chains are at x=1
-    Predicate<Position> isTransmitterAllowed =
-        pos -> !forbiddenTransmitters.contains(pos) && pos.getX() != 1;
-
-    LinkedHashMap<Position, ChainLink> placed = ChainLayouter.place(linkChain,
-        newDirectionsTemplate(), isRecieverAllowed, isTransmitterAllowed);
-    return placed;
-  }
-
-  private Directions newDirectionsTemplate() {
-    int optA = getOptimalSize().get(getOrientation().getA().getAxis());
-    Directions dirs = $(EAST.repeat(optA), NORTH, WEST.repeat(optA), NORTH).repeat();
-    return dirs;
+    return estimate;
   }
 
   private Coordinate3D optimalSize;
 
-  /**
-   * Calculates the optimal boundaries for this Program. The optimal boundaries must be smaller than
-   * {@code program.getMax()}, but should leave enough space for conditional chains.
-   *
-   * @param program
-   * @return opt the optimal boundaries
-   */
+  @Override
   public Coordinate3D getOptimalSize() {
     if (optimalSize == null) {
       optimalSize = calculateOptimalSize();
@@ -226,13 +148,6 @@ public class MplProjectPlacer extends MplChainPlacer {
     return optimalSize;
   }
 
-  /**
-   * Calculates the optimal boundaries for this Program. The optimal boundaries must be smaller than
-   * {@code program.getMax()}, but should leave enough space for conditional chains.
-   *
-   * @param program
-   * @return opt the optimal boundaries
-   */
   private Coordinate3D calculateOptimalSize() {
     Orientation3D orientation = getOrientation();
     Direction3D a = orientation.getA();
@@ -242,15 +157,13 @@ public class MplProjectPlacer extends MplChainPlacer {
     int maxB = program.getMax().get(b.getAxis());
     int maxC = program.getMax().get(c.getAxis());
 
-    int installLength = getInstallation().size();
-    int uninstallLength = getUninstallation().size();
-    int longestProcessLength =
-        processes.stream().map(p -> p.commands.size()).max(Comparator.naturalOrder()).orElse(0);
-    int longestChainLength =
-        Math.max(Math.max(installLength, uninstallLength), longestProcessLength);
+    int installLength = calculateFutureInstallSize() + calculateFutureUninstallSize();
+    int longestProcessLength = processes.stream().map(p -> p.getCommands().size())
+        .max(Comparator.naturalOrder()).orElse(0);
+    int longestChainLength = Math.max(installLength, longestProcessLength);
 
-    int optB = 1 + (int) Math.sqrt(longestChainLength);
-    int optA = Math.max(optB, getLongestSuccessiveConditionalCount() + 2);
+    int optB = (int) Math.ceil(Math.sqrt(longestChainLength));
+    int optA = Math.max(optB, getLongestSuccessiveConditionalCount() + 3);
     int resultA = Math.min(maxA, optA);
     int resultB = Math.min(maxB, optB);
     // @formatter:off
@@ -262,6 +175,16 @@ public class MplProjectPlacer extends MplChainPlacer {
     return opt;
   }
 
+  private int calculateFutureInstallSize() {
+    // Plus 3 for first Transmitter, first Receiver and final air block
+    return 3 + getInstallation().size() + processes.size();
+  }
+
+  private int calculateFutureUninstallSize() {
+    // Plus 3 for first Transmitter, first Receiver and final air block
+    return 3 + getUninstallation().size() + processes.size();
+  }
+
   public final int getLongestSuccessiveConditionalCount() {
     return Stream
         .concat(processes.stream().map(p -> p.commands),
@@ -270,63 +193,30 @@ public class MplProjectPlacer extends MplChainPlacer {
         .max(Comparator.naturalOrder()).orElse(0);
   }
 
-  private List<MplBlock> toBlocks(List<ChainPart> commands,
-      LinkedHashMap<Position, ChainLink> placed) {
-    LinkedList<ChainPart> chainParts = new LinkedList<>(commands);
-
-    Orientation3D orientation = getOrientation();
-
-    LinkedList<Entry<Position, ChainLink>> entries =
-        placed.entrySet().stream().collect(Collectors.toCollection(LinkedList::new));
-
-    List<MplBlock> blocks = new LinkedList<>();
-    while (entries.size() > 1) {
-      Entry<Position, ChainLink> entry = entries.pop();
-
-      Position pos = entry.getKey();
-      Position nextPos = entries.peek().getKey();
-
-      Direction3D d = getDirection(pos, nextPos, orientation);
-      Coordinate3D coord = toCoordinate(pos, orientation);
-
-      if (entry.getValue() == ChainLink.NO_OPERATION) {
-        blocks.add(new CommandBlock(new InternalCommand(), d, coord));
-      } else {
-        ChainPart chainPart = chainParts.pop();
-        if (chainPart instanceof Command) {
-          blocks.add(new CommandBlock((Command) chainPart, d, coord));
-        } else if (chainPart instanceof Skip) {
-          blocks.add(new Transmitter(((Skip) chainPart).isInternal(), coord));
-        }
-      }
-    }
-
-    // last block is always air
-    Position lastPos = entries.pop().getKey();
-    blocks.add(new AirBlock(toCoordinate(lastPos, orientation)));
-    return blocks;
-  }
-
   private void occupyBlocks(CommandBlockChain materialized) {
-    Direction3D b = getOrientation().getB();
-    Direction3D c = getOrientation().getC();
-    Coordinate3D max = materialized.getMax();
-    occupied[max.get(c.getAxis())] = max.get(b.getAxis()) + 1;
+    Orientation3D orientation = getOrientation();
+    Direction3D b = orientation.getB();
+    Direction3D c = orientation.getC();
+    Coordinate3D max = materialized.getFurthestFromStart(orientation);
+    int maxB = max.get(b.getAxis());
+    int maxC = max.get(c.getAxis());
+    occupied[Math.abs(maxC)] = Math.abs(maxB) + 1;
   }
 
   private void addUnInstallation() {
     List<ChainPart> installation = program.getInstallation();
     List<ChainPart> uninstallation = program.getUninstallation();
 
+    Orientation3D orientation = getOrientation();
     if (!processes.isEmpty() || !installation.isEmpty() || !uninstallation.isEmpty()) {
       // move all chains by 1 block, if installation or uninstallation is added.
       // if there is at least one process, both installation and unistallation will be added.
-      for (CommandBlockChain chain : result) {
-        chain.move(getOrientation().getC().toCoordinate());
+      for (CommandBlockChain chain : chains) {
+        chain.move(orientation.getC().toCoordinate());
       }
     }
 
-    for (CommandBlockChain chain : result) {
+    for (CommandBlockChain chain : chains) {
       Coordinate3D chainStart = chain.getBlocks().get(0).getCoordinate();
       // TODO: Alle ArmorStands taggen, damit nur ein uninstallation command notwendig
       installation
@@ -350,30 +240,7 @@ public class MplProjectPlacer extends MplChainPlacer {
       uninstallation.add(0, new Skip(false /* First TRANSMITTER can be referenced */));
     }
 
-    CommandBlockChain materialisedUninstallation = new IterativeChainComputer().computeOptimalChain(
-        new NamedCommandChain("uninstall", uninstallation), new Coordinate3D(100, 100, 0));
-    materialisedUninstallation.move(getOrientation().getB().toCoordinate());
-    CommandBlockChain materialisedInstallation = new IterativeChainComputer() {
-      protected boolean isCoordinateValid(Coordinate3D coordinate) {
-        if (!super.isCoordinateValid(coordinate)) {
-          return false;
-        }
-        List<MplBlock> commandBlocks = materialisedUninstallation.getBlocks();
-        for (MplBlock block : commandBlocks) {
-          if (block.getCoordinate().equals(coordinate)) {
-            return false;
-          }
-        }
-        return true;
-      };
-    }.computeOptimalChain(new NamedCommandChain("install", installation),
-        new Coordinate3D(100, 100, 0));
-    if (!materialisedInstallation.getBlocks().isEmpty()) {
-      result.add(materialisedInstallation);
-    }
-    if (!materialisedUninstallation.getBlocks().isEmpty()) {
-      result.add(materialisedUninstallation);
-    }
+    generateUnInstallation();
   }
 
 }

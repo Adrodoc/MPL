@@ -39,21 +39,114 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Direction3D;
+import de.adrodoc55.minecraft.coordinate.Orientation3D;
+import de.adrodoc55.minecraft.mpl.Command.Mode;
 import de.adrodoc55.minecraft.mpl.antlr.MplScript;
 
 public class MplScriptPlacer extends MplChainPlacer {
+  private final CommandChain chain;
 
   protected MplScriptPlacer(MplScript script) {
     super(script);
-    // TODO Auto-generated constructor stub
+    this.chain = script.getChain();
+
+    // The first block of each chain that start's with a RECIEVER must be a TRANSMITTER
+    List<ChainPart> commands = chain.getCommands();
+    if (!commands.isEmpty() && isReceiver(commands.get(0))) {
+      commands.add(0, new Skip(false /* First TRANSMITTER can be referenced */));
+    }
   }
 
+  // TODO: Scripte in 3D kompilieren
   @Override
   public List<CommandBlockChain> place() {
-    // TODO Auto-generated method stub
-    return null;
+    CommandBlockChain generated = generateFlat(chain, new Coordinate3D(),
+        newDirectionsTemplate(getOptimalSize(), getOrientation()));
+    chains.add(generated);
+    addUnInstallation();
+    return chains;
+  }
+
+  private Coordinate3D optimalSize;
+
+  @Override
+  public Coordinate3D getOptimalSize() {
+    if (optimalSize == null) {
+      optimalSize = calculateOptimalSize();
+    }
+    return optimalSize;
+  }
+
+  private Coordinate3D calculateOptimalSize() {
+    Orientation3D orientation = getOrientation();
+    Direction3D a = orientation.getA();
+    Direction3D b = orientation.getB();
+    Direction3D c = orientation.getC();
+    int maxA = program.getMax().get(a.getAxis());
+    int maxB = program.getMax().get(b.getAxis());
+    int maxC = program.getMax().get(c.getAxis());
+
+    int installLength = calculateFutureInstallSize() + calculateFutureUninstallSize();
+    int scriptLength = chain.getCommands().size();
+    int longestChainLength = Math.max(installLength, scriptLength);
+
+    int optB = (int) Math.ceil(Math.sqrt(longestChainLength));
+    int optA = Math.max(optB, getLongestSuccessiveConditionalCount() + 3);
+    int resultA = Math.min(maxA, optA);
+    int resultB = Math.min(maxB, optB);
+    // @formatter:off
+    Coordinate3D opt = new Coordinate3D()
+        .plus(a.toCoordinate().mult(resultA))
+        .plus(b.toCoordinate().mult(resultB))
+        .plus(c.toCoordinate().mult(maxC));
+    // @formatter:on
+    return opt;
+  }
+
+  private int calculateFutureInstallSize() {
+    // Plus 3 for first Transmitter, first Receiver and final air block
+    return 3 + getInstallation().size();
+  }
+
+  private int calculateFutureUninstallSize() {
+    // Plus 3 for first Transmitter, first Receiver and final air block
+    return 3 + getUninstallation().size();
+  }
+
+  public final int getLongestSuccessiveConditionalCount() {
+    return Stream.of(chain.getCommands(), getInstallation(), getUninstallation())
+        .map(chainParts -> getLongestSuccessiveConditionalCount(chainParts))
+        .max(Comparator.naturalOrder()).orElse(0);
+  }
+
+  private void addUnInstallation() {
+    List<ChainPart> installation = program.getInstallation();
+    List<ChainPart> uninstallation = program.getUninstallation();
+
+    Orientation3D orientation = getOrientation();
+    if (!installation.isEmpty() || !uninstallation.isEmpty()) {
+      // move all chains by 1 block, if installation or uninstallation is added.
+      for (CommandBlockChain chain : chains) {
+        chain.move(orientation.getC().toCoordinate());
+      }
+    }
+
+    if (!installation.isEmpty()) {
+      installation.add(0, new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
+      installation.add(0, new Skip(false /* First TRANSMITTER can be referenced */));
+    }
+    if (!uninstallation.isEmpty()) {
+      uninstallation.add(0, new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
+      uninstallation.add(0, new Skip(false /* First TRANSMITTER can be referenced */));
+    }
+
+    generateUnInstallation();
   }
 
 }

@@ -49,7 +49,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
-import java.util.List;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -65,8 +64,8 @@ import org.beanfabrics.support.Operation;
 import com.google.common.collect.ListMultimap;
 
 import de.adrodoc55.commons.FileUtils;
-import de.adrodoc55.minecraft.mpl.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.CompilerException;
+import de.adrodoc55.minecraft.mpl.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.MplCompiler;
 import de.adrodoc55.minecraft.mpl.OneCommandConverter;
 import de.adrodoc55.minecraft.mpl.PythonConverter;
@@ -191,10 +190,7 @@ public class MplFramePM extends AbstractPM {
   @Operation
   public void compileFile() {
     try {
-      List<CommandBlockChain> chains = compile();
-      if (chains == null) {
-        return;
-      }
+      MplCompilationResult result = compile();
       MplEditorPM selected = editors.getSelection().getFirst();
       if (selected == null) {
         return;
@@ -208,7 +204,7 @@ public class MplFramePM extends AbstractPM {
       File outputFile = new File(dir, targetFileName);
       outputFile.getParentFile().mkdirs();
       outputFile.createNewFile();
-      String python = PythonConverter.convert(chains, name);
+      String python = PythonConverter.convert(result, name);
       try (BufferedWriter writer = Files.newBufferedWriter(outputFile.toPath());) {
         writer.write(python.toString());
       }
@@ -228,11 +224,8 @@ public class MplFramePM extends AbstractPM {
 
   @Operation
   public void compileCommand() {
-    List<CommandBlockChain> chains = compile();
-    if (chains == null) {
-      return;
-    }
-    String oneCommand = OneCommandConverter.convert(chains);
+    MplCompilationResult result = compile();
+    String oneCommand = OneCommandConverter.convert(result);
     Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
     OneCommandDialog dialog = new OneCommandDialog(activeWindow);
     OneCommandDialogPM dialogPm = new OneCommandDialogPM();
@@ -241,7 +234,7 @@ public class MplFramePM extends AbstractPM {
     dialog.setVisible(true);
   }
 
-  private List<CommandBlockChain> compile() {
+  private MplCompilationResult compile() {
     if (warnAboutUnsavedResources()) {
       return null;
     }
@@ -259,11 +252,11 @@ public class MplFramePM extends AbstractPM {
       return null;
     }
     try {
-      List<CommandBlockChain> chains = MplCompiler.compile(file);
+      MplCompilationResult result = MplCompiler.compile(file);
       for (MplEditorPM editorPm : editors) {
         editorPm.setCompilerExceptions(Collections.emptyList());
       }
-      return chains;
+      return result;
     } catch (CompilationFailedException ex) {
       ExceptionDialog dialog = ExceptionDialog.create("Compilation Failed!",
           "The Compiler encountered Errors!", ex.toString());

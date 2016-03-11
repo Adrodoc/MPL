@@ -39,19 +39,14 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
-import java.util.List;
-
 public class PythonConverter extends MplConverter {
 
   private static final String INDENT = "    ";
 
-  public static String convert(List<CommandBlockChain> chains, String name) {
+  public static String convert(MplCompilationResult result, String name) {
     StringBuilder sb = new StringBuilder(getPythonHeader(name));
-    for (CommandBlockChain chain : chains) {
-      List<MplBlock> blocks = chain.getBlocks();
-      for (MplBlock block : blocks) {
-        sb.append(INDENT + convert(block) + "\n");
-      }
+    for (MplBlock block : result.getBlocks().values()) {
+      sb.append(INDENT + convert(block) + "\n");
     }
     return sb.toString();
   }

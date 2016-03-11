@@ -39,10 +39,15 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
+import static de.adrodoc55.minecraft.coordinate.Axis3D.X;
+import static de.adrodoc55.minecraft.coordinate.Axis3D.Y;
+import static de.adrodoc55.minecraft.coordinate.Axis3D.Z;
+
 import java.util.Iterator;
 import java.util.List;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Orientation3D;
 
 public class CommandBlockChain {
 
@@ -73,44 +78,36 @@ public class CommandBlockChain {
     return blocks;
   }
 
-  public Coordinate3D getMin() {
+  public Coordinate3D getFurthestFromStart(Orientation3D orientation) {
     Iterator<MplBlock> it = blocks.iterator();
     if (!it.hasNext()) {
       return new Coordinate3D();
     }
     MplBlock first = it.next();
     Coordinate3D pos = first.getCoordinate();
-    int minX = pos.getX();
-    int minY = pos.getY();
-    int minZ = pos.getZ();
+    int x = pos.getX();
+    int y = pos.getY();
+    int z = pos.getZ();
     while (it.hasNext()) {
       MplBlock current = it.next();
       Coordinate3D c = current.getCoordinate();
-      minX = Math.min(minX, c.getX());
-      minY = Math.min(minY, c.getY());
-      minZ = Math.min(minZ, c.getZ());
+      if (orientation.get(X).isNegative()) {
+        x = Math.min(x, c.getX());
+      } else {
+        x = Math.max(x, c.getX());
+      }
+      if (orientation.get(Y).isNegative()) {
+        y = Math.min(y, c.getY());
+      } else {
+        y = Math.max(y, c.getY());
+      }
+      if (orientation.get(Z).isNegative()) {
+        z = Math.min(z, c.getZ());
+      } else {
+        z = Math.max(z, c.getZ());
+      }
     }
-    return new Coordinate3D(minX, minY, minZ);
-  }
-
-  public Coordinate3D getMax() {
-    Iterator<MplBlock> it = blocks.iterator();
-    if (!it.hasNext()) {
-      return new Coordinate3D();
-    }
-    MplBlock first = it.next();
-    Coordinate3D pos = first.getCoordinate();
-    int maxX = pos.getX();
-    int maxY = pos.getY();
-    int maxZ = pos.getZ();
-    while (it.hasNext()) {
-      MplBlock current = it.next();
-      Coordinate3D c = current.getCoordinate();
-      maxX = Math.max(maxX, c.getX());
-      maxY = Math.max(maxY, c.getY());
-      maxZ = Math.max(maxZ, c.getZ());
-    }
-    return new Coordinate3D(maxX, maxY, maxZ);
+    return new Coordinate3D(x, y, z);
   }
 
   @Override

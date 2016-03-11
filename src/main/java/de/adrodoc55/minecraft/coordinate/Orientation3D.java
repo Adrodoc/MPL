@@ -136,4 +136,18 @@ public class Orientation3D {
   public Direction3D getC() {
     return c;
   }
+
+  @Nonnull
+  public Direction3D get(@Nonnull Axis3D axis) {
+    Preconditions.checkNotNull(axis, "axis == null!");
+    if (a.getAxis() == axis)
+      return a;
+    if (b.getAxis() == axis)
+      return b;
+    if (c.getAxis() == axis)
+      return c;
+    throw new InternalError(
+        "A, B and C must be on different axis and there are only 3 axis. Therefor this can never happen!");
+  }
+
 }

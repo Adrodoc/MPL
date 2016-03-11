@@ -65,6 +65,9 @@ public abstract class MplProgram {
   }
 
   public void setMax(Coordinate3D max) {
+    if (max.getX() < 0 || max.getY() < 0 || max.getZ() < 0) {
+      throw new IllegalArgumentException("The max coordinate of a program must be positive!");
+    }
     this.max = max;
   }
 

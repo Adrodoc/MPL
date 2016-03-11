@@ -37,13 +37,35 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.chain_computing;
+package de.adrodoc55.minecraft.mpl;
 
-public class IterativeChainComputerTest extends ChainComputerTest {
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-  @Override
-  public void setup() {
-    underTest = new IterativeChainComputer();
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Orientation3D;
+
+public class MplCompilationResult {
+  private final Orientation3D orientation;
+  private final ImmutableMap<Coordinate3D, MplBlock> blocks;
+
+  public MplCompilationResult(@Nullable Orientation3D orientation,
+      @Nonnull ImmutableMap<Coordinate3D, MplBlock> blocks) {
+    this.orientation = orientation != null ? orientation : new Orientation3D();
+    this.blocks = Preconditions.checkNotNull(blocks, "blocks == null!");
+  }
+
+  @Nonnull
+  public Orientation3D getOrientation() {
+    return orientation;
+  }
+
+  @Nonnull
+  public ImmutableMap<Coordinate3D, MplBlock> getBlocks() {
+    return blocks;
   }
 
 }

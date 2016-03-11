@@ -50,8 +50,7 @@ public class CommandChain {
   protected final List<ChainPart> commands;
 
   public CommandChain(@Nonnull List<ChainPart> commands) {
-    Preconditions.checkNotNull(commands, "commands == null!");
-    this.commands = commands;
+    this.commands = Preconditions.checkNotNull(commands, "commands == null!");
   }
 
   @Nonnull

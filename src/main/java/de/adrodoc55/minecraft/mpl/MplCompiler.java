@@ -49,10 +49,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 
@@ -69,14 +72,18 @@ import de.adrodoc55.minecraft.mpl.antlr.commands.InternalCommand;
 
 public class MplCompiler extends MplBaseListener {
 
-  public static List<CommandBlockChain> compile(File programFile)
+  public static MplCompilationResult compile(File programFile)
       throws IOException, CompilationFailedException {
     MplProgram program = assembleProgram(programFile);
     List<CommandBlockChain> chains = MplChainPlacer.place(program);
     for (CommandBlockChain chain : chains) {
       insertRelativeCoordinates(chain.getBlocks(), program.getOrientation());
     }
-    return chains;
+
+    List<MplBlock> blocks =
+        chains.stream().flatMap(c -> c.getBlocks().stream()).collect(Collectors.toList());
+    ImmutableMap<Coordinate3D, MplBlock> result = Maps.uniqueIndex(blocks, b -> b.getCoordinate());
+    return new MplCompilationResult(program.getOrientation(), result);
   }
 
   public static MplProgram assembleProgram(File programFile)

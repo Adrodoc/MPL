@@ -39,23 +39,26 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
-import net.karneim.pojobuilder.Builder;
 import de.adrodoc55.TestBase;
 import de.adrodoc55.minecraft.mpl.Command.Mode;
 
 public class MplTestBase extends TestBase {
 
-  public static <P> P some(Builder<P> builder) {
-    return builder.build();
+  public static String someIdentifier() {
+    return "Identifier_" + somePositiveInt();
   }
 
-  public static CommandBuilder $Command() {
+  public static CommandBuilder Command() {
     CommandBuilder builder = new CommandBuilder();
     builder.withCommand(someCommand());
-    builder.withConditional(someBoolean());
     builder.withMode(someMode());
+    builder.withConditional(someBoolean());
     builder.withNeedsRedstone(someBoolean());
     return builder;
+  }
+
+  private static String someCommand() {
+    return "/" + someString();
   }
 
   private static Mode someMode() {
@@ -63,7 +66,4 @@ public class MplTestBase extends TestBase {
     return values[someInt(values.length)];
   }
 
-  private static String someCommand() {
-    return "/" + someString();
-  }
 }

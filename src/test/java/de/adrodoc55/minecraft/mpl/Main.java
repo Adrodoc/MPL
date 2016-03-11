@@ -43,7 +43,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.List;
 
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.antlr.CompilationFailedException;
@@ -62,7 +61,7 @@ public class Main {
 
   public static void main(File inputFile, File outputFile)
       throws IOException, CompilationFailedException {
-    List<CommandBlockChain> chains = MplCompiler.compile(inputFile);
+    MplCompilationResult chains = MplCompiler.compile(inputFile);
     String name = FileUtils.getFilenameWithoutExtension(inputFile);
     String python = PythonConverter.convert(chains, name);
 

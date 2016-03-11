@@ -42,6 +42,9 @@ package de.adrodoc55.minecraft.coordinate;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.Immutable;
+
+@Immutable
 public class Coordinate3D {
 
   public static final Coordinate3D SELF = new Coordinate3D(0, 0, 0);
@@ -113,6 +116,51 @@ public class Coordinate3D {
     }
   }
 
+  public Coordinate3D plus(int skalar, Axis3D axis) {
+    switch (axis) {
+      case X:
+        int x = overflowSaveAddition(this.x, skalar);
+        return new Coordinate3D(x, this.y, this.z);
+      case Y:
+        int y = overflowSaveAddition(this.y, skalar);
+        return new Coordinate3D(this.x, y, this.z);
+      case Z:
+        int z = overflowSaveAddition(this.z, skalar);
+        return new Coordinate3D(this.x, this.y, z);
+      default:
+        throw new IllegalArgumentException("axis must not be null");
+    }
+  }
+
+  public Coordinate3D minus(int skalar, Axis3D axis) {
+    switch (axis) {
+      case X:
+        int x = overflowSaveSubstraction(this.x, skalar);
+        return new Coordinate3D(x, this.y, this.z);
+      case Y:
+        int y = overflowSaveSubstraction(this.y, skalar);
+        return new Coordinate3D(this.x, y, this.z);
+      case Z:
+        int z = overflowSaveSubstraction(this.z, skalar);
+        return new Coordinate3D(this.x, this.y, z);
+      default:
+        throw new IllegalArgumentException("axis must not be null");
+    }
+  }
+
+  /**
+   * Einfache Skalarmultiplikation. Nicht Überlaufsicher.
+   *
+   * @param skalar
+   * @return
+   */
+  public Coordinate3D mult(int skalar) {
+    int x = this.x * skalar;
+    int y = this.y * skalar;
+    int z = this.z * skalar;
+    return new Coordinate3D(x, y, z);
+  }
+
   public static int overflowSaveAddition(int a, int b) {
     int c;
     try {
@@ -129,19 +177,6 @@ public class Coordinate3D {
 
   public static int overflowSaveSubstraction(int a, int b) {
     return overflowSaveAddition(a, b * -1);
-  }
-
-  /**
-   * Einfache Skalarmultiplikation. Nicht Überlaufsicher.
-   *
-   * @param skalar
-   * @return
-   */
-  public Coordinate3D mult(int skalar) {
-    int x = this.x * skalar;
-    int y = this.y * skalar;
-    int z = this.z * skalar;
-    return new Coordinate3D(x, y, z);
   }
 
   @Override

@@ -40,9 +40,12 @@
 package de.adrodoc55.minecraft.mpl;
 
 import java.util.Iterator;
-import java.util.List;
+
+import com.google.common.collect.ImmutableSet;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Direction3D;
+import de.adrodoc55.minecraft.coordinate.Orientation3D;
 
 public class OneCommandConverter extends MplConverter {
 
@@ -50,59 +53,71 @@ public class OneCommandConverter extends MplConverter {
       "summon FallingSand ~ ~1 ~ {Block:redstone_block,Time:1,Passengers:[{id:FallingSand,Block:activator_rail,Time:1,Passengers:[";
   private static final String TAIL =
       "{id:MinecartCommandBlock,Command:setblock ~ ~2 ~ command_block 0 replace {Command:fill ~ ~-4 ~ ~ ~ ~ air}},{id:MinecartCommandBlock,Command:setblock ~ ~1 ~ redstone_block},{id:MinecartCommandBlock,Command:kill @e[type=MinecartCommandBlock,r=0]}]}]}";
-  private static final Coordinate3D OFFSET = new Coordinate3D(1, -2, 1);
   private static final String COMMAND_HEADER = "{id:MinecartCommandBlock,Command:";
   private static final String COMMAND_TAIL = "},";
 
-  public static String convert(List<CommandBlockChain> chains) {
+  public static Coordinate3D getOffset(Orientation3D orientation) {
+    Coordinate3D a = orientation.getA().toCoordinate();
+    Coordinate3D c = orientation.getC().toCoordinate();
+
+    Direction3D bd = orientation.getB();
+    bd = Direction3D.valueOf(bd.getAxis(), false);
+    Coordinate3D b = bd.toCoordinate();
+
+    // @formatter:off
+    return new Coordinate3D()
+        .plus(a.mult(1))
+        .plus(b.mult(-2))
+        .plus(c.mult(1));
+    // @formatter:on
+  }
+
+  public static String convert(MplCompilationResult result) {
+    Orientation3D orientation = result.getOrientation();
+
     StringBuilder sb = new StringBuilder(HEADER);
     // Appending initial fill Command to clear the required Area
-    Coordinate3D max = getMaxCoordinate(chains);
+    Coordinate3D max = getMaxCoordinate(result.getBlocks().keySet());
     if (max != null) {
       sb.append(COMMAND_HEADER);
       sb.append("fill ");
-      sb.append(new Coordinate3D().plus(OFFSET).toRelativeString()).append(' ');
-      sb.append(max.plus(OFFSET).toRelativeString()).append(' ');
+      sb.append(new Coordinate3D().plus(getOffset(orientation)).toRelativeString()).append(' ');
+      sb.append(max.plus(getOffset(orientation)).toRelativeString()).append(' ');
       sb.append("air");
       sb.append(COMMAND_TAIL);
     }
     // Appending setblock for all Commands
-    for (CommandBlockChain chain : chains) {
-      List<MplBlock> blocks = chain.getBlocks();
-      for (MplBlock block : blocks) {
-        if (!(block instanceof CommandBlock)) {
-          continue;
-        }
-        sb.append(convert((CommandBlock) block));
+    for (MplBlock block : result.getBlocks().values()) {
+      if (!(block instanceof CommandBlock)) {
+        continue;
       }
+      sb.append(convert((CommandBlock) block, orientation));
     }
+
     sb.append(TAIL);
     return sb.toString();
   }
 
-  private static Coordinate3D getMaxCoordinate(List<CommandBlockChain> chains) {
-    Iterator<CommandBlockChain> it = chains.iterator();
+  private static Coordinate3D getMaxCoordinate(ImmutableSet<Coordinate3D> immutableSet) {
+    Iterator<Coordinate3D> it = immutableSet.iterator();
     if (!it.hasNext()) {
       return null;
     }
-    CommandBlockChain first = it.next();
-    Coordinate3D pos = first.getMax();
+    Coordinate3D pos = it.next();
     int maxX = pos.getX();
     int maxY = pos.getY();
     int maxZ = pos.getZ();
     while (it.hasNext()) {
-      CommandBlockChain current = it.next();
-      Coordinate3D c = current.getMax();
+      Coordinate3D c = it.next();
       maxX = Math.max(maxX, c.getX());
       maxY = Math.max(maxY, c.getY());
       maxZ = Math.max(maxZ, c.getZ());
     }
     return new Coordinate3D(maxX, maxY, maxZ);
-
   }
 
-  private static StringBuilder convert(CommandBlock block) {
-    String coordinate = block.getCoordinate().plus(OFFSET).toRelativeString();
+  private static StringBuilder convert(CommandBlock block, Orientation3D orientation) {
+    String coordinate = block.getCoordinate().plus(getOffset(orientation)).toRelativeString();
     String blockId = toBlockId(block.getMode());
     int damage = toDamageValue(block);
     StringBuilder sb = new StringBuilder(COMMAND_HEADER);
