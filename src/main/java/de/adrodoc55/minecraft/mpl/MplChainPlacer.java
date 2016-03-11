@@ -64,7 +64,7 @@ import de.adrodoc55.minecraft.mpl.Command.Mode;
 import de.adrodoc55.minecraft.mpl.antlr.MplProgram;
 import de.adrodoc55.minecraft.mpl.antlr.MplProject;
 import de.adrodoc55.minecraft.mpl.antlr.MplScript;
-import de.adrodoc55.minecraft.mpl.antlr.commands.InternalCommand;
+import de.adrodoc55.minecraft.mpl.antlr.commands.NoOperationCommand;
 import de.kussm.ChainLayouter;
 import de.kussm.chain.Chain;
 import de.kussm.chain.ChainLink;
@@ -221,7 +221,7 @@ public abstract class MplChainPlacer {
       Coordinate3D coord = toCoordinate(pos, orientation);
 
       if (entry.getValue() == ChainLink.NO_OPERATION) {
-        blocks.add(new CommandBlock(new InternalCommand(), d, coord));
+        blocks.add(new CommandBlock(new NoOperationCommand(), d, coord));
       } else {
         ChainPart chainPart = chainParts.pop();
         if (chainPart instanceof Command) {

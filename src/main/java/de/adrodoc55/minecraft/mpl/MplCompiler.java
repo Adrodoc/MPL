@@ -69,6 +69,7 @@ import de.adrodoc55.minecraft.mpl.antlr.MplProcess;
 import de.adrodoc55.minecraft.mpl.antlr.MplProgram;
 import de.adrodoc55.minecraft.mpl.antlr.MplProject;
 import de.adrodoc55.minecraft.mpl.antlr.commands.InternalCommand;
+import de.adrodoc55.minecraft.mpl.antlr.commands.NoOperationCommand;
 
 public class MplCompiler extends MplBaseListener {
 
@@ -285,7 +286,7 @@ public class MplCompiler extends MplBaseListener {
             break;
           }
           MplBlock block = blocks.get(refIndex);
-          if (!isInternal(current) && isInternal(block)) {
+          if (isNop(block) || (isInternal(block) && !isInternal(current))) {
             steps++;
           }
         }
@@ -325,6 +326,15 @@ public class MplCompiler extends MplBaseListener {
       CommandBlock commandBlock = (CommandBlock) block;
       Command command = commandBlock.toCommand();
       return command instanceof InternalCommand;
+    }
+    return false;
+  }
+
+  private static boolean isNop(MplBlock block) {
+    if (block instanceof CommandBlock) {
+      CommandBlock commandBlock = (CommandBlock) block;
+      Command command = commandBlock.toCommand();
+      return command instanceof NoOperationCommand;
     }
     return false;
   }
