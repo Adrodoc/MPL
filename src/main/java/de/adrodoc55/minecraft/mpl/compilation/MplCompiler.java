@@ -80,15 +80,19 @@ public class MplCompiler extends MplBaseListener {
   public static MplCompilationResult compile(File programFile)
       throws IOException, CompilationFailedException {
     MplProgram program = assembleProgram(programFile);
-    List<CommandBlockChain> chains = MplChainPlacer.place(program);
-    for (CommandBlockChain chain : chains) {
-      insertRelativeCoordinates(chain.getBlocks(), program.getOrientation());
-    }
-
+    List<CommandBlockChain> chains = place(program);
     List<MplBlock> blocks =
         chains.stream().flatMap(c -> c.getBlocks().stream()).collect(Collectors.toList());
     ImmutableMap<Coordinate3D, MplBlock> result = Maps.uniqueIndex(blocks, b -> b.getCoordinate());
     return new MplCompilationResult(program.getOrientation(), result);
+  }
+
+  private static List<CommandBlockChain> place(MplProgram program) {
+    List<CommandBlockChain> chains = MplChainPlacer.place(program);
+    for (CommandBlockChain chain : chains) {
+      insertRelativeCoordinates(chain.getBlocks(), program.getOrientation());
+    }
+    return chains;
   }
 
   public static MplProgram assembleProgram(File programFile)
@@ -215,10 +219,12 @@ public class MplCompiler extends MplBaseListener {
 
   public void addProcess(MplInterpreter interpreter, String processName) {
     MplProcess process = interpreter.getProject().getProcess(processName);
-    Set<String> processNames = programContent.get(process.getSource().file);
+    File file = process.getSource().file;
+    Set<String> processNames = programContent.get(file);
     if (!processNames.contains(process.getName())) {
       project.addProcess(process);
       includeTodos.addAll(interpreter.getIncludes().get(processName));
+      programContent.put(file, processName);
     }
   }
 
@@ -235,7 +241,7 @@ public class MplCompiler extends MplBaseListener {
       }
       if (interpreter.isScript()) {
         CompilerException compilerException = new CompilerException(include.getSource(),
-            "Can't include script " + file.getName() + ". Scripts may not be included.");
+            "Can't include script '" + file.getName() + "'. Scripts may not be included.");
         project.getExceptions().add(compilerException);
         return;
       }

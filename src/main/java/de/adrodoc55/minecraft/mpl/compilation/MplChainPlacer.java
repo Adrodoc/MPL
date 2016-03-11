@@ -103,13 +103,7 @@ public abstract class MplChainPlacer {
   }
 
   protected Orientation3D getOrientation() {
-    Orientation3D orientation = program.getOrientation();
-    if (orientation != null) {
-      return orientation;
-    } else {
-      // Default Orientation
-      return new Orientation3D();
-    }
+    return program.getOrientation();
   }
 
   protected List<ChainPart> getInstallation() {

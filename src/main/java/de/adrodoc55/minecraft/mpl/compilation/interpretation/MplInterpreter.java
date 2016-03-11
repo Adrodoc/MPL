@@ -705,9 +705,19 @@ public class MplInterpreter extends MplBaseListener {
   }
 
   @Override
+  public void exitProjectFile(ProjectFileContext ctx) {
+    if (project.getOrientation() == null) {
+      project.setOrientation(new Orientation3D());
+    }
+  }
+
+  @Override
   public void exitScriptFile(ScriptFileContext ctx) {
     CommandChain chain = new CommandChain(chainBuffer.getCommands());
     script.setChain(chain);
+    if (script.getOrientation() == null) {
+      script.setOrientation(new Orientation3D());
+    }
     deleteChainBuffer();
   }
 }

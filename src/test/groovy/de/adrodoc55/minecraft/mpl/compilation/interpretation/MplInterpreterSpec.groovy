@@ -1711,28 +1711,28 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     interpreter.addFileImport(null, otherFile)
     then:
-    MplProject project = interpreter.project
-    project.exceptions.isEmpty()
-
     interpreter.imports.containsAll([programFile, otherFile])
     interpreter.imports.size() == 2
   }
 
   @Test
-  void "calling addFileImport twice with the same file will add an exception"() {
+  void "importing the same file twice will add an exception"() {
     given:
-    File otherFile = newTempFile()
-    File programFile = new File(otherFile.parentFile, 'folder/file.txt')
-    programFile.parentFile.mkdirs()
-    programFile.createNewFile()
-    MplInterpreter interpreter = new MplInterpreter(programFile)
+    String programString = """
+    import "newFolder/newFile.txt"
+    import "newFolder/newFile.txt"
+    """
+    File newFolder = new File(tempFolder.root, "newFolder")
+    newFolder.mkdirs()
+    File newFile = new File(newFolder, "newFile.txt")
+    newFile.createNewFile()
     when:
-    interpreter.addFileImport(null, otherFile)
-    interpreter.addFileImport(null, otherFile)
+    MplInterpreter interpreter = interpret(programString)
     then:
     MplProject project = interpreter.project
-    project.exceptions[0].source.file == programFile
-    project.exceptions[0].source.token == null
+    project.exceptions[0].source.file == lastTempFile
+    project.exceptions[0].source.token.line == 3
+    project.exceptions[0].source.token.text == '"newFolder/newFile.txt"'
     project.exceptions[0].message == 'Duplicate import.'
     project.exceptions.size() == 1
   }

@@ -150,4 +150,32 @@ public class Orientation3D {
         "A, B and C must be on different axis and there are only 3 axis. Therefor this can never happen!");
   }
 
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((a == null) ? 0 : a.hashCode());
+    result = prime * result + ((b == null) ? 0 : b.hashCode());
+    result = prime * result + ((c == null) ? 0 : c.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    Orientation3D other = (Orientation3D) obj;
+    if (a != other.a)
+      return false;
+    if (b != other.b)
+      return false;
+    if (c != other.c)
+      return false;
+    return true;
+  }
+
 }

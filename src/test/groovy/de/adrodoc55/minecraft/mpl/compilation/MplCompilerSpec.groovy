@@ -45,10 +45,14 @@ import org.junit.Test
 
 import de.adrodoc55.minecraft.coordinate.Orientation3D
 import de.adrodoc55.minecraft.mpl.MplSpecBase
+import de.adrodoc55.minecraft.mpl.blocks.AirBlock;
+import de.adrodoc55.minecraft.mpl.blocks.Transmitter
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain
 import de.adrodoc55.minecraft.mpl.chain.CommandChain
 import de.adrodoc55.minecraft.mpl.commands.Command
+import de.adrodoc55.minecraft.mpl.program.MplProgram
 import de.adrodoc55.minecraft.mpl.program.MplProject
+import de.adrodoc55.minecraft.mpl.program.MplScript
 
 class MplCompilerSpec extends MplSpecBase {
 
@@ -346,9 +350,16 @@ class MplCompilerSpec extends MplSpecBase {
     MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
     CompilationFailedException ex = thrown()
-    Collection<CompilerException> exs = ex.exceptions.get(new File('main.mpl'))
+    Collection<CompilerException> exs = ex.exceptions.values()
+    exs[0].source.file == new File(folder, 'other1.mpl')
+    exs[0].source.token.line == 2
+    exs[0].source.token.text == id2
+    exs[0].message == "Duplicate process ${id2}! Was also found in ${new File(folder, 'other2.mpl')}"
+    exs[1].source.file == new File(folder, 'other2.mpl')
+    exs[1].source.token.line == 2
+    exs[1].source.token.text == id2
+    exs[1].message == "Duplicate process ${id2}! Was also found in ${new File(folder, 'other1.mpl')}"
     exs.size() == 2
-    exs.first().message == "Duplicate process ${id2}! It was found..."
   }
 
   @Test
@@ -373,11 +384,11 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     CompilationFailedException ex = thrown()
     List<CompilerException> exs = ex.exceptions.get(new File(folder, 'main.mpl'))
-    exs.size() == 1
     exs[0].source.file == new File(folder, 'main.mpl')
     exs[0].source.token.line == 3
     exs[0].source.token.text == '"newFolder/scriptFile.mpl"'
     exs[0].message == "Can't include script 'scriptFile.mpl'. Scripts may not be included."
+    exs.size() == 1
   }
 
   @Test
@@ -391,7 +402,7 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.orientation == new Orientation3D('zyx')
   }
@@ -515,7 +526,7 @@ class MplCompilerSpec extends MplSpecBase {
     impulse: /say hi
     """
     when:
-    List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
+    MplCompiler.compile(new File(folder, 'main.mpl'))
     then:
     notThrown Exception
   }
@@ -528,7 +539,7 @@ class MplCompilerSpec extends MplSpecBase {
     repeat: /say hi
     """
     when:
-    List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
+    MplCompiler.compile(new File(folder, 'main.mpl'))
     then:
     notThrown Exception
   }
@@ -541,22 +552,23 @@ class MplCompilerSpec extends MplSpecBase {
     /say hi
     """
     when:
-    List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
+    MplCompiler.compile(new File(folder, 'main.mpl'))
     then:
     notThrown Exception
   }
 
   @Test
-  public void "a script does not have installation/uninstallation"() {
+  public void "a script does not have installation/uninstallation by default"() {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     /say hi
     """
     when:
-    List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
+    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
-    chains.size() == 1
+    result.installation.isEmpty()
+    result.uninstallation.isEmpty()
   }
 
   @Test
@@ -569,16 +581,15 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
+    MplScript result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
-    chains.size() == 2
-    chains[0].name == null
-    chains[1].name == 'install'
+    result.installation.size() == 1
+    result.uninstallation.isEmpty()
+    result.chain.commands.isEmpty()
   }
 
-  // FIXME: WARUM???
   @Test
-  public void "having an uninstallation also produces an installation"() {
+  public void "having an uninstallation does not produce an installation"() {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
@@ -587,12 +598,11 @@ class MplCompilerSpec extends MplSpecBase {
     )
     """
     when:
-    List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
+    MplScript result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
     then:
-    chains.size() == 3
-    chains[0].name == null
-    chains[1].name == 'install'
-    chains[2].name == 'uninstall'
+    result.uninstallation.size() == 1
+    result.installation.isEmpty()
+    result.chain.commands.isEmpty()
   }
 
   @Test
@@ -607,15 +617,16 @@ class MplCompilerSpec extends MplSpecBase {
     process main () # If there is no process, there are no generated commands
     """
     when:
-    List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
+    MplProgram program = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    List<CommandBlockChain> chains = MplCompiler.place(program)
     then:
     CommandBlockChain installation = chains.find { it.name == 'install' }
     installation.blocks.size() == 5
-    installation.blocks[0].toCommand() == null
+    installation.blocks[0].class == Transmitter
     installation.blocks[1].getCommand().startsWith('setblock ')
     installation.blocks[2].getCommand().startsWith('summon ArmorStand ')
     installation.blocks[3].toCommand() == new Command('say install')
-    installation.blocks[4].toCommand() == null
+    installation.blocks[4].class == AirBlock
   }
 
   /**
@@ -638,14 +649,15 @@ class MplCompilerSpec extends MplSpecBase {
     process main () # If there is no process, there are no generated commands
     """
     when:
-    List<CommandBlockChain> chains = MplCompiler.compile(new File(folder, 'main.mpl'))
+    MplProgram program = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    List<CommandBlockChain> chains = MplCompiler.place(program)
     then:
     CommandBlockChain uninstallation = chains.find { it.name == 'uninstall' }
     uninstallation.blocks.size() == 5
-    uninstallation.blocks[0].toCommand() == null
+    uninstallation.blocks[0].class == Transmitter
     uninstallation.blocks[1].getCommand().startsWith('setblock ')
     uninstallation.blocks[2].toCommand() == new Command('say uninstall')
     uninstallation.blocks[3].toCommand() == new Command('kill @e[type=ArmorStand,name=main]')
-    uninstallation.blocks[4].toCommand() == null
+    uninstallation.blocks[4].class == AirBlock
   }
 }
