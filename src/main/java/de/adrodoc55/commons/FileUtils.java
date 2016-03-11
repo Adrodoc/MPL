@@ -48,7 +48,7 @@ import java.io.IOException;
 public class FileUtils {
 
   private FileUtils() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated");
+    throw new Throwable("Utils Classes cannot be instantiated!");
   }
 
   public static String getFilenameWithoutExtension(File file) {

@@ -48,8 +48,8 @@ import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
  */
 public class MplLexerUtils {
 
-  private MplLexerUtils() throws Exception {
-    throw new Exception("Utils Classes cannot be instantiated");
+  private MplLexerUtils() throws Throwable {
+    throw new Throwable("Utils Classes cannot be instantiated!");
   }
 
   public static String getContainedString(TerminalNode stringNode) {

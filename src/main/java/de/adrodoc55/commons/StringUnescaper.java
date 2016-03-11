@@ -42,7 +42,7 @@ package de.adrodoc55.commons;
 public class StringUnescaper {
 
   private StringUnescaper() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated");
+    throw new Throwable("Utils Classes cannot be instantiated!");
   }
 
   /**

@@ -49,7 +49,7 @@ import javax.swing.text.Document;
 public class DocumentUtils {
 
   private DocumentUtils() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated");
+    throw new Throwable("Utils Classes cannot be instantiated!");
   }
 
   public static void replace(Document doc, int offset, int length, String text)

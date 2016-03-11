@@ -49,7 +49,7 @@ public class RegexUtils {
       Pattern.compile("[\\{\\}\\(\\)\\[\\]\\.\\+\\*\\?\\^\\$\\|\\\\]");
 
   private RegexUtils() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated");
+    throw new Throwable("Utils Classes cannot be instantiated!");
   }
 
   public static String escape(String literal) {
