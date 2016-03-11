@@ -212,8 +212,8 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterImportDeclaration(ImportDeclarationContext ctx) {
-    TerminalNode string = ctx.STRING();
-    String importPath = MplLexerUtils.getContainedString(string);
+    Token token = ctx.STRING().getSymbol();
+    String importPath = MplLexerUtils.getContainedString(token);
     File file = new File(programFile.getParentFile(), importPath);
     addFileImport(ctx, file);
   }
@@ -238,7 +238,7 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterOrientation(OrientationContext ctx) {
-    String def = MplLexerUtils.getContainedString(ctx.STRING());
+    String def = MplLexerUtils.getContainedString(ctx.STRING().getSymbol());
 
     Token newToken = ctx.ORIENTATION().getSymbol();
 
@@ -273,7 +273,7 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterInclude(IncludeContext ctx) {
-    String includePath = MplLexerUtils.getContainedString(ctx.STRING());
+    String includePath = MplLexerUtils.getContainedString(ctx.STRING().getSymbol());
     Token token = ctx.STRING().getSymbol();
     String line = lines.get(token.getLine() - 1);
     File file = new File(programFile.getParentFile(), includePath);

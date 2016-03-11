@@ -39,7 +39,11 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation.interpretation;
 
-import org.antlr.v4.runtime.tree.TerminalNode;
+import javax.annotation.Nonnull;
+
+import org.antlr.v4.runtime.Token;
+
+import com.google.common.base.Preconditions;
 
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 
@@ -52,11 +56,13 @@ public class MplLexerUtils {
     throw new Throwable("Utils Classes cannot be instantiated!");
   }
 
-  public static String getContainedString(TerminalNode stringNode) {
-    if (stringNode.getSymbol().getType() != MplLexer.STRING) {
-      throw new IllegalArgumentException("The Given TerminalNode is not of type MplLexer.STRING!");
+  @Nonnull
+  public static String getContainedString(@Nonnull Token stringToken) {
+    Preconditions.checkNotNull(stringToken, "stringToken == null!");
+    if (stringToken.getType() != MplLexer.STRING) {
+      throw new IllegalArgumentException("The Given Token is not of type MplLexer.STRING!");
     }
-    String wholeString = stringNode.getText();
+    String wholeString = stringToken.getText();
     String containedString = wholeString.substring(1, wholeString.length() - 1);
     return containedString;
   }
