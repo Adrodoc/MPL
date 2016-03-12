@@ -25,6 +25,9 @@ uninstall (
 )
 
 repeat process tntRain (
+  /execute @a ~ ~ ~ /scoreboard players tag @e[type=Item,r=10] add closeToPlayer
+  /kill @e[type=Item,tag=!closeToPlayer]
+
   # Test for var <= count
   /scoreboard players operation temp Tnt = var Tnt
   /scoreboard players operation temp Tnt -= count Tnt
