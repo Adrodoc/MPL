@@ -104,7 +104,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
    * Constructs a new <code>MplFrame</code>.
    */
   public MplFrame() {
-    super("Minecraft Programming Language - v0.6.1");
+    super("Minecraft Programming Language - " + getVersion());
     setIconImage(Toolkit.getDefaultToolkit()
         .getImage(MplFrame.class.getResource("/icons/commandblock_icon.png")));
     init();
@@ -130,6 +130,15 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
         }
       }
     });
+  }
+
+  private static String getVersion() {
+    String version = MplFrame.class.getPackage().getImplementationVersion();
+    if (version != null) {
+      return version;
+    } else {
+      return "local build";
+    }
   }
 
   private void init() {
