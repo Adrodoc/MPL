@@ -71,7 +71,7 @@ public class MplChainPlacerTest extends MplTestBase {
   @Test
   public void getLongestSuccessiveConditionalCount_is_0_for_multiple_unconditionals() {
     // given:
-    List<Command> list = listOf(Command().withConditional(false));
+    List<Command> list = listOf($Command().withConditional(false));
     // when:
     int result = MplChainPlacer.getLongestSuccessiveConditionalCount(list);
     // then:
@@ -93,7 +93,7 @@ public class MplChainPlacerTest extends MplTestBase {
   @Test
   public void getLongestSuccessiveConditionalCount_is_n_for_n_conditionals() {
     // given:
-    List<Command> list = listOf(Command().withConditional(true));
+    List<Command> list = listOf($Command().withConditional(true));
     // when:
     int result = MplChainPlacer.getLongestSuccessiveConditionalCount(list);
     // then:
@@ -103,9 +103,9 @@ public class MplChainPlacerTest extends MplTestBase {
   @Test
   public void getLongestSuccessiveConditionalCount_is_max_of_m_and_n_for_m_plus_n_conditionals() {
     // given:
-    List<Command> conditionals1 = listOf(Command().withConditional(true));
-    List<Command> unconditionals = listOf(someInt(1, 100), Command().withConditional(false));
-    List<Command> conditionals2 = listOf(Command().withConditional(true));
+    List<Command> conditionals1 = listOf($Command().withConditional(true));
+    List<Command> unconditionals = listOf(someInt(1, 100), $Command().withConditional(false));
+    List<Command> conditionals2 = listOf($Command().withConditional(true));
 
     List<Command> list = new LinkedList<>();
     list.addAll(conditionals1);

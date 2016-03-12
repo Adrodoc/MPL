@@ -49,7 +49,7 @@ public class MplTestBase extends TestBase {
     return "Identifier_" + somePositiveInt();
   }
 
-  public static CommandBuilder Command() {
+  public static CommandBuilder $Command() {
     CommandBuilder builder = new CommandBuilder();
     builder.withCommand(someCommand());
     builder.withMode(someMode());

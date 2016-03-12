@@ -39,7 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation
 
-import static de.adrodoc55.minecraft.mpl.MplTestBase.Command
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$Command
 import static de.adrodoc55.minecraft.mpl.MplTestBase.some
 import spock.lang.Specification
 import de.adrodoc55.minecraft.coordinate.Orientation3D
@@ -65,7 +65,7 @@ class MplProjectPlacerSpec extends Specification {
     project.setOrientation(new Orientation3D())
     MplProcess process = new MplProcess('testProcess', [])
     project.addProcess(process)
-    project.getInstallation().add(some(Command()))
+    project.getInstallation().add(some($Command()))
     when:
     List<CommandBlockChain> result = new MplProjectPlacer(project).place()
     then:
