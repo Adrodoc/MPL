@@ -40,64 +40,34 @@
 package de.adrodoc55.minecraft.mpl.compilation;
 
 import java.io.File;
-import java.nio.charset.CharacterCodingException;
 
-import de.adrodoc55.commons.FileUtils;
-
-/**
- * @author Adrodoc55
- */
-public class CompilerException extends Exception {
-
+public class FileException extends Exception {
   private static final long serialVersionUID = 1L;
 
-  private MplSource source;
+  private File file;
 
-  public CompilerException(MplSource source, String message) {
-    super(message);
-    init(source);
+
+  public FileException(Throwable cause, File file) {
+    super(cause);
+    this.file = file;
   }
 
-  public CompilerException(MplSource source, String message, Throwable cause) {
+  public FileException(String message, Throwable cause, File file) {
     super(message, cause);
-    init(source);
+    this.file = file;
   }
 
-  private void init(MplSource source) {
-    this.source = source;
+  public FileException(String message, Throwable cause, boolean enableSuppression,
+      boolean writableStackTrace, File file) {
+    super(message, cause, enableSuppression, writableStackTrace);
+    this.file = file;
   }
 
-  public MplSource getSource() {
-    return source;
+  public File getFile() {
+    return file;
   }
 
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    String path = FileUtils.getCanonicalPath(source.file);
-    sb.append(path).append(':').append(source.token.getLine()).append(":\n");
-    sb.append(this.getLocalizedMessage()).append("\n");
-    sb.append(source.line).append("\n");
-    int count = source.token.getCharPositionInLine();
-    sb.append(new String(new char[count]).replace('\0', ' '));
-    sb.append("^");
-    Throwable cause = getCause();
-    if (cause != null) {
-      sb.append("\ncause: ");
-      File file = null;
-      if (cause instanceof FileException) {
-        file = ((FileException) cause).getFile();
-        cause = cause.getCause();
-      }
-      if (cause != null && cause instanceof CharacterCodingException) {
-        sb.append("Invalid file encoding, must be UTF-8!");
-      } else {
-        sb.append(cause.toString());
-      }
-      if (file != null) {
-        sb.append(" In file: ").append(FileUtils.getCanonicalPath(file));
-      }
-    }
-    return sb.toString();
+  public void setFile(File file) {
+    this.file = file;
   }
 }

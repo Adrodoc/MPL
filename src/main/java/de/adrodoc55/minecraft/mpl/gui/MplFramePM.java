@@ -194,6 +194,9 @@ public class MplFramePM extends AbstractPM {
   public void compileFile() {
     try {
       MplCompilationResult result = compile();
+      if (result == null) {
+        return;
+      }
       MplEditorPM selected = editors.getSelection().getFirst();
       if (selected == null) {
         return;
@@ -228,6 +231,9 @@ public class MplFramePM extends AbstractPM {
   @Operation
   public void compileCommand() {
     MplCompilationResult result = compile();
+    if (result == null) {
+      return;
+    }
     String oneCommand = OneCommandConverter.convert(result);
     Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
     OneCommandDialog dialog = new OneCommandDialog(activeWindow);

@@ -65,7 +65,7 @@ public class CompilationFailedException extends Exception {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     for (Entry<File, CompilerException> it : exceptions.entries()) {
-      sb.append(it.toString());
+      sb.append(it.getValue().toString());
       sb.append('\n');
     }
     return sb.toString();

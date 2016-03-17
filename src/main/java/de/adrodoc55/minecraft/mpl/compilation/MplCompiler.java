@@ -168,15 +168,14 @@ public class MplCompiler extends MplBaseListener {
 
   private void processInclude(Include include) {
     String processName = include.getProcessName();
-    Exception lastException = null;
+    FileException lastException = null;
     List<MplInterpreter> found = new LinkedList<>();
     for (File file : include.getFiles()) {
       MplInterpreter interpreter = null;
-      lastException = null;
       try {
         interpreter = interpret(file);
       } catch (Exception ex) {
-        lastException = ex;
+        lastException = new FileException(ex, file);
         continue;
       }
       if (interpreter.isScript()) {
