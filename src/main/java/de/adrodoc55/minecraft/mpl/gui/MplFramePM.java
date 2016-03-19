@@ -108,6 +108,11 @@ public class MplFramePM extends AbstractPM {
       });
 
   public MplFramePM() {
+    newFile.setDescription("Create a new file");
+    openFile.setDescription("Open a file");
+    saveFile.setDescription("Save the current file");
+    compileFile.setDescription("Compile to Python");
+    compileCommand.setDescription("Compile to one Command");
     PMManager.setup(this);
   }
 
