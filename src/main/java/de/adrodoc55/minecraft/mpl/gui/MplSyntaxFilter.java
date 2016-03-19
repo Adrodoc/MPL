@@ -40,6 +40,8 @@
 package de.adrodoc55.minecraft.mpl.gui;
 
 import java.awt.Color;
+import java.beans.PropertyChangeEvent;
+import java.util.EventObject;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,11 +57,13 @@ import javax.swing.text.StyledDocument;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.Token;
+import org.beanfabrics.BnModelObserver;
 import org.beanfabrics.IModelProvider;
 import org.beanfabrics.Link;
 import org.beanfabrics.ModelProvider;
 import org.beanfabrics.Path;
 import org.beanfabrics.View;
+import org.beanfabrics.event.BnPropertyChangeEvent;
 
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.gui.MplSyntaxFilterPM.CompilerExceptionWrapper;
@@ -75,12 +79,36 @@ import de.adrodoc55.minecraft.mpl.gui.utils.TabToSpaceDocumentFilter;
 public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<MplSyntaxFilterPM> {
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
+  private BnModelObserver modelObserver = getModelObserver();
 
   /**
    * Constructs a new <code>MplSyntaxFilter</code>.
    */
   public MplSyntaxFilter() {
     super(2);
+  }
+
+  public BnModelObserver getModelObserver() {
+    if (modelObserver == null) {
+      modelObserver = new BnModelObserver();
+      modelObserver.setPath(new Path());
+      modelObserver.setModelProvider(getLocalModelProvider());
+      modelObserver.addPropertyChangeListener(e -> {
+        // FIXME: Beanfabrics bug
+        if (!(e instanceof BnPropertyChangeEvent)) {
+          return;
+        }
+        EventObject cause = ((BnPropertyChangeEvent) e).getCause();
+        if (!(cause instanceof PropertyChangeEvent)) {
+          return;
+        }
+        if (!"exceptions".equals(((PropertyChangeEvent) cause).getPropertyName())) {
+          return;
+        }
+        recolor();
+      });
+    }
+    return modelObserver;
   }
 
   public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
@@ -130,8 +158,8 @@ public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<Mp
       // text = FileUtils.toUnixLineEnding(doc.getText(0, doc.getLength()));
       text = doc.getText(0, doc.getLength());
     } catch (BadLocationException ex) {
-      throw new RuntimeException(
-          "Encountered unexpected BadLocationException in MplSyntaxHighlighter", ex);
+      throw new RuntimeException("Encountered unexpected BadLocationException in MplSyntaxFilter",
+          ex);
     }
     resetStyling();
     colorTokens(text);

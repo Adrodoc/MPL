@@ -44,8 +44,6 @@ import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
@@ -57,7 +55,6 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.undo.UndoManager;
 
-import org.beanfabrics.BnModelObserver;
 import org.beanfabrics.IModelProvider;
 import org.beanfabrics.Link;
 import org.beanfabrics.ModelProvider;
@@ -123,10 +120,8 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
   private ModelProvider localModelProvider;
   private JScrollPane scrollPane;
   private BnTextPane textPane;
-  // private BnModelObserver codeObserver;
   private MplSyntaxFilter mplSyntaxFilter;
   private RawUndoManager rawUndoManager;
-  private BnModelObserver resetUndoManagerObserver;
   private TextLineNumber textLineNumber;
 
   /**
@@ -257,30 +252,9 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
       Path path = new Path("this.syntaxFilter");
       mplSyntaxFilter.setPath(path);
       mplSyntaxFilter.setModelProvider(getLocalModelProvider());
-      // BnModelObserver syntaxObserver = new BnModelObserver();
-      // syntaxObserver.setPath(path);
-      // syntaxObserver.setModelProvider(getLocalModelProvider());
-      // syntaxObserver.addPropertyChangeListener(new PropertyChangeListener() {
-      // @Override
-      // public void propertyChange(PropertyChangeEvent evt) {
-      // mplSyntaxFilter.recolor();
-      // }
-      // });
     }
     return mplSyntaxFilter;
   }
-
-  // /**
-  // * @wbp.nonvisual location=129,339
-  // */
-  // private BnModelObserver getCodeObserver() {
-  // if (codeObserver == null) {
-  // codeObserver = new BnModelObserver();
-  // codeObserver.setPath(new Path("this.syntaxFilter.code"));// @wb:location=9,379
-  // codeObserver.setModelProvider(getLocalModelProvider());
-  // }
-  // return codeObserver;
-  // }
 
   /**
    * @wbp.nonvisual location=8,419
@@ -289,26 +263,12 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
     if (rawUndoManager == null) {
       rawUndoManager = new RawUndoManager();
       rawUndoManager.setLimit(Integer.MAX_VALUE);
-      getResetUndoManagerObserver().addPropertyChangeListener(new PropertyChangeListener() {
-        @Override
-        public void propertyChange(PropertyChangeEvent evt) {
-          rawUndoManager.discardAllEdits();
-        }
-      });
     }
     return rawUndoManager;
   }
 
-  /**
-   * @wbp.nonvisual location=119,379
-   */
-  private BnModelObserver getResetUndoManagerObserver() {
-    if (resetUndoManagerObserver == null) {
-      resetUndoManagerObserver = new BnModelObserver();
-      resetUndoManagerObserver.setPath(new Path("this.resetChanges"));
-      resetUndoManagerObserver.setModelProvider(getLocalModelProvider());
-    }
-    return resetUndoManagerObserver;
+  public void discardAllEdits() {
+    getUndoManager().discardAllEdits();
   }
 
 }

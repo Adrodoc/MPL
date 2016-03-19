@@ -109,7 +109,6 @@ public class MplEditorPM extends AbstractPM {
   TextPM title = new TextPM();
   OperationPM close = new OperationPM();
   BooleanPM unsavedChanges = new BooleanPM();
-  OperationPM resetChanges = new OperationPM();
   TextPM code = new TextPM();
   MplSyntaxFilterPM syntaxFilter = new MplSyntaxFilterPM();
 
@@ -221,7 +220,6 @@ public class MplEditorPM extends AbstractPM {
     byte[] bytes = Files.readAllBytes(file.toPath());
     String content = FileUtils.toUnixLineEnding(new String(bytes));
     code.setText(content);
-    resetChanges.getPropertyChangeSupport().firePropertyChange("resetChanges", null, null);
     setUnsavedChanges(false);
   }
 
