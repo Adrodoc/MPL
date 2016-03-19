@@ -83,7 +83,7 @@ public class CompilerException extends Exception {
     sb.append("^");
     Throwable cause = getCause();
     if (cause != null) {
-      sb.append("\ncause: ");
+      sb.append("\ncause:   ");
       File file = null;
       if (cause instanceof FileException) {
         file = ((FileException) cause).getFile();
@@ -95,7 +95,7 @@ public class CompilerException extends Exception {
         sb.append(cause.toString());
       }
       if (file != null) {
-        sb.append(" In file: ").append(FileUtils.getCanonicalPath(file));
+        sb.append("\nin file: ").append(FileUtils.getCanonicalPath(file));
       }
     }
     return sb.toString();
