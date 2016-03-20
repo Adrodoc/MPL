@@ -61,6 +61,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
 import javax.swing.text.Document;
+import javax.swing.text.Element;
 import javax.swing.undo.UndoManager;
 
 import org.antlr.v4.runtime.Token;
@@ -241,6 +242,32 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
             return;
           }
           pModel.save();
+        }
+      });
+
+      textPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_D, ctrl), "delete");
+      textPane.getActionMap().put("delete", new AbstractAction() {
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          Element root = doc.getDefaultRootElement();
+          int elementIndex = root.getElementIndex(textPane.getCaretPosition());
+          Element line = root.getElement(elementIndex);
+          int start = line.getStartOffset();
+          int length = line.getEndOffset() - start;
+          if (doc.getLength() < start + length) {
+            if (start == 0) {
+              length--;
+            } else {
+              start--;
+            }
+          }
+          try {
+            doc.remove(start, length);
+          } catch (BadLocationException ex) {
+            throw new UndeclaredThrowableException(ex);
+          }
         }
       });
 
