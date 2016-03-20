@@ -82,6 +82,8 @@ public class AutoCompletionDialogPM extends AbstractPM {
 
   void chooseSelection() {
     AutoCompletionPM first = options.getSelection().getFirst();
+    if (first == null)
+      return;
     context.choose(first.getAction());
   }
 
