@@ -72,6 +72,9 @@ public class MplSyntaxFilterPM extends AbstractPM {
     getPropertyChangeSupport().firePropertyChange("exceptions", oldExceptions, newExceptions);
   }
 
+  /**
+   * @author Adrodoc55
+   */
   static class CompilerExceptionWrapper {
     private Token token;
 
