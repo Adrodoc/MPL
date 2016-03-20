@@ -39,13 +39,13 @@
  */
 package de.adrodoc55.minecraft.mpl.autocompletion;
 
-import javax.swing.text.Document;
+import javax.swing.text.JTextComponent;
 
 /**
  * @author Adrodoc55
  */
 public interface AutoCompletionAction {
-  void performOn(Document doc);
+  void performOn(JTextComponent component);
 
   String getDisplayName();
 }

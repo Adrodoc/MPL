@@ -39,61 +39,43 @@
  */
 package de.adrodoc55.minecraft.mpl.autocompletion;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.lang.reflect.UndeclaredThrowableException;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
+
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.TokenStream;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
-import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.FileContext;
+import de.adrodoc55.commons.DocumentUtils;
 
 /**
  * @author Adrodoc55
  */
-public class AutoCompletion {
+public class NewProcessAction implements AutoCompletionAction {
+  private final Token token;
 
-  private AutoCompletion() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated!");
+  public NewProcessAction(Token token) {
+    super();
+    this.token = token;
   }
 
-  public static AutoCompletionContext getContext(int index, String text) {
-    ANTLRInputStream input = new ANTLRInputStream(text);
-    MplLexer lexer = new MplLexer(input);
-    TokenStream tokens = new CommonTokenStream(lexer);
-    MplParser parser = new MplParser(tokens);
-    FileContext ctx = parser.file();
-
-    AutoCompletionListener listener = new AutoCompletionListener(index);
+  @Override
+  public void performOn(JTextComponent component) {
+    int offset = token.getStartIndex();
+    int length = token.getStopIndex() + 1 - offset;
+    String beforeCaret = "process " + token.getText() + " (\n  ";
+    String afterCaret = "\n)";
+    String replacement = beforeCaret + afterCaret;
     try {
-      new ParseTreeWalker().walk(listener, ctx);
-    } catch (ResultException earlyExit) {
-      return earlyExit.getResult();
+      DocumentUtils.replace(component.getDocument(), offset, length, replacement);
+      component.getCaret().setDot(offset + beforeCaret.length());
+    } catch (BadLocationException ex) {
+      throw new UndeclaredThrowableException(ex);
     }
-    return null;
   }
 
-  public static List<AutoCompletionAction> getOptions(int index, String text) {
-    AutoCompletionContext context = getContext(index, text);
-
-    ArrayList<AutoCompletionAction> options = new ArrayList<>();
-    Token token = context.getToken();
-    if (token != null) {
-      if (context.isInProject()) {
-        if ("include".startsWith(token.getText())) {
-          options.add(new NewIncludeAction(token));
-        }
-      }
-      if (!context.isInProcess() && !context.isInProject()) {
-        options.add(new NewProcessAction(token));
-      }
-    }
-
-    return options;
+  @Override
+  public String getDisplayName() {
+    return "process " + token.getText();
   }
-
 }
