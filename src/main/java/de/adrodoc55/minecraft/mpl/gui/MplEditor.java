@@ -271,6 +271,63 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
         }
       });
 
+      textPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_K, ctrl), "comment");
+      textPane.getActionMap().put("comment", new AbstractAction() {
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          Element root = doc.getDefaultRootElement();
+          int dot = textPane.getCaret().getDot();
+          int mark = textPane.getCaret().getMark();
+          int firstLine = root.getElementIndex(Math.min(dot, mark));
+          int lastLine = root.getElementIndex(Math.max(dot, mark));
+
+          boolean uncomment = true;
+          for (int l = firstLine; l <= lastLine; l++) {
+            Element line = root.getElement(l);
+            if (getCommentType(line) == 0) {
+              uncomment = false;
+              break;
+            }
+          }
+
+          for (int l = firstLine; l <= lastLine; l++) {
+            Element line = root.getElement(l);
+            int start = line.getStartOffset();
+            try {
+              if (uncomment) {
+                doc.remove(start, getCommentType(line));
+              } else {
+                doc.insertString(start, "#", null);
+              }
+            } catch (BadLocationException ex) {
+              throw new UndeclaredThrowableException(ex);
+            }
+          }
+        }
+
+        private int getCommentType(Element line) {
+          int start = line.getStartOffset();
+          try {
+            if (start < doc.getLength()) {
+              String s1 = doc.getText(start, 1);
+              if ("#".equals(s1)) {
+                return 1;
+              } else if (start + 1 < doc.getLength()) {
+                String s2 = doc.getText(start + 1, 1);
+                if ("//".equals(s1 + s2)) {
+                  return 2;
+                }
+              }
+            }
+            return 0;
+          } catch (BadLocationException ex) {
+            throw new UndeclaredThrowableException(ex);
+          }
+        }
+      });
+
       textPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, ctrl), "auto complete");
       textPane.getActionMap().put("auto complete", new AbstractAction() {
         private static final long serialVersionUID = 1L;
