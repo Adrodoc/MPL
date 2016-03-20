@@ -322,6 +322,20 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
         }
       });
 
+      textPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_F, ctrl), "search and replace");
+      textPane.getActionMap().put("search and replace", new AbstractAction() {
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          MplEditorPM pModel = getPresentationModel();
+          if (pModel == null) {
+            return;
+          }
+          pModel.searchAndReplace();
+        }
+      });
+
       textPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, ctrl), "auto complete");
       textPane.getActionMap().put("auto complete", new AbstractAction() {
         private static final long serialVersionUID = 1L;
@@ -341,31 +355,15 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
               action.performOn(textPane);
             }
           });
-
           AutoCompletionDialog dlg = ctrl.getView();
-          Point pos = caretPos.getLocation();
+          Point loc = caretPos.getLocation();
           int fontSize = textPane.getFont().getSize();
-          pos.translate(1, fontSize + 1);
+          loc.translate(1, fontSize + 1);
           Point screenPos = textPane.getLocationOnScreen();
-          pos.translate(screenPos.x, screenPos.y);
-          dlg.setLocation(pos);
+          loc.translate(screenPos.x, screenPos.y);
+          dlg.setLocation(loc);
 
           dlg.setVisible(true);
-        }
-
-      });
-
-      textPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_F, ctrl), "search and replace");
-      textPane.getActionMap().put("search and replace", new AbstractAction() {
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          MplEditorPM pModel = getPresentationModel();
-          if (pModel == null) {
-            return;
-          }
-          pModel.searchAndReplace();
         }
       });
     }
