@@ -200,6 +200,7 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
       JPanel viewPortView = new JPanel(new BorderLayout());
       viewPortView.add(getTextPane(), BorderLayout.CENTER);
       scrollPane.setViewportView(viewPortView);
+      scrollPane.getVerticalScrollBar().setUnitIncrement(10);
     }
     return scrollPane;
   }
