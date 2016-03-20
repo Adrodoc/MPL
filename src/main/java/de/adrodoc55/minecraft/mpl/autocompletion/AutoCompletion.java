@@ -79,8 +79,12 @@ public class AutoCompletion {
 
   public static List<AutoCompletionAction> getOptions(int index, String text) {
     AutoCompletionContext context = getContext(index, text);
-
     ArrayList<AutoCompletionAction> options = new ArrayList<>();
+
+    if (context == null) {
+      return options;
+    }
+
     Token token = context.getToken();
     if (token != null) {
       if (context.isInProject()) {
@@ -94,7 +98,8 @@ public class AutoCompletion {
           options.add(new NewIfElseAction(token));
         }
       }
-      if (!context.isInProcess() && !context.isInProject()) {
+      if (!context.isInProcess() && !context.isInProject()
+          && token.getType() == MplLexer.IDENTIFIER) {
         options.add(new NewProcessAction(token));
       }
     }

@@ -45,8 +45,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -99,12 +97,6 @@ public class AutoCompletionDialog extends JDialog
     init();
     setUndecorated(true);
     setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-    addWindowFocusListener(new WindowAdapter() {
-      @Override
-      public void windowLostFocus(WindowEvent e) {
-        dispose();
-      }
-    });
   }
 
   private void init() {
@@ -147,7 +139,7 @@ public class AutoCompletionDialog extends JDialog
     return scrollPane;
   }
 
-  BnList getBnList() {
+  public BnList getBnList() {
     if (bnList == null) {
       bnList = new BnList();
       bnList.setVisibleRowCount(5);

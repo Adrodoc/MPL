@@ -40,11 +40,17 @@
 package de.adrodoc55.minecraft.mpl.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.List;
 
@@ -54,6 +60,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.event.AncestorEvent;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.BadLocationException;
@@ -70,6 +78,7 @@ import org.beanfabrics.View;
 import org.beanfabrics.swing.BnTextPane;
 import org.beanfabrics.swing.internal.BnStyledDocument;
 
+import de.adrodoc55.commons.AncestorAdapter;
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.autocompletion.AutoCompletion;
 import de.adrodoc55.minecraft.mpl.autocompletion.AutoCompletionAction;
@@ -136,12 +145,50 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
   private RawUndoManager rawUndoManager;
   private TextLineNumber textLineNumber;
 
+  private AutoCompletionDialogControler autoController =
+      new AutoCompletionDialogControler(new Context() {
+        @Override
+        public void choose(AutoCompletionAction action) {
+          action.performOn(getTextPane());
+        }
+      });
+
   /**
    * Constructs a new <code>MplEditor</code>.
    */
   public MplEditor() {
     setLayout(new BorderLayout());
     add(getScrollPane(), BorderLayout.CENTER);
+
+    // Add listeners to dispose the AutoCompletionDialog
+    addAncestorListener(new AncestorAdapter() {
+      @Override
+      public void ancestorMoved(AncestorEvent event) {
+        if (!autoController.hasView())
+          return;
+        autoController.getView().dispose();
+      }
+    });
+    getTextPane().addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (!autoController.hasView())
+          return;
+        autoController.getView().dispose();
+      }
+    });
+    getTextPane().addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusLost(FocusEvent e) {
+        if (!autoController.hasView())
+          return;
+        AutoCompletionDialog view = autoController.getView();
+        Component opposite = e.getOppositeComponent();
+        if (opposite == null || !view.equals(SwingUtilities.getWindowAncestor(opposite))) {
+          view.dispose();
+        }
+      }
+    });
   }
 
   /**
@@ -347,15 +394,8 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
           if (caretPos == null) {
             return;
           }
-          List<AutoCompletionAction> options = getAutoCompletionOptions();
-          AutoCompletionDialogControler ctrl =
-              new AutoCompletionDialogControler(options, new Context() {
-            @Override
-            public void choose(AutoCompletionAction action) {
-              action.performOn(textPane);
-            }
-          });
-          AutoCompletionDialog dlg = ctrl.getView();
+          autoController.setOptions(getAutoCompletionOptions());
+          AutoCompletionDialog dlg = autoController.getView();
           Point loc = caretPos.getLocation();
           int fontSize = textPane.getFont().getSize();
           loc.translate(1, fontSize + 1);
@@ -364,6 +404,28 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
           dlg.setLocation(loc);
 
           dlg.setVisible(true);
+          textPane.requestFocus();
+        }
+      });
+
+      textPane.addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyPressed(KeyEvent evt) {
+          AutoCompletionDialog view = autoController.getView();
+          if (view.isVisible() && evt.getModifiers() == 0) {
+            switch (evt.getKeyCode()) {
+              case KeyEvent.VK_ESCAPE:
+              case KeyEvent.VK_DOWN:
+              case KeyEvent.VK_UP:
+              case KeyEvent.VK_ENTER:
+                view.getBnList().dispatchEvent(evt);
+                evt.consume();
+                break;
+              default:
+                SwingUtilities
+                    .invokeLater(() -> autoController.setOptions(getAutoCompletionOptions()));
+            }
+          }
         }
       });
     }
