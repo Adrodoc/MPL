@@ -230,6 +230,7 @@ public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<Mp
         case MplLexer.COMMENT:
           styleToken(token, getCommentStyle());
           break;
+        case MplLexer.ORIENTATION:
         case MplLexer.INCLUDE:
         case MplLexer.IMPORT:
         case MplLexer.INSTALL:
