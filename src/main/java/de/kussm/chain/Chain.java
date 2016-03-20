@@ -47,15 +47,18 @@ public class Chain implements Iterable<ChainLink> {
    * @param chainLinks
    * @throws NullPointerException if
    *         <ul>
-   *         <li> {@code chainLinks} is null
+   *         <li>{@code chainLinks} is null
    *         <li>one of the elements of {@code chainLinks} is null
    *         </ul>
    * @throws IllegalArgumentException if
    *         <ul>
    *         <li>the array {@code chainLinks} is empty
-   *         <li>a {@link ChainLink#TRANSMITTER TRANSMITTER_RECEIVER} is not followed by a {@link ChainLink#RECEIVER RECEIVER}
-   *         <li>A {@link ChainLink#RECEIVER RECEIVER} is followed by a {@link ChainLink#TRANSMITTER TRANSMITTER_RECEIVER}
-   *         <li>A {@link ChainLink#RECEIVER RECEIVER} is not preceded by a {@link ChainLink#TRANSMITTER TRANSMITTER_RECEIVER}
+   *         <li>a {@link ChainLink#TRANSMITTER TRANSMITTER_RECEIVER} is not followed by a
+   *         {@link ChainLink#RECEIVER RECEIVER}
+   *         <li>A {@link ChainLink#RECEIVER RECEIVER} is followed by a {@link ChainLink#TRANSMITTER
+   *         TRANSMITTER_RECEIVER}
+   *         <li>A {@link ChainLink#RECEIVER RECEIVER} is not preceded by a
+   *         {@link ChainLink#TRANSMITTER TRANSMITTER_RECEIVER}
    *         <li>The first or the last chain link is a {@link ChainLink#CONDITIONAL CONDITIONAL}
    *         </ul>
    */
@@ -64,8 +67,8 @@ public class Chain implements Iterable<ChainLink> {
     Preconditions.checkArgument(chainLinks.length > 0, "chain must not be empty");
     Preconditions.checkArgument(chainLinks[0] != CONDITIONAL, "chain must not start with a %s",
         CONDITIONAL);
-//    Preconditions.checkArgument(chainLinks[chainLinks.length - 1] != CONDITIONAL,
-//        "chain must not end with a %s", CONDITIONAL);
+    // Preconditions.checkArgument(chainLinks[chainLinks.length - 1] != CONDITIONAL,
+    // "chain must not end with a %s", CONDITIONAL);
     for (int i = 0; i < chainLinks.length; i++) {
       Preconditions.checkNotNull(chainLinks[i], "chain link at index %s must not be null", i);
       if (chainLinks[i] == TRANSMITTER) {
@@ -89,15 +92,18 @@ public class Chain implements Iterable<ChainLink> {
    * @param chainLinks
    * @throws NullPointerException if
    *         <ul>
-   *         <li> {@code chainLinks} is null
+   *         <li>{@code chainLinks} is null
    *         <li>one of the elements of {@code chainLinks} is null
    *         </ul>
    * @throws IllegalArgumentException if
    *         <ul>
    *         <li>the array {@code chainLinks} is empty
-   *         <li>a {@link ChainLink#TRANSMITTER TRANSMITTER_RECEIVER} is not followed by a {@link ChainLink#RECEIVER RECEIVER}
-   *         <li>A {@link ChainLink#RECEIVER RECEIVER} is followed by a {@link ChainLink#TRANSMITTER TRANSMITTER_RECEIVER}
-   *         <li>A {@link ChainLink#RECEIVER RECEIVER} is not preceded by a {@link ChainLink#TRANSMITTER TRANSMITTER_RECEIVER}
+   *         <li>a {@link ChainLink#TRANSMITTER TRANSMITTER_RECEIVER} is not followed by a
+   *         {@link ChainLink#RECEIVER RECEIVER}
+   *         <li>A {@link ChainLink#RECEIVER RECEIVER} is followed by a {@link ChainLink#TRANSMITTER
+   *         TRANSMITTER_RECEIVER}
+   *         <li>A {@link ChainLink#RECEIVER RECEIVER} is not preceded by a
+   *         {@link ChainLink#TRANSMITTER TRANSMITTER_RECEIVER}
    *         <li>The first or the last chain link is a {@link ChainLink#CONDITIONAL CONDITIONAL}
    *         </ul>
    */
@@ -107,10 +113,8 @@ public class Chain implements Iterable<ChainLink> {
 
   @Override
   public String toString() {
-    return getClass().getSimpleName()
-        + "("
-        + Arrays.asList(chainLinks).stream().map((ChainLink c) -> c.name().substring(0, 1))
-            .collect(Collectors.joining()) + ")";
+    return getClass().getSimpleName() + "(" + Arrays.asList(chainLinks).stream()
+        .map((ChainLink c) -> c.name().substring(0, 1)).collect(Collectors.joining()) + ")";
   }
 
   /**

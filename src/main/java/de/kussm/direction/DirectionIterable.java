@@ -16,6 +16,7 @@ package de.kussm.direction;
 
 /**
  * Simple interface to ensure type safety
+ * 
  * @author Michael Kuß
  */
 public interface DirectionIterable extends Iterable<Direction> {

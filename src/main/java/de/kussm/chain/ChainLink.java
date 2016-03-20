@@ -19,9 +19,5 @@ package de.kussm.chain;
  * @author Michael Kuß
  */
 public enum ChainLink {
-  TRANSMITTER,
-  RECEIVER,
-  CONDITIONAL,
-  NORMAL,
-  NO_OPERATION;
+  TRANSMITTER, RECEIVER, CONDITIONAL, NORMAL, NO_OPERATION;
 }

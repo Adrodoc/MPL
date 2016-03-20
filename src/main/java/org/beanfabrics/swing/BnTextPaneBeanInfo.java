@@ -42,8 +42,6 @@ package org.beanfabrics.swing;
 import java.awt.Image;
 import java.beans.BeanInfo;
 
-import org.beanfabrics.swing.ModelSubscriberBeanInfo;
-
 /**
  * @author Adrodoc55
  */

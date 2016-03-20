@@ -13,18 +13,22 @@
  */
 package de.kussm.position;
 
+import static de.kussm.direction.Direction.EAST;
+import static de.kussm.direction.Direction.NORTH;
+import static de.kussm.direction.Direction.SOUTH;
+import static de.kussm.direction.Direction.WEST;
+
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 
-import lombok.NonNull;
 import de.kussm.direction.Direction;
-import static  de.kussm.direction.Direction.*;
+import lombok.NonNull;
 
 /**
  * @author Michael Kuß
  */
-@lombok.RequiredArgsConstructor(staticName="at")
+@lombok.RequiredArgsConstructor(staticName = "at")
 @lombok.Getter
 @lombok.EqualsAndHashCode
 @lombok.ToString
@@ -35,18 +39,19 @@ public class Position {
   public Position neighbour(@NonNull Direction d) {
     switch (d) {
       case NORTH:
-        return Position.at(x, y+1);
+        return Position.at(x, y + 1);
       case EAST:
-        return Position.at(x+1, y);
+        return Position.at(x + 1, y);
       case SOUTH:
-        return Position.at(x, y-1);
+        return Position.at(x, y - 1);
       case WEST:
-        return Position.at(x-1, y);
+        return Position.at(x - 1, y);
     }
     throw new IllegalStateException("Unknown direction " + d);
   }
 
   public Set<Position> neighbours() {
-    return ImmutableSet.<Position>of(neighbour(NORTH), neighbour(EAST), neighbour(SOUTH), neighbour(WEST));
+    return ImmutableSet.<Position>of(neighbour(NORTH), neighbour(EAST), neighbour(SOUTH),
+        neighbour(WEST));
   }
 }

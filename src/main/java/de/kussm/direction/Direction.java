@@ -21,10 +21,7 @@ import com.google.common.collect.Iterators;
  * @author Michael Kuß
  */
 public enum Direction implements DirectionIterable {
-  NORTH,
-  EAST,
-  SOUTH,
-  WEST;
+  NORTH, EAST, SOUTH, WEST;
 
   @Override
   public Iterator<Direction> iterator() {
