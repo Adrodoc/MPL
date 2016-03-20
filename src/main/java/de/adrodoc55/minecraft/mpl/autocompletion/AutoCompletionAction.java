@@ -37,43 +37,15 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.commons;
+package de.adrodoc55.minecraft.mpl.autocompletion;
 
-import javax.swing.text.AbstractDocument;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
 /**
  * @author Adrodoc55
  */
-public class DocumentUtils {
+public interface AutoCompletionAction {
+  void performOn(Document doc);
 
-  private DocumentUtils() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated!");
-  }
-
-  /**
-   * See {@link AbstractDocument#replace(int, int, String, javax.swing.text.AttributeSet)}
-   *
-   * @see AbstractDocument#replace(int, int, String, javax.swing.text.AttributeSet)
-   * @param doc
-   * @param offset
-   * @param length
-   * @param text
-   * @throws BadLocationException
-   */
-  public static void replace(Document doc, int offset, int length, String text)
-      throws BadLocationException {
-    if (doc instanceof AbstractDocument) {
-      ((AbstractDocument) doc).replace(offset, length, text, null);
-    } else {
-      if (length > 0) {
-        doc.remove(offset, length);
-      }
-      if (text != null && text.length() > 0) {
-        doc.insertString(offset, text, null);
-      }
-    }
-  }
-
+  String getDisplayName();
 }

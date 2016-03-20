@@ -41,9 +41,14 @@ package de.adrodoc55.minecraft.mpl.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
@@ -53,8 +58,12 @@ import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Caret;
+import javax.swing.text.Document;
 import javax.swing.undo.UndoManager;
 
+import org.antlr.v4.runtime.Token;
 import org.beanfabrics.IModelProvider;
 import org.beanfabrics.Link;
 import org.beanfabrics.ModelProvider;
@@ -64,6 +73,14 @@ import org.beanfabrics.View;
 import org.beanfabrics.swing.BnTextPane;
 import org.beanfabrics.swing.internal.BnStyledDocument;
 
+import de.adrodoc55.commons.DocumentUtils;
+import de.adrodoc55.commons.FileUtils;
+import de.adrodoc55.minecraft.mpl.autocompletion.AutoCompletion;
+import de.adrodoc55.minecraft.mpl.autocompletion.AutoCompletionAction;
+import de.adrodoc55.minecraft.mpl.autocompletion.AutoCompletionContext;
+import de.adrodoc55.minecraft.mpl.gui.dialog.AutoCompletionDialog;
+import de.adrodoc55.minecraft.mpl.gui.dialog.AutoCompletionDialogControler;
+import de.adrodoc55.minecraft.mpl.gui.dialog.AutoCompletionDialogPM.Context;
 import de.adrodoc55.minecraft.mpl.gui.utils.BnJaggedEditorKit;
 import de.adrodoc55.minecraft.mpl.gui.utils.NoWrapBnTextPane;
 import de.adrodoc55.minecraft.mpl.gui.utils.RawUndoManager;
@@ -226,6 +243,39 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
         }
       });
 
+      textPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, ctrl), "auto complete");
+      textPane.getActionMap().put("auto complete", new AbstractAction() {
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          Caret caret = textPane.getCaret();
+          Point caretPos = caret.getMagicCaretPosition();
+          if (caretPos == null) {
+            return;
+          }
+          List<AutoCompletionAction> options = getAutoCompletionOptions();
+          AutoCompletionDialogControler ctrl =
+              new AutoCompletionDialogControler(options, new Context() {
+            @Override
+            public void choose(AutoCompletionAction action) {
+              action.performOn(textPane.getDocument());
+            }
+          });
+
+          AutoCompletionDialog dlg = ctrl.getView();
+          Point pos = caretPos.getLocation();
+          int fontSize = textPane.getFont().getSize();
+          pos.translate(1, fontSize + 1);
+          Point screenPos = textPane.getLocationOnScreen();
+          pos.translate(screenPos.x, screenPos.y);
+          dlg.setLocation(pos);
+
+          dlg.setVisible(true);
+        }
+
+      });
+
       textPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_F, ctrl), "search and replace");
       textPane.getActionMap().put("search and replace", new AbstractAction() {
         private static final long serialVersionUID = 1L;
@@ -241,6 +291,46 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
       });
     }
     return textPane;
+  }
+
+  public List<AutoCompletionAction> getAutoCompletionOptions() {
+    BnTextPane textPane = getTextPane();
+    Caret caret = textPane.getCaret();
+    int index = Math.min(caret.getDot(), caret.getMark());
+    String text = FileUtils.toUnixLineEnding(textPane.getText());
+    AutoCompletionContext context = AutoCompletion.getContext(index, text);
+
+    if (!context.isInProcess() && !context.isInProject()) {
+      ArrayList<AutoCompletionAction> options = new ArrayList<>();
+      Token token = context.getToken();
+      if (token != null) {
+        options.add(new AutoCompletionAction() {
+          @Override
+          public void performOn(Document doc) {
+            int startIndex = token.getStartIndex();
+            int stopIndex = token.getStopIndex();
+            int length = stopIndex - startIndex + 1;
+            String beforeCaret = "process " + token.getText() + " (\n  ";
+            String afterCaret = "\n)";
+            String replacement = beforeCaret + afterCaret;
+            try {
+              DocumentUtils.replace(doc, startIndex, length, replacement);
+              getTextPane().getCaret().setDot(startIndex + beforeCaret.length());
+            } catch (BadLocationException ex) {
+              throw new UndeclaredThrowableException(ex);
+            }
+          }
+
+          @Override
+          public String getDisplayName() {
+            return "process " + token.getText();
+          }
+        });
+      }
+      return options;
+    }
+
+    return Collections.emptyList();
   }
 
   /**

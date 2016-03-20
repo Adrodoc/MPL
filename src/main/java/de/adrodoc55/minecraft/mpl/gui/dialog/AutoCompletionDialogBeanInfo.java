@@ -37,43 +37,22 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.commons;
+package de.adrodoc55.minecraft.mpl.gui.dialog;
 
-import javax.swing.text.AbstractDocument;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
+import org.beanfabrics.swing.ModelSubscriberBeanInfo;
 
 /**
  * @author Adrodoc55
+ * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class DocumentUtils {
-
-  private DocumentUtils() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated!");
+public class AutoCompletionDialogBeanInfo extends ModelSubscriberBeanInfo {
+  @Override
+  protected Class<AutoCompletionDialog> getBeanClass() {
+    return AutoCompletionDialog.class;
   }
 
-  /**
-   * See {@link AbstractDocument#replace(int, int, String, javax.swing.text.AttributeSet)}
-   *
-   * @see AbstractDocument#replace(int, int, String, javax.swing.text.AttributeSet)
-   * @param doc
-   * @param offset
-   * @param length
-   * @param text
-   * @throws BadLocationException
-   */
-  public static void replace(Document doc, int offset, int length, String text)
-      throws BadLocationException {
-    if (doc instanceof AbstractDocument) {
-      ((AbstractDocument) doc).replace(offset, length, text, null);
-    } else {
-      if (length > 0) {
-        doc.remove(offset, length);
-      }
-      if (text != null && text.length() > 0) {
-        doc.insertString(offset, text, null);
-      }
-    }
+  @Override
+  protected boolean isPathBound() {
+    return false;
   }
-
 }

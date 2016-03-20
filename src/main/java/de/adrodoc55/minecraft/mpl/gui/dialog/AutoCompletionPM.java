@@ -37,43 +37,32 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.commons;
+package de.adrodoc55.minecraft.mpl.gui.dialog;
 
-import javax.swing.text.AbstractDocument;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
+import org.beanfabrics.model.AbstractPM;
+import org.beanfabrics.model.PMManager;
+import org.beanfabrics.model.TextPM;
+
+import com.google.common.base.Preconditions;
+
+import de.adrodoc55.minecraft.mpl.autocompletion.AutoCompletionAction;
 
 /**
  * @author Adrodoc55
  */
-public class DocumentUtils {
+public class AutoCompletionPM extends AbstractPM {
+  private final AutoCompletionAction action;
 
-  private DocumentUtils() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated!");
+  private TextPM displayName = new TextPM();
+
+  public AutoCompletionPM(AutoCompletionAction action) {
+    this.action = Preconditions.checkNotNull(action, "action == null!");
+    displayName.setText(getAction().getDisplayName());
+    PMManager.setup(this);
   }
 
-  /**
-   * See {@link AbstractDocument#replace(int, int, String, javax.swing.text.AttributeSet)}
-   *
-   * @see AbstractDocument#replace(int, int, String, javax.swing.text.AttributeSet)
-   * @param doc
-   * @param offset
-   * @param length
-   * @param text
-   * @throws BadLocationException
-   */
-  public static void replace(Document doc, int offset, int length, String text)
-      throws BadLocationException {
-    if (doc instanceof AbstractDocument) {
-      ((AbstractDocument) doc).replace(offset, length, text, null);
-    } else {
-      if (length > 0) {
-        doc.remove(offset, length);
-      }
-      if (text != null && text.length() > 0) {
-        doc.insertString(offset, text, null);
-      }
-    }
+  public AutoCompletionAction getAction() {
+    return action;
   }
 
 }

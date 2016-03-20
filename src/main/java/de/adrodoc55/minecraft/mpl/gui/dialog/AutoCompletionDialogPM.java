@@ -37,43 +37,52 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.commons;
+package de.adrodoc55.minecraft.mpl.gui.dialog;
 
-import javax.swing.text.AbstractDocument;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
+import java.util.Collections;
+
+import org.beanfabrics.model.AbstractPM;
+import org.beanfabrics.model.ListPM;
+import org.beanfabrics.model.PMManager;
+
+import de.adrodoc55.minecraft.mpl.autocompletion.AutoCompletionAction;
 
 /**
  * @author Adrodoc55
  */
-public class DocumentUtils {
+public class AutoCompletionDialogPM extends AbstractPM {
 
-  private DocumentUtils() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated!");
+  public static interface Context {
+    void choose(AutoCompletionAction action);
   }
 
-  /**
-   * See {@link AbstractDocument#replace(int, int, String, javax.swing.text.AttributeSet)}
-   *
-   * @see AbstractDocument#replace(int, int, String, javax.swing.text.AttributeSet)
-   * @param doc
-   * @param offset
-   * @param length
-   * @param text
-   * @throws BadLocationException
-   */
-  public static void replace(Document doc, int offset, int length, String text)
-      throws BadLocationException {
-    if (doc instanceof AbstractDocument) {
-      ((AbstractDocument) doc).replace(offset, length, text, null);
-    } else {
-      if (length > 0) {
-        doc.remove(offset, length);
-      }
-      if (text != null && text.length() > 0) {
-        doc.insertString(offset, text, null);
-      }
+  private final Context context;
+
+  final ListPM<AutoCompletionPM> options = new ListPM<>();
+
+  public AutoCompletionDialogPM(Context context) {
+    this(Collections.emptyList(), context);
+  }
+
+  public AutoCompletionDialogPM(Iterable<AutoCompletionAction> options, Context context) {
+    this.context = context;
+    setOptions(options);
+    PMManager.setup(this);
+  }
+
+  public void setOptions(Iterable<AutoCompletionAction> options) {
+    this.options.clear();
+    for (AutoCompletionAction action : options) {
+      this.options.add(new AutoCompletionPM(action));
     }
+    if (options.iterator().hasNext()) {
+      this.options.getSelection().add(this.options.getAt(0));
+    }
+  }
+
+  void chooseSelection() {
+    AutoCompletionPM first = options.getSelection().getFirst();
+    context.choose(first.getAction());
   }
 
 }

@@ -37,43 +37,48 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.commons;
+package de.adrodoc55.minecraft.mpl.gui.dialog;
 
-import javax.swing.text.AbstractDocument;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
+import java.awt.Dimension;
+import java.awt.KeyboardFocusManager;
+import java.awt.Window;
+import java.util.Collection;
+
+import de.adrodoc55.minecraft.mpl.autocompletion.AutoCompletionAction;
+import de.adrodoc55.minecraft.mpl.gui.dialog.AutoCompletionDialogPM.Context;
 
 /**
  * @author Adrodoc55
  */
-public class DocumentUtils {
+public class AutoCompletionDialogControler {
 
-  private DocumentUtils() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated!");
+  private final Collection<AutoCompletionAction> options;
+  private final Context context;
+  private AutoCompletionDialogPM pm;
+  private AutoCompletionDialog view;
+
+  public AutoCompletionDialogControler(Collection<AutoCompletionAction> options, Context context) {
+    this.options = options;
+    this.context = context;
   }
 
-  /**
-   * See {@link AbstractDocument#replace(int, int, String, javax.swing.text.AttributeSet)}
-   *
-   * @see AbstractDocument#replace(int, int, String, javax.swing.text.AttributeSet)
-   * @param doc
-   * @param offset
-   * @param length
-   * @param text
-   * @throws BadLocationException
-   */
-  public static void replace(Document doc, int offset, int length, String text)
-      throws BadLocationException {
-    if (doc instanceof AbstractDocument) {
-      ((AbstractDocument) doc).replace(offset, length, text, null);
-    } else {
-      if (length > 0) {
-        doc.remove(offset, length);
-      }
-      if (text != null && text.length() > 0) {
-        doc.insertString(offset, text, null);
-      }
+  public AutoCompletionDialogPM getPresentationModel() {
+    if (pm == null) {
+      pm = new AutoCompletionDialogPM(options, context);
     }
+    return pm;
   }
 
+  public AutoCompletionDialog getView() {
+    if (view == null) {
+      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+      view = new AutoCompletionDialog(activeWindow);
+      view.setPresentationModel(getPresentationModel());
+      view.getBnList().setVisibleRowCount(Math.max(1, Math.min(options.size(), 10)));
+      Dimension preferredSize = view.getPreferredSize();
+      preferredSize.width += 5;
+      view.setSize(preferredSize);
+    }
+    return view;
+  }
 }
