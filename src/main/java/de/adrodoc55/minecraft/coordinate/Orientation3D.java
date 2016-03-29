@@ -116,8 +116,7 @@ public class Orientation3D {
     this.c = c;
   }
 
-  @Nullable
-  public Token getToken() {
+  public @Nullable Token getToken() {
     return token;
   }
 
@@ -125,23 +124,28 @@ public class Orientation3D {
     this.token = token;
   }
 
-  @Nonnull
-  public Direction3D getA() {
+  /**
+   * @return <b>a</b> - the primary direction of this orientation
+   */
+  public @Nonnull Direction3D getA() {
     return a;
   }
 
-  @Nonnull
-  public Direction3D getB() {
+  /**
+   * @return <b>b</b> - the secondary direction of this orientation
+   */
+  public @Nonnull Direction3D getB() {
     return b;
   }
 
-  @Nonnull
-  public Direction3D getC() {
+  /**
+   * @return <b>c</b> - the tertiary direction of this orientation
+   */
+  public @Nonnull Direction3D getC() {
     return c;
   }
 
-  @Nonnull
-  public Direction3D get(@Nonnull Axis3D axis) {
+  public @Nonnull Direction3D get(@Nonnull Axis3D axis) {
     Preconditions.checkNotNull(axis, "axis == null!");
     if (a.getAxis() == axis)
       return a;
