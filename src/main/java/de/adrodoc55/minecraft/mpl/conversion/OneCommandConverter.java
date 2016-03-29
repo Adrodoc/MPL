@@ -43,6 +43,7 @@ import java.util.Iterator;
 
 import com.google.common.collect.ImmutableSet;
 
+import de.adrodoc55.commons.StringUtils;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
@@ -137,10 +138,23 @@ public class OneCommandConverter extends MplConverter {
       sb.append("auto:1,");
     }
     sb.append("Command:");
-    sb.append(block.getCommand());
+    sb.append(escapeCommand(block.getCommand()));
     sb.append('}');
     sb.append(COMMAND_TAIL);
     return sb;
+  }
+
+  /**
+   * A command must be escaped twice, because a OneCommand is nested twice: a commandblock in a
+   * commandblock minecraft in a commandblock.
+   *
+   * @param command
+   * @return
+   */
+  private static String escapeCommand(String command) {
+    command = StringUtils.escapeBackslashes(command);
+    command = StringUtils.escapeBackslashes(command);
+    return command;
   }
 
 }

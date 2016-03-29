@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.conversion;
 
+import de.adrodoc55.commons.StringUtils;
 import de.adrodoc55.minecraft.mpl.blocks.AirBlock;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
@@ -94,7 +95,7 @@ public class PythonConverter extends MplConverter {
     } else if (block instanceof CommandBlock) {
       CommandBlock commandBlock = (CommandBlock) block;
       String xyz = "(" + x + ", " + y + ", " + z + ")";
-      String command = commandBlock.getCommand();
+      String command = StringUtils.escapeBackslashes(commandBlock.getCommand());
       int blockId = toIntBlockId(commandBlock.getMode());
       int damage = toDamageValue(commandBlock);
       String auto = commandBlock.needsRedstone() ? "False" : "True";
