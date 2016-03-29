@@ -55,6 +55,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 
 import de.adrodoc55.minecraft.coordinate.Axis3D;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
@@ -170,23 +171,23 @@ public abstract class MplChainPlacer {
         Coordinate3D currentCoord = block.getCoordinate();
         int currentC = currentCoord.get(cAxis);
 
-        Position pos;
+        Position pos = toPosition(currentCoord.minus(start), orientation);
+        ImmutableSet<Position> illegalPositions;
         if (startC - 1 == currentC || currentC == startC + 1) {
-          pos = toPosition(currentCoord.minus(start), orientation);
+          illegalPositions = ImmutableSet.<Position>of(pos);
         } else if (startC == currentC) {
-          // Ketten in der selben c Ebene sind (in b richtung) unter der zu bauenden kette. Daher
-          // muss einmal b aufaddiert werden.
-          Coordinate3D b = orientation.getB().toCoordinate();
-          pos = toPosition(currentCoord.minus(start).plus(b), orientation);
+          illegalPositions = pos.neighbours();
         } else {
           continue;
         }
-        // Only look at positive positions
-        if (pos.getX() >= 0 && pos.getY() >= 0) {
-          if (isTransmitter(block)) {
-            forbiddenReceiver.add(pos);
-          } else if (isReceiver(block)) {
-            forbiddenTransmitter.add(pos);
+        for (Position illegalPos : illegalPositions) {
+          // Only look at positive positions
+          if (illegalPos.getX() >= 0 && illegalPos.getY() >= 0) {
+            if (isTransmitter(block)) {
+              forbiddenReceiver.add(illegalPos);
+            } else if (isReceiver(block)) {
+              forbiddenTransmitter.add(illegalPos);
+            }
           }
         }
       }

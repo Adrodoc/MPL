@@ -18,8 +18,6 @@ import static de.kussm.direction.Direction.NORTH;
 import static de.kussm.direction.Direction.SOUTH;
 import static de.kussm.direction.Direction.WEST;
 
-import java.util.Set;
-
 import com.google.common.collect.ImmutableSet;
 
 import de.kussm.direction.Direction;
@@ -50,7 +48,7 @@ public class Position {
     throw new IllegalStateException("Unknown direction " + d);
   }
 
-  public Set<Position> neighbours() {
+  public ImmutableSet<Position> neighbours() {
     return ImmutableSet.<Position>of(neighbour(NORTH), neighbour(EAST), neighbour(SOUTH),
         neighbour(WEST));
   }
