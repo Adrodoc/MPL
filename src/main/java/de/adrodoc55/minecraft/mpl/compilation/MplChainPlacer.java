@@ -257,7 +257,8 @@ public abstract class MplChainPlacer {
     Coordinate3D optimalSize = getOptimalSize();
     Axis3D aAxis = orientation.getA().getAxis();
     int aSize = optimalSize.get(aAxis);
-    int aInstall = aSize / 2; // Bei ungerader Größe hat uninstall einen Block weniger
+    // Bei ungerader Größe hat install einen Block weniger, da install effektiv 2 Reihen mehr hat.
+    int aInstall = aSize / 2;
     int aUninstall = aSize - aInstall;
 
     List<ChainPart> uninstallation = program.getUninstallation();
