@@ -64,7 +64,7 @@ class IfBuffer {
   }
 
   public ChainBuffer enterIf(boolean not, Command condition) {
-    IfNestingLayer layer = new IfNestingLayer(not, condition);
+    IfNestingLayer layer = new IfNestingLayer(not, condition, origin);
     stack.push(layer);
     return layer;
   }
@@ -296,9 +296,12 @@ class IfNestingLayer extends ChainBuffer {
   private final LinkedList<ChainPart> thenBlock = new LinkedList<>();
   private boolean inElse = false;
 
-  public IfNestingLayer(boolean not, Command condition) {
+  private ChainBuffer origin;
+
+  public IfNestingLayer(boolean not, Command condition, ChainBuffer origin) {
     this.not = not;
     this.condition = condition;
+    this.origin = origin;
   }
 
   public boolean isNot() {
@@ -358,5 +361,35 @@ class IfNestingLayer extends ChainBuffer {
     } else {
       return new LinkedList<>();
     }
+  }
+
+
+
+  public String getName() throws IllegalStateException {
+    return origin.getName();
+  }
+
+  public boolean isInstall() {
+    return origin.isInstall();
+  }
+
+  public boolean isUninstall() {
+    return origin.isUninstall();
+  }
+
+  public boolean isProcess() {
+    return origin.isProcess();
+  }
+
+  public boolean isScript() {
+    return origin.isScript();
+  }
+
+  public boolean isRepeatingProcess() {
+    return origin.isRepeatingProcess();
+  }
+
+  public boolean isRepeatingContext() {
+    return origin.isRepeatingContext();
   }
 }
