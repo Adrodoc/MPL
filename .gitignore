@@ -1,9 +1,10 @@
 **/bin
 **/build
 .gradle
+**/.project
 **/.classpath
 **/.factorypath
-.settings
+**/.settings
 **/.apt_generated
 src/antlr/gen
 target
