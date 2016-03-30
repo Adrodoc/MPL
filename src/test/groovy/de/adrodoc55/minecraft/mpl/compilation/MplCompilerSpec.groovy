@@ -45,10 +45,11 @@ import org.junit.Test
 
 import de.adrodoc55.minecraft.coordinate.Orientation3D
 import de.adrodoc55.minecraft.mpl.MplSpecBase
-import de.adrodoc55.minecraft.mpl.blocks.AirBlock;
+import de.adrodoc55.minecraft.mpl.blocks.AirBlock
 import de.adrodoc55.minecraft.mpl.blocks.Transmitter
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain
 import de.adrodoc55.minecraft.mpl.chain.CommandChain
+import de.adrodoc55.minecraft.mpl.commands.ChainPart
 import de.adrodoc55.minecraft.mpl.commands.Command
 import de.adrodoc55.minecraft.mpl.program.MplProgram
 import de.adrodoc55.minecraft.mpl.program.MplProject
@@ -288,6 +289,75 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
+  public void "a process that is referenced twice is not ambigious"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    process p1 (
+    /this is the p1 process
+    start p3
+    )
+
+    process p2 (
+    /this is the p2 process
+    start p3
+    )
+
+    process p3 (
+    /this is the p3 process
+    )
+    """
+    when:
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    then:
+    notThrown Exception
+    result.processes.size() == 3
+    CommandChain p1 = result.processes.find { it.name == 'p1' }
+    p1.commands.contains(new Command('/this is the p1 process'))
+
+    CommandChain p2 = result.processes.find { it.name == 'p2' }
+    p2.commands.contains(new Command('/this is the p2 process'))
+
+    CommandChain p3 = result.processes.find { it.name == 'p3' }
+    p3.commands.contains(new Command('/this is the p3 process'))
+  }
+
+  @Test
+  public void "a process in the main file, that is referenced from a different file is not ambigious"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'p1.mpl').text = """
+    process p1 (
+    /this is the p1 process
+    start p2
+    )
+
+    process p3 (
+    /this is the p3 process
+    )
+    """
+    new File(folder, 'p2.mpl').text = """
+    process p2 (
+    /this is the p2 process
+    start p3
+    )
+    """
+    when:
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'p1.mpl'))
+    then:
+    notThrown Exception
+    result.processes.size() == 3
+    CommandChain p1 = result.processes.find { it.name == 'p1' }
+    p1.commands.contains(new Command('/this is the p1 process'))
+
+    CommandChain p2 = result.processes.find { it.name == 'p2' }
+    p2.commands.contains(new Command('/this is the p2 process'))
+
+    CommandChain p3 = result.processes.find { it.name == 'p3' }
+    p3.commands.contains(new Command('/this is the p3 process'))
+  }
+
+  @Test
   public void "project includes are processed correctly"() {
     given:
     String id1 = someIdentifier()
@@ -418,7 +488,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     new File(folder, 'other.mpl').text = """
     project ${someIdentifier()} (
-    orientation = "z-yx"
+    orientation "z-yx"
     )
     """
     when:
@@ -660,4 +730,43 @@ class MplCompilerSpec extends MplSpecBase {
     uninstallation.blocks[3].toCommand() == new Command('kill @e[type=ArmorStand,name=main]')
     uninstallation.blocks[4].class == AirBlock
   }
+
+  @Test
+  public void "the installation and uninstallation of multiple files is concatenated"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    project main (
+      include "install1.mpl"
+      include "install2.mpl"
+    )
+
+    install (
+      /say main install
+    )
+    """
+    new File(folder, 'install1.mpl').text = """
+    project p()
+    install (
+      /say install 1
+    )
+    """
+    new File(folder, 'install2.mpl').text = """
+    project p()
+    install (
+      /say install 2
+    )
+    """
+    when:
+    MplProject result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    then:
+    notThrown Exception
+
+    List<ChainPart> installation = result.installation
+    installation[0] == new Command("say main install")
+    installation[1] == new Command("/say install 1")
+    installation[2] == new Command("/say install 2")
+    installation.size() == 3
+  }
+
 }

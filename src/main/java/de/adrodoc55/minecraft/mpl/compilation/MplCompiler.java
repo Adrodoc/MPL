@@ -43,6 +43,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +55,6 @@ import java.util.stream.Collectors;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
@@ -112,6 +112,7 @@ public class MplCompiler extends MplBaseListener {
   }
 
   private SetMultimap<File, String> programContent = HashMultimap.create();
+  private Set<File> addedInterpreters = new HashSet<>();
   private LinkedList<Include> includeTodos;
   private MplProject project;
 
@@ -135,21 +136,20 @@ public class MplCompiler extends MplBaseListener {
     }
     project = main.getProject();
 
-    ListMultimap<String, Include> includes = main.getIncludes();
-    for (Include include : includes.values()) {
-      String processName = include.getProcessName();
-      MplProcess process = main.getProject().getProcess(processName);
-      if (process != null) {
-        continue; // Skip includes that reference the same file
-      }
-      if (include.getProcessName() == null) {
-        massInclude(include);
-      } else {
-        processInclude(include);
-      }
-    }
+    // The main interpreter does not need to be added to itself
+    addedInterpreters.add(programFile);
 
-    addInterpreter(main);
+    // Skip includes that reference the same file
+    List<Include> includes = main.getIncludes().values().stream()
+        .filter(include -> !project.containsProcess(include.getProcessName()))
+        .collect(Collectors.toList());
+    includeTodos.addAll(includes);
+
+    // Mark all processes of the main file
+    project.getProcesses().stream().map(p -> p.getName()).forEach(name -> {
+      programContent.put(programFile, name);
+    });
+
     doIncludes();
     return project;
   }
@@ -260,7 +260,7 @@ public class MplCompiler extends MplBaseListener {
   }
 
   public void addInterpreter(MplInterpreter interpreter) {
-    if (programContent.containsKey(interpreter.getProgramFile())) {
+    if (addedInterpreters.add(interpreter.getProgramFile())) {
       MplProject project = interpreter.getProject();
       this.project.getExceptions().addAll(project.getExceptions());
       this.project.getInstallation().addAll(project.getInstallation());
