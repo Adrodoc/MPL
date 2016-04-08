@@ -126,14 +126,13 @@ public abstract class MplChainPlacer {
    * The optimal size is a zero based exclusive coordinate. That means that a result of (1, 1, 1)
    * relates to a 1 block sized cube.<br>
    *
-   * @param program
    * @return opt the optimal boundaries
    */
   protected abstract Coordinate3D getOptimalSize();
 
   /**
-   * Generates a flat {@link CommandBlockChain} using {@link MplChainPlacer#getOptimalSize()}. Flat
-   * means, that the chain will not have any width in the c direction of the orientation.<br>
+   * Generates a flat {@link CommandBlockChain}. Flat means, that the chain will not have any width
+   * in the c direction of the orientation.<br>
    * The chain will not have any illegal transmitter or receiver regarding all chains that have
    * already been added to {@link #chains}. Also the chain will not have any illegally placed
    * conditional command blocks.
