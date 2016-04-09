@@ -247,31 +247,6 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
-  public void "invert modifier korrigiert alle inserts"() {
-    given:
-    String testString = """
-    /say \${this + 5}
-    /say \${this + 1}
-    invert: /say \${this - 1}
-    /say \${this - 5}
-    """
-    when:
-    MplInterpreter interpreter = interpret(testString)
-    then:
-    MplScript script = interpreter.script
-    script.exceptions.isEmpty()
-
-    CommandChain chain = script.chain
-    List<Command> commands = chain.commands
-    commands[0] == new Command("say \${this + 6}")
-    commands[1] == new Command("say \${this + 2}")
-    commands[2] == new Command("testforblock \${this - 1} chain_command_block {SuccessCount:0}")
-    commands[3] == new Command("say \${this - 2}", true)
-    commands[4] == new Command("say \${this - 6}")
-    commands.size() == 5
-  }
-
-  @Test
   @Unroll("start generiert die richtigen Commandos ('#programString')")
   public void "start generiert die richtigen Commandos"(String programString, boolean conditional) {
     given:
