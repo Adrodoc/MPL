@@ -1569,6 +1569,49 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
+  public void "start in then chain erzeugt include"() {
+    given:
+    String name = someIdentifier()
+    String programString = """
+    process ${name} (
+      if: /say hi
+      then (
+        start testProcess
+      )
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+
+    ListMultimap<String, Include> includeMap = interpreter.includes
+    List<Include> includes = includeMap.get(name)
+    includes[0].processName == 'testProcess'
+    includes.size() == 1
+  }
+
+  @Test
+  public void "notify in then chain funktioniert"() {
+    given:
+    String name = someIdentifier()
+    String programString = """
+    process ${name} (
+      if: /say hi
+      then (
+        notify
+      )
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+  }
+
+  @Test
   public void "Ein impulse Prozess deaktiviert sich selbst"() {
     given:
     String name = someIdentifier()
