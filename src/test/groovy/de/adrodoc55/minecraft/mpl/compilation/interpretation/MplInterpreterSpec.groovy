@@ -629,7 +629,7 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
-  public void "waitfor ohne Identifier bezieht sich auf das letzte Start"() {
+  public void "waitfor ohne Identifier bezieht sich auf Notify des letzten Starts"() {
     given:
     String identifier = someIdentifier()
     String programString = """
@@ -670,10 +670,58 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
-  public void "waitfor generiert die richtigen Commandos"() {
+  public void "waitfor mit identifier generiert die richtigen Commandos"() {
     given:
     String identifier = someIdentifier()
-    String programString = 'waitfor ' + identifier
+    String programString = """
+    waitfor ${identifier}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
+
+    CommandChain chain = script.chain
+    List<Command> commands = chain.commands
+    commands[0] == new InternalCommand("summon ArmorStand \${this + 1} {CustomName:${identifier},NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+    commands[1] == new Skip(false) // Nicht internal, da waitfor manuell referenziert werden können soll
+    commands[2] == new InternalCommand("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands.size() == 3
+  }
+
+  @Test
+  public void "conditional: waitfor generiert die richtigen Commandos"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    /say hi
+    conditional: waitfor ${identifier}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
+
+    CommandChain chain = script.chain
+    List<Command> commands = chain.commands
+    commands[0] == new Command("say hi")
+    commands[1] == new InternalCommand("summon ArmorStand \${this + 3} {CustomName:${identifier},NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true)
+    commands[2] == new InternalCommand("blockdata \${this - 1} {SuccessCount:1}")
+    commands[3] == new InternalCommand("setblock \${this + 1} redstone_block", true)
+    commands[4] == new Skip(false) // Nicht internal, da waitfor manuell referenziert werden können soll
+    commands[5] == new InternalCommand("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands.size() == 6
+  }
+
+  @Test
+  public void "waitfor notify mit identifier generiert die richtigen Commandos"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    waitfor notify ${identifier}
+    """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
@@ -689,12 +737,12 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
-  public void "conditional: waitfor generiert die richtigen Commandos"() {
+  public void "conditional: waitfor notify generiert die richtigen Commandos"() {
     given:
     String identifier = someIdentifier()
     String programString = """
     /say hi
-    conditional: waitfor ${identifier}
+    conditional: waitfor notify ${identifier}
     """
     when:
     MplInterpreter interpreter = interpret(programString)

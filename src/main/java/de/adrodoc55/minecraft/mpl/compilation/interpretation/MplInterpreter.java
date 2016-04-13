@@ -528,11 +528,14 @@ public class MplInterpreter extends MplBaseListener {
       return;
     }
     TerminalNode identifier = ctx.IDENTIFIER();
-    String process;
+    String event;
     if (identifier != null) {
-      process = identifier.getText();
+      event = identifier.getText();
+      if (ctx.NOTIFY() != null) {
+        event += NOTIFY;
+      }
     } else if (lastStartIdentifier != null) {
-      process = lastStartIdentifier;
+      event = lastStartIdentifier += NOTIFY;
       lastStartIdentifier = null;
     } else {
       MplSource source = new MplSource(programFile, token, line);
@@ -545,15 +548,15 @@ public class MplInterpreter extends MplBaseListener {
       conditional = false;
     }
     if (conditional) {
-      chainBuffer.add(new InternalCommand("summon ArmorStand ${this + 3} {CustomName:" + process
-          + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true));
+      chainBuffer.add(new InternalCommand("summon ArmorStand ${this + 3} {CustomName:" + event
+          + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true));
       chainBuffer.add(new InternalCommand("blockdata ${this - 1} {SuccessCount:1}"));
       chainBuffer.add(new InternalCommand("setblock ${this + 1} redstone_block", true));
       chainBuffer.add(new Skip(false));
       chainBuffer.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
     } else {
-      chainBuffer.add(new InternalCommand("summon ArmorStand ${this + 1} {CustomName:" + process
-          + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
+      chainBuffer.add(new InternalCommand("summon ArmorStand ${this + 1} {CustomName:" + event
+          + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
       chainBuffer.add(new Skip(false));
       chainBuffer.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
     }

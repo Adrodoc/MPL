@@ -191,7 +191,7 @@
 
  waitfor
  :
-   WAITFOR IDENTIFIER?
+   WAITFOR (NOTIFY? IDENTIFIER)?
  ;
 
  notifyDeclaration
