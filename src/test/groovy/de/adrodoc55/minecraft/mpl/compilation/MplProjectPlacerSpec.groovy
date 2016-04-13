@@ -45,6 +45,7 @@ import spock.lang.Specification
 import de.adrodoc55.minecraft.coordinate.Orientation3D
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain
 import de.adrodoc55.minecraft.mpl.chain.MplProcess
+import de.adrodoc55.minecraft.mpl.compilation.placement.MplProjectPlacer;
 import de.adrodoc55.minecraft.mpl.program.MplProject
 
 class MplProjectPlacerSpec extends Specification {

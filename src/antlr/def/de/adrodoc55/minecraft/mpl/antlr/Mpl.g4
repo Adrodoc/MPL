@@ -116,6 +116,7 @@
    (
      commandDeclaration
      | skip
+     | breakpoint
      | ifDeclaration
    )+
  ;
@@ -191,7 +192,10 @@
 
  waitfor
  :
-   WAITFOR (NOTIFY? IDENTIFIER)?
+   WAITFOR
+   (
+     NOTIFY? IDENTIFIER
+   )?
  ;
 
  notifyDeclaration
@@ -207,6 +211,11 @@
  skip
  :
    SKIP
+ ;
+
+ breakpoint
+ :
+   BREAKPOINT
  ;
 
  ifDeclaration
@@ -340,6 +349,11 @@
  SKIP
  :
    'skip'
+ ;
+
+ BREAKPOINT
+ :
+   'breakpoint'
  ;
 
  IF

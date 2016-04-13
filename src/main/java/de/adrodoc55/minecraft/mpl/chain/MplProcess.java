@@ -42,8 +42,7 @@ package de.adrodoc55.minecraft.mpl.chain;
 import java.util.List;
 
 import javax.annotation.Nonnull;
-
-import com.google.common.base.Preconditions;
+import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.mpl.commands.ChainPart;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
@@ -55,25 +54,17 @@ public class MplProcess extends NamedCommandChain {
 
   protected final MplSource source;
 
-  /**
-   * This constructor is for tests only!
-   *
-   * @param name
-   * @param commands
-   */
-  private MplProcess(@Nonnull String name, @Nonnull List<ChainPart> commands) throws Throwable {
-    super(name, commands);
-    this.source = null;
+  public MplProcess(@Nonnull String name, @Nonnull List<ChainPart> commands) {
+    this(name, commands, null);
   }
 
   public MplProcess(@Nonnull String name, @Nonnull List<ChainPart> commands,
-      @Nonnull MplSource source) {
+      @Nullable MplSource source) {
     super(name, commands);
-    this.source = Preconditions.checkNotNull(source, "source == null!");
+    this.source = source;
   }
 
-  @Nonnull
-  public MplSource getSource() {
+  public @Nullable MplSource getSource() {
     return source;
   }
 

@@ -65,6 +65,7 @@ import de.adrodoc55.minecraft.mpl.antlr.MplBaseListener;
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.AutoContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.BreakpointContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ChainContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandDeclarationContext;
@@ -667,6 +668,21 @@ public class MplInterpreter extends MplBaseListener {
       return;
     }
     chainBuffer.add(new Skip(false));
+  }
+
+  @Override
+  public void enterBreakpoint(BreakpointContext ctx) {
+    chainBuffer.add(
+        new InternalCommand("execute @e[name=breakpoint] ~ ~ ~ setblock ~ ~ ~ redstone_block"));
+    int line = ctx.BREAKPOINT().getSymbol().getLine();
+    chainBuffer.add(new InternalCommand(
+        "say encountered breakpoint " + programFile.getName() + " : line " + line));
+    chainBuffer.add(new InternalCommand(
+        "summon ArmorStand ${this + 1} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
+    chainBuffer.add(new Skip(false));
+    chainBuffer.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
+
+    project.setHasBreakpoint(true);
   }
 
   @Override

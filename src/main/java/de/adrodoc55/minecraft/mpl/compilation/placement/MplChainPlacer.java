@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.compilation;
+package de.adrodoc55.minecraft.mpl.compilation.placement;
 
 import static de.kussm.direction.Direction.EAST;
 import static de.kussm.direction.Direction.NORTH;
@@ -90,7 +90,7 @@ public abstract class MplChainPlacer {
   public static List<CommandBlockChain> place(MplProgram program) {
     if (program instanceof MplProject) {
       MplProject project = (MplProject) program;
-      return new MplProjectPlacer(project).place();
+      return new MplDebugProjectPlacer(project).place();
     }
     if (program instanceof MplScript) {
       MplScript script = (MplScript) program;

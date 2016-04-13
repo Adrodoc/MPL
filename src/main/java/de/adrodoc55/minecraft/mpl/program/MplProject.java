@@ -61,6 +61,7 @@ public class MplProject extends MplProgram {
   private String name;
   private Token projectToken;
   private final Map<String, MplProcess> processMap = new HashMap<>();
+  private boolean hasBreakpoint;
 
   public String getName() {
     return name;
@@ -113,6 +114,14 @@ public class MplProject extends MplProgram {
    */
   public Collection<MplProcess> getProcesses() {
     return Collections.unmodifiableCollection(processMap.values());
+  }
+
+  public boolean hasBreakpoint() {
+    return hasBreakpoint;
+  }
+
+  public void setHasBreakpoint(boolean hasBreakpoint) {
+    this.hasBreakpoint = hasBreakpoint;
   }
 
 }

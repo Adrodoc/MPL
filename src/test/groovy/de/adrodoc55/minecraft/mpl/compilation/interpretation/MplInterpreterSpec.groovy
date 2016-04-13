@@ -587,6 +587,88 @@ public class MplInterpreterSpec extends MplSpecBase {
   }
 
   @Test
+  public void "breakpoint in repeating Prozess wirft Exception"() {
+    given:
+    String name = someIdentifier()
+    String identifier = someIdentifier()
+    String programString = """
+    repeat process ${name} (
+    breakpoint
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProject project = interpreter.project
+    project.exceptions[0].source.file == lastTempFile
+    project.exceptions[0].source.token.line == 4
+    project.exceptions[0].source.token.text == 'waitfor'
+    project.exceptions[0].message == 'Encountered breakpoint in repeating context.'
+    project.exceptions.size() == 1
+  }
+
+  @Test
+  public void "breakpoint in repeating script wirft Exception"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    repeat: /say hi
+    breakpoint
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplScript script = interpreter.script
+    script.exceptions[0].source.file == lastTempFile
+    script.exceptions[0].source.token.line == 4
+    script.exceptions[0].source.token.text == 'waitfor'
+    script.exceptions[0].message == 'Encountered breakpoint in repeating context.'
+    script.exceptions.size() == 1
+  }
+
+  @Test
+  public void "breakpoint generiert die richtigen Commands"() {
+    given:
+    String name = someIdentifier()
+    String programString = """
+    process ${name} (
+      /say hi
+      breakpoint
+      /say hi2
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+
+    Collection<MplProcess> processes = project.processes
+
+    MplProcess process = processes.find { it.name == 'name' }
+    List<Command> commands = process.commands
+    commands[0] == new Command("say hi")
+    commands[1] == new InternalCommand("execute @e[name=breakpoint] ~ ~ ~ setblock ~ ~ ~ redstone_block")
+    commands[2] == new InternalCommand("say encountered breakpoint ${lastTempFile.name} : line 3")
+    commands[3] == new InternalCommand("summon ArmorStand \${this + 1} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+    commands[4] == new Skip(false) // Nicht internal, da breakpoint manuell referenziert werden können soll
+    commands[5] == new InternalCommand("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    commands[6] == new Command("say hi2")
+    commands.size() == 7
+
+    MplProcess breakpoint = processes.find { it.name == 'breakpoint' }
+    List<Command> breakpointCommands = process.commands
+    breakpointCommands[0] == new InternalCommand('tellraw @a [{"text":"[tp to breakpoint]","color":"gold","clickEvent":{"action":"run_command","value":"/tp @p @e[name=breakpoint_NOTIFY,c=-1]"}},{"text":"   "},{"text":"[continue program]","color":"gold","clickEvent":{"action":"run_command","value":"/execute @e[name=breakpoint_NOTIFY] ~ ~ ~ /setblock ~ ~ ~ redstone_block"}}]')
+    breakpointCommands[1] == new InternalCommand("summon ArmorStand \${this + 1} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+    breakpointCommands[2] == new Skip(true)
+    breakpointCommands[3] == new InternalCommand("setblock \${this - 1} stone", Mode.IMPULSE, false)
+    breakpointCommands[4] == new InternalCommand("kill @e[name=breakpoint_NOTIFY]")
+    breakpointCommands.size() == 5
+
+    processes.size() == 2
+  }
+
+  @Test
   public void "waitfor in repeating Prozess wirft Exception"() {
     given:
     String name = someIdentifier()

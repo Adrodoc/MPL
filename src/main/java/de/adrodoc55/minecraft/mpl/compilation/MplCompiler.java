@@ -67,11 +67,15 @@ import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.MplProcess;
+import de.adrodoc55.minecraft.mpl.commands.ChainPart;
 import de.adrodoc55.minecraft.mpl.commands.Command;
+import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
 import de.adrodoc55.minecraft.mpl.commands.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.NoOperationCommand;
+import de.adrodoc55.minecraft.mpl.commands.Skip;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.Include;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.MplInterpreter;
+import de.adrodoc55.minecraft.mpl.compilation.placement.MplChainPlacer;
 import de.adrodoc55.minecraft.mpl.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.program.MplProject;
 
@@ -151,7 +155,23 @@ public class MplCompiler extends MplBaseListener {
     });
 
     doIncludes();
+    if (project.hasBreakpoint()) {
+      addBreakpointProcess();
+    }
     return project;
+  }
+
+  private void addBreakpointProcess() {
+    List<ChainPart> commands = new LinkedList<>();
+    commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
+    commands.add(new InternalCommand(
+        "tellraw @a [{\"text\":\"[tp to breakpoint]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/tp @p @e[name=breakpoint_NOTIFY,c=-1]\"}},{\"text\":\"   \"},{\"text\":\"[continue program]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/execute @e[name=breakpoint_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block\"}}]"));
+    commands.add(new InternalCommand(
+        "summon ArmorStand ${this + 1} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
+    commands.add(new Skip(true));
+    commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
+    commands.add(new InternalCommand("kill @e[name=breakpoint_NOTIFY]"));
+    project.addProcess(new MplProcess("breakpoint", commands));
   }
 
   private void doIncludes() {
@@ -221,7 +241,7 @@ public class MplCompiler extends MplBaseListener {
 
   public void addProcess(MplInterpreter interpreter, String processName) {
     MplProcess process = interpreter.getProject().getProcess(processName);
-    File file = process.getSource().file;
+    File file = interpreter.getProgramFile();
     Set<String> processNames = programContent.get(file);
     if (!processNames.contains(process.getName())) {
       project.addProcess(process);
@@ -262,6 +282,7 @@ public class MplCompiler extends MplBaseListener {
   public void addInterpreter(MplInterpreter interpreter) {
     if (addedInterpreters.add(interpreter.getProgramFile())) {
       MplProject project = interpreter.getProject();
+      this.project.setHasBreakpoint(this.project.hasBreakpoint() | project.hasBreakpoint());
       this.project.getExceptions().addAll(project.getExceptions());
       this.project.getInstallation().addAll(project.getInstallation());
       this.project.getUninstallation().addAll(project.getUninstallation());
