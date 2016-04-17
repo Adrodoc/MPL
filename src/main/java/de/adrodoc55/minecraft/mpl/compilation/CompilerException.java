@@ -83,7 +83,7 @@ public class CompilerException extends Exception {
     sb.append("^");
     Throwable cause = getCause();
     if (cause != null) {
-      sb.append("\ncause:   ");
+      sb.append("\npossible cause: ");
       File file = null;
       if (cause instanceof FileException) {
         file = ((FileException) cause).getFile();
