@@ -44,37 +44,28 @@ import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOpt
 import java.util.List;
 
 import de.adrodoc55.minecraft.mpl.commands.ChainLink;
-import de.adrodoc55.minecraft.mpl.commands.InternalCommand;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
-import de.adrodoc55.minecraft.mpl.commands.Skip;
+import de.adrodoc55.minecraft.mpl.commands.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
-public class Waitfor extends PossiblyConditionalChainPart {
-  private String event;
+public class MplStop extends PossiblyConditionalChainPart {
 
-  public Waitfor(String event) {
-    this.event = event;
+  private String process;
+
+  public MplStop(String process) {
+    this.process = process;
   }
 
   @Override
   public List<ChainLink> toCommands(CompilerOptions options) throws IllegalModifierException {
     List<ChainLink> commands = super.toCommands();
-    if (isConditional()) {
-      commands.add(new InternalCommand("summon ArmorStand ${this + 3} {CustomName:" + event
-          + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true));
-      commands.add(new InternalCommand("blockdata ${this - 1} {SuccessCount:1}"));
-      commands.add(new InternalCommand("setblock ${this + 1} redstone_block", true));
-    } else {
-      commands.add(new InternalCommand("summon ArmorStand ${this + 1} {CustomName:" + event
-          + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
-    }
+    String command;
     if (options.hasOption(TRANSMITTER)) {
-      commands.add(new Skip(false));
-      commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
+      command = "execute @e[name=" + process + "] ~ ~ ~ setblock ~ ~ ~ stone";
     } else {
-      commands.add(new InternalCommand("entitydata ~ ~ ~ {auto:0}", Mode.IMPULSE, false));
+      command = "execute @e[name=" + process + "] ~ ~ ~ entitydata {auto:0}";
     }
+    commands.add(new Command(command, isConditional()));
     return commands;
   }
 

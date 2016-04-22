@@ -57,6 +57,7 @@ public abstract class PossiblyConditionalChainPart implements ChainPart {
     return previousMode;
   }
 
+  // FIXME: Muss aufgerufen werden, bevor toCommands aufgerufen wird
   public void setPreviousMode(Mode previousMode) {
     this.previousMode = previousMode;
   }
@@ -69,9 +70,9 @@ public abstract class PossiblyConditionalChainPart implements ChainPart {
     this.conditional = conditional;
   }
 
-  public Boolean isConditional() {
+  public boolean isConditional() {
     if (conditional == null) {
-      return null;
+      return false;
     }
     switch (conditional) {
       case UNCONDITIONAL:
@@ -80,7 +81,7 @@ public abstract class PossiblyConditionalChainPart implements ChainPart {
       case INVERT:
         return true;
       default:
-        return null;
+        return false;
     }
   }
 

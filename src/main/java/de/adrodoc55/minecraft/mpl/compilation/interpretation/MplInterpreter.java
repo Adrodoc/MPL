@@ -98,6 +98,9 @@ import de.adrodoc55.minecraft.mpl.commands.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Skip;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.MplStart;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.MplStop;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.Waitfor;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.CommandBufferFactory.CommandBuffer;
@@ -486,8 +489,10 @@ public class MplInterpreter extends MplBaseListener {
   public void enterStart(StartContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String process = identifier.getText();
-    String command = "execute @e[name=" + process + "] ~ ~ ~ setblock ~ ~ ~ redstone_block";
-    commandBuffer.setCommand(command);
+    MplStart start = new MplStart(process);
+    start.setConditional(commandBuffer.getConditional());
+    chainBuffer.add(start);
+
     lastStartIdentifier = process;
     if (isScript) {
       return;
@@ -515,8 +520,9 @@ public class MplInterpreter extends MplBaseListener {
       addException(new CompilerException(source, "Can only stop repeating processes."));
       return;
     }
-    String command = "execute @e[name=" + process + "] ~ ~ ~ setblock ~ ~ ~ stone";
-    commandBuffer.setCommand(command);
+    MplStop stop = new MplStop(process);
+    stop.setConditional(commandBuffer.getConditional());
+    chainBuffer.add(stop);
   }
 
   @Override
@@ -544,24 +550,9 @@ public class MplInterpreter extends MplBaseListener {
           "Missing Identifier. No previous start was found to wait for."));
       return;
     }
-    Boolean conditional = commandBuffer.isConditional();
-    if (conditional == null) {
-      conditional = false;
-    }
-    if (conditional) {
-      chainBuffer.add(new InternalCommand("summon ArmorStand ${this + 3} {CustomName:" + event
-          + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true));
-      chainBuffer.add(new InternalCommand("blockdata ${this - 1} {SuccessCount:1}"));
-      chainBuffer.add(new InternalCommand("setblock ${this + 1} redstone_block", true));
-      chainBuffer.add(new Skip(false));
-      chainBuffer.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
-    } else {
-      chainBuffer.add(new InternalCommand("summon ArmorStand ${this + 1} {CustomName:" + event
-          + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
-      chainBuffer.add(new Skip(false));
-      chainBuffer.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
-    }
-    commandBuffer = null;
+    Waitfor waitfor = new Waitfor(event);
+    waitfor.setConditional(commandBuffer.getConditional());
+    chainBuffer.add(waitfor);
   }
 
   @Override
