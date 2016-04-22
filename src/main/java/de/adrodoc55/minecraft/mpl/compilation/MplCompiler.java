@@ -67,12 +67,13 @@ import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.MplProcess;
-import de.adrodoc55.minecraft.mpl.commands.ChainPart;
 import de.adrodoc55.minecraft.mpl.commands.Command;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
 import de.adrodoc55.minecraft.mpl.commands.InternalCommand;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.commands.Skip;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.MplMaterializer;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.Include;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.MplInterpreter;
 import de.adrodoc55.minecraft.mpl.compilation.placement.MplChainPlacer;
@@ -84,9 +85,10 @@ import de.adrodoc55.minecraft.mpl.program.MplProject;
  */
 public class MplCompiler extends MplBaseListener {
 
-  public static MplCompilationResult compile(File programFile)
+  public static MplCompilationResult compile(File programFile, CompilerOption... options)
       throws IOException, CompilationFailedException {
     MplProgram program = assembleProgram(programFile);
+    MplMaterializer.materialze(program, options);
     List<CommandBlockChain> chains = place(program);
     List<MplBlock> blocks =
         chains.stream().flatMap(c -> c.getBlocks().stream()).collect(Collectors.toList());

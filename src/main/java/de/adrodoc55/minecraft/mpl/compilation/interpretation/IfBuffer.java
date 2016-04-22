@@ -44,12 +44,12 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.adrodoc55.minecraft.mpl.commands.ChainPart;
 import de.adrodoc55.minecraft.mpl.commands.Command;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
 import de.adrodoc55.minecraft.mpl.commands.InvertingCommand;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.NormalizingCommand;
 import de.adrodoc55.minecraft.mpl.commands.ReferencingCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
 
 /**

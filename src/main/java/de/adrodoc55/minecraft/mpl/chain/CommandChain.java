@@ -45,7 +45,7 @@ import javax.annotation.Nonnull;
 
 import com.google.common.base.Preconditions;
 
-import de.adrodoc55.minecraft.mpl.commands.ChainPart;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
 
 /**
  * @author Adrodoc55

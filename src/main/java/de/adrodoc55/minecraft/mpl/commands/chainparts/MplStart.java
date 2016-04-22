@@ -37,31 +37,35 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.chain;
+package de.adrodoc55.minecraft.mpl.commands.chainparts;
+
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.util.List;
 
-import javax.annotation.Nonnull;
+import de.adrodoc55.minecraft.mpl.commands.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.Command;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
-import com.google.common.base.Preconditions;
+public class MplStart extends PossiblyConditionalChainPart {
+  private String process;
 
-import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
-
-/**
- * @author Adrodoc55
- */
-public class NamedCommandChain extends CommandChain {
-
-  protected final String name;
-
-  public NamedCommandChain(@Nonnull String name, List<ChainPart> commands) {
-    super(commands);
-    this.name = Preconditions.checkNotNull(name, "name == null!");
+  public MplStart(String process) {
+    this.process = process;
   }
 
-  @Nonnull
-  public String getName() {
-    return name;
+  @Override
+  public List<ChainLink> toCommands(CompilerOptions options) throws IllegalModifierException {
+    List<ChainLink> commands = super.toCommands();
+    String command;
+    if (options.hasOption(TRANSMITTER)) {
+      command = "execute @e[name=" + process + "] ~ ~ ~ setblock ~ ~ ~ redstone_block";
+    } else {
+      command = "execute @e[name=" + process + "] ~ ~ ~ entitydata {auto:1}";
+    }
+    commands.add(new Command(command, isConditional()));
+    return commands;
   }
 
 }

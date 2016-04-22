@@ -39,9 +39,11 @@
  */
 package de.adrodoc55.minecraft.mpl.conversion;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 
 /**
  * @author Adrodoc55
@@ -49,9 +51,7 @@ import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
 public abstract class MplConverter {
 
   public static String toBlockId(Mode mode) {
-    if (mode == null) {
-      throw new NullPointerException("mode == null");
-    }
+    checkNotNull(mode, "mode == null");
     switch (mode) {
       case IMPULSE:
         return "command_block";

@@ -37,11 +37,26 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands;
+package de.adrodoc55.minecraft.mpl.compilation;
 
-/**
- * @author Adrodoc55
- */
-public interface ChainPart {
+import java.util.Arrays;
+import java.util.EnumSet;
 
+import com.google.common.collect.Sets;
+
+public class CompilerOptions {
+  private EnumSet<CompilerOption> options;
+
+  public CompilerOptions(CompilerOption... options) {
+    this.options = Sets.newEnumSet(Arrays.asList(options), CompilerOption.class);
+  }
+
+  public boolean hasOption(CompilerOption option) {
+    return options.contains(option);
+  }
+
+  public enum CompilerOption {
+    DEBUG, TRANSMITTER
+  }
 }
+

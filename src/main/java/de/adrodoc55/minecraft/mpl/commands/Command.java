@@ -39,13 +39,17 @@
  */
 package de.adrodoc55.minecraft.mpl.commands;
 
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Direction3D;
+import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
+import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import net.karneim.pojobuilder.Builder;
 import net.karneim.pojobuilder.GeneratePojoBuilder;
 
 /**
  * @author Adrodoc55
  */
-public class Command implements ChainPart {
+public class Command implements ChainLink {
 
   private String command;
   private Mode mode;
@@ -106,10 +110,6 @@ public class Command implements ChainPart {
     this.mode = mode;
   }
 
-  public static enum Mode {
-    IMPULSE, CHAIN, REPEAT;
-  }
-
   public boolean isConditional() {
     return conditional;
   }
@@ -127,9 +127,9 @@ public class Command implements ChainPart {
   }
 
   @Override
-  public String toString() {
-    return "Command [command='" + getCommand() + "', mode=" + mode + ", conditional=" + conditional
-        + ", needsRedstone=" + needsRedstone + "]";
+  public MplBlock toBlock(Coordinate3D coordinate) {
+    // FIXME: Direction korrigieren
+    return new CommandBlock(this, Direction3D.UP, coordinate);
   }
 
   @Override
@@ -164,6 +164,12 @@ public class Command implements ChainPart {
     if (needsRedstone != other.needsRedstone)
       return false;
     return true;
+  }
+
+  @Override
+  public String toString() {
+    return "Command [command='" + getCommand() + "', mode=" + mode + ", conditional=" + conditional
+        + ", needsRedstone=" + needsRedstone + "]";
   }
 
 }

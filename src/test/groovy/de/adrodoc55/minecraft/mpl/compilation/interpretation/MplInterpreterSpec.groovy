@@ -52,7 +52,6 @@ import com.google.common.collect.ListMultimap
 import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.chain.CommandChain
 import de.adrodoc55.minecraft.mpl.chain.MplProcess
-import de.adrodoc55.minecraft.mpl.commands.ChainPart
 import de.adrodoc55.minecraft.mpl.commands.Command
 import de.adrodoc55.minecraft.mpl.commands.InternalCommand
 import de.adrodoc55.minecraft.mpl.commands.InvertingCommand
@@ -60,6 +59,7 @@ import de.adrodoc55.minecraft.mpl.commands.NormalizingCommand
 import de.adrodoc55.minecraft.mpl.commands.ReferencingCommand
 import de.adrodoc55.minecraft.mpl.commands.Skip
 import de.adrodoc55.minecraft.mpl.commands.Command.Mode
+import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.program.MplProject
 import de.adrodoc55.minecraft.mpl.program.MplScript
 

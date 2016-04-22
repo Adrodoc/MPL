@@ -37,31 +37,23 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.chain;
+package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
 import java.util.List;
 
-import javax.annotation.Nonnull;
+import de.adrodoc55.minecraft.mpl.commands.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.InternalCommand;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
-import com.google.common.base.Preconditions;
+public class Waitfor extends PossiblyConditionalChainPart {
 
-import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
+  @Override
+  public List<ChainLink> toCommands(CompilerOptions options) throws IllegalModifierException {
+    List<ChainLink> commands = super.toCommands();
 
-/**
- * @author Adrodoc55
- */
-public class NamedCommandChain extends CommandChain {
-
-  protected final String name;
-
-  public NamedCommandChain(@Nonnull String name, List<ChainPart> commands) {
-    super(commands);
-    this.name = Preconditions.checkNotNull(name, "name == null!");
-  }
-
-  @Nonnull
-  public String getName() {
-    return name;
+    commands.add(new InternalCommand());
+    return commands;
   }
 
 }

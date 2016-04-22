@@ -39,10 +39,14 @@
  */
 package de.adrodoc55.minecraft.mpl.commands;
 
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
+import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
+
 /**
  * @author Adrodoc55
  */
-public class Skip implements ChainPart {
+public class Skip implements ChainLink {
   private final boolean internal;
 
   public Skip(boolean internal) {
@@ -51,6 +55,11 @@ public class Skip implements ChainPart {
 
   public boolean isInternal() {
     return internal;
+  }
+
+  @Override
+  public MplBlock toBlock(Coordinate3D coordinate) {
+    return new Transmitter(internal, coordinate);
   }
 
   @Override

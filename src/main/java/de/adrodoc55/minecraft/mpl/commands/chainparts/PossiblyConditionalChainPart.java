@@ -37,31 +37,63 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.chain;
+package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nonnull;
+import de.adrodoc55.minecraft.mpl.commands.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.Conditional;
+import de.adrodoc55.minecraft.mpl.commands.InvertingCommand;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
-import com.google.common.base.Preconditions;
+public abstract class PossiblyConditionalChainPart implements ChainPart {
 
-import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
+  protected Mode previousMode;
+  protected Conditional conditional;
 
-/**
- * @author Adrodoc55
- */
-public class NamedCommandChain extends CommandChain {
-
-  protected final String name;
-
-  public NamedCommandChain(@Nonnull String name, List<ChainPart> commands) {
-    super(commands);
-    this.name = Preconditions.checkNotNull(name, "name == null!");
+  public Mode getPreviousMode() {
+    return previousMode;
   }
 
-  @Nonnull
-  public String getName() {
-    return name;
+  public void setPreviousMode(Mode previousMode) {
+    this.previousMode = previousMode;
+  }
+
+  public Conditional getConditional() {
+    return conditional;
+  }
+
+  public void setConditional(Conditional conditional) {
+    this.conditional = conditional;
+  }
+
+  public Boolean isConditional() {
+    if (conditional == null) {
+      return null;
+    }
+    switch (conditional) {
+      case UNCONDITIONAL:
+        return false;
+      case CONDITIONAL:
+      case INVERT:
+        return true;
+      default:
+        return null;
+    }
+  }
+
+  public List<ChainLink> toCommands() throws IllegalModifierException {
+    ArrayList<ChainLink> commands = new ArrayList<>();
+    if (conditional == Conditional.INVERT) {
+      if (previousMode == null) {
+        throw new IllegalModifierException("The first command of a chain must be unconditional!");
+      }
+      InvertingCommand e = new InvertingCommand(previousMode);
+      commands.add(e);
+    }
+    return commands;
   }
 
 }

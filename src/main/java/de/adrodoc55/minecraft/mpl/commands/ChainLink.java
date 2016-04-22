@@ -37,31 +37,11 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.chain;
+package de.adrodoc55.minecraft.mpl.commands;
 
-import java.util.List;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 
-import javax.annotation.Nonnull;
-
-import com.google.common.base.Preconditions;
-
-import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
-
-/**
- * @author Adrodoc55
- */
-public class NamedCommandChain extends CommandChain {
-
-  protected final String name;
-
-  public NamedCommandChain(@Nonnull String name, List<ChainPart> commands) {
-    super(commands);
-    this.name = Preconditions.checkNotNull(name, "name == null!");
-  }
-
-  @Nonnull
-  public String getName() {
-    return name;
-  }
-
+public interface ChainLink {
+  MplBlock toBlock(Coordinate3D coordinate);
 }

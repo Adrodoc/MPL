@@ -49,8 +49,8 @@ import de.adrodoc55.minecraft.mpl.blocks.AirBlock
 import de.adrodoc55.minecraft.mpl.blocks.Transmitter
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain
 import de.adrodoc55.minecraft.mpl.chain.CommandChain
-import de.adrodoc55.minecraft.mpl.commands.ChainPart
 import de.adrodoc55.minecraft.mpl.commands.Command
+import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.program.MplProgram
 import de.adrodoc55.minecraft.mpl.program.MplProject
 import de.adrodoc55.minecraft.mpl.program.MplScript

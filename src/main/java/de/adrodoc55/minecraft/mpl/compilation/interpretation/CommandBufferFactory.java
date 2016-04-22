@@ -39,8 +39,14 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation.interpretation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import de.adrodoc55.minecraft.mpl.commands.Command;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import de.adrodoc55.minecraft.mpl.commands.Conditional;
+import de.adrodoc55.minecraft.mpl.commands.InvertingCommand;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
 
 /**
  * @author Adrodoc55
@@ -75,14 +81,7 @@ class CommandBufferFactory {
   /**
    * @author Adrodoc55
    */
-  static class CommandBuffer {
-
-    /**
-     * @author Adrodoc55
-     */
-    public static enum Conditional {
-      UNCONDITIONAL, CONDITIONAL, INVERT
-    }
+  static class CommandBuffer implements ChainPart {
 
     private String command;
     private Mode mode;
@@ -91,9 +90,13 @@ class CommandBufferFactory {
 
     private CommandBuffer() {}
 
-    public Command toCommand() {
+    @Override
+    public List<Command> toCommands() {
+      ArrayList<Command> commands = new ArrayList<>(2);
+      commands.add(new InvertingCommand(previousMode));
       Boolean conditional = isConditional();
-      return new Command(command, mode, conditional, needsRedstone);
+      commands.add(new Command(command, mode, conditional, needsRedstone));
+      return commands;
     }
 
     public String getCommand() {
