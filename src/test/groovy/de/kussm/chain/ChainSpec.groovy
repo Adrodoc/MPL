@@ -81,7 +81,7 @@ public class ChainSpec extends Specification {
 
   def 'Chain.of(ChainLink...) throws NullPointerException on null argument'() {
     when:
-      Chain.of((ChainLink[]) null)
+      Chain.of((ChainLinkType[]) null)
     then:
       NullPointerException ex = thrown(NullPointerException)
       ex.message == 'chainLinks must not be null'
@@ -90,7 +90,7 @@ public class ChainSpec extends Specification {
   def 'size()'() {
     expect:
       Chain.of(NORMAL).size()==1
-      Chain.of((1..100).collect { NORMAL } as ChainLink[]).size()==100
+      Chain.of((1..100).collect { NORMAL } as ChainLinkType[]).size()==100
   }
 
   def 'getFirstChainLink()'() {

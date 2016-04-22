@@ -37,56 +37,45 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands;
-
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
-import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
+package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 /**
  * @author Adrodoc55
  */
-public class Skip implements ChainLink {
-  private final boolean internal;
+public class ReferencingCommand extends InternalCommand {
+  private static final String HEAD = "testforblock ";
+  private final String tail;
+  private int relative;
+  private boolean referenceInserted = false;
 
-  public Skip(boolean internal) {
-    this.internal = internal;
+  public ReferencingCommand(int relative, String blockId, boolean success) {
+    this(relative, blockId, success, null);
   }
 
-  public boolean isInternal() {
-    return internal;
+  public ReferencingCommand(int relative, String blockId, boolean success, Boolean conditional) {
+    super(null, conditional);
+    this.relative = relative;
+    int successCount = success ? 1 : 0;
+    tail = " " + blockId + " -1 {SuccessCount:" + successCount + "}";
   }
 
-  @Override
-  public MplBlock toBlock(Coordinate3D coordinate) {
-    return new Transmitter(internal, coordinate);
-  }
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + (internal ? 1231 : 1237);
-    return result;
+  public void addToRelative(int r) {
+    relative += r;
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    Skip other = (Skip) obj;
-    if (internal != other.internal)
-      return false;
-    return true;
+  public String getCommand() {
+    if (referenceInserted) {
+      return super.getCommand();
+    }
+    int abs = Math.abs(relative);
+    String operator = relative < 0 ? "-" : "+";
+    return HEAD + "${this " + operator + " " + abs + "}" + tail;
   }
 
   @Override
-  public String toString() {
-    return "Skip [internal=" + internal + "]";
+  public void setCommand(String command) {
+    super.setCommand(command);
+    referenceInserted = true;
   }
-
 }

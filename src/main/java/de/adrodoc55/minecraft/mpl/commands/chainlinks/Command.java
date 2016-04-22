@@ -37,12 +37,13 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands;
+package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 import net.karneim.pojobuilder.Builder;
 import net.karneim.pojobuilder.GeneratePojoBuilder;
 

@@ -91,15 +91,18 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.UninstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.WaitforContext;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.chain.MplProcess;
-import de.adrodoc55.minecraft.mpl.commands.Command;
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
-import de.adrodoc55.minecraft.mpl.commands.InternalCommand;
-import de.adrodoc55.minecraft.mpl.commands.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
-import de.adrodoc55.minecraft.mpl.commands.Skip;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.Breakpoint;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.Intercept;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.MplStart;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.MplStop;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.Notify;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.Waitfor;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
@@ -112,8 +115,8 @@ import de.adrodoc55.minecraft.mpl.program.MplScript;
  */
 public class MplInterpreter extends MplBaseListener {
 
-  private static final String NOTIFY = "_NOTIFY";
-  private static final String INTERCEPTED = "_INTERCEPTED";
+  public static final String NOTIFY = "_NOTIFY";
+  public static final String INTERCEPTED = "_INTERCEPTED";
 
   public static MplInterpreter interpret(File programFile) throws IOException {
     FileContext ctx = parse(programFile);
@@ -565,16 +568,10 @@ public class MplInterpreter extends MplBaseListener {
           new CompilerException(source, "Encountered notify outside of a process context."));
       return;
     }
-    if (commandBuffer.getConditional() == Conditional.INVERT) {
-      addInvert(chainBuffer);
-    }
-    String method = chainBuffer.getName();
-    Boolean conditional = commandBuffer.isConditional();
-    chainBuffer.add(new InternalCommand(
-        "execute @e[name=" + method + NOTIFY + "] ~ ~ ~ setblock ~ ~ ~ redstone_block",
-        conditional));
-    chainBuffer.add(new Command("kill @e[name=" + method + NOTIFY + "]", conditional));
-    commandBuffer = null;
+    String process = chainBuffer.getName();
+    Notify notify = new Notify(process);
+    notify.setConditional(commandBuffer.getConditional());
+    chainBuffer.add(notify);
   }
 
   @Override
@@ -589,31 +586,10 @@ public class MplInterpreter extends MplBaseListener {
 
     TerminalNode identifier = ctx.IDENTIFIER();
     String process = identifier.getText();
-    Boolean conditional = commandBuffer.isConditional();
-    if (conditional == null)
 
-    {
-      conditional = false;
-    }
-    if (conditional)
-
-    {
-      if (commandBuffer.getConditional() == Conditional.CONDITIONAL) {
-        addInvert(chainBuffer);
-      }
-      chainBuffer.add(new InternalCommand("setblock ${this + 3} redstone_block", true));
-    }
-    chainBuffer.add(new InternalCommand(
-        "entitydata @e[name=" + process + "] {CustomName:" + process + INTERCEPTED + "}"));
-    chainBuffer.add(new InternalCommand("summon ArmorStand ${this + 1} {CustomName:" + process
-        + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
-    chainBuffer.add(new Skip(false));
-    chainBuffer.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
-    chainBuffer.add(new InternalCommand("kill @e[name=" + process + ",r=2]"));
-    chainBuffer.add(new InternalCommand(
-        "entitydata @e[name=" + process + INTERCEPTED + "] {CustomName:" + process + "}"));
-    commandBuffer = null;
-
+    Intercept intercept = new Intercept(process);
+    intercept.setConditional(commandBuffer.getConditional());
+    chainBuffer.add(intercept);
   }
 
   @Override
@@ -621,31 +597,12 @@ public class MplInterpreter extends MplBaseListener {
     if (commandBuffer == null) {
       return;
     }
-    if (commandBuffer.getConditional() == Conditional.INVERT) {
-      addInvert(chainBuffer);
-    }
-    Command command = commandBuffer.toCommand();
+    String commandString = commandBuffer.getCommand();
+    Mode mode = commandBuffer.getMode();
+    Conditional conditional = commandBuffer.getConditional();
+    Boolean needsRedstone = commandBuffer.getNeedsRedstone();
+    MplCommand command = new MplCommand(commandString, mode, conditional, needsRedstone);
     chainBuffer.add(command);
-    commandBuffer = null;
-  }
-
-  /**
-   * This method add's the inverting command to the given {@link ChainBuffer}.
-   *
-   * @param chainBuffer
-   */
-  private static void addInvert(ChainBuffer chainBuffer) {
-    LinkedList<ChainPart> commands = chainBuffer.getCommands();
-    if (commands.isEmpty()) {
-      throw new IllegalArgumentException(
-          "The given ChainBuffer is empty. The first command of a chain cannot be an invert command.");
-    }
-    ChainPart previous = commands.peekLast();
-    if (!(previous instanceof Command)) {
-      // TODO: Exception erzeugen
-      return;
-    }
-    chainBuffer.add(new InvertingCommand((Command) previous));
   }
 
   @Override
@@ -663,15 +620,12 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterBreakpoint(BreakpointContext ctx) {
-    chainBuffer.add(
-        new InternalCommand("execute @e[name=breakpoint] ~ ~ ~ setblock ~ ~ ~ redstone_block"));
+
     int line = ctx.BREAKPOINT().getSymbol().getLine();
-    chainBuffer.add(new InternalCommand(
-        "say encountered breakpoint " + programFile.getName() + " : line " + line));
-    chainBuffer.add(new InternalCommand(
-        "summon ArmorStand ${this + 1} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
-    chainBuffer.add(new Skip(false));
-    chainBuffer.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
+    String source = programFile.getName() + " : line " + line;
+    Breakpoint breakpoint = new Breakpoint(source);
+    breakpoint.setConditional(commandBuffer.getConditional());
+    chainBuffer.add(breakpoint);
 
     project.setHasBreakpoint(true);
   }

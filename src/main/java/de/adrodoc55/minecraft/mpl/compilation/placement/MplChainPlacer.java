@@ -68,17 +68,18 @@ import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.chain.NamedCommandChain;
-import de.adrodoc55.minecraft.mpl.commands.Command;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.commands.NoOperationCommand;
-import de.adrodoc55.minecraft.mpl.commands.Skip;
 import de.adrodoc55.minecraft.mpl.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.program.MplProject;
 import de.adrodoc55.minecraft.mpl.program.MplScript;
 import de.kussm.ChainLayouter;
 import de.kussm.chain.Chain;
-import de.kussm.chain.ChainLink;
+import de.kussm.chain.ChainLinkType;
 import de.kussm.direction.Directions;
 import de.kussm.position.Position;
 
@@ -151,7 +152,7 @@ public abstract class MplChainPlacer {
     Set<Position> forbiddenTransmitter = new HashSet<>();
     fillForbiddenPositions(start, forbiddenReceiver, forbiddenTransmitter);
 
-    LinkedHashMap<Position, ChainLink> placed =
+    LinkedHashMap<Position, ChainLinkType> placed =
         place(chainLinkChain, template, forbiddenReceiver, forbiddenTransmitter);
 
     String name = chain instanceof NamedCommandChain ? ((NamedCommandChain) chain).getName() : null;
@@ -193,7 +194,7 @@ public abstract class MplChainPlacer {
     }
   }
 
-  protected LinkedHashMap<Position, ChainLink> place(Chain linkChain, Directions template,
+  protected LinkedHashMap<Position, ChainLinkType> place(Chain linkChain, Directions template,
       Set<Position> forbiddenReceivers, Set<Position> forbiddenTransmitters) {
     // receivers are not allowed at x=0 because the start transmitters of all chains are at x=0
     Predicate<Position> isReceiverAllowed =
@@ -203,23 +204,23 @@ public abstract class MplChainPlacer {
     Predicate<Position> isTransmitterAllowed =
         pos -> !forbiddenTransmitters.contains(pos) && pos.getX() != 1;
 
-    LinkedHashMap<Position, ChainLink> placed =
+    LinkedHashMap<Position, ChainLinkType> placed =
         ChainLayouter.place(linkChain, template, isReceiverAllowed, isTransmitterAllowed);
     return placed;
   }
 
   protected List<MplBlock> toBlocks(List<ChainPart> commands,
-      LinkedHashMap<Position, ChainLink> placed) {
+      LinkedHashMap<Position, ChainLinkType> placed) {
     LinkedList<ChainPart> chainParts = new LinkedList<>(commands);
 
     Orientation3D orientation = getOrientation();
 
-    LinkedList<Entry<Position, ChainLink>> entries =
+    LinkedList<Entry<Position, ChainLinkType>> entries =
         placed.entrySet().stream().collect(Collectors.toCollection(LinkedList::new));
 
     List<MplBlock> blocks = new LinkedList<>();
     while (entries.size() > 1) {
-      Entry<Position, ChainLink> entry = entries.pop();
+      Entry<Position, ChainLinkType> entry = entries.pop();
 
       Position pos = entry.getKey();
       Position nextPos = entries.peek().getKey();
@@ -227,7 +228,7 @@ public abstract class MplChainPlacer {
       Direction3D d = getDirection(pos, nextPos, orientation);
       Coordinate3D coord = toCoordinate(pos, orientation);
 
-      if (entry.getValue() == ChainLink.NO_OPERATION) {
+      if (entry.getValue() == ChainLinkType.NO_OPERATION) {
         blocks.add(new CommandBlock(new NoOperationCommand(), d, coord));
       } else {
         ChainPart chainPart = chainParts.pop();
@@ -340,8 +341,8 @@ public abstract class MplChainPlacer {
     return block instanceof Transmitter;
   }
 
-  public static boolean isTransmitter(ChainPart chainPart) {
-    return chainPart instanceof Skip;
+  public static boolean isTransmitter(ChainLink chainLink) {
+    return chainLink instanceof Skip;
   }
 
   public static boolean isReceiver(MplBlock block) {
@@ -353,38 +354,38 @@ public abstract class MplChainPlacer {
     }
   }
 
-  public static boolean isReceiver(ChainPart chainPart) {
-    if (chainPart instanceof Command) {
-      Command command = (Command) chainPart;
+  public static boolean isReceiver(ChainLink chainLink) {
+    if (chainLink instanceof Command) {
+      Command command = (Command) chainLink;
       return command.getMode() != Mode.CHAIN;
     } else {
       return false;
     }
   }
 
-  public static ChainLink toChainLink(ChainPart chainPart) {
-    if (isTransmitter(chainPart)) {
-      return ChainLink.TRANSMITTER;
-    } else if (isReceiver(chainPart)) {
-      return ChainLink.RECEIVER;
-    } else if (chainPart instanceof Command) {
-      Command command = (Command) chainPart;
+  public static ChainLinkType getType(ChainLink chainLink) {
+    if (isTransmitter(chainLink)) {
+      return ChainLinkType.TRANSMITTER;
+    } else if (isReceiver(chainLink)) {
+      return ChainLinkType.RECEIVER;
+    } else if (chainLink instanceof Command) {
+      Command command = (Command) chainLink;
       if (command.isConditional()) {
-        return ChainLink.CONDITIONAL;
+        return ChainLinkType.CONDITIONAL;
       }
     }
-    return ChainLink.NORMAL;
+    return ChainLinkType.NORMAL;
   }
 
-  protected static Chain toChainLinkChain(List<ChainPart> chainParts) {
-    ArrayList<ChainLink> chainLinks = new ArrayList<ChainLink>(chainParts.size());
-    for (ChainPart chainPart : chainParts) {
-      chainLinks.add(toChainLink(chainPart));
+  protected static Chain toChainLinkChain(List<ChainLink> chainLinks) {
+    ArrayList<ChainLinkType> chainLinkTypes = new ArrayList<ChainLinkType>(chainLinks.size());
+    for (ChainLink chainLink : chainLinks) {
+      chainLinkTypes.add(getType(chainLink));
     }
     // add 1 normal ChainLink to the end (1 block air must be at the end in order to prevent chain
     // looping)
-    chainLinks.add(ChainLink.NORMAL);
-    return Chain.of(chainLinks.toArray(new ChainLink[0]));
+    chainLinkTypes.add(ChainLinkType.NORMAL);
+    return Chain.of(chainLinkTypes.toArray(new ChainLinkType[0]));
   }
 
   public static Directions newDirectionsTemplate(Coordinate3D size, Orientation3D orientation) {

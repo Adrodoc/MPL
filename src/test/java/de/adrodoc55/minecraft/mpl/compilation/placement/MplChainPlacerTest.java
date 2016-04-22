@@ -45,7 +45,7 @@ import java.util.List;
 import org.junit.Test;
 
 import de.adrodoc55.minecraft.mpl.MplTestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 
 public class MplChainPlacerTest extends MplTestBase {
 

@@ -43,10 +43,12 @@ import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOpt
 
 import java.util.List;
 
-import de.adrodoc55.minecraft.mpl.commands.ChainLink;
-import de.adrodoc55.minecraft.mpl.commands.InternalCommand;
+import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
-import de.adrodoc55.minecraft.mpl.commands.Skip;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
@@ -54,7 +56,12 @@ public class Waitfor extends PossiblyConditionalChainPart {
   private String event;
 
   public Waitfor(String event) {
+    this(event, null);
+  }
+
+  public Waitfor(String event, Conditional conditional) {
     this.event = event;
+    this.conditional = conditional;
   }
 
   @Override
@@ -63,8 +70,12 @@ public class Waitfor extends PossiblyConditionalChainPart {
     if (isConditional()) {
       commands.add(new InternalCommand("summon ArmorStand ${this + 3} {CustomName:" + event
           + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true));
-      commands.add(new InternalCommand("blockdata ${this - 1} {SuccessCount:1}"));
-      commands.add(new InternalCommand("setblock ${this + 1} redstone_block", true));
+      commands.add(new InvertingCommand(Mode.CHAIN));
+      if (options.hasOption(TRANSMITTER)) {
+        commands.add(new InternalCommand("setblock ${this + 1} redstone_block", true));
+      } else {
+        commands.add(new InternalCommand("blockdata ${this + 1} {auto:1}", true));
+      }
     } else {
       commands.add(new InternalCommand("summon ArmorStand ${this + 1} {CustomName:" + event
           + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));

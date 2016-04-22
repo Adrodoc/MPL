@@ -41,17 +41,17 @@ package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
 import java.util.List;
 
-import de.adrodoc55.minecraft.mpl.commands.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import net.karneim.pojobuilder.Builder;
 import net.karneim.pojobuilder.GeneratePojoBuilder;
 
-public class MplCommand implements ChainPart {
+public class MplCommand extends PossiblyConditionalChainPart {
 
   private String command;
   private Mode mode;
-  private boolean conditional;
   private boolean needsRedstone;
 
   public MplCommand() {
@@ -62,19 +62,19 @@ public class MplCommand implements ChainPart {
     this(command, null);
   }
 
-  public MplCommand(String command, Boolean conditional) {
+  public MplCommand(String command, Conditional conditional) {
     this(command, null, conditional);
   }
 
-  public MplCommand(String command, Mode mode, Boolean conditional) {
+  public MplCommand(String command, Mode mode, Conditional conditional) {
     this(command, mode, conditional, null);
   }
 
   @GeneratePojoBuilder(withBuilderInterface = Builder.class)
-  public MplCommand(String command, Mode mode, Boolean conditional, Boolean needsRedstone) {
+  public MplCommand(String command, Mode mode, Conditional conditional, Boolean needsRedstone) {
     setCommand(command);
 
-    this.conditional = (conditional != null) ? conditional : false;
+    this.conditional = (conditional != null) ? conditional : Conditional.UNCONDITIONAL;
     this.mode = (mode != null) ? mode : Mode.CHAIN;
 
     if (needsRedstone != null) {
@@ -85,7 +85,8 @@ public class MplCommand implements ChainPart {
   }
 
   public MplCommand(MplCommand command) {
-    this(command.getCommand(), command.getMode(), command.isConditional(), command.needsRedstone());
+    this(command.getCommand(), command.getMode(), command.getConditional(),
+        command.needsRedstone());
   }
 
   public String getCommand() {
@@ -108,14 +109,6 @@ public class MplCommand implements ChainPart {
     this.mode = mode;
   }
 
-  public boolean isConditional() {
-    return conditional;
-  }
-
-  public void setConditional(boolean conditional) {
-    this.conditional = conditional;
-  }
-
   public boolean needsRedstone() {
     return needsRedstone;
   }
@@ -133,9 +126,8 @@ public class MplCommand implements ChainPart {
   @Override
   public int hashCode() {
     final int prime = 31;
-    int result = 1;
+    int result = super.hashCode();
     result = prime * result + ((command == null) ? 0 : command.hashCode());
-    result = prime * result + (conditional ? 1231 : 1237);
     result = prime * result + ((mode == null) ? 0 : mode.hashCode());
     result = prime * result + (needsRedstone ? 1231 : 1237);
     return result;
@@ -145,7 +137,7 @@ public class MplCommand implements ChainPart {
   public boolean equals(Object obj) {
     if (this == obj)
       return true;
-    if (obj == null)
+    if (!super.equals(obj))
       return false;
     if (getClass() != obj.getClass())
       return false;
@@ -154,8 +146,6 @@ public class MplCommand implements ChainPart {
       if (other.command != null)
         return false;
     } else if (!command.equals(other.command))
-      return false;
-    if (conditional != other.conditional)
       return false;
     if (mode != other.mode)
       return false;
@@ -166,8 +156,8 @@ public class MplCommand implements ChainPart {
 
   @Override
   public String toString() {
-    return "Command [command='" + getCommand() + "', mode=" + mode + ", conditional=" + conditional
-        + ", needsRedstone=" + needsRedstone + "]";
+    return "MplCommand [command=" + command + ", mode=" + mode + ", needsRedstone=" + needsRedstone
+        + ", conditional=" + conditional + "]";
   }
 
 }

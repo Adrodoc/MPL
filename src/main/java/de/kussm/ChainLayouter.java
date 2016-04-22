@@ -1,7 +1,7 @@
 package de.kussm;
 
-import static de.kussm.chain.ChainLink.CONDITIONAL;
-import static de.kussm.chain.ChainLink.RECEIVER;
+import static de.kussm.chain.ChainLinkType.CONDITIONAL;
+import static de.kussm.chain.ChainLinkType.RECEIVER;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -15,7 +15,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import de.kussm.chain.Chain;
-import de.kussm.chain.ChainLink;
+import de.kussm.chain.ChainLinkType;
 import de.kussm.direction.Direction;
 import de.kussm.direction.Directions;
 import de.kussm.position.Position;
@@ -44,7 +44,7 @@ public class ChainLayouter {
   private final Predicate<Position> isReceiverAllowed;
   private final Predicate<Position> isTransmitterAllowed;
   private Iterator<Direction> itDirections;
-  private LinkedHashMap<Position, ChainLink> placedChainLinks = Maps.newLinkedHashMap();
+  private LinkedHashMap<Position, ChainLinkType> placedChainLinks = Maps.newLinkedHashMap();
   private int cntDirections;
 
   /**
@@ -64,7 +64,7 @@ public class ChainLayouter {
   /**
    * Current chain link, Equals {@code null} if the end of the chain link is reached
    */
-  private @Nullable ChainLink currentChainLink;
+  private @Nullable ChainLinkType currentChainLink;
 
   /**
    * Restored point if NoOperations need to be inserted
@@ -151,7 +151,7 @@ public class ChainLayouter {
 
 
   private void insertNoOperation() {
-    placedChainLinks.put(currentPosition, ChainLink.NO_OPERATION);
+    placedChainLinks.put(currentPosition, ChainLinkType.NO_OPERATION);
     currentPosition = currentPosition.neighbour(nextDirection);
     prevDirection = nextDirection;
     nextDirection = itDirections.next();
@@ -159,7 +159,7 @@ public class ChainLayouter {
   }
 
 
-  private LinkedHashMap<Position, ChainLink> getPlacement() {
+  private LinkedHashMap<Position, ChainLinkType> getPlacement() {
     while (currentChainLink != null) {
       if (canPlaceChainLink()) {
         if (insertionOfNoOperationIsPossible()) {
@@ -175,23 +175,23 @@ public class ChainLayouter {
     return placedChainLinks;
   }
 
-  public static LinkedHashMap<Position, ChainLink> place(Chain chain, Directions dirs,
+  public static LinkedHashMap<Position, ChainLinkType> place(Chain chain, Directions dirs,
       Position startPosition, Predicate<Position> isReceiverAllowed,
       Predicate<Position> isTransmitterAllowed) {
     return new ChainLayouter(chain, dirs, startPosition, isReceiverAllowed, isTransmitterAllowed)
         .getPlacement();
   }
 
-  public static LinkedHashMap<Position, ChainLink> place(Chain chain, Directions dirs,
+  public static LinkedHashMap<Position, ChainLinkType> place(Chain chain, Directions dirs,
       Predicate<Position> isReceiverAllowed, Predicate<Position> isTransmitterAllowed) {
     return place(chain, dirs, Position.at(0, 0), isReceiverAllowed, isTransmitterAllowed);
   }
 
-  public static LinkedHashMap<Position, ChainLink> place(Chain chain, Directions dirs) {
+  public static LinkedHashMap<Position, ChainLinkType> place(Chain chain, Directions dirs) {
     return place(chain, dirs, Position.at(0, 0), pos -> true, pos -> true);
   }
 
-  public static LinkedHashMap<Position, ChainLink> place(Chain chain, Directions dirs,
+  public static LinkedHashMap<Position, ChainLinkType> place(Chain chain, Directions dirs,
       Position startPosition, Set<Position> forbiddenReceivers,
       Set<Position> forbiddenTransmitters) {
     return new ChainLayouter(chain, dirs, startPosition, pos -> !forbiddenReceivers.contains(pos),

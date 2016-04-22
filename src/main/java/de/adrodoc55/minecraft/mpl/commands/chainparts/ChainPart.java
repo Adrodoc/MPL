@@ -41,7 +41,7 @@ package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
 import java.util.List;
 
-import de.adrodoc55.minecraft.mpl.commands.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 

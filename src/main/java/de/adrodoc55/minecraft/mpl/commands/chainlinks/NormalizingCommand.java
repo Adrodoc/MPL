@@ -37,38 +37,13 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands;
-
-import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
+package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 /**
  * @author Adrodoc55
  */
-public class InvertingCommand extends InternalCommand {
-
-  /**
-   * Constructs a Command, wich's success is always the opposite of the given command, if the
-   * constructed command is placed directly after the given command.
-   *
-   * @param previous
-   */
-  public InvertingCommand(Command previous) {
-    this(previous.getMode());
+public class NormalizingCommand extends InternalCommand {
+  public NormalizingCommand() {
+    super("testforblock ~ ~ ~ chain_command_block", true);
   }
-
-  /**
-   * Constructs a Command, wich's success is always the opposite of the previous command, if the
-   * previous command has the given mode.
-   *
-   * @param previous
-   */
-  public InvertingCommand(Mode previousMode) {
-    super(getInvert(previousMode));
-  }
-
-  private static String getInvert(Mode previousMode) {
-    String blockId = MplConverter.toBlockId(previousMode);
-    return "/testforblock ${this - 1} " + blockId + " -1 {SuccessCount:0}";
-  }
-
 }

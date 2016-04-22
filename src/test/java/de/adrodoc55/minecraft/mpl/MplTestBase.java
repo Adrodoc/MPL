@@ -40,8 +40,8 @@
 package de.adrodoc55.minecraft.mpl;
 
 import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
 import de.adrodoc55.minecraft.mpl.commands.CommandBuilder;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 
 public class MplTestBase extends TestBase {
 

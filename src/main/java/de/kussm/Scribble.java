@@ -1,9 +1,9 @@
 package de.kussm;
 
-import static de.kussm.chain.ChainLink.CONDITIONAL;
-import static de.kussm.chain.ChainLink.NORMAL;
-import static de.kussm.chain.ChainLink.RECEIVER;
-import static de.kussm.chain.ChainLink.TRANSMITTER;
+import static de.kussm.chain.ChainLinkType.CONDITIONAL;
+import static de.kussm.chain.ChainLinkType.NORMAL;
+import static de.kussm.chain.ChainLinkType.RECEIVER;
+import static de.kussm.chain.ChainLinkType.TRANSMITTER;
 import static de.kussm.direction.Direction.EAST;
 import static de.kussm.direction.Direction.NORTH;
 import static de.kussm.direction.Direction.WEST;

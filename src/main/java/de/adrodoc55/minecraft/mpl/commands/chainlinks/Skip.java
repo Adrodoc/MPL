@@ -37,86 +37,73 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.blocks;
+package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
-import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.google.common.base.Preconditions;
+import javax.annotation.concurrent.Immutable;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.coordinate.Direction3D;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
+import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
 /**
  * @author Adrodoc55
  */
-public class CommandBlock extends MplBlock {
+@Immutable
+public class Skip implements ChainPart, ChainLink {
+  private final boolean internal;
 
-  @Nonnull
-  private Command command;
-  private Direction3D direction;
-
-  public CommandBlock(@Nonnull Command command, @Nonnull Direction3D direction,
-      @Nonnull Coordinate3D coordinate) {
-    super(coordinate);
-    this.setCommand(command);
-    this.setDirection(direction);
+  public Skip(boolean internal) {
+    this.internal = internal;
   }
 
-  @Nonnull
-  public Command toCommand() {
-    return command;
+  public boolean isInternal() {
+    return internal;
   }
 
-  public void setCommand(@Nonnull Command command) {
-    this.command = Preconditions.checkNotNull(command, "command == null!");
+  @Override
+  public List<? extends ChainLink> toCommands(CompilerOptions options)
+      throws IllegalModifierException {
+    ArrayList<Skip> commands = new ArrayList<>(1);
+    commands.add(this);
+    return commands;
   }
 
-  public String getCommand() {
-    return command.getCommand();
+  @Override
+  public MplBlock toBlock(Coordinate3D coordinate) {
+    return new Transmitter(internal, coordinate);
   }
 
-  public void setCommand(String command) {
-    this.command.setCommand(command);
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + (internal ? 1231 : 1237);
+    return result;
   }
 
-  public boolean isConditional() {
-    return command != null ? command.isConditional() : false;
-  }
-
-  public void setConditional(boolean conditional) {
-    command.setConditional(conditional);
-  }
-
-  public Mode getMode() {
-    return command != null ? command.getMode() : null;
-  }
-
-  public void setMode(Mode mode) {
-    command.setMode(mode);
-  }
-
-  public boolean needsRedstone() {
-    return command != null ? command.needsRedstone() : false;
-  }
-
-  public void setNeedsRedstone(boolean needsRedstone) {
-    command.setNeedsRedstone(needsRedstone);
-  }
-
-  @Nonnull
-  public Direction3D getDirection() {
-    return direction;
-  }
-
-  public void setDirection(@Nonnull Direction3D direction) {
-    this.direction = Preconditions.checkNotNull(direction, "direction == null!");
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    Skip other = (Skip) obj;
+    if (internal != other.internal)
+      return false;
+    return true;
   }
 
   @Override
   public String toString() {
-    return "CommandBlock [command=" + command + ", coordinate=" + coordinate + "]";
+    return "Skip [internal=" + internal + "]";
   }
 
 }

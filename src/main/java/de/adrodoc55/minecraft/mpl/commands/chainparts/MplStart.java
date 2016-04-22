@@ -43,8 +43,9 @@ import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOpt
 
 import java.util.List;
 
-import de.adrodoc55.minecraft.mpl.commands.ChainLink;
-import de.adrodoc55.minecraft.mpl.commands.Command;
+import de.adrodoc55.minecraft.mpl.commands.Conditional;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
@@ -52,7 +53,12 @@ public class MplStart extends PossiblyConditionalChainPart {
   private String process;
 
   public MplStart(String process) {
+    this(process, null);
+  }
+
+  public MplStart(String process, Conditional conditional) {
     this.process = process;
+    this.conditional = conditional;
   }
 
   @Override
@@ -62,7 +68,7 @@ public class MplStart extends PossiblyConditionalChainPart {
     if (options.hasOption(TRANSMITTER)) {
       command = "execute @e[name=" + process + "] ~ ~ ~ setblock ~ ~ ~ redstone_block";
     } else {
-      command = "execute @e[name=" + process + "] ~ ~ ~ entitydata {auto:1}";
+      command = "execute @e[name=" + process + "] ~ ~ ~ blockdata ~ ~ ~ {auto:1}";
     }
     commands.add(new Command(command, isConditional()));
     return commands;

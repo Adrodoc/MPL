@@ -37,13 +37,33 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands;
+package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 
 /**
  * @author Adrodoc55
  */
-public class NormalizingCommand extends InternalCommand {
-  public NormalizingCommand() {
-    super("testforblock ~ ~ ~ chain_command_block", true);
+public class InternalCommand extends Command {
+
+  public InternalCommand() {
+    super();
   }
+
+  public InternalCommand(String command) {
+    super(command);
+  }
+
+  public InternalCommand(String command, Boolean conditional) {
+    super(command, conditional);
+  }
+
+  public InternalCommand(String command, Mode mode, Boolean conditional) {
+    super(command, mode, conditional);
+  }
+
+  public InternalCommand(String command, Mode mode, Boolean conditional, Boolean needsRedstone) {
+    super(command, mode, conditional, needsRedstone);
+  }
+
 }

@@ -37,36 +37,11 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainparts;
+package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 
-import java.util.List;
-
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
-import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
-
-public class MplStop extends PossiblyConditionalChainPart {
-
-  private String process;
-
-  public MplStop(String process) {
-    this.process = process;
-  }
-
-  @Override
-  public List<ChainLink> toCommands(CompilerOptions options) throws IllegalModifierException {
-    List<ChainLink> commands = super.toCommands();
-    String command;
-    if (options.hasOption(TRANSMITTER)) {
-      command = "execute @e[name=" + process + "] ~ ~ ~ setblock ~ ~ ~ stone";
-    } else {
-      command = "execute @e[name=" + process + "] ~ ~ ~ blockdata ~ ~ ~ {auto:0}";
-    }
-    commands.add(new Command(command, isConditional()));
-    return commands;
-  }
-
+public interface ChainLink {
+  MplBlock toBlock(Coordinate3D coordinate);
 }

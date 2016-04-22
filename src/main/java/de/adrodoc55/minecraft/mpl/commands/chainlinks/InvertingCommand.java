@@ -37,45 +37,39 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands;
+package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+
+import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
 
 /**
  * @author Adrodoc55
  */
-public class ReferencingCommand extends InternalCommand {
-  private static final String HEAD = "testforblock ";
-  private final String tail;
-  private int relative;
-  private boolean referenceInserted = false;
+public class InvertingCommand extends InternalCommand {
 
-  public ReferencingCommand(int relative, String blockId, boolean success) {
-    this(relative, blockId, success, null);
+  /**
+   * Constructs a Command, wich's success is always the opposite of the given command, if the
+   * constructed command is placed directly after the given command.
+   *
+   * @param previous
+   */
+  public InvertingCommand(Command previous) {
+    this(previous.getMode());
   }
 
-  public ReferencingCommand(int relative, String blockId, boolean success, Boolean conditional) {
-    super(null, conditional);
-    this.relative = relative;
-    int successCount = success ? 1 : 0;
-    tail = " " + blockId + " -1 {SuccessCount:" + successCount + "}";
+  /**
+   * Constructs a Command, wich's success is always the opposite of the previous command, if the
+   * previous command has the given mode.
+   *
+   * @param previous
+   */
+  public InvertingCommand(Mode previousMode) {
+    super(getInvert(previousMode));
   }
 
-  public void addToRelative(int r) {
-    relative += r;
+  private static String getInvert(Mode previousMode) {
+    String blockId = MplConverter.toBlockId(previousMode);
+    return "/testforblock ${this - 1} " + blockId + " -1 {SuccessCount:0}";
   }
 
-  @Override
-  public String getCommand() {
-    if (referenceInserted) {
-      return super.getCommand();
-    }
-    int abs = Math.abs(relative);
-    String operator = relative < 0 ? "-" : "+";
-    return HEAD + "${this " + operator + " " + abs + "}" + tail;
-  }
-
-  @Override
-  public void setCommand(String command) {
-    super.setCommand(command);
-    referenceInserted = true;
-  }
 }

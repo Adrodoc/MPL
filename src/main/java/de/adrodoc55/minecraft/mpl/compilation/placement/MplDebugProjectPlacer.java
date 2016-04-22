@@ -8,10 +8,10 @@ import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.chain.MplProcess;
 import de.adrodoc55.minecraft.mpl.chain.NamedCommandChain;
-import de.adrodoc55.minecraft.mpl.commands.Command;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.commands.Skip;
 import de.adrodoc55.minecraft.mpl.program.MplProject;
 import de.kussm.direction.Directions;
 

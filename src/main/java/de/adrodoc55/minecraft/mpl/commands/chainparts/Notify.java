@@ -37,31 +37,42 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands;
+package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
-/**
- * @author Adrodoc55
- */
-public class InternalCommand extends Command {
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
+import static de.adrodoc55.minecraft.mpl.compilation.interpretation.MplInterpreter.NOTIFY;
 
-  public InternalCommand() {
-    super();
+import java.util.List;
+
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
+
+public class Notify extends PossiblyConditionalChainPart {
+  private String process;
+
+  public Notify(String process) {
+    this.process = process;
   }
 
-  public InternalCommand(String command) {
-    super(command);
-  }
+  @Override
+  public List<? extends ChainLink> toCommands(CompilerOptions options)
+      throws IllegalModifierException {
+    List<ChainLink> commands = super.toCommands();
 
-  public InternalCommand(String command, Boolean conditional) {
-    super(command, conditional);
-  }
-
-  public InternalCommand(String command, Mode mode, Boolean conditional) {
-    super(command, mode, conditional);
-  }
-
-  public InternalCommand(String command, Mode mode, Boolean conditional, Boolean needsRedstone) {
-    super(command, mode, conditional, needsRedstone);
+    boolean conditional = isConditional();
+    if (options.hasOption(TRANSMITTER)) {
+      commands.add(new InternalCommand(
+          "execute @e[name=" + process + NOTIFY + "] ~ ~ ~ setblock ~ ~ ~ redstone_block",
+          conditional));
+    } else {
+      commands.add(new InternalCommand(
+          "execute @e[name=" + process + NOTIFY + "] ~ ~ ~ blockdata ~ ~ ~ {auto:1}", conditional));
+    }
+    commands.add(new Command("kill @e[name=" + process + NOTIFY + "]", conditional));
+    return commands;
   }
 
 }

@@ -41,8 +41,8 @@ package de.adrodoc55.minecraft.mpl.compilation.interpretation;
 
 import java.util.LinkedList;
 
-import de.adrodoc55.minecraft.mpl.commands.Command;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
 
 /**

@@ -42,11 +42,12 @@ package de.adrodoc55.minecraft.mpl.compilation.interpretation;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.adrodoc55.minecraft.mpl.commands.Command;
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
-import de.adrodoc55.minecraft.mpl.commands.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
 /**
  * @author Adrodoc55
@@ -91,7 +92,7 @@ class CommandBufferFactory {
     private CommandBuffer() {}
 
     @Override
-    public List<Command> toCommands() {
+    public List<Command> toCommands(CompilerOptions options) {
       ArrayList<Command> commands = new ArrayList<>(2);
       commands.add(new InvertingCommand(previousMode));
       Boolean conditional = isConditional();

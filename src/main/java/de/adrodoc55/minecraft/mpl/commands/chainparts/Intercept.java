@@ -39,34 +39,50 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
+import static de.adrodoc55.minecraft.mpl.compilation.interpretation.MplInterpreter.INTERCEPTED;
 
 import java.util.List;
 
+import de.adrodoc55.minecraft.mpl.commands.Conditional;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
-public class MplStop extends PossiblyConditionalChainPart {
-
+public class Intercept extends PossiblyConditionalChainPart {
   private String process;
 
-  public MplStop(String process) {
+  public Intercept(String process) {
     this.process = process;
   }
 
   @Override
-  public List<ChainLink> toCommands(CompilerOptions options) throws IllegalModifierException {
+  public List<? extends ChainLink> toCommands(CompilerOptions options)
+      throws IllegalModifierException {
     List<ChainLink> commands = super.toCommands();
-    String command;
-    if (options.hasOption(TRANSMITTER)) {
-      command = "execute @e[name=" + process + "] ~ ~ ~ setblock ~ ~ ~ stone";
-    } else {
-      command = "execute @e[name=" + process + "] ~ ~ ~ blockdata ~ ~ ~ {auto:0}";
+
+    // TODO: testen
+    if (isConditional()) {
+      if (getConditional() == Conditional.CONDITIONAL) {
+        commands.add(new InvertingCommand(previousMode));
+      }
+      commands.add(new InternalCommand("setblock ${this + 3} redstone_block", true));
     }
-    commands.add(new Command(command, isConditional()));
-    return commands;
+    commands.add(new InternalCommand(
+        "entitydata @e[name=" + process + "] {CustomName:" + process + INTERCEPTED + "}"));
+
+    commands.add(new InternalCommand("summon ArmorStand ${this + 1} {CustomName:" + process
+        + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
+    commands.add(new Skip(false));
+    commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
+
+    commands.add(new InternalCommand("kill @e[name=" + process + ",r=2]"));
+    commands.add(new InternalCommand(
+        "entitydata @e[name=" + process + INTERCEPTED + "] {CustomName:" + process + "}"));
+    return null;
   }
 
 }
