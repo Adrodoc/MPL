@@ -40,15 +40,15 @@
 package de.adrodoc55.minecraft.mpl.compilation;
 
 import java.util.Arrays;
-import java.util.EnumSet;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 public class CompilerOptions {
-  private EnumSet<CompilerOption> options;
+  private ImmutableSet<CompilerOption> options;
 
   public CompilerOptions(CompilerOption... options) {
-    this.options = Sets.newEnumSet(Arrays.asList(options), CompilerOption.class);
+    this.options = Sets.immutableEnumSet(Arrays.asList(options));
   }
 
   public boolean hasOption(CompilerOption option) {
