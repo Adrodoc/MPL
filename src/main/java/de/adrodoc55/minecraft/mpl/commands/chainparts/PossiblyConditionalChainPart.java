@@ -52,8 +52,10 @@ import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
+import lombok.EqualsAndHashCode;
 
-
+@EqualsAndHashCode
+@lombok.ToString(includeFieldNames = true)
 public abstract class PossiblyConditionalChainPart implements ChainPart {
 
   @Nonnull
@@ -109,28 +111,6 @@ public abstract class PossiblyConditionalChainPart implements ChainPart {
       commands.add(e);
     }
     return commands;
-  }
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((conditional == null) ? 0 : conditional.hashCode());
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    PossiblyConditionalChainPart other = (PossiblyConditionalChainPart) obj;
-    if (conditional != other.conditional)
-      return false;
-    return true;
   }
 
 }

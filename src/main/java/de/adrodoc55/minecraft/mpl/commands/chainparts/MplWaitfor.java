@@ -39,9 +39,13 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.util.List;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -52,17 +56,24 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
-@lombok.ToString(includeFieldNames = true)
-public class Waitfor extends PossiblyConditionalChainPart {
+@lombok.EqualsAndHashCode(callSuper = true)
+@lombok.ToString(callSuper = true, includeFieldNames = true)
+public class MplWaitfor extends PossiblyConditionalChainPart {
   private String event;
 
-  public Waitfor(String event) {
+  public MplWaitfor(@Nonnull String event) {
     this(event, null);
   }
 
-  public Waitfor(String event, Conditional conditional) {
-    this.event = event;
-    this.conditional = conditional;
+  public MplWaitfor(@Nonnull String event, @Nullable Conditional conditional) {
+    super(conditional);
+    this.event = checkNotNull(event, "event == null!");
+  }
+
+  public MplWaitfor(@Nonnull String event, @Nullable Conditional conditional,
+      @Nullable Mode previousMode) {
+    super(conditional, previousMode);
+    this.event = checkNotNull(event, "event == null!");
   }
 
   @Override
@@ -88,6 +99,11 @@ public class Waitfor extends PossiblyConditionalChainPart {
       commands.add(new InternalCommand("entitydata ~ ~ ~ {auto:0}", Mode.IMPULSE, false));
     }
     return commands;
+  }
+
+  @Override
+  public Mode getModeToInvert() throws IllegalModifierException {
+    throw new IllegalModifierException("Cannot depend on waitfor");
   }
 
 }

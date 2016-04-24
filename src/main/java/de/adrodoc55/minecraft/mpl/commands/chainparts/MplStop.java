@@ -54,7 +54,8 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
-@lombok.ToString(includeFieldNames = true)
+@lombok.EqualsAndHashCode(callSuper = true)
+@lombok.ToString(callSuper = true, includeFieldNames = true)
 public class MplStop extends PossiblyConditionalChainPart {
 
   private final String process;

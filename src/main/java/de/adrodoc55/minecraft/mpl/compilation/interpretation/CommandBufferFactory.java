@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation.interpretation;
 
+import javax.annotation.Nonnull;
+
 import org.antlr.v4.runtime.Token;
 
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
@@ -84,7 +86,9 @@ class CommandBufferFactory {
     private Conditional conditional;
     private Boolean needsRedstone;
 
+    private Token modeToken;
     private Token conditionalToken;
+    private Token needsRedstoneToken;
 
     private CommandBuffer() {}
 
@@ -119,7 +123,7 @@ class CommandBufferFactory {
       }
     }
 
-    public Conditional getConditional() {
+    public @Nonnull Conditional getConditional() {
       return conditional != null ? conditional : Conditional.DEFAULT;
     }
 
@@ -135,12 +139,28 @@ class CommandBufferFactory {
       this.needsRedstone = needsRedstone;
     }
 
+    public Token getModeToken() {
+      return modeToken;
+    }
+
+    public void setModeToken(Token modeToken) {
+      this.modeToken = modeToken;
+    }
+
     public Token getConditionalToken() {
       return conditionalToken;
     }
 
     public void setConditionalToken(Token conditionalToken) {
       this.conditionalToken = conditionalToken;
+    }
+
+    public Token getNeedsRedstoneToken() {
+      return needsRedstoneToken;
+    }
+
+    public void setNeedsRedstoneToken(Token needsRedstoneToken) {
+      this.needsRedstoneToken = needsRedstoneToken;
     }
 
   }

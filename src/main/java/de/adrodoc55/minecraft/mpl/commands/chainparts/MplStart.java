@@ -39,27 +39,39 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
-@lombok.ToString(includeFieldNames = true)
+@lombok.EqualsAndHashCode(callSuper = true)
+@lombok.ToString(callSuper = true, includeFieldNames = true)
 public class MplStart extends PossiblyConditionalChainPart {
   private String process;
 
-  public MplStart(String process) {
+  public MplStart(@Nonnull String process) {
     this(process, null);
   }
 
-  public MplStart(String process, Conditional conditional) {
-    this.process = process;
-    this.conditional = conditional;
+  public MplStart(@Nonnull String process, @Nullable Conditional conditional) {
+    super(conditional);
+    this.process = checkNotNull(process, "process == null!");
+  }
+
+  public MplStart(@Nonnull String process, @Nullable Conditional conditional,
+      @Nullable Mode previousMode) {
+    super(conditional, previousMode);
+    this.process = checkNotNull(process, "process == null!");
   }
 
   @Override
@@ -73,6 +85,11 @@ public class MplStart extends PossiblyConditionalChainPart {
     }
     commands.add(new Command(command, isConditional()));
     return commands;
+  }
+
+  @Override
+  public Mode getModeToInvert() throws IllegalModifierException {
+    return Mode.CHAIN;
   }
 
 }

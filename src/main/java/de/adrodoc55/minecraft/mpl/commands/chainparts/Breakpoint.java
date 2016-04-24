@@ -64,7 +64,7 @@ public class Breakpoint extends PossiblyConditionalChainPart {
     Conditional conditional = isConditional() ? Conditional.CONDITIONAL : Conditional.UNCONDITIONAL;
     commands.add(new InternalCommand("say encountered breakpoint " + source, isConditional()));
     commands.addAll(new MplStart("breakpoint", conditional).toCommands(options));
-    commands.addAll(new Waitfor("breakpoint" + NOTIFY, conditional).toCommands(options));
+    commands.addAll(new MplWaitfor("breakpoint" + NOTIFY, conditional).toCommands(options));
     return commands;
   }
 

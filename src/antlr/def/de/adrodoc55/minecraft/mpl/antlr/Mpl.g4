@@ -343,14 +343,14 @@ INTERCEPT
   'intercept'
 ;
 
-SKIP
-:
-  'skip'
-;
-
 BREAKPOINT
 :
   'breakpoint'
+;
+
+SKIP
+:
+  'skip'
 ;
 
 IF
