@@ -49,6 +49,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
+@lombok.ToString(includeFieldNames = true)
 public class Breakpoint extends PossiblyConditionalChainPart {
   private String source;
 

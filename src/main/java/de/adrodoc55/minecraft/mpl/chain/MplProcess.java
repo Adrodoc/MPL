@@ -39,6 +39,10 @@
  */
 package de.adrodoc55.minecraft.mpl.chain;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -46,26 +50,52 @@ import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
-public class MplProcess extends NamedCommandChain {
+public class MplProcess {
 
-  protected final MplSource source;
+  private final String name;
+  private final boolean repeat;
+  private final MplSource source;
+  private final List<ChainPart> chainParts = new ArrayList<>();
 
-  public MplProcess(@Nonnull String name, @Nonnull List<ChainPart> commands) {
-    this(name, commands, null);
+  public MplProcess(@Nonnull String name) {
+    this(name, false, null);
   }
 
-  public MplProcess(@Nonnull String name, @Nonnull List<ChainPart> commands,
-      @Nullable MplSource source) {
-    super(name, commands);
+  public MplProcess(@Nonnull String name, @Nullable MplSource source) {
+    this(name, false, source);
+  }
+
+  @GenerateMplPojoBuilder
+  public MplProcess(@Nonnull String name, boolean repeat, @Nullable MplSource source) {
+    this.name = checkNotNull(name, "name == null!");
+    this.repeat = repeat;
     this.source = source;
+  }
+
+  public @Nonnull String getName() {
+    return name;
+  }
+
+  public boolean isRepeat() {
+    return repeat;
   }
 
   public @Nullable MplSource getSource() {
     return source;
+  }
+
+  public @Nonnull List<ChainPart> getChainParts() {
+    return Collections.unmodifiableList(chainParts);
+  }
+
+  public void setChainParts(@Nonnull List<ChainPart> chainParts) {
+    this.chainParts.clear();
+    this.chainParts.addAll(chainParts);
   }
 
   @Override

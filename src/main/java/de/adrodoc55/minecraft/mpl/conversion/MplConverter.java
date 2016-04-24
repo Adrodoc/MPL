@@ -51,7 +51,7 @@ import de.adrodoc55.minecraft.mpl.commands.Mode;
 public abstract class MplConverter {
 
   public static String toBlockId(Mode mode) {
-    checkNotNull(mode, "mode == null");
+    checkNotNull(mode, "mode == null!");
     switch (mode) {
       case IMPULSE:
         return "command_block";
@@ -64,9 +64,7 @@ public abstract class MplConverter {
   }
 
   protected static int toIntBlockId(Mode mode) {
-    if (mode == null) {
-      throw new NullPointerException("mode == null");
-    }
+    checkNotNull(mode, "mode == null!");
     switch (mode) {
       case IMPULSE:
         return 137;

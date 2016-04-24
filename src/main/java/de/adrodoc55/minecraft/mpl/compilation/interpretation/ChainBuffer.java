@@ -57,19 +57,20 @@ class ChainBuffer {
   private boolean script;
   private boolean repeatingProcess;
   private boolean repeatingContext;
-  protected final LinkedList<ChainPart> commands = new LinkedList<>();
+  protected final LinkedList<ChainPart> chainParts = new LinkedList<>();
 
   public boolean add(ChainPart cp) {
     updateContext(cp);
-    return commands.add(cp);
+    return chainParts.add(cp);
   }
 
   @Deprecated
   public void add(int index, ChainPart cp) {
     updateContext(cp);
-    commands.add(index, cp);
+    chainParts.add(index, cp);
   }
 
+  @Deprecated
   private void updateContext(ChainPart cp) {
     if (cp instanceof Command) {
       Command command = (Command) cp;
@@ -88,6 +89,7 @@ class ChainBuffer {
    * @return name
    * @throws IllegalStateException
    */
+  @Deprecated
   public String getName() throws IllegalStateException {
     if (isProcess()) {
       if (name != null) {
@@ -104,6 +106,7 @@ class ChainBuffer {
     this.name = name;
   }
 
+  @Deprecated
   public boolean isInstall() {
     return install;
   }
@@ -112,6 +115,7 @@ class ChainBuffer {
     this.install = install;
   }
 
+  @Deprecated
   public boolean isUninstall() {
     return uninstall;
   }
@@ -120,6 +124,7 @@ class ChainBuffer {
     this.uninstall = uninstall;
   }
 
+  @Deprecated
   public boolean isProcess() {
     return process;
   }
@@ -128,6 +133,7 @@ class ChainBuffer {
     this.process = process;
   }
 
+  @Deprecated
   public boolean isScript() {
     return script;
   }
@@ -136,6 +142,7 @@ class ChainBuffer {
     this.script = script;
   }
 
+  @Deprecated
   public boolean isRepeatingProcess() {
     return repeatingProcess;
   }
@@ -144,6 +151,7 @@ class ChainBuffer {
     this.repeatingProcess = repeatingProcess;
   }
 
+  @Deprecated
   public boolean isRepeatingContext() {
     return repeatingContext;
   }
@@ -152,8 +160,8 @@ class ChainBuffer {
     this.repeatingContext = repeatingContext;
   }
 
-  public LinkedList<ChainPart> getCommands() {
-    return commands;
+  public LinkedList<ChainPart> getChainParts() {
+    return chainParts;
   }
 
 }

@@ -37,28 +37,64 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.program;
+package de.adrodoc55.minecraft.mpl.compilation;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import javax.annotation.Nonnull;
+import org.junit.Test;
 
-import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.MplTestBase;
+import de.adrodoc55.minecraft.mpl.chain.MplProcess;
+import de.adrodoc55.minecraft.mpl.chain.NamedCommandChain;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
+import net.karneim.pojobuilder.Builder;
 
-/**
- * @author Adrodoc55
- */
-public class MplScript extends MplProgram {
-  protected final List<ChainPart> chainParts = new ArrayList<>();
+public class MplMaterializerTest extends MplTestBase {
 
-  public @Nonnull List<ChainPart> getChainParts() {
-    return Collections.unmodifiableList(chainParts);
+  @Test
+  public void Impulse_Prozess_mit_Transmitter() {
+    // given:
+    MplProcess process = some($MplProcess());
+    CompilerOptions options = new CompilerOptions(CompilerOption.TRANSMITTER);
+
+    // when:
+    NamedCommandChain chain = MplMaterializer.materialize(process, options);
+
+    // then:
+    Command reciever = new Command("setblock ${this - 1} stone", Mode.IMPULSE, false);
+    assertThat(chain.getName()).isEqualTo(process.getName());
+    assertThat(chain.getCommands()).startsWith(reciever);
   }
 
-  public void setChainParts(@Nonnull List<ChainPart> chainParts) {
-    this.chainParts.clear();
-    this.chainParts.addAll(chainParts);
+  @Test
+  public void Eine
+  repeat Prozess
+  deaktiviert sich
+
+  nicht selbst() {
+    given:
+    String name = someIdentifier()
+    String programString = """
+    repeat process ${name} (
+    /say hi
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+    Collection<MplProcess> processes = project.processes
+    processes.size() == 1
+
+    MplProcess process = processes.first()
+    process.name == name
+
+    List<Command> commands = process.commands
+    commands[0] == new Command("say hi", Mode.REPEAT, false)
+    commands.size() == 1
   }
+
 }

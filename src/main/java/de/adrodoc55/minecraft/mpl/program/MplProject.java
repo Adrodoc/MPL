@@ -120,6 +120,8 @@ public class MplProject extends MplProgram {
     return hasBreakpoint;
   }
 
+  // FIXME: breakpoints richtig implementieren
+  @Deprecated
   public void setHasBreakpoint(boolean hasBreakpoint) {
     this.hasBreakpoint = hasBreakpoint;
   }

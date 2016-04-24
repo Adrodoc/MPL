@@ -42,11 +42,9 @@ package de.adrodoc55;
 import java.util.LinkedList;
 import java.util.Random;
 
-import org.assertj.core.api.Assertions;
-
 import net.karneim.pojobuilder.Builder;
 
-public class TestBase extends Assertions {
+public class TestBase {
 
   private static final Random RANDOM = new Random(5);
 
@@ -60,15 +58,27 @@ public class TestBase extends Assertions {
 
   /**
    * @param lowerBound inclusive
-   * @param upperBound exclusive
+   * @param upperBound inclusive
    * @return
    */
   public static int someInt(int lowerBound, int upperBound) {
-    return RANDOM.nextInt(upperBound - lowerBound) + lowerBound;
+    return RANDOM.nextInt(upperBound + 1 - lowerBound) + lowerBound;
   }
 
   public static int somePositiveInt() {
     return RANDOM.nextInt(Integer.MAX_VALUE);
+  }
+
+  public static int few() {
+    return someInt(2, 4);
+  }
+
+  public static int several() {
+    return someInt(5, 10);
+  }
+
+  public static int many() {
+    return someInt(11, 100);
   }
 
   public static String someString() {
@@ -77,6 +87,11 @@ public class TestBase extends Assertions {
 
   public static boolean someBoolean() {
     return RANDOM.nextBoolean();
+  }
+
+  public static <E extends Enum<E>> E some(Class<E> type) {
+    E[] values = type.getEnumConstants();
+    return values[someInt(values.length)];
   }
 
   public static <P> P some(Builder<P> builder) {

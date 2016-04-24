@@ -73,7 +73,7 @@ public class MplProjectPlacer extends MplChainPlacer {
 
     // The first block of each chain that start's with a RECIEVER must be a TRANSMITTER
     for (MplProcess process : processes) {
-      List<ChainPart> commands = process.getCommands();
+      List<ChainPart> commands = process.getChainParts();
       if (commands.isEmpty() || !isReceiver(commands.get(0))) {
         continue;
       }
@@ -85,7 +85,7 @@ public class MplProjectPlacer extends MplChainPlacer {
   public List<CommandBlockChain> place() {
     // start with the longest chain
     processes.sort((o1, o2) -> {
-      return Integer.compare(o1.getCommands().size(), o2.getCommands().size()) * -1;
+      return Integer.compare(o1.getChainParts().size(), o2.getChainParts().size()) * -1;
     });
     for (MplProcess process : processes) {
       addChain(process);
@@ -166,7 +166,7 @@ public class MplProjectPlacer extends MplChainPlacer {
     int maxC = program.getMax().get(c.getAxis());
 
     int installLength = calculateFutureInstallSize() + calculateFutureUninstallSize();
-    int longestProcessLength = processes.stream().map(p -> p.getCommands().size())
+    int longestProcessLength = processes.stream().map(p -> p.getChainParts().size())
         .max(Comparator.naturalOrder()).orElse(0);
     int longestChainLength = Math.max(installLength, longestProcessLength);
 
@@ -195,7 +195,7 @@ public class MplProjectPlacer extends MplChainPlacer {
 
   public final int getLongestSuccessiveConditionalCount() {
     return Stream
-        .concat(processes.stream().map(p -> p.getCommands()),
+        .concat(processes.stream().map(p -> p.getChainParts()),
             Stream.of(getInstallation(), getUninstallation()))
         .map(chainParts -> getLongestSuccessiveConditionalCount(chainParts))
         .max(Comparator.naturalOrder()).orElse(0);

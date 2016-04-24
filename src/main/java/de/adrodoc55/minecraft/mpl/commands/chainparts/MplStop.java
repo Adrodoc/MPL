@@ -39,21 +39,39 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import de.adrodoc55.minecraft.mpl.commands.Conditional;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
+@lombok.ToString(includeFieldNames = true)
 public class MplStop extends PossiblyConditionalChainPart {
 
-  private String process;
+  private final String process;
 
-  public MplStop(String process) {
-    this.process = process;
+  public MplStop(@Nonnull String process) {
+    this(process, null);
+  }
+
+  public MplStop(@Nonnull String process, @Nullable Conditional conditional) {
+    super(conditional);
+    this.process = checkNotNull(process, "process == null!");
+  }
+
+  public MplStop(@Nonnull String process, @Nullable Conditional conditional,
+      @Nullable Mode previousMode) {
+    super(conditional, previousMode);
+    this.process = checkNotNull(process, "process == null!");
   }
 
   @Override
@@ -67,6 +85,11 @@ public class MplStop extends PossiblyConditionalChainPart {
     }
     commands.add(new Command(command, isConditional()));
     return commands;
+  }
+
+  @Override
+  public Mode getModeToInvert() throws IllegalModifierException {
+    return Mode.CHAIN;
   }
 
 }

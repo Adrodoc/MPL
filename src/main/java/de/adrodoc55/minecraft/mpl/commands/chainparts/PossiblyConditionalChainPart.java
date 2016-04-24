@@ -39,8 +39,13 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -48,32 +53,33 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
+
 public abstract class PossiblyConditionalChainPart implements ChainPart {
 
-  protected Mode previousMode;
+  @Nonnull
   protected Conditional conditional;
+  @Nullable
+  protected Mode previousMode;
 
-  public Mode getPreviousMode() {
-    return previousMode;
+  public PossiblyConditionalChainPart(@Nullable Conditional conditional) {
+    this(conditional, null);
   }
 
-  // FIXME: Muss aufgerufen werden, bevor toCommands aufgerufen wird
-  public void setPreviousMode(Mode previousMode) {
+  public PossiblyConditionalChainPart(@Nullable Conditional conditional,
+      @Nullable Mode previousMode) {
+    this.conditional = (conditional != null) ? conditional : Conditional.DEFAULT;
     this.previousMode = previousMode;
   }
 
-  public Conditional getConditional() {
+  public @Nonnull Conditional getConditional() {
     return conditional;
   }
 
-  public void setConditional(Conditional conditional) {
-    this.conditional = conditional;
+  public void setConditional(@Nonnull Conditional conditional) {
+    this.conditional = checkNotNull(conditional, "conditional == null!");
   }
 
   public boolean isConditional() {
-    if (conditional == null) {
-      return false;
-    }
     switch (conditional) {
       case UNCONDITIONAL:
         return false;
@@ -81,8 +87,16 @@ public abstract class PossiblyConditionalChainPart implements ChainPart {
       case INVERT:
         return true;
       default:
-        return false;
+        throw new IllegalArgumentException("Unknown Conditional: " + conditional);
     }
+  }
+
+  public @Nullable Mode getPreviousMode() {
+    return previousMode;
+  }
+
+  public void setPreviousMode(@Nullable Mode previousMode) {
+    this.previousMode = previousMode;
   }
 
   public List<ChainLink> toCommands() throws IllegalModifierException {

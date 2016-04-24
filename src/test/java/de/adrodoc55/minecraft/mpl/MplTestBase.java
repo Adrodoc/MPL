@@ -40,8 +40,9 @@
 package de.adrodoc55.minecraft.mpl;
 
 import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.CommandBuilder;
+import de.adrodoc55.minecraft.mpl.chain.MplProcessBuilder;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.CommandBuilder;
 
 public class MplTestBase extends TestBase {
 
@@ -50,21 +51,21 @@ public class MplTestBase extends TestBase {
   }
 
   public static CommandBuilder $Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
+    // @formatter:off
+    return new CommandBuilder()
+        .withCommand(someCommand())
+        .withMode(some(Mode.class))
+        .withConditional(someBoolean())
+        .withNeedsRedstone(someBoolean());
+    //  @formatter:on
   }
 
   private static String someCommand() {
     return "/" + someString();
   }
 
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  public MplProcessBuilder $MplProcess() {
+    return new MplProcessBuilder();
   }
 
 }

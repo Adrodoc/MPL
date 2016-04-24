@@ -43,5 +43,7 @@ package de.adrodoc55.minecraft.mpl.commands;
  * @author Adrodoc55
  */
 public enum Conditional {
-  UNCONDITIONAL, CONDITIONAL, INVERT
+  UNCONDITIONAL, CONDITIONAL, INVERT;
+
+  public static Conditional DEFAULT = UNCONDITIONAL;
 }

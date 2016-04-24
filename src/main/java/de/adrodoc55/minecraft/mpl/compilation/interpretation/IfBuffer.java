@@ -338,8 +338,8 @@ class IfNestingLayer extends ChainBuffer {
   }
 
   public void switchToElseBlock() {
-    thenBlock.addAll(commands);
-    commands.clear();
+    thenBlock.addAll(chainParts);
+    chainParts.clear();
     inElse = true;
   }
 
@@ -347,9 +347,9 @@ class IfNestingLayer extends ChainBuffer {
     if (!inElse) {
       // If we are still editing the then block and the thenBlock is not already refreshed,
       // refresh the elements.
-      if (!thenBlock.equals(commands)) {
+      if (!thenBlock.equals(chainParts)) {
         thenBlock.clear();
-        thenBlock.addAll(commands);
+        thenBlock.addAll(chainParts);
       }
     }
     return Collections.unmodifiableList(thenBlock);
@@ -357,7 +357,7 @@ class IfNestingLayer extends ChainBuffer {
 
   public List<ChainPart> getElseBlock() {
     if (inElse) {
-      return Collections.unmodifiableList(commands);
+      return Collections.unmodifiableList(chainParts);
     } else {
       return new LinkedList<>();
     }

@@ -52,6 +52,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
+@lombok.ToString(includeFieldNames = true)
 public class Intercept extends PossiblyConditionalChainPart {
   private String process;
 

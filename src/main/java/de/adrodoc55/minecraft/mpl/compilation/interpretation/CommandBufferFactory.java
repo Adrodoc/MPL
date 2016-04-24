@@ -39,15 +39,10 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation.interpretation;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.antlr.v4.runtime.Token;
 
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
-import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
 /**
  * @author Adrodoc55
@@ -82,23 +77,16 @@ class CommandBufferFactory {
   /**
    * @author Adrodoc55
    */
-  static class CommandBuffer implements ChainPart {
+  static class CommandBuffer {
 
     private String command;
     private Mode mode;
     private Conditional conditional;
     private Boolean needsRedstone;
 
-    private CommandBuffer() {}
+    private Token conditionalToken;
 
-    @Override
-    public List<Command> toCommands(CompilerOptions options) {
-      ArrayList<Command> commands = new ArrayList<>(2);
-      commands.add(new InvertingCommand(previousMode));
-      Boolean conditional = isConditional();
-      commands.add(new Command(command, mode, conditional, needsRedstone));
-      return commands;
-    }
+    private CommandBuffer() {}
 
     public String getCommand() {
       return command;
@@ -132,7 +120,7 @@ class CommandBufferFactory {
     }
 
     public Conditional getConditional() {
-      return conditional;
+      return conditional != null ? conditional : Conditional.DEFAULT;
     }
 
     public void setConditional(Conditional conditional) throws IllegalModifierException {
@@ -145,6 +133,14 @@ class CommandBufferFactory {
 
     public void setNeedsRedstone(Boolean needsRedstone) {
       this.needsRedstone = needsRedstone;
+    }
+
+    public Token getConditionalToken() {
+      return conditionalToken;
+    }
+
+    public void setConditionalToken(Token conditionalToken) {
+      this.conditionalToken = conditionalToken;
     }
 
   }

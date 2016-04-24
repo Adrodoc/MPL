@@ -44,8 +44,7 @@ import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
-import net.karneim.pojobuilder.Builder;
-import net.karneim.pojobuilder.GeneratePojoBuilder;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
@@ -73,7 +72,7 @@ public class Command implements ChainLink {
     this(command, mode, conditional, null);
   }
 
-  @GeneratePojoBuilder(withBuilderInterface = Builder.class)
+  @GenerateMplPojoBuilder
   public Command(String command, Mode mode, Boolean conditional, Boolean needsRedstone) {
     setCommand(command);
 

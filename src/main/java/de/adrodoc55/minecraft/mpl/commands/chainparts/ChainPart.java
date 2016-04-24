@@ -41,6 +41,7 @@ package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
 import java.util.List;
 
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
@@ -50,4 +51,6 @@ import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierExce
  */
 public interface ChainPart {
   List<? extends ChainLink> toCommands(CompilerOptions options) throws IllegalModifierException;
+
+  Mode getModeToInvert() throws IllegalModifierException;
 }

@@ -116,29 +116,37 @@ chain
   (
     ifDeclaration
     | mplCommand
-    | commandDeclaration
     | skip
   )+
 ;
 
+ifDeclaration
+:
+  IF NOT? ':' COMMAND then elseDeclaration?
+;
+
+then
+:
+  THEN '(' chain ')'
+;
+
+elseDeclaration
+:
+  ELSE '(' chain ')'
+;
+
 mplCommand
 :
+  modifierList?
   (
-    conditional ':'
-  )?
-  (
-    start
+    command
+    | start
     | stop
-    | notifyDeclaration
     | waitfor
+    | notifyDeclaration
     | intercept
     | breakpoint
   )
-;
-
-commandDeclaration
-:
-  modifierList? command
 ;
 
 modifierList
@@ -212,29 +220,14 @@ intercept
   INTERCEPT IDENTIFIER
 ;
 
-skip
-:
-  SKIP
-;
-
 breakpoint
 :
   BREAKPOINT
 ;
 
-ifDeclaration
+skip
 :
-  IF NOT? ':' command then elseDeclaration?
-;
-
-then
-:
-  THEN '(' chain ')'
-;
-
-elseDeclaration
-:
-  ELSE '(' chain ')'
+  SKIP
 ;
 
 COMMENT

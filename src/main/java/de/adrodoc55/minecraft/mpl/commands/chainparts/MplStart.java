@@ -49,6 +49,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
+@lombok.ToString(includeFieldNames = true)
 public class MplStart extends PossiblyConditionalChainPart {
   private String process;
 

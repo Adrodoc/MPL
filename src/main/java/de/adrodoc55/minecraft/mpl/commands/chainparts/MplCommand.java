@@ -44,10 +44,12 @@ import java.util.List;
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
-import net.karneim.pojobuilder.Builder;
-import net.karneim.pojobuilder.GeneratePojoBuilder;
+import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
+@lombok.ToString(includeFieldNames = true)
 public class MplCommand extends PossiblyConditionalChainPart {
 
   private String command;
@@ -70,13 +72,11 @@ public class MplCommand extends PossiblyConditionalChainPart {
     this(command, mode, conditional, null);
   }
 
-  @GeneratePojoBuilder(withBuilderInterface = Builder.class)
+  @GenerateMplPojoBuilder
   public MplCommand(String command, Mode mode, Conditional conditional, Boolean needsRedstone) {
+    super(conditional);
     setCommand(command);
-
-    this.conditional = (conditional != null) ? conditional : Conditional.UNCONDITIONAL;
     this.mode = (mode != null) ? mode : Mode.CHAIN;
-
     if (needsRedstone != null) {
       this.needsRedstone = needsRedstone;
     } else {
@@ -118,9 +118,15 @@ public class MplCommand extends PossiblyConditionalChainPart {
   }
 
   @Override
-  public List<ChainLink> toCommands(CompilerOptions options) {
-    // TODO Auto-generated method stub
-    return null;
+  public List<ChainLink> toCommands(CompilerOptions options) throws IllegalModifierException {
+    List<ChainLink> commands = super.toCommands();
+    commands.add(new Command(getCommand(), getMode(), isConditional(), needsRedstone()));
+    return commands;
+  }
+
+  @Override
+  public Mode getModeToInvert() throws IllegalModifierException {
+    return getMode();
   }
 
   @Override
@@ -152,12 +158,6 @@ public class MplCommand extends PossiblyConditionalChainPart {
     if (needsRedstone != other.needsRedstone)
       return false;
     return true;
-  }
-
-  @Override
-  public String toString() {
-    return "MplCommand [command=" + command + ", mode=" + mode + ", needsRedstone=" + needsRedstone
-        + ", conditional=" + conditional + "]";
   }
 
 }

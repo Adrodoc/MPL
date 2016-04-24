@@ -285,12 +285,12 @@ public abstract class MplChainPlacer {
     }
   }
 
-  public static int getLongestSuccessiveConditionalCount(List<? extends ChainPart> chainParts) {
-    Preconditions.checkNotNull(chainParts, "chainParts == null!");
+  public static int getLongestSuccessiveConditionalCount(List<? extends ChainLink> chainLinks) {
+    Preconditions.checkNotNull(chainLinks, "chainLinks == null!");
     int result = 0;
     int successiveConditionalCount = 0;
-    for (ChainPart chainPart : chainParts) {
-      if (chainPart instanceof Command && ((Command) chainPart).isConditional()) {
+    for (ChainLink chainLink : chainLinks) {
+      if (chainLink instanceof Command && ((Command) chainLink).isConditional()) {
         successiveConditionalCount++;
       } else {
         result = Math.max(result, successiveConditionalCount);

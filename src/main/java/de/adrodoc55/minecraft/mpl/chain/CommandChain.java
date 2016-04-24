@@ -45,21 +45,20 @@ import javax.annotation.Nonnull;
 
 import com.google.common.base.Preconditions;
 
-import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 
 /**
  * @author Adrodoc55
  */
 public class CommandChain {
 
-  protected final List<ChainPart> commands;
+  protected final List<ChainLink> commands;
 
-  public CommandChain(@Nonnull List<ChainPart> commands) {
+  public CommandChain(@Nonnull List<ChainLink> commands) {
     this.commands = Preconditions.checkNotNull(commands, "commands == null!");
   }
 
-  @Nonnull
-  public List<ChainPart> getCommands() {
+  public @Nonnull List<ChainLink> getCommands() {
     return commands;
   }
 

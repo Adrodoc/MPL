@@ -37,28 +37,8 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.program;
+package de.adrodoc55.minecraft.mpl.compilation.interpretation
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+class MplInterpreter_Include_Spec {
 
-import javax.annotation.Nonnull;
-
-import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
-
-/**
- * @author Adrodoc55
- */
-public class MplScript extends MplProgram {
-  protected final List<ChainPart> chainParts = new ArrayList<>();
-
-  public @Nonnull List<ChainPart> getChainParts() {
-    return Collections.unmodifiableList(chainParts);
-  }
-
-  public void setChainParts(@Nonnull List<ChainPart> chainParts) {
-    this.chainParts.clear();
-    this.chainParts.addAll(chainParts);
-  }
 }

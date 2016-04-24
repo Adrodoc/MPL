@@ -68,7 +68,6 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.AutoContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.BreakpointContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ChainContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ConditionalContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ElseDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.FileContext;
@@ -78,6 +77,7 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.InstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.InterceptContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModusContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplCommandContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.NotifyDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.OrientationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProcessContext;
@@ -89,12 +89,10 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.StartContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.StopContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.UninstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.WaitforContext;
-import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.chain.MplProcess;
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.Breakpoint;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
@@ -107,6 +105,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainparts.Waitfor;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.CommandBufferFactory.CommandBuffer;
+import de.adrodoc55.minecraft.mpl.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.program.MplProject;
 import de.adrodoc55.minecraft.mpl.program.MplScript;
 
@@ -155,31 +154,26 @@ public class MplInterpreter extends MplBaseListener {
   /**
    * Every File can either be a script or a project/process file
    */
-  private boolean isScript;
-  private MplScript script;
-  private MplProject project;
+  private boolean isProject;
+  private MplProgram program;
 
   /**
    * Every File can either be a script or a project/process file
    */
-  public boolean isScript() {
-    return isScript;
+  public boolean isProject() {
+    return isProject;
   }
 
   public MplScript getScript() {
-    return script;
+    return (MplScript) program;
   }
 
   public MplProject getProject() {
-    return project;
+    return (MplProject) program;
   }
 
   private void addException(CompilerException ex1) {
-    if (isScript) {
-      script.getExceptions().add(ex1);
-    } else {
-      project.getExceptions().add(ex1);
-    }
+    program.getExceptions().add(ex1);
   }
 
   /**
@@ -205,16 +199,16 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterScriptFile(ScriptFileContext ctx) {
-    isScript = true;
-    script = new MplScript();
+    isProject = false;
+    program = new MplScript();
     newChainBuffer();
     chainBuffer.setScript(true);
   }
 
   @Override
   public void enterProjectFile(ProjectFileContext ctx) {
-    isScript = false;
-    project = new MplProject();
+    isProject = true;
+    program = new MplProject();
   }
 
   @Override
@@ -227,6 +221,7 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterProject(ProjectContext ctx) {
+    MplProject project = getProject();
     Token oldToken = project.getProjectToken();
     Token newToken = ctx.PROJECT().getSymbol();
     if (oldToken != null) {
@@ -249,14 +244,9 @@ public class MplInterpreter extends MplBaseListener {
 
     Token newToken = ctx.ORIENTATION().getSymbol();
 
-    Orientation3D oldOrientation;
-    if (isScript) {
-      oldOrientation = script.getOrientation();
-    } else {
-      oldOrientation = project.getOrientation();
-    }
+    Orientation3D oldOrientation = program.getOrientation();
     if (oldOrientation != null) {
-      String type = isScript ? "script" : "project";
+      String type = isProject() ? "project" : "script";
       Token oldToken = oldOrientation.getToken();
       String oldLine = lines.get(oldToken.getLine());
       MplSource oldSource = new MplSource(programFile, oldToken, oldLine);
@@ -271,11 +261,7 @@ public class MplInterpreter extends MplBaseListener {
 
     Orientation3D newOrientation = new Orientation3D(def);
     newOrientation.setToken(newToken);
-    if (isScript) {
-      script.setOrientation(newOrientation);
-    } else {
-      project.setOrientation(newOrientation);
-    }
+    program.setOrientation(newOrientation);
   }
 
   @Override
@@ -347,6 +333,7 @@ public class MplInterpreter extends MplBaseListener {
     }
   }
 
+
   private final LinkedList<ChainBuffer> chainBufferStack = new LinkedList<>();
   private ChainBuffer chainBuffer;
   private IfBuffer ifBuffer;
@@ -370,13 +357,8 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void exitInstall(InstallContext ctx) {
-    List<ChainPart> installation;
-    if (isScript) {
-      installation = script.getInstallation();
-    } else {
-      installation = project.getInstallation();
-    }
-    installation.addAll(chainBuffer.getCommands());
+    List<ChainPart> installation = program.getInstallation();
+    installation.addAll(chainBuffer.getChainParts());
     deleteChainBuffer();
   }
 
@@ -387,24 +369,26 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void exitUninstall(UninstallContext ctx) {
-    List<ChainPart> uninstallation;
-    if (isScript) {
-      uninstallation = script.getUninstallation();
-    } else {
-      uninstallation = project.getUninstallation();
-    }
-    uninstallation.addAll(chainBuffer.getCommands());
+    List<ChainPart> uninstallation = program.getUninstallation();
+    uninstallation.addAll(chainBuffer.getChainParts());
     deleteChainBuffer();
   }
 
+  private MplProcess process;
+
   @Override
   public void enterProcess(ProcessContext ctx) {
+    String name = ctx.IDENTIFIER().getText();
+    boolean repeat = ctx.REPEAT() != null;
+    Token token = ctx.IDENTIFIER().getSymbol();
+    MplSource source = new MplSource(programFile, token, lines.get(token.getLine()));
+    process = new MplProcess(name, repeat, source);
+
     newChainBuffer();
     chainBuffer.setProcess(true);
-    String name = ctx.IDENTIFIER().getText();
     chainBuffer.setName(name);
 
-    if (ctx.REPEAT() != null) {
+    if (repeat) {
       chainBuffer.setRepeatingProcess(true);
       chainBuffer.setRepeatingContext(true);
     } else {
@@ -428,7 +412,7 @@ public class MplInterpreter extends MplBaseListener {
   private CommandBuffer commandBuffer;
 
   @Override
-  public void enterCommandDeclaration(CommandDeclarationContext ctx) {
+  public void enterMplCommand(MplCommandContext ctx) {
     commandBuffer = factory.peek().create();
   }
 
@@ -441,26 +425,23 @@ public class MplInterpreter extends MplBaseListener {
   @Override
   public void enterConditional(ConditionalContext ctx) {
     Conditional conditional = null;
+    Token token;
     if (ctx.UNCONDITIONAL() != null) {
       conditional = Conditional.UNCONDITIONAL;
+      token = ctx.UNCONDITIONAL().getSymbol();
     } else if (ctx.CONDITIONAL() != null) {
       conditional = Conditional.CONDITIONAL;
+      token = ctx.CONDITIONAL().getSymbol();
     } else if (ctx.INVERT() != null) {
       conditional = Conditional.INVERT;
+      token = ctx.INVERT().getSymbol();
+    } else {
+      throw new InternalError("Unreachable code");
     }
     try {
       commandBuffer.setConditional(conditional);
+      commandBuffer.setConditionalToken(token);
     } catch (IllegalModifierException ex) {
-      Token token;
-      if (ctx.CONDITIONAL() != null) {
-        token = ctx.CONDITIONAL().getSymbol();
-      } else if (ctx.INVERT() != null) {
-        token = ctx.INVERT().getSymbol();
-      } else {
-        throw new RuntimeException(
-            "IllegalModifierException was thrown, but the conditional token could not be found!",
-            ex);
-      }
       String line = lines.get(token.getLine() - 1);
       MplSource source = new MplSource(programFile, token, line);
       addException(new CompilerException(source, ex.getLocalizedMessage(), ex));
@@ -480,10 +461,12 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterCommand(CommandContext ctx) {
-    String command = ctx.COMMAND().getText();
-    if (commandBuffer != null) {
-      commandBuffer.setCommand(command);
-    }
+    String commandString = ctx.COMMAND().getText();
+    Mode mode = commandBuffer.getMode();
+    Conditional conditional = commandBuffer.getConditional();
+    Boolean needsRedstone = commandBuffer.getNeedsRedstone();
+    MplCommand command = new MplCommand(commandString, mode, conditional, needsRedstone);
+    chainBuffer.add(command);
   }
 
   private String lastStartIdentifier;
@@ -497,7 +480,7 @@ public class MplInterpreter extends MplBaseListener {
     chainBuffer.add(start);
 
     lastStartIdentifier = process;
-    if (isScript) {
+    if (!isProject) {
       return;
     }
 
@@ -520,12 +503,37 @@ public class MplInterpreter extends MplBaseListener {
       Token token = ctx.STOP().getSymbol();
       String line = lines.get(token.getLine() - 1);
       MplSource source = new MplSource(programFile, token, line);
-      addException(new CompilerException(source, "Can only stop repeating processes."));
+      addException(new CompilerException(source, "An impulse process can't be stopped."));
       return;
     }
-    MplStop stop = new MplStop(process);
-    stop.setConditional(commandBuffer.getConditional());
-    chainBuffer.add(stop);
+
+    Conditional conditional = commandBuffer.getConditional();
+    if (conditional == Conditional.UNCONDITIONAL) {
+      chainBuffer.add(new MplStop(process, conditional));
+    } else {
+      ChainPart prev = chainBuffer.chainParts.peekLast();
+      if (prev == null) {
+        Token token = commandBuffer.getConditionalToken();
+        String line = lines.get(token.getLine() - 1);
+        MplSource source = new MplSource(programFile, token, line);
+        addException(
+            new CompilerException(source, "The first part of a chain must be unconditional!"));
+      }
+      if (conditional == Conditional.CONDITIONAL) {
+        chainBuffer.add(new MplStop(process, conditional));
+      } else if (conditional == Conditional.INVERT) {
+        try {
+          Mode modeToInvert = prev.getModeToInvert();
+          chainBuffer.add(new MplStop(process, conditional, modeToInvert));
+        } catch (IllegalModifierException e) {
+          Token token = commandBuffer.getConditionalToken();
+          String line = lines.get(token.getLine() - 1);
+          MplSource source = new MplSource(programFile, token, line);
+          addException(
+              new CompilerException(source, "Can't invert a " + prev.getClass().getSimpleName()));
+        }
+      }
+    }
   }
 
   @Override
@@ -560,7 +568,7 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterNotifyDeclaration(NotifyDeclarationContext ctx) {
-    if (!chainBuffer.isProcess()) {
+    if (process == null) {
       Token token = ctx.NOTIFY().getSymbol();
       String line = lines.get(token.getLine() - 1);
       MplSource source = new MplSource(programFile, token, line);
@@ -568,8 +576,7 @@ public class MplInterpreter extends MplBaseListener {
           new CompilerException(source, "Encountered notify outside of a process context."));
       return;
     }
-    String process = chainBuffer.getName();
-    Notify notify = new Notify(process);
+    Notify notify = new Notify(process.getName());
     notify.setConditional(commandBuffer.getConditional());
     chainBuffer.add(notify);
   }
@@ -593,21 +600,8 @@ public class MplInterpreter extends MplBaseListener {
   }
 
   @Override
-  public void exitCommandDeclaration(CommandDeclarationContext ctx) {
-    if (commandBuffer == null) {
-      return;
-    }
-    String commandString = commandBuffer.getCommand();
-    Mode mode = commandBuffer.getMode();
-    Conditional conditional = commandBuffer.getConditional();
-    Boolean needsRedstone = commandBuffer.getNeedsRedstone();
-    MplCommand command = new MplCommand(commandString, mode, conditional, needsRedstone);
-    chainBuffer.add(command);
-  }
-
-  @Override
   public void enterSkip(SkipContext ctx) {
-    if (chainBuffer.getCommands().isEmpty()) {
+    if (chainBuffer.getChainParts().isEmpty()) {
       Token token = ctx.SKIP().getSymbol();
       String line = lines.get(token.getLine());
       MplSource source = new MplSource(programFile, token, line);
@@ -620,20 +614,19 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterBreakpoint(BreakpointContext ctx) {
-
     int line = ctx.BREAKPOINT().getSymbol().getLine();
     String source = programFile.getName() + " : line " + line;
     Breakpoint breakpoint = new Breakpoint(source);
     breakpoint.setConditional(commandBuffer.getConditional());
     chainBuffer.add(breakpoint);
 
-    project.setHasBreakpoint(true);
+    getProject().setHasBreakpoint(true);
   }
 
   @Override
   public void enterIfDeclaration(IfDeclarationContext ctx) {
     boolean not = ctx.NOT() != null;
-    Command condition = new Command(ctx.command().COMMAND().getText());
+    Command condition = new Command(ctx.COMMAND().getText());
     chainBuffer = ifBuffer.enterIf(not, condition);
   }
 
@@ -649,42 +642,23 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void exitProcess(ProcessContext ctx) {
-    LinkedList<ChainPart> commands = chainBuffer.getCommands();
-    if (chainBuffer.isRepeatingProcess()) {
-      if (commands.size() > 0) {
-        ChainPart first = commands.get(0);
-        if (!(first instanceof Command)) {
-          throw new InternalError(
-              "The first ChainPart must be a Command! enterSkip(ctx) assures this.");
-        }
-        Command firstCommand = (Command) first;
-        firstCommand.setMode(Mode.REPEAT);
-        firstCommand.setNeedsRedstone(true);
-      }
-    } else {
-      commands.add(0, new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
-    }
-    Token token = ctx.IDENTIFIER().getSymbol();
-    MplSource source = new MplSource(programFile, token, lines.get(token.getLine()));
-    MplProcess process = new MplProcess(chainBuffer.getName(), commands, source);
-    project.addProcess(process);
+    LinkedList<ChainPart> chainParts = chainBuffer.getChainParts();
+    process.setChainParts(chainParts);
+    getProject().addProcess(process);
     deleteChainBuffer();
-  }
-
-  @Override
-  public void exitProjectFile(ProjectFileContext ctx) {
-    if (project.getOrientation() == null) {
-      project.setOrientation(new Orientation3D());
-    }
+    process = null;
   }
 
   @Override
   public void exitScriptFile(ScriptFileContext ctx) {
-    CommandChain chain = new CommandChain(chainBuffer.getCommands());
-    script.setChain(chain);
-    if (script.getOrientation() == null) {
-      script.setOrientation(new Orientation3D());
-    }
+    getScript().setChainParts(chainBuffer.getChainParts());
     deleteChainBuffer();
+  }
+
+  @Override
+  public void exitFile(FileContext ctx) {
+    if (program.getOrientation() == null) {
+      program.setOrientation(new Orientation3D());
+    }
   }
 }

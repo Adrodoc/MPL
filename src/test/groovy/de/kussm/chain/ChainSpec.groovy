@@ -13,8 +13,8 @@
  */
 package de.kussm.chain
 
-import spock.lang.Specification;
-import static de.kussm.chain.ChainLink.*
+import static de.kussm.chain.ChainLinkType.*
+import spock.lang.Specification
 
 /**
  * Tests for {@link Chain}
@@ -23,104 +23,104 @@ import static de.kussm.chain.ChainLink.*
 public class ChainSpec extends Specification {
   def 'Chain.of(ChainLink...) throws IllegalArgumentException if called without arguments'() {
     when:
-      Chain.of()
+    Chain.of()
     then:
-      IllegalArgumentException ex = thrown(IllegalArgumentException)
-      ex.message == 'chain must not be empty'
+    IllegalArgumentException ex = thrown(IllegalArgumentException)
+    ex.message == 'chain must not be empty'
   }
 
   def 'Chain.of(ChainLink...) throws IllegalArgumentException if first chain link is a CONDITIONAL'() {
     when:
-      Chain.of(CONDITIONAL, NORMAL)
+    Chain.of(CONDITIONAL, NORMAL)
     then:
-      IllegalArgumentException ex = thrown(IllegalArgumentException)
-      ex.message == 'chain must not start with a CONDITIONAL'
+    IllegalArgumentException ex = thrown(IllegalArgumentException)
+    ex.message == 'chain must not start with a CONDITIONAL'
   }
 
   def 'Chain.of(ChainLink...) throws IllegalArgumentException if RECEIVER is not preceded by a TRANSMITTER'() {
     when:
-      Chain.of(RECEIVER, NORMAL)
+    Chain.of(RECEIVER, NORMAL)
     then:
-      IllegalArgumentException ex = thrown(IllegalArgumentException)
-      ex.message == 'RECEIVER at index 0 is not preceded by a TRANSMITTER'
+    IllegalArgumentException ex = thrown(IllegalArgumentException)
+    ex.message == 'RECEIVER at index 0 is not preceded by a TRANSMITTER'
     when:
-      Chain.of(NORMAL, RECEIVER, NORMAL)
+    Chain.of(NORMAL, RECEIVER, NORMAL)
     then:
-      ex = thrown(IllegalArgumentException)
-      ex.message == 'RECEIVER at index 1 is not preceded by a TRANSMITTER'
+    ex = thrown(IllegalArgumentException)
+    ex.message == 'RECEIVER at index 1 is not preceded by a TRANSMITTER'
   }
 
   def 'Chain.of(ChainLink...) throws IllegalArgumentException if RECEIVER is followed by a TRANSMITTER'() {
     when:
-      Chain.of(TRANSMITTER, RECEIVER, TRANSMITTER, RECEIVER)
+    Chain.of(TRANSMITTER, RECEIVER, TRANSMITTER, RECEIVER)
     then:
-      IllegalArgumentException ex = thrown(IllegalArgumentException)
-      ex.message == 'RECEIVER at index 1 is followed by a TRANSMITTER'
+    IllegalArgumentException ex = thrown(IllegalArgumentException)
+    ex.message == 'RECEIVER at index 1 is followed by a TRANSMITTER'
   }
 
   def 'Chain.of(ChainLink...) throws IllegalArgumentException if TRANSMITTER is not followed by a RECEIVER'() {
     when:
-      Chain.of(NORMAL, TRANSMITTER)
+    Chain.of(NORMAL, TRANSMITTER)
     then:
-      IllegalArgumentException ex = thrown(IllegalArgumentException)
-      ex.message == 'TRANSMITTER at index 1 is not followed by a RECEIVER'
+    IllegalArgumentException ex = thrown(IllegalArgumentException)
+    ex.message == 'TRANSMITTER at index 1 is not followed by a RECEIVER'
     when:
-      Chain.of(TRANSMITTER, NORMAL)
+    Chain.of(TRANSMITTER, NORMAL)
     then:
-      ex = thrown(IllegalArgumentException)
-      ex.message == 'TRANSMITTER at index 0 is not followed by a RECEIVER'
+    ex = thrown(IllegalArgumentException)
+    ex.message == 'TRANSMITTER at index 0 is not followed by a RECEIVER'
   }
 
   def 'Chain.of(ChainLink...) throws NullPointerException if chain link is null'() {
     when:
-      Chain.of(NORMAL, null, NORMAL)
+    Chain.of(NORMAL, null, NORMAL)
     then:
-      NullPointerException ex = thrown(NullPointerException)
-      ex.message == 'chain link at index 1 must not be null'
+    NullPointerException ex = thrown(NullPointerException)
+    ex.message == 'chain link at index 1 must not be null'
   }
 
   def 'Chain.of(ChainLink...) throws NullPointerException on null argument'() {
     when:
-      Chain.of((ChainLinkType[]) null)
+    Chain.of((ChainLinkType[]) null)
     then:
-      NullPointerException ex = thrown(NullPointerException)
-      ex.message == 'chainLinks must not be null'
+    NullPointerException ex = thrown(NullPointerException)
+    ex.message == 'chainLinks must not be null'
   }
 
   def 'size()'() {
     expect:
-      Chain.of(NORMAL).size()==1
-      Chain.of((1..100).collect { NORMAL } as ChainLinkType[]).size()==100
+    Chain.of(NORMAL).size()==1
+    Chain.of((1..100).collect { NORMAL } as ChainLinkType[]).size()==100
   }
 
   def 'getFirstChainLink()'() {
     expect:
-      Chain.of(NORMAL).getFirstChainLink()==NORMAL
+    Chain.of(NORMAL).getFirstChainLink()==NORMAL
   }
 
   def 'get(int) throws IndexOutOfBoundsException if index is invalid()'() {
     when:
-      Chain.of(NORMAL, CONDITIONAL, TRANSMITTER, RECEIVER).get(-1)
+    Chain.of(NORMAL, CONDITIONAL, TRANSMITTER, RECEIVER).get(-1)
     then:
-      thrown(IndexOutOfBoundsException)
+    thrown(IndexOutOfBoundsException)
     when:
-      Chain.of(NORMAL, CONDITIONAL, TRANSMITTER, RECEIVER).get(4)
+    Chain.of(NORMAL, CONDITIONAL, TRANSMITTER, RECEIVER).get(4)
     then:
-      thrown(IndexOutOfBoundsException)
+    thrown(IndexOutOfBoundsException)
   }
 
   def 'get(int)'() {
     given:
-      Chain c = Chain.of(NORMAL, CONDITIONAL, TRANSMITTER, RECEIVER)
+    Chain c = Chain.of(NORMAL, CONDITIONAL, TRANSMITTER, RECEIVER)
     expect:
-      c.get(0) == NORMAL
-      c.get(1) == CONDITIONAL
-      c.get(2) == TRANSMITTER
-      c.get(3) == RECEIVER
+    c.get(0) == NORMAL
+    c.get(1) == CONDITIONAL
+    c.get(2) == TRANSMITTER
+    c.get(3) == RECEIVER
   }
 
   def 'toString()'() {
     expect:
-      Chain.of(NORMAL, CONDITIONAL, NORMAL).toString() == 'Chain(NCN)'
+    Chain.of(NORMAL, CONDITIONAL, NORMAL).toString() == 'Chain(NCN)'
   }
 }
