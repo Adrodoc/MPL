@@ -47,7 +47,6 @@ import javax.annotation.concurrent.Immutable;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
@@ -70,6 +69,11 @@ public class Skip implements ChainPart, ChainLink {
   }
 
   @Override
+  public String getName() {
+    return "name";
+  }
+
+  @Override
   public List<? extends ChainLink> toCommands(CompilerOptions options)
       throws IllegalModifierException {
     ArrayList<Skip> commands = new ArrayList<>(1);
@@ -80,11 +84,6 @@ public class Skip implements ChainPart, ChainLink {
   @Override
   public MplBlock toBlock(Coordinate3D coordinate) {
     return new Transmitter(internal, coordinate);
-  }
-
-  @Override
-  public Mode getModeToInvert() throws IllegalModifierException {
-    throw new IllegalModifierException("Cannot depend on skip");
   }
 
 }

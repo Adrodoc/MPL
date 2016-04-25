@@ -40,25 +40,35 @@
 package de.adrodoc55.minecraft.mpl.program;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nonnull;
 
+import de.adrodoc55.minecraft.mpl.chain.ChainPartContainer;
+import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
 /**
  * @author Adrodoc55
  */
-public class MplScript extends MplProgram {
+public class MplScript extends MplProgram implements ChainPartContainer {
   protected final List<ChainPart> chainParts = new ArrayList<>();
 
+  @Override
   public @Nonnull List<ChainPart> getChainParts() {
     return Collections.unmodifiableList(chainParts);
   }
 
-  public void setChainParts(@Nonnull List<ChainPart> chainParts) {
+  public void setChainParts(@Nonnull Collection<ChainPart> chainParts) {
     this.chainParts.clear();
     this.chainParts.addAll(chainParts);
+  }
+
+  @Override
+  public CommandChain toCommandChain(CompilerOptions options) {
+    return new CommandChain(toChainLinks(options));
   }
 }

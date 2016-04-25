@@ -49,8 +49,12 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
-@lombok.ToString(includeFieldNames = true)
-public class MplCommand extends PossiblyConditionalChainPart {
+/**
+ * @author Adrodoc55
+ */
+@lombok.EqualsAndHashCode(callSuper = true)
+@lombok.ToString(callSuper = true, includeFieldNames = true)
+public class MplCommand extends PossiblyConditionalChainPart implements ModeOwner {
 
   private String command;
   private Mode mode;
@@ -94,13 +98,10 @@ public class MplCommand extends PossiblyConditionalChainPart {
   }
 
   public void setCommand(String command) {
-    if (command != null && command.startsWith("/")) {
-      this.command = command.substring(1);
-    } else {
-      this.command = command;
-    }
+    this.command = command;
   }
 
+  @Override
   public Mode getMode() {
     return mode;
   }
@@ -118,46 +119,15 @@ public class MplCommand extends PossiblyConditionalChainPart {
   }
 
   @Override
+  public String getName() {
+    return "command";
+  }
+
+  @Override
   public List<ChainLink> toCommands(CompilerOptions options) throws IllegalModifierException {
     List<ChainLink> commands = super.toCommands();
     commands.add(new Command(getCommand(), getMode(), isConditional(), needsRedstone()));
     return commands;
-  }
-
-  @Override
-  public Mode getModeToInvert() throws IllegalModifierException {
-    return getMode();
-  }
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = super.hashCode();
-    result = prime * result + ((command == null) ? 0 : command.hashCode());
-    result = prime * result + ((mode == null) ? 0 : mode.hashCode());
-    result = prime * result + (needsRedstone ? 1231 : 1237);
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (!super.equals(obj))
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    MplCommand other = (MplCommand) obj;
-    if (command == null) {
-      if (other.command != null)
-        return false;
-    } else if (!command.equals(other.command))
-      return false;
-    if (mode != other.mode)
-      return false;
-    if (needsRedstone != other.needsRedstone)
-      return false;
-    return true;
   }
 
 }

@@ -87,7 +87,7 @@ public class MplProject extends MplProgram {
       processMap.put(name, process);
       return;
     }
-    String oldMessage = "Duplicate process " + name + "!";
+    String oldMessage = "Duplicate process " + name;
     String newMessage = oldMessage;
     MplSource oldSource = previous.getSource();
     MplSource newSource = process.getSource();

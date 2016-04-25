@@ -67,12 +67,9 @@ import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.MplProcess;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
-import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.Include;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.MplInterpreter;
@@ -88,7 +85,6 @@ public class MplCompiler extends MplBaseListener {
   public static MplCompilationResult compile(File programFile, CompilerOption... options)
       throws IOException, CompilationFailedException {
     MplProgram program = assembleProgram(programFile);
-    MplMaterializer.materialze(program, options);
     List<CommandBlockChain> chains = place(program);
     List<MplBlock> blocks =
         chains.stream().flatMap(c -> c.getBlocks().stream()).collect(Collectors.toList());
@@ -137,7 +133,7 @@ public class MplCompiler extends MplBaseListener {
   private MplProgram assemble(File programFile) throws IOException {
     includeTodos = new LinkedList<Include>();
     MplInterpreter main = interpret(programFile);
-    if (main.isScript()) {
+    if (!main.isProject()) {
       return main.getScript();
     }
     project = main.getProject();
@@ -158,23 +154,28 @@ public class MplCompiler extends MplBaseListener {
 
     doIncludes();
     if (project.hasBreakpoint()) {
-      addBreakpointProcess();
+      // addBreakpointProcess();
     }
     return project;
   }
 
-  private void addBreakpointProcess() {
-    List<ChainPart> commands = new LinkedList<>();
-    commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
-    commands.add(new InternalCommand(
-        "tellraw @a [{\"text\":\"[tp to breakpoint]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/tp @p @e[name=breakpoint_NOTIFY,c=-1]\"}},{\"text\":\"   \"},{\"text\":\"[continue program]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/execute @e[name=breakpoint_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block\"}}]"));
-    commands.add(new InternalCommand(
-        "summon ArmorStand ${this + 1} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
-    commands.add(new Skip(true));
-    commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
-    commands.add(new InternalCommand("kill @e[name=breakpoint_NOTIFY]"));
-    project.addProcess(new MplProcess("breakpoint", commands));
-  }
+  // private void addBreakpointProcess() {
+  // List<ChainPart> commands = new LinkedList<>();
+  // commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
+  // commands.add(new InternalCommand(
+  // "tellraw @a [{\"text\":\"[tp to
+  // breakpoint]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/tp @p
+  // @e[name=breakpoint_NOTIFY,c=-1]\"}},{\"text\":\" \"},{\"text\":\"[continue
+  // program]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/execute
+  // @e[name=breakpoint_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block\"}}]"));
+  // commands.add(new InternalCommand(
+  // "summon ArmorStand ${this + 1}
+  // {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
+  // commands.add(new Skip(true));
+  // commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
+  // commands.add(new InternalCommand("kill @e[name=breakpoint_NOTIFY]"));
+  // project.addProcess(new MplProcess("breakpoint", commands));
+  // }
 
   private void doIncludes() {
     while (!includeTodos.isEmpty()) {
@@ -200,7 +201,7 @@ public class MplCompiler extends MplBaseListener {
         lastException = new FileException(ex, file);
         continue;
       }
-      if (interpreter.isScript()) {
+      if (!interpreter.isProject()) {
         continue;
       }
       MplProject project = interpreter.getProject();
@@ -263,7 +264,7 @@ public class MplCompiler extends MplBaseListener {
         project.getExceptions().add(compilerException);
         return;
       }
-      if (interpreter.isScript()) {
+      if (!interpreter.isProject()) {
         CompilerException compilerException = new CompilerException(include.getSource(),
             "Can't include script '" + file.getName() + "'. Scripts may not be included.");
         project.getExceptions().add(compilerException);

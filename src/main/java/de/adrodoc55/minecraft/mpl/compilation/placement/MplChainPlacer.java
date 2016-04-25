@@ -74,6 +74,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.program.MplProject;
 import de.adrodoc55.minecraft.mpl.program.MplScript;
@@ -101,10 +102,12 @@ public abstract class MplChainPlacer {
   }
 
   protected final MplProgram program;
+  protected final CompilerOptions options;
   protected final List<CommandBlockChain> chains = new LinkedList<CommandBlockChain>();
 
-  protected MplChainPlacer(MplProgram program) {
+  protected MplChainPlacer(MplProgram program, CompilerOptions options) {
     this.program = program;
+    this.options = options;
   }
 
   protected Orientation3D getOrientation() {

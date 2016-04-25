@@ -55,6 +55,9 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
+/**
+ * @author Adrodoc55
+ */
 @lombok.EqualsAndHashCode(callSuper = true)
 @lombok.ToString(callSuper = true, includeFieldNames = true)
 public class MplIntercept extends PossiblyConditionalChainPart {
@@ -72,9 +75,14 @@ public class MplIntercept extends PossiblyConditionalChainPart {
   }
 
   public MplIntercept(@Nonnull String process, @Nullable Conditional conditional,
-      @Nullable Mode previousMode) {
-    super(conditional, previousMode);
+      @Nullable ModeOwner previous) {
+    super(conditional, previous);
     this.process = checkNotNull(process, "process == null!");
+  }
+
+  @Override
+  public String getName() {
+    return "intercept";
   }
 
   @Override
@@ -85,7 +93,7 @@ public class MplIntercept extends PossiblyConditionalChainPart {
     // TODO: testen
     if (isConditional()) {
       if (getConditional() == Conditional.CONDITIONAL) {
-        commands.add(new InvertingCommand(previousMode));
+        commands.add(new InvertingCommand(previous.getMode()));
       }
       commands.add(new InternalCommand("setblock ${this + 3} redstone_block", true));
     }
@@ -101,11 +109,6 @@ public class MplIntercept extends PossiblyConditionalChainPart {
     commands.add(new InternalCommand(
         "entitydata @e[name=" + process + INTERCEPTED + "] {CustomName:" + process + "}"));
     return null;
-  }
-
-  @Override
-  public Mode getModeToInvert() throws IllegalModifierException {
-    throw new IllegalModifierException("Cannot depend on intercept");
   }
 
 }

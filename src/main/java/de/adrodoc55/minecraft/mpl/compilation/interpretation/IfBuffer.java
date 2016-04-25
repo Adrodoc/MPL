@@ -55,6 +55,7 @@ import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
 /**
  * @author Adrodoc55
  */
+@Deprecated
 class IfBuffer {
   private final ChainBuffer origin;
   private final LinkedList<IfNestingLayer> stack = new LinkedList<>();

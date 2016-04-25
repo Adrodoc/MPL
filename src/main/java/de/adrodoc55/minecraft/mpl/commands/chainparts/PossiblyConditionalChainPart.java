@@ -48,12 +48,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 import lombok.EqualsAndHashCode;
 
+/**
+ * @author Adrodoc55
+ */
 @EqualsAndHashCode
 @lombok.ToString(includeFieldNames = true)
 public abstract class PossiblyConditionalChainPart implements ChainPart {
@@ -61,16 +63,16 @@ public abstract class PossiblyConditionalChainPart implements ChainPart {
   @Nonnull
   protected Conditional conditional;
   @Nullable
-  protected Mode previousMode;
+  protected ModeOwner previous;
 
   public PossiblyConditionalChainPart(@Nullable Conditional conditional) {
     this(conditional, null);
   }
 
   public PossiblyConditionalChainPart(@Nullable Conditional conditional,
-      @Nullable Mode previousMode) {
+      @Nullable ModeOwner previous) {
     this.conditional = (conditional != null) ? conditional : Conditional.DEFAULT;
-    this.previousMode = previousMode;
+    this.previous = previous;
   }
 
   public @Nonnull Conditional getConditional() {
@@ -93,21 +95,17 @@ public abstract class PossiblyConditionalChainPart implements ChainPart {
     }
   }
 
-  public @Nullable Mode getPreviousMode() {
-    return previousMode;
-  }
-
-  public void setPreviousMode(@Nullable Mode previousMode) {
-    this.previousMode = previousMode;
+  public void setPrevious(ModeOwner previousMode) {
+    this.previous = previousMode;
   }
 
   public List<ChainLink> toCommands() throws IllegalModifierException {
     ArrayList<ChainLink> commands = new ArrayList<>();
     if (conditional == Conditional.INVERT) {
-      if (previousMode == null) {
-        throw new IllegalModifierException("The first command of a chain must be unconditional!");
+      if (previous == null) {
+        throw new IllegalModifierException("The first part of a chain must be unconditional");
       }
-      InvertingCommand e = new InvertingCommand(previousMode);
+      InvertingCommand e = new InvertingCommand(previous.getMode());
       commands.add(e);
     }
     return commands;

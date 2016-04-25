@@ -40,7 +40,6 @@
 package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.chainparts.MplNotify.NOTIFY;
 
 import java.util.List;
@@ -49,12 +48,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
+/**
+ * @author Adrodoc55
+ */
 @lombok.EqualsAndHashCode(callSuper = true)
 @lombok.ToString(callSuper = true, includeFieldNames = true)
 public class MplBreakpoint extends PossiblyConditionalChainPart {
@@ -71,9 +72,14 @@ public class MplBreakpoint extends PossiblyConditionalChainPart {
   }
 
   public MplBreakpoint(@Nonnull String source, @Nullable Conditional conditional,
-      @Nullable Mode previousMode) {
-    super(conditional, previousMode);
+      @Nullable ModeOwner previous) {
+    super(conditional, previous);
     this.source = checkNotNull(source, "source == null!");
+  }
+
+  @Override
+  public String getName() {
+    return "breakpoint";
   }
 
   @Override
@@ -85,11 +91,6 @@ public class MplBreakpoint extends PossiblyConditionalChainPart {
     commands.addAll(new MplStart("breakpoint", conditional).toCommands(options));
     commands.addAll(new MplWaitfor("breakpoint" + NOTIFY, conditional).toCommands(options));
     return commands;
-  }
-
-  @Override
-  public Mode getModeToInvert() throws IllegalModifierException {
-    return CHAIN;
   }
 
 }

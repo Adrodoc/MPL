@@ -56,6 +56,9 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
+/**
+ * @author Adrodoc55
+ */
 @lombok.EqualsAndHashCode(callSuper = true)
 @lombok.ToString(callSuper = true, includeFieldNames = true)
 public class MplWaitfor extends PossiblyConditionalChainPart {
@@ -72,9 +75,14 @@ public class MplWaitfor extends PossiblyConditionalChainPart {
   }
 
   public MplWaitfor(@Nonnull String event, @Nullable Conditional conditional,
-      @Nullable Mode previousMode) {
-    super(conditional, previousMode);
+      @Nullable ModeOwner previous) {
+    super(conditional, previous);
     this.event = checkNotNull(event, "event == null!");
+  }
+
+  @Override
+  public String getName() {
+    return "waitfor";
   }
 
   @Override
@@ -100,11 +108,6 @@ public class MplWaitfor extends PossiblyConditionalChainPart {
       commands.add(new InternalCommand("entitydata ~ ~ ~ {auto:0}", Mode.IMPULSE, false));
     }
     return commands;
-  }
-
-  @Override
-  public Mode getModeToInvert() throws IllegalModifierException {
-    throw new IllegalModifierException("Cannot depend on waitfor");
   }
 
 }

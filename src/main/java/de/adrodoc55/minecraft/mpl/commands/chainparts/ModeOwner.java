@@ -37,14 +37,18 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 
 /**
  * @author Adrodoc55
  */
-public interface ChainLink {
-  MplBlock toBlock(Coordinate3D coordinate);
+public interface ModeOwner {
+  /**
+   * Returns the {@link Mode} that should be used for an invert depending on this {@link ModeOwner}.
+   *
+   * @return mode
+   */
+  Mode getMode();
 }

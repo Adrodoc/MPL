@@ -55,9 +55,12 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
+/**
+ * @author Adrodoc55
+ */
 @lombok.EqualsAndHashCode(callSuper = true)
 @lombok.ToString(callSuper = true, includeFieldNames = true)
-public class MplStop extends PossiblyConditionalChainPart {
+public class MplStop extends PossiblyConditionalChainPart implements ModeOwner {
 
   private final @Nonnull String process;
 
@@ -71,9 +74,14 @@ public class MplStop extends PossiblyConditionalChainPart {
   }
 
   public MplStop(@Nonnull String process, @Nullable Conditional conditional,
-      @Nullable Mode previousMode) {
-    super(conditional, previousMode);
+      @Nullable ModeOwner previous) {
+    super(conditional, previous);
     this.process = checkNotNull(process, "process == null!");
+  }
+
+  @Override
+  public String getName() {
+    return "stop";
   }
 
   @Override
@@ -90,7 +98,7 @@ public class MplStop extends PossiblyConditionalChainPart {
   }
 
   @Override
-  public Mode getModeToInvert() throws IllegalModifierException {
+  public Mode getMode() {
     return CHAIN;
   }
 

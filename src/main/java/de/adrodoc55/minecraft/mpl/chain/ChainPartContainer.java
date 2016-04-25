@@ -37,14 +37,36 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+package de.adrodoc55.minecraft.mpl.chain;
 
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
+import java.util.ArrayList;
+import java.util.List;
+
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
 /**
  * @author Adrodoc55
  */
-public interface ChainLink {
-  MplBlock toBlock(Coordinate3D coordinate);
+public interface ChainPartContainer {
+  List<ChainPart> getChainParts();
+
+  public default List<ChainLink> toChainLinks(CompilerOptions options) {
+    List<ChainLink> chainLinks = new ArrayList<>();
+    try {
+      for (ChainPart chainPart : getChainParts()) {
+        for (ChainLink chainLink : chainPart.toCommands(options)) {
+          chainLinks.add(chainLink);
+        }
+      }
+    } catch (IllegalModifierException ex) {
+      throw new RuntimeException("Unhandled " + ex);
+    }
+    return chainLinks;
+  }
+
+  public abstract CommandChain toCommandChain(CompilerOptions options);
+
 }

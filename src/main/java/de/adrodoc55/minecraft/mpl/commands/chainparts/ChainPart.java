@@ -41,7 +41,7 @@ package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
 import java.util.List;
 
-import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.commons.Named;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
@@ -49,17 +49,6 @@ import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierExce
 /**
  * @author Adrodoc55
  */
-public interface ChainPart {
+public interface ChainPart extends Named {
   List<? extends ChainLink> toCommands(CompilerOptions options) throws IllegalModifierException;
-
-  /**
-   * Returns the {@link Mode} that should be used for an invert depending on this {@link ChainPart}.
-   * If this {@link ChainPart} cannot be depended on, this method will throw an
-   * {@link IllegalModifierException} with an end user message like:<br>
-   * "Cannot depend on waitfor"
-   *
-   * @return
-   * @throws IllegalModifierException
-   */
-  Mode getModeToInvert() throws IllegalModifierException;
 }

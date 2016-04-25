@@ -39,12 +39,15 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation.interpretation;
 
-import java.util.List;
+import java.util.Deque;
 
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
 
+/**
+ * @author Adrodoc55
+ */
 public interface ChainPartBuffer {
   void add(ChainPart cp);
 
-  List<ChainPart> getChainParts();
+  Deque<ChainPart> getChainParts();
 }

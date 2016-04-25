@@ -40,22 +40,30 @@
 package de.adrodoc55.minecraft.mpl.chain;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
-public class MplProcess {
+public class MplProcess implements ChainPartContainer {
 
   private final String name;
   private final boolean repeating;
@@ -89,13 +97,38 @@ public class MplProcess {
     return source;
   }
 
+  @Override
   public @Nonnull List<ChainPart> getChainParts() {
     return Collections.unmodifiableList(chainParts);
   }
 
-  public void setChainParts(@Nonnull List<ChainPart> chainParts) {
+  public void setChainParts(@Nonnull Collection<ChainPart> chainParts) {
     this.chainParts.clear();
     this.chainParts.addAll(chainParts);
+  }
+
+  @Override
+  public NamedCommandChain toCommandChain(CompilerOptions options) {
+    List<ChainLink> chainLinks = new ArrayList<>();
+    if (options.hasOption(TRANSMITTER)) {
+      chainLinks.add(new Skip(false));
+    }
+    if (isRepeating()) {
+      // if (chainParts.isEmpty()) {
+      chainLinks.add(new InternalCommand("", REPEAT, false));
+      // } else {
+      // ChainPart first = chainParts.get(0);
+      // first.setMode(REPEAT);
+      // }
+    } else {
+      if (options.hasOption(TRANSMITTER)) {
+        chainLinks.add(new InternalCommand("/setblock ${this - 1} stone", Mode.IMPULSE, false));
+      } else {
+        chainLinks.add(new InternalCommand("/entitydata ~ ~ ~ {auto:0}", Mode.IMPULSE, false));
+      }
+    }
+    chainLinks.addAll(toChainLinks(options));
+    return new NamedCommandChain(getName(), chainLinks);
   }
 
   @Override

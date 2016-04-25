@@ -51,10 +51,12 @@ import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.chain.MplProcess;
+import de.adrodoc55.minecraft.mpl.chain.NamedCommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.program.MplProject;
 import de.kussm.direction.Directions;
 
@@ -66,13 +68,18 @@ public class MplProjectPlacer extends MplChainPlacer {
   private final LinkedList<MplProcess> processes;
   private final int[] occupied;
 
-  public MplProjectPlacer(MplProject project) {
-    super(project);
+  public MplProjectPlacer(MplProject project, CompilerOptions options) {
+    super(project, options);
     processes = new LinkedList<>(project.getProcesses());
     occupied = new int[processes.size()];
 
     // The first block of each chain that start's with a RECIEVER must be a TRANSMITTER
     for (MplProcess process : processes) {
+      if(process.isRepeating()) {
+        NamedCommandChain chain = process.toCommandChain(options);
+      }
+
+
       List<ChainPart> commands = process.getChainParts();
       if (commands.isEmpty() || !isReceiver(commands.get(0))) {
         continue;
@@ -97,7 +104,7 @@ public class MplProjectPlacer extends MplChainPlacer {
   private void addChain(MplProcess process) {
     Coordinate3D start = findStart(process);
     Directions template = newDirectionsTemplate(getOptimalSize(), getOrientation());
-    CommandBlockChain materialized = generateFlat(process, start, template);
+    CommandBlockChain materialized = generateFlat(process.to, start, template);
     occupyBlocks(materialized);
     chains.add(materialized);
   }

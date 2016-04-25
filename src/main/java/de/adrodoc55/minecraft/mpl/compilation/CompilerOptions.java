@@ -44,6 +44,9 @@ import java.util.Arrays;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
+/**
+ * @author Adrodoc55
+ */
 public class CompilerOptions {
   private ImmutableSet<CompilerOption> options;
 
@@ -55,6 +58,9 @@ public class CompilerOptions {
     return options.contains(option);
   }
 
+  /**
+   * @author Adrodoc55
+   */
   public enum CompilerOption {
     DEBUG, TRANSMITTER
   }
