@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation.interpretation;
 
+import static de.adrodoc55.minecraft.mpl.commands.chainparts.MplNotify.NOTIFY;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -93,15 +95,15 @@ import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
-import de.adrodoc55.minecraft.mpl.commands.chainparts.Breakpoint;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.commands.chainparts.MplIntercept;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.MplCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.MplIntercept;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.MplNotify;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.MplStart;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.MplStop;
-import de.adrodoc55.minecraft.mpl.commands.chainparts.MplNotify;
-import de.adrodoc55.minecraft.mpl.commands.chainparts.PossiblyConditionalChainPart;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.MplWaitfor;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.PossiblyConditionalChainPart;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.program.MplProgram;
@@ -112,9 +114,6 @@ import de.adrodoc55.minecraft.mpl.program.MplScript;
  * @author Adrodoc55
  */
 public class MplInterpreter extends MplBaseListener {
-
-  public static final String NOTIFY = "_NOTIFY";
-  public static final String INTERCEPTED = "_INTERCEPTED";
 
   public static MplInterpreter interpret(File programFile) throws IOException {
     FileContext ctx = parse(programFile);
@@ -540,16 +539,22 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterStop(StopContext ctx) {
+    Token token = ctx.STOP().getSymbol();
+    String line = lines.get(token.getLine() - 1);
+    MplSource source = new MplSource(programFile, token, line);
+
     String process;
     if (ctx.IDENTIFIER() != null) {
       process = ctx.IDENTIFIER().getText();
     } else if (this.process != null) {
-      process = this.process.getName();
+      if (this.process.isRepeating()) {
+        process = this.process.getName();
+      } else {
+        addException(new CompilerException(source, "An impulse process cannot be stopped"));
+        return;
+      }
     } else {
-      Token token = ctx.STOP().getSymbol();
-      String line = lines.get(token.getLine() - 1);
-      MplSource source = new MplSource(programFile, token, line);
-      addException(new CompilerException(source, "An impulse process can't be stopped."));
+      addException(new CompilerException(source, "Missing identifier"));
       return;
     }
 
@@ -583,7 +588,7 @@ public class MplInterpreter extends MplBaseListener {
     } else {
       MplSource source = new MplSource(programFile, token, line);
       addException(new CompilerException(source,
-          "Missing Identifier. No previous start was found to wait for."));
+          "Missing identifier; no previous start was found to wait for"));
       return;
     }
     Conditional conditional = modifierBuffer.getConditional();
@@ -596,16 +601,20 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterNotifyDeclaration(NotifyDeclarationContext ctx) {
-    if (process == null) {
+    if (this.process == null) {
       Token token = ctx.NOTIFY().getSymbol();
       String line = lines.get(token.getLine() - 1);
       MplSource source = new MplSource(programFile, token, line);
-      addException(new CompilerException(source, "Notify may only be used in a process"));
+      addException(new CompilerException(source, "Notify can only be used in a process"));
       return;
     }
-    MplNotify notify = new MplNotify(process.getName());
-    notify.setConditional(modifierBuffer.getConditional());
-    chainBuffer.add(notify);
+    String process = this.process.getName();
+    Conditional conditional = modifierBuffer.getConditional();
+    MplNotify notify = new MplNotify(process, conditional);
+    addPossiblyConditionalChainPart(notify);
+
+    checkNoModifier("notify", modifierBuffer.getModeToken());
+    checkNoModifier("notify", modifierBuffer.getNeedsRedstoneToken());
   }
 
   @Override
@@ -620,10 +629,26 @@ public class MplInterpreter extends MplBaseListener {
 
     TerminalNode identifier = ctx.IDENTIFIER();
     String process = identifier.getText();
+    Conditional conditional = modifierBuffer.getConditional();
+    MplIntercept intercept = new MplIntercept(process, conditional);
+    addPossiblyConditionalChainPart(intercept);
 
-    MplIntercept intercept = new MplIntercept(process);
-    intercept.setConditional(modifierBuffer.getConditional());
-    chainBuffer.add(intercept);
+    checkNoModifier("intercept", modifierBuffer.getModeToken());
+    checkNoModifier("intercept", modifierBuffer.getNeedsRedstoneToken());
+  }
+
+  @Override
+  public void enterBreakpoint(BreakpointContext ctx) {
+    int line = ctx.BREAKPOINT().getSymbol().getLine();
+    String source = programFile.getName() + " : line " + line;
+    Conditional conditional = modifierBuffer.getConditional();
+    MplBreakpoint breakpoint = new MplBreakpoint(source, conditional);
+    addPossiblyConditionalChainPart(breakpoint);
+
+    checkNoModifier("breakpoint", modifierBuffer.getModeToken());
+    checkNoModifier("breakpoint", modifierBuffer.getNeedsRedstoneToken());
+
+//    getProject().setHasBreakpoint(true);
   }
 
   @Override
@@ -637,17 +662,6 @@ public class MplInterpreter extends MplBaseListener {
       return;
     }
     chainBuffer.add(new Skip(false));
-  }
-
-  @Override
-  public void enterBreakpoint(BreakpointContext ctx) {
-    int line = ctx.BREAKPOINT().getSymbol().getLine();
-    String source = programFile.getName() + " : line " + line;
-    Breakpoint breakpoint = new Breakpoint(source);
-    breakpoint.setConditional(modifierBuffer.getConditional());
-    chainBuffer.add(breakpoint);
-
-    getProject().setHasBreakpoint(true);
   }
 
   @Override

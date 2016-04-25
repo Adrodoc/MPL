@@ -45,7 +45,7 @@ import javax.annotation.Nonnull;
 
 import com.google.common.base.Preconditions;
 
-import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 
 /**
  * @author Adrodoc55
@@ -54,7 +54,7 @@ public class NamedCommandChain extends CommandChain {
 
   protected final String name;
 
-  public NamedCommandChain(@Nonnull String name, List<ChainPart> commands) {
+  public NamedCommandChain(@Nonnull String name, List<ChainLink> commands) {
     super(commands);
     this.name = Preconditions.checkNotNull(name, "name == null!");
   }

@@ -47,6 +47,7 @@ import javax.annotation.concurrent.Immutable;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
@@ -55,6 +56,8 @@ import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierExce
  * @author Adrodoc55
  */
 @Immutable
+@lombok.EqualsAndHashCode
+@lombok.ToString(includeFieldNames = true)
 public class Skip implements ChainPart, ChainLink {
   private final boolean internal;
 
@@ -80,30 +83,8 @@ public class Skip implements ChainPart, ChainLink {
   }
 
   @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + (internal ? 1231 : 1237);
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    Skip other = (Skip) obj;
-    if (internal != other.internal)
-      return false;
-    return true;
-  }
-
-  @Override
-  public String toString() {
-    return "Skip [internal=" + internal + "]";
+  public Mode getModeToInvert() throws IllegalModifierException {
+    throw new IllegalModifierException("Cannot depend on skip");
   }
 
 }

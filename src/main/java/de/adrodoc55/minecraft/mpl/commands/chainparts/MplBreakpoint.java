@@ -41,7 +41,7 @@ package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
+import static de.adrodoc55.minecraft.mpl.commands.chainparts.MplNotify.NOTIFY;
 
 import java.util.List;
 
@@ -51,41 +51,39 @@ import javax.annotation.Nullable;
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
 @lombok.EqualsAndHashCode(callSuper = true)
 @lombok.ToString(callSuper = true, includeFieldNames = true)
-public class MplStart extends PossiblyConditionalChainPart {
+public class MplBreakpoint extends PossiblyConditionalChainPart {
 
-  private final @Nonnull String process;
+  private final @Nonnull String source;
 
-  public MplStart(@Nonnull String process) {
-    this(process, null);
+  public MplBreakpoint(@Nonnull String source) {
+    this(source, null);
   }
 
-  public MplStart(@Nonnull String process, @Nullable Conditional conditional) {
+  public MplBreakpoint(@Nonnull String source, @Nullable Conditional conditional) {
     super(conditional);
-    this.process = checkNotNull(process, "process == null!");
+    this.source = checkNotNull(source, "source == null!");
   }
 
-  public MplStart(@Nonnull String process, @Nullable Conditional conditional,
+  public MplBreakpoint(@Nonnull String source, @Nullable Conditional conditional,
       @Nullable Mode previousMode) {
     super(conditional, previousMode);
-    this.process = checkNotNull(process, "process == null!");
+    this.source = checkNotNull(source, "source == null!");
   }
 
   @Override
-  public List<ChainLink> toCommands(CompilerOptions options) throws IllegalModifierException {
+  public List<? extends ChainLink> toCommands(CompilerOptions options)
+      throws IllegalModifierException {
     List<ChainLink> commands = super.toCommands();
-    String command;
-    if (options.hasOption(TRANSMITTER)) {
-      command = "execute @e[name=" + process + "] ~ ~ ~ setblock ~ ~ ~ redstone_block";
-    } else {
-      command = "execute @e[name=" + process + "] ~ ~ ~ blockdata ~ ~ ~ {auto:1}";
-    }
-    commands.add(new Command(command, isConditional()));
+    Conditional conditional = isConditional() ? Conditional.CONDITIONAL : Conditional.UNCONDITIONAL;
+    commands.add(new InternalCommand("say encountered breakpoint " + source, isConditional()));
+    commands.addAll(new MplStart("breakpoint", conditional).toCommands(options));
+    commands.addAll(new MplWaitfor("breakpoint" + NOTIFY, conditional).toCommands(options));
     return commands;
   }
 

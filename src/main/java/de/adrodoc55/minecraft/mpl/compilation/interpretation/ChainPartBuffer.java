@@ -37,35 +37,14 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainparts;
-
-import static de.adrodoc55.minecraft.mpl.compilation.interpretation.MplInterpreter.NOTIFY;
+package de.adrodoc55.minecraft.mpl.compilation.interpretation;
 
 import java.util.List;
 
-import de.adrodoc55.minecraft.mpl.commands.Conditional;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
-import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
-import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
 
-@lombok.ToString(includeFieldNames = true)
-public class Breakpoint extends PossiblyConditionalChainPart {
-  private String source;
+public interface ChainPartBuffer {
+  void add(ChainPart cp);
 
-  public Breakpoint(String source) {
-    this.source = source;
-  }
-
-  @Override
-  public List<? extends ChainLink> toCommands(CompilerOptions options)
-      throws IllegalModifierException {
-    List<ChainLink> commands = super.toCommands();
-    Conditional conditional = isConditional() ? Conditional.CONDITIONAL : Conditional.UNCONDITIONAL;
-    commands.add(new InternalCommand("say encountered breakpoint " + source, isConditional()));
-    commands.addAll(new MplStart("breakpoint", conditional).toCommands(options));
-    commands.addAll(new MplWaitfor("breakpoint" + NOTIFY, conditional).toCommands(options));
-    return commands;
-  }
-
+  List<ChainPart> getChainParts();
 }

@@ -58,7 +58,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 public class MplProcess {
 
   private final String name;
-  private final boolean repeat;
+  private final boolean repeating;
   private final MplSource source;
   private final List<ChainPart> chainParts = new ArrayList<>();
 
@@ -71,9 +71,9 @@ public class MplProcess {
   }
 
   @GenerateMplPojoBuilder
-  public MplProcess(@Nonnull String name, boolean repeat, @Nullable MplSource source) {
+  public MplProcess(@Nonnull String name, boolean repeating, @Nullable MplSource source) {
     this.name = checkNotNull(name, "name == null!");
-    this.repeat = repeat;
+    this.repeating = repeating;
     this.source = source;
   }
 
@@ -81,8 +81,8 @@ public class MplProcess {
     return name;
   }
 
-  public boolean isRepeat() {
-    return repeat;
+  public boolean isRepeating() {
+    return repeating;
   }
 
   public @Nullable MplSource getSource() {

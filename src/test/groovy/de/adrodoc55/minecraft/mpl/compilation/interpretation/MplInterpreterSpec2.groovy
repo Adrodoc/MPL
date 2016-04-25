@@ -42,6 +42,7 @@ package de.adrodoc55.minecraft.mpl.compilation.interpretation
 import static de.adrodoc55.minecraft.mpl.MplTestBase.someIdentifier
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.*
 import static de.adrodoc55.minecraft.mpl.commands.Mode.*
+import static de.adrodoc55.minecraft.mpl.commands.chainparts.MplNotify.NOTIFY
 
 import org.junit.Test
 
@@ -51,7 +52,11 @@ import de.adrodoc55.minecraft.mpl.chain.MplProcess
 import de.adrodoc55.minecraft.mpl.commands.Conditional
 import de.adrodoc55.minecraft.mpl.commands.Mode
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart
+import de.adrodoc55.minecraft.mpl.commands.chainparts.MplBreakpoint
 import de.adrodoc55.minecraft.mpl.commands.chainparts.MplCommand
+import de.adrodoc55.minecraft.mpl.commands.chainparts.MplIf
+import de.adrodoc55.minecraft.mpl.commands.chainparts.MplIntercept
+import de.adrodoc55.minecraft.mpl.commands.chainparts.MplNotify
 import de.adrodoc55.minecraft.mpl.commands.chainparts.MplStart
 import de.adrodoc55.minecraft.mpl.commands.chainparts.MplStop
 import de.adrodoc55.minecraft.mpl.commands.chainparts.MplWaitfor
@@ -76,19 +81,20 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProject project = interpreter.project
-    project.exceptions[0].source.file == lastTempFile
-    project.exceptions[0].source.token.line == 2
-    project.exceptions[0].source.token.text == 'project'
+
     project.exceptions[0].message == "A file may only contain a single project!"
-    project.exceptions[1].source.file == lastTempFile
-    project.exceptions[1].source.token.line == 3
-    project.exceptions[1].source.token.text == 'project'
+    project.exceptions[0].source.file == lastTempFile
+    project.exceptions[0].source.token.text == 'project'
+    project.exceptions[0].source.token.line == 2
     project.exceptions[1].message == "A file may only contain a single project!"
+    project.exceptions[1].source.file == lastTempFile
+    project.exceptions[1].source.token.text == 'project'
+    project.exceptions[1].source.token.line == 3
     project.exceptions.size() == 2
   }
 
   @Test
-  public void "A projekt an processes can be defined in the same file"() {
+  public void "A project an processes can be defined in the same file"() {
     given:
     String id1 = someIdentifier()
     String id2 = someIdentifier()
@@ -117,14 +123,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProject project = interpreter.project
-    project.exceptions[0].source.file == lastTempFile
-    project.exceptions[0].source.token.line == 3
-    project.exceptions[0].source.token.text == 'orientation'
+
     project.exceptions[0].message == "A project may only have a single orientation!"
-    project.exceptions[1].source.file == lastTempFile
-    project.exceptions[1].source.token.line == 4
-    project.exceptions[1].source.token.text == 'orientation'
+    project.exceptions[0].source.file == lastTempFile
+    project.exceptions[0].source.token.text == 'orientation'
+    project.exceptions[0].source.token.line == 3
     project.exceptions[1].message == "A project may only have a single orientation!"
+    project.exceptions[1].source.file == lastTempFile
+    project.exceptions[1].source.token.text == 'orientation'
+    project.exceptions[1].source.token.line == 4
     project.exceptions.size() == 2
   }
 
@@ -139,14 +146,14 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplScript script = interpreter.script
-    script.exceptions[0].source.file == lastTempFile
-    script.exceptions[0].source.token.line == 2
-    script.exceptions[0].source.token.text == 'orientation'
     script.exceptions[0].message == "A script may only have a single orientation!"
-    script.exceptions[1].source.file == lastTempFile
-    script.exceptions[1].source.token.line == 3
-    script.exceptions[1].source.token.text == 'orientation'
+    script.exceptions[0].source.file == lastTempFile
+    script.exceptions[0].source.token.text == 'orientation'
+    script.exceptions[0].source.token.line == 2
     script.exceptions[1].message == "A script may only have a single orientation!"
+    script.exceptions[1].source.file == lastTempFile
+    script.exceptions[1].source.token.text == 'orientation'
+    script.exceptions[1].source.token.line == 3
     script.exceptions.size() == 2
   }
 
@@ -167,14 +174,14 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProject project = interpreter.project
-    project.exceptions[0].source.file == lastTempFile
-    project.exceptions[0].source.token.line == 2
-    project.exceptions[0].source.token.text == id
     project.exceptions[0].message == "Duplicate process ${id}!"
-    project.exceptions[1].source.file == lastTempFile
-    project.exceptions[1].source.token.line == 6
-    project.exceptions[1].source.token.text == id
+    project.exceptions[0].source.file == lastTempFile
+    project.exceptions[0].source.token.text == id
+    project.exceptions[0].source.token.line == 2
     project.exceptions[1].message == "Duplicate process ${id}!"
+    project.exceptions[1].source.file == lastTempFile
+    project.exceptions[1].source.token.text == id
+    project.exceptions[1].source.token.line == 6
     project.exceptions.size() == 2
   }
 
@@ -205,19 +212,19 @@ class MplInterpreterSpec2 extends MplSpecBase {
     processes.size() == 3
 
     MplProcess process1 = processes.find { it.name == id1 }
-    process1.repeat == false
+    process1.repeating == false
     List<ChainPart> chainParts1 = process1.chainParts
     chainParts1[0] == new MplCommand("say I am a default process")
     chainParts1.size() == 1
 
     MplProcess process2 = processes.find { it.name == id2 }
-    process2.repeat == false
+    process2.repeating == false
     List<ChainPart> chainParts2 = process2.chainParts
     chainParts2[0] == new MplCommand("say I am an impulse process, wich is actually equivalent to the default")
     chainParts2.size() == 1
 
     MplProcess process3 = processes.find { it.name == id3 }
-    process3.repeat == true
+    process3.repeating == true
     List<ChainPart> chainParts3 = process3.chainParts
     chainParts3[0] == new MplCommand("say I am a repeating process. I am completely different :)")
     chainParts3.size() == 1
@@ -258,28 +265,97 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
-  @Unroll("leading conditional with identifier: '#command'")
-  public void "leading conditional with identifier"(String command) {
+  @Unroll("leading #conditional #command with identifier in script")
+  public void "leading conditional/invert with identifier in script"(String conditional, String command) {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    ${conditional}: ${command} ${identifier}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "The first part of a chain must be unconditional"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == conditional
+    program.exceptions[0].source.token.line == 2
+    program.exceptions.size() == 1
+
+    where:
+    [conditional, command]<< [['conditional', 'invert'], ['start', 'stop', 'waitfor', 'intercept']].combinations()*.flatten()
+  }
+
+  @Test
+  @Unroll("leading #conditional #command with identifier in process")
+  public void "leading conditional/invert with identifier in process"(String conditional, String command) {
     given:
     String identifier = someIdentifier()
     String programString = """
     process main (
-      conditional: ${command} ${identifier}
+      ${conditional}: ${command} ${identifier}
     )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplProject project = interpreter.project
+    MplProgram program = interpreter.program
 
-    project.exceptions[0].source.file == lastTempFile
-    project.exceptions[0].source.token.line == 3
-    project.exceptions[0].source.token.text == 'conditional'
-    project.exceptions[0].message == "The first part of a chain must be unconditional"
-    project.exceptions.size() == 1
+    program.exceptions[0].message == "The first part of a chain must be unconditional"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == conditional
+    program.exceptions[0].source.token.line == 3
+    program.exceptions.size() == 1
 
     where:
-    command << ['start', 'stop', 'waitfor', 'notify', 'intercept', 'breakpoint']
+    [conditional, command]<< [['conditional', 'invert'], ['start', 'stop', 'waitfor', 'intercept']].combinations()*.flatten()
+  }
+
+  @Test
+  @Unroll("leading #conditional #command without identifier in script")
+  public void "leading conditional/invert without identifier in script"(String conditional, String command) {
+    given:
+    String programString = """
+    ${conditional}: ${command}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "The first part of a chain must be unconditional"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == conditional
+    program.exceptions[0].source.token.line == 2
+    program.exceptions.size() == 1
+
+    where:
+    [conditional, command]<< [['conditional', 'invert'], ['breakpoint']].combinations()*.flatten()
+  }
+
+  @Test
+  @Unroll("leading #conditional #command without identifier in process")
+  public void "leading conditional/invert without identifier in process"(String conditional, String command) {
+    given:
+    String programString = """
+    process main (
+      ${conditional}: ${command}
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "The first part of a chain must be unconditional"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == conditional
+    program.exceptions[0].source.token.line == 3
+    program.exceptions.size() == 1
+
+    where:
+    [conditional, command]<< [['conditional', 'invert'], ['notify', 'breakpoint']].combinations()*.flatten()
   }
 
   // ----------------------------------------------------------------------------------------------------
@@ -292,70 +368,46 @@ class MplInterpreterSpec2 extends MplSpecBase {
   // ----------------------------------------------------------------------------------------------------
 
   @Test
-  public void "start with identifier"() {
+  @Unroll("#modifier start with identifier")
+  public void "start with identifier"(String modifier, Conditional conditional, Mode previousMode) {
     given:
     String identifier = someIdentifier()
     String programString = """
-    process main (
-      start ${identifier}
-    )
+    /say hi
+    ${modifier} start ${identifier}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplProject project = interpreter.project
-    project.exceptions.isEmpty()
-    project.processes.size() == 1
-    MplProcess process = project.processes.first()
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    process.chainParts[0] == new MplStart(identifier)
-    process.chainParts.size() == 1
+    script.chainParts[0] == new MplCommand('say hi')
+    script.chainParts[1] == new MplStart(identifier, conditional, previousMode)
+    script.chainParts.size() == 2
+    where:
+    modifier        | conditional   | previousMode
+    ''              | UNCONDITIONAL | null
+    'unconditional:'| UNCONDITIONAL | null
+    'conditional:'  | CONDITIONAL   | CHAIN
+    'invert:'       | INVERT        | CHAIN
   }
 
   @Test
-  public void "conditional start with identifier"() {
+  public void "start with identifier in script"() {
     given:
     String identifier = someIdentifier()
     String programString = """
-    process main (
-      /say hi
-      conditional: start ${identifier}
-    )
+    start ${identifier}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplProject project = interpreter.project
-    project.exceptions.isEmpty()
-    project.processes.size() == 1
-    MplProcess process = project.processes.first()
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    process.chainParts[0] == new MplCommand('say hi')
-    process.chainParts[1] == new MplStart(identifier, CONDITIONAL, CHAIN)
-    process.chainParts.size() == 2
-  }
-
-  @Test
-  public void "invert start with identifier"() {
-    given:
-    String identifier = someIdentifier()
-    String programString = """
-    process main (
-      /say hi
-      invert: start ${identifier}
-    )
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-    then:
-    MplProject project = interpreter.project
-    project.exceptions.isEmpty()
-    project.processes.size() == 1
-    MplProcess process = project.processes.first()
-
-    process.chainParts[0] == new MplCommand('say hi')
-    process.chainParts[1] == new MplStart(identifier, INVERT, CHAIN)
-    process.chainParts.size() == 2
+    script.chainParts[0] == new MplStart(identifier)
+    script.chainParts.size() == 1
   }
 
   @Test
@@ -364,20 +416,18 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = someIdentifier()
     String programString = """
-    process main (
-      ${modifier}: start ${identifier}
-    )
+    ${modifier}: start ${identifier}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplProject project = interpreter.project
+    MplProgram program = interpreter.program
 
-    project.exceptions[0].source.file == lastTempFile
-    project.exceptions[0].source.token.line == 3
-    project.exceptions[0].source.token.text == modifier
-    project.exceptions[0].message == "Illegal modifier for start; only unconditional, conditional and invert are permitted"
-    project.exceptions.size() == 1
+    program.exceptions[0].message == "Illegal modifier for start; only unconditional, conditional and invert are permitted"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == modifier
+    program.exceptions[0].source.token.line == 2
+    program.exceptions.size() == 1
 
     where:
     modifier << commandOnlyModifier
@@ -393,70 +443,47 @@ class MplInterpreterSpec2 extends MplSpecBase {
   // ----------------------------------------------------------------------------------------------------
 
   @Test
-  public void "stop with identifier"() {
+  @Unroll("#modifier stop with identifier")
+  public void "stop with identifier"(String modifier, Conditional conditional, Mode previousMode) {
     given:
     String identifier = someIdentifier()
     String programString = """
-    process main (
-      stop ${identifier}
-    )
+    /say hi
+    ${modifier} stop ${identifier}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplProject project = interpreter.project
-    project.exceptions.isEmpty()
-    project.processes.size() == 1
-    MplProcess process = project.processes.first()
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    process.chainParts[0] == new MplStop(identifier)
-    process.chainParts.size() == 1
+    script.chainParts[0] == new MplCommand('say hi')
+    script.chainParts[1] == new MplStop(identifier, conditional, previousMode)
+    script.chainParts.size() == 2
+    where:
+    modifier        | conditional   | previousMode
+    ''              | UNCONDITIONAL | null
+    'unconditional:'| UNCONDITIONAL | null
+    'conditional:'  | CONDITIONAL   | CHAIN
+    'invert:'       | INVERT        | CHAIN
   }
 
   @Test
-  public void "conditional stop with identifier"() {
+  public void "stop without identifier in script"() {
     given:
-    String identifier = someIdentifier()
     String programString = """
-    process main (
-      /say hi
-      conditional: stop ${identifier}
-    )
+    stop
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplProject project = interpreter.project
-    project.exceptions.isEmpty()
-    project.processes.size() == 1
-    MplProcess process = project.processes.first()
+    MplProgram program = interpreter.program
 
-    process.chainParts[0] == new MplCommand('say hi')
-    process.chainParts[1] == new MplStop(identifier, CONDITIONAL, CHAIN)
-    process.chainParts.size() == 2
-  }
-
-  @Test
-  public void "invert stop with identifier"() {
-    given:
-    String identifier = someIdentifier()
-    String programString = """
-    process main (
-      /say hi
-      invert: stop ${identifier}
-    )
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-    then:
-    MplProject project = interpreter.project
-    project.exceptions.isEmpty()
-    project.processes.size() == 1
-    MplProcess process = project.processes.first()
-
-    process.chainParts[0] == new MplCommand('say hi')
-    process.chainParts[1] == new MplStop(identifier, INVERT, CHAIN)
-    process.chainParts.size() == 2
+    program.exceptions[0].message == "Missing identifier"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'stop'
+    program.exceptions[0].source.token.line == 2
+    program.exceptions.size() == 1
   }
 
   @Test
@@ -491,13 +518,13 @@ class MplInterpreterSpec2 extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplProject project = interpreter.project
+    MplProgram program = interpreter.program
 
-    project.exceptions[0].source.file == lastTempFile
-    project.exceptions[0].source.token.line == 3
-    project.exceptions[0].source.token.text == 'stop'
-    project.exceptions[0].message == "An impulse process can't be stopped."
-    project.exceptions.size() == 1
+    program.exceptions[0].message == "An impulse process cannot be stopped"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'stop'
+    program.exceptions[0].source.token.line == 3
+    program.exceptions.size() == 1
   }
 
   @Test
@@ -513,13 +540,13 @@ class MplInterpreterSpec2 extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplProject project = interpreter.project
+    MplProgram program = interpreter.program
 
-    project.exceptions[0].source.file == lastTempFile
-    project.exceptions[0].source.token.line == 3
-    project.exceptions[0].source.token.text == modifier
-    project.exceptions[0].message == "Illegal modifier for stop; only unconditional, conditional and invert are permitted"
-    project.exceptions.size() == 1
+    program.exceptions[0].message == "Illegal modifier for stop; only unconditional, conditional and invert are permitted"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == modifier
+    program.exceptions[0].source.token.line == 3
+    program.exceptions.size() == 1
 
     where:
     modifier << commandOnlyModifier
@@ -535,70 +562,29 @@ class MplInterpreterSpec2 extends MplSpecBase {
   // ----------------------------------------------------------------------------------------------------
 
   @Test
-  public void "waitfor with identifier"() {
+  @Unroll("#modifier waitfor with identifier")
+  public void "waitfor with identifier"(String modifier, Conditional conditional, Mode previousMode) {
     given:
     String identifier = someIdentifier()
     String programString = """
-    process main (
-      waitfor ${identifier}
-    )
+    /say hi
+    ${modifier} waitfor ${identifier}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplProject project = interpreter.project
-    project.exceptions.isEmpty()
-    project.processes.size() == 1
-    MplProcess process = project.processes.first()
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    process.chainParts[0] == new MplWaitfor(identifier)
-    process.chainParts.size() == 1
-  }
-
-  @Test
-  public void "conditional waitfor with identifier"() {
-    given:
-    String identifier = someIdentifier()
-    String programString = """
-    process main (
-      /say hi
-      conditional: waitfor ${identifier}
-    )
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-    then:
-    MplProject project = interpreter.project
-    project.exceptions.isEmpty()
-    project.processes.size() == 1
-    MplProcess process = project.processes.first()
-
-    process.chainParts[0] == new MplCommand('say hi')
-    process.chainParts[1] == new MplWaitfor(identifier, CONDITIONAL, CHAIN)
-    process.chainParts.size() == 2
-  }
-
-  @Test
-  public void "invert waitfor with identifier"() {
-    given:
-    String identifier = someIdentifier()
-    String programString = """
-    process main (
-      /say hi
-      invert: waitfor ${identifier}
-    )
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-    then:
-    MplProject project = interpreter.project
-    project.exceptions.isEmpty()
-    project.processes.size() == 1
-    MplProcess process = project.processes.first()
-
-    process.chainParts[0] == new MplCommand('say hi')
-    process.chainParts[1] == new MplWaitfor(identifier, INVERT, CHAIN)
-    process.chainParts.size() == 2
+    script.chainParts[0] == new MplCommand('say hi')
+    script.chainParts[1] == new MplWaitfor(identifier, conditional, previousMode)
+    script.chainParts.size() == 2
+    where:
+    modifier        | conditional   | previousMode
+    ''              | UNCONDITIONAL | null
+    'unconditional:'| UNCONDITIONAL | null
+    'conditional:'  | CONDITIONAL   | CHAIN
+    'invert:'       | INVERT        | CHAIN
   }
 
   @Test
@@ -606,20 +592,16 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = someIdentifier()
     String programString = """
-    process main (
-      waitfor notify ${identifier}
-    )
+    waitfor notify ${identifier}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplProject project = interpreter.project
-    project.exceptions.isEmpty()
-    project.processes.size() == 1
-    MplProcess process = project.processes.first()
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    process.chainParts[0] == new MplWaitfor(identifier + MplInterpreter.NOTIFY);
-    process.chainParts.size() == 1
+    script.chainParts[0] == new MplWaitfor(identifier + NOTIFY);
+    script.chainParts.size() == 1
   }
 
   @Test
@@ -627,42 +609,36 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = someIdentifier()
     String programString = """
-    process main (
-      start ${identifier}
-      waitfor
-    )
+    start ${identifier}
+    waitfor
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplProject project = interpreter.project
-    project.exceptions.isEmpty()
-    project.processes.size() == 1
-    MplProcess process = project.processes.first()
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
 
-    process.chainParts[0] == new MplStart(identifier)
-    process.chainParts[1] == new MplWaitfor(identifier + MplInterpreter.NOTIFY);
-    process.chainParts.size() == 2
+    script.chainParts[0] == new MplStart(identifier)
+    script.chainParts[1] == new MplWaitfor(identifier + NOTIFY);
+    script.chainParts.size() == 2
   }
 
   @Test
   public void "waitfor without identifier without start"() {
     given:
     String programString = """
-    process main (
-      waitfor
-    )
+    waitfor
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplProject project = interpreter.project
+    MplProgram program = interpreter.program
 
-    project.exceptions[0].source.file == lastTempFile
-    project.exceptions[0].source.token.line == 3
-    project.exceptions[0].source.token.text == 'waitfor'
-    project.exceptions[0].message == "Missing identifier; no previous start was found to wait for"
-    project.exceptions.size() == 1
+    program.exceptions[0].message == "Missing identifier; no previous start was found to wait for"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'waitfor'
+    program.exceptions[0].source.token.line == 2
+    program.exceptions.size() == 1
   }
 
   @Test
@@ -671,23 +647,254 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = someIdentifier()
     String programString = """
-    process main (
-      ${modifier}: waitfor ${identifier}
+    ${modifier}: waitfor ${identifier}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "Illegal modifier for waitfor; only unconditional, conditional and invert are permitted"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == modifier
+    program.exceptions[0].source.token.line == 2
+    program.exceptions.size() == 1
+
+    where:
+    modifier << commandOnlyModifier
+  }
+
+  // ----------------------------------------------------------------------------------------------------
+  //    _   _         _    _   __
+  //   | \ | |  ___  | |_ (_) / _| _   _
+  //   |  \| | / _ \ | __|| || |_ | | | |
+  //   | |\  || (_) || |_ | ||  _|| |_| |
+  //   |_| \_| \___/  \__||_||_|   \__, |
+  //                               |___/
+  // ----------------------------------------------------------------------------------------------------
+
+  @Test
+  @Unroll("#modifier notify in process")
+  public void "notify in process"(String modifier, Conditional conditional, Mode previousMode) {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    process ${identifier} (
+      /say hi
+      ${modifier} notify
     )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProject project = interpreter.project
+    project.exceptions.isEmpty()
+    project.processes.size() == 1
+    MplProcess process = project.processes.first()
 
-    project.exceptions[0].source.file == lastTempFile
-    project.exceptions[0].source.token.line == 3
-    project.exceptions[0].source.token.text == modifier
-    project.exceptions[0].message == "Illegal modifier for start; only unconditional, conditional and invert are permitted"
-    project.exceptions.size() == 1
+    process.chainParts[0] == new MplCommand('say hi')
+    process.chainParts[1] == new MplNotify(identifier, conditional, previousMode)
+    process.chainParts.size() == 2
+    where:
+    modifier        | conditional   | previousMode
+    ''              | UNCONDITIONAL | null
+    'unconditional:'| UNCONDITIONAL | null
+    'conditional:'  | CONDITIONAL   | CHAIN
+    'invert:'       | INVERT        | CHAIN
+  }
+
+  @Test
+  public void "notify in script"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    notify
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "Notify can only be used in a process"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'notify'
+    program.exceptions[0].source.token.line == 2
+    program.exceptions.size() == 1
+  }
+
+  @Test
+  @Unroll("notify with illegal modifier: '#modifier'")
+  public void "notify with illegal modifier"(String modifier) {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    process ${identifier} (
+      ${modifier}: notify
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "Illegal modifier for notify; only unconditional, conditional and invert are permitted"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == modifier
+    program.exceptions[0].source.token.line == 3
+    program.exceptions.size() == 1
 
     where:
     modifier << commandOnlyModifier
+  }
+
+  // ----------------------------------------------------------------------------------------------------
+  //    ___         _                                _
+  //   |_ _| _ __  | |_  ___  _ __  ___  ___  _ __  | |_
+  //    | | | '_ \ | __|/ _ \| '__|/ __|/ _ \| '_ \ | __|
+  //    | | | | | || |_|  __/| |  | (__|  __/| |_) || |_
+  //   |___||_| |_| \__|\___||_|   \___|\___|| .__/  \__|
+  //                                         |_|
+  // ----------------------------------------------------------------------------------------------------
+
+  @Test
+  @Unroll("#modifier intercept with identifier")
+  public void "intercept with identifier"(String modifier, Conditional conditional, Mode previousMode) {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    /say hi
+    ${modifier} intercept ${identifier}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
+
+    script.chainParts[0] == new MplCommand('say hi')
+    script.chainParts[1] == new MplIntercept(identifier, conditional, previousMode)
+    script.chainParts.size() == 2
+    where:
+    modifier        | conditional   | previousMode
+    ''              | UNCONDITIONAL | null
+    'unconditional:'| UNCONDITIONAL | null
+    'conditional:'  | CONDITIONAL   | CHAIN
+    'invert:'       | INVERT        | CHAIN
+  }
+
+  @Test
+  @Unroll("intercept with illegal modifier: '#modifier'")
+  public void "intercept with illegal modifier"(String modifier) {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    ${modifier}: intercept ${identifier}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "Illegal modifier for intercept; only unconditional, conditional and invert are permitted"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == modifier
+    program.exceptions[0].source.token.line == 2
+    program.exceptions.size() == 1
+
+    where:
+    modifier << commandOnlyModifier
+  }
+
+  // ----------------------------------------------------------------------------------------------------
+  //    ____                     _                   _         _
+  //   | __ )  _ __  ___   __ _ | | __ _ __    ___  (_) _ __  | |_
+  //   |  _ \ | '__|/ _ \ / _` || |/ /| '_ \  / _ \ | || '_ \ | __|
+  //   | |_) || |  |  __/| (_| ||   < | |_) || (_) || || | | || |_
+  //   |____/ |_|   \___| \__,_||_|\_\| .__/  \___/ |_||_| |_| \__|
+  //                                  |_|
+  // ----------------------------------------------------------------------------------------------------
+
+  @Test
+  @Unroll("#modifier breakpoint")
+  public void "breakpoint"(String modifier, Conditional conditional, Mode previousMode) {
+    given:
+    String programString = """
+    /say hi
+    ${modifier} breakpoint
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
+
+    script.chainParts[0] == new MplCommand('say hi')
+    script.chainParts[1] == new MplBreakpoint("${lastTempFile.name} : line 3" , conditional, previousMode)
+    script.chainParts.size() == 2
+    where:
+    modifier        | conditional   | previousMode
+    ''              | UNCONDITIONAL | null
+    'unconditional:'| UNCONDITIONAL | null
+    'conditional:'  | CONDITIONAL   | CHAIN
+    'invert:'       | INVERT        | CHAIN
+  }
+
+  @Test
+  @Unroll("breakpoint with illegal modifier: '#modifier'")
+  public void "breakpoint with illegal modifier"(String modifier) {
+    given:
+    String programString = """
+    ${modifier}: breakpoint
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "Illegal modifier for breakpoint; only unconditional, conditional and invert are permitted"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == modifier
+    program.exceptions[0].source.token.line == 2
+    program.exceptions.size() == 1
+
+    where:
+    modifier << commandOnlyModifier
+  }
+
+  // ----------------------------------------------------------------------------------------------------
+  //    ___   __             _____  _                              _____  _
+  //   |_ _| / _|           |_   _|| |__    ___  _ __             | ____|| | ___   ___
+  //    | | | |_              | |  | '_ \  / _ \| '_ \            |  _|  | |/ __| / _ \
+  //    | | |  _|  _  _  _    | |  | | | ||  __/| | | |  _  _  _  | |___ | |\__ \|  __/
+  //   |___||_|   (_)(_)(_)   |_|  |_| |_| \___||_| |_| (_)(_)(_) |_____||_||___/ \___|
+  //
+  // ----------------------------------------------------------------------------------------------------
+
+  @Test
+  public void "if then else in script"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    if: /say if
+    then (
+      /say then
+    ) else (
+      /say else
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplScript script = interpreter.script
+    script.exceptions.isEmpty()
+
+    script.chainParts[0] == new MplIf('say if')
+    MplIf mplIf = script.chainParts[0]
+    mplIf.thenParts[0] == new MplCommand('say then')
+    mplIf.thenParts[0].size() == 1
+    mplIf.elseParts[0] == new MplCommand('say else')
+    mplIf.elseParts[0].size() == 1
+    script.chainParts.size() == 1
   }
 
 }

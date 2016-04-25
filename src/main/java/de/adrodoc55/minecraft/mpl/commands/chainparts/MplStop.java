@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.util.List;
@@ -58,7 +59,7 @@ import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierExce
 @lombok.ToString(callSuper = true, includeFieldNames = true)
 public class MplStop extends PossiblyConditionalChainPart {
 
-  private final String process;
+  private final @Nonnull String process;
 
   public MplStop(@Nonnull String process) {
     this(process, null);
@@ -90,7 +91,7 @@ public class MplStop extends PossiblyConditionalChainPart {
 
   @Override
   public Mode getModeToInvert() throws IllegalModifierException {
-    return Mode.CHAIN;
+    return CHAIN;
   }
 
 }

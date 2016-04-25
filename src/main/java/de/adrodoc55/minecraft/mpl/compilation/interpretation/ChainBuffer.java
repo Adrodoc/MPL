@@ -48,7 +48,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
 /**
  * @author Adrodoc55
  */
-class ChainBuffer {
+class ChainBuffer implements ChainPartBuffer {
 
   private String name;
   private boolean install;
@@ -59,9 +59,9 @@ class ChainBuffer {
   private boolean repeatingContext;
   protected final LinkedList<ChainPart> chainParts = new LinkedList<>();
 
-  public boolean add(ChainPart cp) {
+  public void add(ChainPart cp) {
     updateContext(cp);
-    return chainParts.add(cp);
+    chainParts.add(cp);
   }
 
   @Deprecated

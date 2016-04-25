@@ -59,7 +59,8 @@ import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierExce
 @lombok.EqualsAndHashCode(callSuper = true)
 @lombok.ToString(callSuper = true, includeFieldNames = true)
 public class MplWaitfor extends PossiblyConditionalChainPart {
-  private String event;
+
+  private final @Nonnull String event;
 
   public MplWaitfor(@Nonnull String event) {
     this(event, null);

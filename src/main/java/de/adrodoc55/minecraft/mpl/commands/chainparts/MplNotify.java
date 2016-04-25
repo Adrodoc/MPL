@@ -39,23 +39,43 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
-import static de.adrodoc55.minecraft.mpl.compilation.interpretation.MplInterpreter.NOTIFY;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import de.adrodoc55.minecraft.mpl.commands.Conditional;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
-@lombok.ToString(includeFieldNames = true)
+@lombok.EqualsAndHashCode(callSuper = true)
+@lombok.ToString(callSuper = true, includeFieldNames = true)
 public class MplNotify extends PossiblyConditionalChainPart {
-  private String process;
+  public static final String NOTIFY = "_NOTIFY";
 
-  public MplNotify(String process) {
-    this.process = process;
+  private final @Nonnull String process;
+
+  public MplNotify(@Nonnull String process) {
+    this(process, null);
+  }
+
+  public MplNotify(@Nonnull String process, @Nullable Conditional conditional) {
+    super(conditional);
+    this.process = checkNotNull(process, "process == null!");
+  }
+
+  public MplNotify(@Nonnull String process, @Nullable Conditional conditional,
+      @Nullable Mode previousMode) {
+    super(conditional, previousMode);
+    this.process = checkNotNull(process, "process == null!");
   }
 
   @Override
@@ -74,6 +94,11 @@ public class MplNotify extends PossiblyConditionalChainPart {
     }
     commands.add(new Command("kill @e[name=" + process + NOTIFY + "]", conditional));
     return commands;
+  }
+
+  @Override
+  public Mode getModeToInvert() throws IllegalModifierException {
+    return CHAIN;
   }
 
 }

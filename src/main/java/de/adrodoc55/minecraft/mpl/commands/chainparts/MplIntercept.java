@@ -39,9 +39,12 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainparts;
 
-import static de.adrodoc55.minecraft.mpl.compilation.interpretation.MplInterpreter.INTERCEPTED;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -52,12 +55,26 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.IllegalModifierException;
 
-@lombok.ToString(includeFieldNames = true)
+@lombok.EqualsAndHashCode(callSuper = true)
+@lombok.ToString(callSuper = true, includeFieldNames = true)
 public class MplIntercept extends PossiblyConditionalChainPart {
-  private String process;
+  public static final String INTERCEPTED = "_INTERCEPTED";
 
-  public MplIntercept(String process) {
-    this.process = process;
+  private final @Nonnull String process;
+
+  public MplIntercept(@Nonnull String process) {
+    this(process, null);
+  }
+
+  public MplIntercept(@Nonnull String process, @Nullable Conditional conditional) {
+    super(conditional);
+    this.process = checkNotNull(process, "process == null!");
+  }
+
+  public MplIntercept(@Nonnull String process, @Nullable Conditional conditional,
+      @Nullable Mode previousMode) {
+    super(conditional, previousMode);
+    this.process = checkNotNull(process, "process == null!");
   }
 
   @Override
@@ -84,6 +101,11 @@ public class MplIntercept extends PossiblyConditionalChainPart {
     commands.add(new InternalCommand(
         "entitydata @e[name=" + process + INTERCEPTED + "] {CustomName:" + process + "}"));
     return null;
+  }
+
+  @Override
+  public Mode getModeToInvert() throws IllegalModifierException {
+    throw new IllegalModifierException("Cannot depend on intercept");
   }
 
 }
