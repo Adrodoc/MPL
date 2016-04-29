@@ -52,6 +52,7 @@ import de.adrodoc55.minecraft.mpl.chain.MplProcess
 import de.adrodoc55.minecraft.mpl.commands.Conditional
 import de.adrodoc55.minecraft.mpl.commands.Mode
 import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart
+import de.adrodoc55.minecraft.mpl.commands.chainparts.ModeOwner;
 import de.adrodoc55.minecraft.mpl.commands.chainparts.MplBreakpoint
 import de.adrodoc55.minecraft.mpl.commands.chainparts.MplCommand
 import de.adrodoc55.minecraft.mpl.commands.chainparts.MplIf
@@ -369,7 +370,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
   @Test
   @Unroll("#modifier start with identifier")
-  public void "start with identifier"(String modifier, Conditional conditional, Mode previous) {
+  public void "start with identifier"(String modifier, Conditional conditional) {
     given:
     String identifier = someIdentifier()
     String programString = """
@@ -382,15 +383,20 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplScript script = interpreter.script
     script.exceptions.isEmpty()
 
+    ModeOwner previous = null
+    if (conditional != UNCONDITIONAL) {
+      previous = script.chainParts[0]
+    }
+
     script.chainParts[0] == new MplCommand('/say hi')
     script.chainParts[1] == new MplStart(identifier, conditional, previous)
     script.chainParts.size() == 2
     where:
-    modifier        | conditional   | previous
-    ''              | UNCONDITIONAL | null
-    'unconditional:'| UNCONDITIONAL | null
-    'conditional:'  | CONDITIONAL   | CHAIN
-    'invert:'       | INVERT        | CHAIN
+    modifier        | conditional
+    ''              | UNCONDITIONAL
+    'unconditional:'| UNCONDITIONAL
+    'conditional:'  | CONDITIONAL
+    'invert:'       | INVERT
   }
 
   @Test
@@ -444,7 +450,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
   @Test
   @Unroll("#modifier stop with identifier")
-  public void "stop with identifier"(String modifier, Conditional conditional, Mode previous) {
+  public void "stop with identifier"(String modifier, Conditional conditional) {
     given:
     String identifier = someIdentifier()
     String programString = """
@@ -457,15 +463,20 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplScript script = interpreter.script
     script.exceptions.isEmpty()
 
+    ModeOwner previous = null
+    if (conditional != UNCONDITIONAL) {
+      previous = script.chainParts[0]
+    }
+
     script.chainParts[0] == new MplCommand('/say hi')
     script.chainParts[1] == new MplStop(identifier, conditional, previous)
     script.chainParts.size() == 2
     where:
-    modifier        | conditional   | previous
-    ''              | UNCONDITIONAL | null
-    'unconditional:'| UNCONDITIONAL | null
-    'conditional:'  | CONDITIONAL   | CHAIN
-    'invert:'       | INVERT        | CHAIN
+    modifier        | conditional
+    ''              | UNCONDITIONAL
+    'unconditional:'| UNCONDITIONAL
+    'conditional:'  | CONDITIONAL
+    'invert:'       | INVERT
   }
 
   @Test
@@ -563,7 +574,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
   @Test
   @Unroll("#modifier waitfor with identifier")
-  public void "waitfor with identifier"(String modifier, Conditional conditional, Mode previous) {
+  public void "waitfor with identifier"(String modifier, Conditional conditional) {
     given:
     String identifier = someIdentifier()
     String programString = """
@@ -576,15 +587,20 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplScript script = interpreter.script
     script.exceptions.isEmpty()
 
+    ModeOwner previous = null
+    if (conditional != UNCONDITIONAL) {
+      previous = script.chainParts[0]
+    }
+
     script.chainParts[0] == new MplCommand('/say hi')
     script.chainParts[1] == new MplWaitfor(identifier, conditional, previous)
     script.chainParts.size() == 2
     where:
-    modifier        | conditional   | previous
-    ''              | UNCONDITIONAL | null
-    'unconditional:'| UNCONDITIONAL | null
-    'conditional:'  | CONDITIONAL   | CHAIN
-    'invert:'       | INVERT        | CHAIN
+    modifier        | conditional
+    ''              | UNCONDITIONAL
+    'unconditional:'| UNCONDITIONAL
+    'conditional:'  | CONDITIONAL
+    'invert:'       | INVERT
   }
 
   @Test
@@ -675,7 +691,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
   @Test
   @Unroll("#modifier notify in process")
-  public void "notify in process"(String modifier, Conditional conditional, Mode previous) {
+  public void "notify in process"(String modifier, Conditional conditional) {
     given:
     String identifier = someIdentifier()
     String programString = """
@@ -692,15 +708,20 @@ class MplInterpreterSpec2 extends MplSpecBase {
     project.processes.size() == 1
     MplProcess process = project.processes.first()
 
+    ModeOwner previous = null
+    if (conditional != UNCONDITIONAL) {
+      previous = process.chainParts[0]
+    }
+
     process.chainParts[0] == new MplCommand('/say hi')
     process.chainParts[1] == new MplNotify(identifier, conditional, previous)
     process.chainParts.size() == 2
     where:
-    modifier        | conditional   | previous
-    ''              | UNCONDITIONAL | null
-    'unconditional:'| UNCONDITIONAL | null
-    'conditional:'  | CONDITIONAL   | CHAIN
-    'invert:'       | INVERT        | CHAIN
+    modifier        | conditional
+    ''              | UNCONDITIONAL
+    'unconditional:'| UNCONDITIONAL
+    'conditional:'  | CONDITIONAL
+    'invert:'       | INVERT
   }
 
   @Test
@@ -758,7 +779,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
   @Test
   @Unroll("#modifier intercept with identifier")
-  public void "intercept with identifier"(String modifier, Conditional conditional, Mode previous) {
+  public void "intercept with identifier"(String modifier, Conditional conditional) {
     given:
     String identifier = someIdentifier()
     String programString = """
@@ -771,15 +792,20 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplScript script = interpreter.script
     script.exceptions.isEmpty()
 
+    ModeOwner previous = null
+    if (conditional != UNCONDITIONAL) {
+      previous = script.chainParts[0]
+    }
+
     script.chainParts[0] == new MplCommand('/say hi')
     script.chainParts[1] == new MplIntercept(identifier, conditional, previous)
     script.chainParts.size() == 2
     where:
-    modifier        | conditional   | previous
-    ''              | UNCONDITIONAL | null
-    'unconditional:'| UNCONDITIONAL | null
-    'conditional:'  | CONDITIONAL   | CHAIN
-    'invert:'       | INVERT        | CHAIN
+    modifier        | conditional
+    ''              | UNCONDITIONAL
+    'unconditional:'| UNCONDITIONAL
+    'conditional:'  | CONDITIONAL
+    'invert:'       | INVERT
   }
 
   @Test
@@ -816,7 +842,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
   @Test
   @Unroll("#modifier breakpoint")
-  public void "breakpoint"(String modifier, Conditional conditional, Mode previous) {
+  public void "breakpoint"(String modifier, Conditional conditional) {
     given:
     String programString = """
     /say hi
@@ -828,15 +854,20 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplScript script = interpreter.script
     script.exceptions.isEmpty()
 
+    ModeOwner previous = null
+    if (conditional != UNCONDITIONAL) {
+      previous = script.chainParts[0]
+    }
+
     script.chainParts[0] == new MplCommand('/say hi')
     script.chainParts[1] == new MplBreakpoint("${lastTempFile.name} : line 3" , conditional, previous)
     script.chainParts.size() == 2
     where:
-    modifier        | conditional   | previous
-    ''              | UNCONDITIONAL | null
-    'unconditional:'| UNCONDITIONAL | null
-    'conditional:'  | CONDITIONAL   | CHAIN
-    'invert:'       | INVERT        | CHAIN
+    modifier        | conditional
+    ''              | UNCONDITIONAL
+    'unconditional:'| UNCONDITIONAL
+    'conditional:'  | CONDITIONAL
+    'invert:'       | INVERT
   }
 
   @Test
