@@ -72,20 +72,6 @@ public class MplProjectPlacer extends MplChainPlacer {
     super(project, options);
     processes = new LinkedList<>(project.getProcesses());
     occupied = new int[processes.size()];
-
-    // The first block of each chain that start's with a RECIEVER must be a TRANSMITTER
-    for (MplProcess process : processes) {
-      if(process.isRepeating()) {
-        NamedCommandChain chain = process.toCommandChain(options);
-      }
-
-
-      List<ChainPart> commands = process.getChainParts();
-      if (commands.isEmpty() || !isReceiver(commands.get(0))) {
-        continue;
-      }
-      commands.add(0, new Skip(false /* First TRANSMITTER can be referenced */));
-    }
   }
 
   @Override
@@ -95,21 +81,21 @@ public class MplProjectPlacer extends MplChainPlacer {
       return Integer.compare(o1.getChainParts().size(), o2.getChainParts().size()) * -1;
     });
     for (MplProcess process : processes) {
-      addChain(process);
+      addChain(process.toCommandChain(options));
     }
     addUnInstallation();
     return chains;
   }
 
-  private void addChain(MplProcess process) {
-    Coordinate3D start = findStart(process);
+  private void addChain(NamedCommandChain chain) {
+    Coordinate3D start = findStart(chain);
     Directions template = newDirectionsTemplate(getOptimalSize(), getOrientation());
-    CommandBlockChain materialized = generateFlat(process.to, start, template);
+    CommandBlockChain materialized = generateFlat(chain, start, template);
     occupyBlocks(materialized);
     chains.add(materialized);
   }
 
-  private Coordinate3D findStart(MplProcess process) {
+  private Coordinate3D findStart(NamedCommandChain chain) {
     Orientation3D orientation = getOrientation();
     Direction3D b = orientation.getB();
     Direction3D c = orientation.getC();
@@ -119,7 +105,7 @@ public class MplProjectPlacer extends MplChainPlacer {
     Coordinate3D opt = getOptimalSize();
     int optB = opt.get(b.getAxis());
 
-    int estimatedB = estimateB(process);
+    int estimatedB = estimateB(chain);
     for (int x = 0; x < occupied.length; x++) {
       int estimatedMax = occupied[x] + Math.abs(estimatedB);
       if (estimatedMax <= Math.abs(optB) || occupied[x] == 0) {
@@ -127,7 +113,7 @@ public class MplProjectPlacer extends MplChainPlacer {
         return start;
       }
     }
-    throw new IllegalStateException("could not find a start for chain " + process.getName());
+    throw new IllegalStateException("could not find a start for chain " + chain.getName());
   }
 
   /**

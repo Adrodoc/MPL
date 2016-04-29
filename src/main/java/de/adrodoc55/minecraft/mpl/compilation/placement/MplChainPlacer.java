@@ -148,7 +148,7 @@ public abstract class MplChainPlacer {
    */
   protected CommandBlockChain generateFlat(CommandChain chain, Coordinate3D start,
       Directions template) {
-    List<ChainPart> commands = chain.getCommands();
+    List<ChainLink> commands = chain.getCommands();
     Chain chainLinkChain = toChainLinkChain(commands);
 
     Set<Position> forbiddenReceiver = new HashSet<>();
@@ -212,9 +212,9 @@ public abstract class MplChainPlacer {
     return placed;
   }
 
-  protected List<MplBlock> toBlocks(List<ChainPart> commands,
+  protected List<MplBlock> toBlocks(List<ChainLink> commands,
       LinkedHashMap<Position, ChainLinkType> placed) {
-    LinkedList<ChainPart> chainParts = new LinkedList<>(commands);
+    LinkedList<ChainLink> chainLinks = new LinkedList<>(commands);
 
     Orientation3D orientation = getOrientation();
 
@@ -234,11 +234,11 @@ public abstract class MplChainPlacer {
       if (entry.getValue() == ChainLinkType.NO_OPERATION) {
         blocks.add(new CommandBlock(new NoOperationCommand(), d, coord));
       } else {
-        ChainPart chainPart = chainParts.pop();
-        if (chainPart instanceof Command) {
-          blocks.add(new CommandBlock((Command) chainPart, d, coord));
-        } else if (chainPart instanceof Skip) {
-          blocks.add(new Transmitter(((Skip) chainPart).isInternal(), coord));
+        ChainLink chainLink = chainLinks.pop();
+        if (chainLink instanceof Command) {
+          blocks.add(new CommandBlock((Command) chainLink, d, coord));
+        } else if (chainLink instanceof Skip) {
+          blocks.add(new Transmitter(((Skip) chainLink).isInternal(), coord));
         }
       }
     }
