@@ -37,48 +37,91 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+package de.adrodoc55.minecraft.mpl.ast.chainparts.program;
 
-import javax.annotation.concurrent.Immutable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import javax.annotation.Nullable;
+
+import de.adrodoc55.commons.Named;
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.ast.MplNode;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
-import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
-@Immutable
-@EqualsAndHashCode
-@ToString(includeFieldNames = true)
-public class Skip implements ChainPart, ChainLink {
-  private final boolean internal;
+@EqualsAndHashCode(exclude = "source")
+@ToString(includeFieldNames = true, exclude = "source")
+public class MplProcess implements MplNode, Named {
 
-  public Skip(boolean internal) {
-    this.internal = internal;
+  private final String name;
+  private final boolean repeating;
+  private final MplSource source;
+  private final List<ChainPart> chainParts = new ArrayList<>();
+
+  public MplProcess() {
+    this(null);
   }
 
-  public boolean isInternal() {
-    return internal;
+  public MplProcess(@Nullable String name) {
+    this(name, false, null);
+  }
+
+  public MplProcess(@Nullable String name, @Nullable MplSource source) {
+    this(name, false, source);
+  }
+
+  @GenerateMplPojoBuilder
+  public MplProcess(@Nullable String name, boolean repeating, @Nullable MplSource source) {
+    this.name = name;
+    this.repeating = repeating;
+    this.source = source;
   }
 
   @Override
-  public String getName() {
-    return "name";
+  public @Nullable String getName() {
+    return name;
   }
 
-  @Override
-  public MplBlock toBlock(Coordinate3D coordinate) {
-    return new Transmitter(internal, coordinate);
+  public boolean isRepeating() {
+    return repeating;
+  }
+
+  public @Nullable MplSource getSource() {
+    return source;
+  }
+
+  /**
+   * Read only!
+   */
+  public List<ChainPart> getChainParts() {
+    return Collections.unmodifiableList(chainParts);
+  }
+
+  public void setChainParts(Collection<ChainPart> chainParts) {
+    this.chainParts.clear();
+    addAll(chainParts);
+  }
+
+  public void addAll(Collection<ChainPart> chainParts) {
+    this.chainParts.addAll(chainParts);
+  }
+
+  public void addAll(MplProcess other) {
+    this.chainParts.addAll(other.chainParts);
   }
 
   @Override
   public void accept(MplAstVisitor visitor) {
-    visitor.visitSkip(this);
+    visitor.visitProcess(this);
   }
 
 }

@@ -37,48 +37,34 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+package de.adrodoc55.minecraft.mpl.interpretation;
 
-import javax.annotation.concurrent.Immutable;
+import javax.annotation.Nonnull;
 
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
-import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import org.antlr.v4.runtime.Token;
+
+import com.google.common.base.Preconditions;
+
+import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 
 /**
  * @author Adrodoc55
  */
-@Immutable
-@EqualsAndHashCode
-@ToString(includeFieldNames = true)
-public class Skip implements ChainPart, ChainLink {
-  private final boolean internal;
+public class MplLexerUtils {
 
-  public Skip(boolean internal) {
-    this.internal = internal;
+  private MplLexerUtils() throws Throwable {
+    throw new Throwable("Utils Classes cannot be instantiated!");
   }
 
-  public boolean isInternal() {
-    return internal;
-  }
-
-  @Override
-  public String getName() {
-    return "name";
-  }
-
-  @Override
-  public MplBlock toBlock(Coordinate3D coordinate) {
-    return new Transmitter(internal, coordinate);
-  }
-
-  @Override
-  public void accept(MplAstVisitor visitor) {
-    visitor.visitSkip(this);
+  @Nonnull
+  public static String getContainedString(@Nonnull Token stringToken) {
+    Preconditions.checkNotNull(stringToken, "stringToken == null!");
+    if (stringToken.getType() != MplLexer.STRING) {
+      throw new IllegalArgumentException("The Given Token is not of type MplLexer.STRING!");
+    }
+    String wholeString = stringToken.getText();
+    String containedString = wholeString.substring(1, wholeString.length() - 1);
+    return containedString;
   }
 
 }

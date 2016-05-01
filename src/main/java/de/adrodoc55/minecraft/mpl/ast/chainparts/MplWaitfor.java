@@ -37,48 +37,52 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
-import javax.annotation.concurrent.Immutable;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import javax.annotation.Nullable;
+
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
-import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
+import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
-@Immutable
-@EqualsAndHashCode
-@ToString(includeFieldNames = true)
-public class Skip implements ChainPart, ChainLink {
-  private final boolean internal;
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true, includeFieldNames = true)
+public class MplWaitfor extends PossiblyConditionalChainPart {
 
-  public Skip(boolean internal) {
-    this.internal = internal;
+  private final String event;
+
+  public MplWaitfor(String event) {
+    this(event, null);
   }
 
-  public boolean isInternal() {
-    return internal;
+  public MplWaitfor(String event, @Nullable Conditional conditional) {
+    super(conditional);
+    this.event = checkNotNull(event, "event == null!");
+  }
+
+  public MplWaitfor(String event, @Nullable Conditional conditional, @Nullable ModeOwner previous) {
+    super(conditional, previous);
+    this.event = checkNotNull(event, "event == null!");
   }
 
   @Override
   public String getName() {
-    return "name";
-  }
-
-  @Override
-  public MplBlock toBlock(Coordinate3D coordinate) {
-    return new Transmitter(internal, coordinate);
+    return "waitfor";
   }
 
   @Override
   public void accept(MplAstVisitor visitor) {
-    visitor.visitSkip(this);
+    visitor.visitWaitfor(this);
+  }
+
+  public String getEvent() {
+    return event;
   }
 
 }

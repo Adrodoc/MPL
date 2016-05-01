@@ -37,48 +37,92 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
-import javax.annotation.concurrent.Immutable;
-
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
-import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
+import de.adrodoc55.minecraft.mpl.commands.Conditional;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
-@Immutable
-@EqualsAndHashCode
-@ToString(includeFieldNames = true)
-public class Skip implements ChainPart, ChainLink {
-  private final boolean internal;
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true, includeFieldNames = true)
+public class MplCommand extends PossiblyConditionalChainPart implements ModeOwner {
 
-  public Skip(boolean internal) {
-    this.internal = internal;
+  private String command;
+  private Mode mode;
+  private boolean needsRedstone;
+
+  public MplCommand() {
+    this("");
   }
 
-  public boolean isInternal() {
-    return internal;
+  public MplCommand(String command) {
+    this(command, null);
+  }
+
+  public MplCommand(String command, Conditional conditional) {
+    this(command, null, conditional);
+  }
+
+  public MplCommand(String command, Mode mode, Conditional conditional) {
+    this(command, mode, conditional, null);
+  }
+
+  @GenerateMplPojoBuilder
+  public MplCommand(String command, Mode mode, Conditional conditional, Boolean needsRedstone) {
+    super(conditional);
+    setCommand(command);
+    this.mode = (mode != null) ? mode : Mode.CHAIN;
+    if (needsRedstone != null) {
+      this.needsRedstone = needsRedstone;
+    } else {
+      this.needsRedstone = (this.mode == Mode.CHAIN) ? false : true;
+    }
+  }
+
+  public MplCommand(MplCommand command) {
+    this(command.getCommand(), command.getMode(), command.getConditional(),
+        command.needsRedstone());
+  }
+
+  public String getCommand() {
+    return command;
+  }
+
+  public void setCommand(String command) {
+    this.command = command;
+  }
+
+  @Override
+  public Mode getMode() {
+    return mode;
+  }
+
+  public void setMode(Mode mode) {
+    this.mode = mode;
+  }
+
+  public boolean needsRedstone() {
+    return needsRedstone;
+  }
+
+  public void setNeedsRedstone(boolean needsRedstone) {
+    this.needsRedstone = needsRedstone;
   }
 
   @Override
   public String getName() {
-    return "name";
-  }
-
-  @Override
-  public MplBlock toBlock(Coordinate3D coordinate) {
-    return new Transmitter(internal, coordinate);
+    return "command";
   }
 
   @Override
   public void accept(MplAstVisitor visitor) {
-    visitor.visitSkip(this);
+    visitor.visitCommand(this);
   }
 
 }

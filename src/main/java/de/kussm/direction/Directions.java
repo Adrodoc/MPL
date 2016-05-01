@@ -17,7 +17,10 @@ import java.util.Iterator;
 
 import com.google.common.collect.Iterables;
 
-@lombok.AllArgsConstructor(access = lombok.AccessLevel.PACKAGE)
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class Directions implements DirectionIterable {
   private final Iterable<Direction> directions;
 

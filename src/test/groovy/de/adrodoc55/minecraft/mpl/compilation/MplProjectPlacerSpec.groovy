@@ -43,10 +43,9 @@ import static de.adrodoc55.minecraft.mpl.MplTestBase.$Command
 import static de.adrodoc55.minecraft.mpl.MplTestBase.some
 import spock.lang.Specification
 import de.adrodoc55.minecraft.coordinate.Orientation3D
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain
-import de.adrodoc55.minecraft.mpl.chain.MplProcess
-import de.adrodoc55.minecraft.mpl.compilation.placement.MplProjectPlacer;
-import de.adrodoc55.minecraft.mpl.program.MplProject
+import de.adrodoc55.minecraft.mpl.placement.MplProjectPlacer
 
 class MplProjectPlacerSpec extends Specification {
 

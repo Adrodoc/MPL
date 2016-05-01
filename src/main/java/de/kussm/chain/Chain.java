@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 
+import lombok.EqualsAndHashCode;
+
 /**
  * A chain of {@link ChainLinks}.</pos> A valid chain must obey the following rules:
  * <ul>
@@ -36,7 +38,7 @@ import com.google.common.base.Preconditions;
  *
  * @author Michael Kuß
  */
-@lombok.EqualsAndHashCode
+@EqualsAndHashCode
 public class Chain implements Iterable<ChainLinkType> {
   private ChainLinkType[] chainLinks;
 

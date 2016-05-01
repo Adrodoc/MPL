@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation.placement;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -46,6 +48,7 @@ import org.junit.Test;
 
 import de.adrodoc55.minecraft.mpl.MplTestBase;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.placement.MplChainPlacer;
 
 public class MplChainPlacerTest extends MplTestBase {
 

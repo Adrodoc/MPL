@@ -37,48 +37,59 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
-import javax.annotation.concurrent.Immutable;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import javax.annotation.Nullable;
+
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
-import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
+import de.adrodoc55.minecraft.mpl.commands.Conditional;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
-@Immutable
-@EqualsAndHashCode
-@ToString(includeFieldNames = true)
-public class Skip implements ChainPart, ChainLink {
-  private final boolean internal;
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true, includeFieldNames = true)
+public class MplStart extends PossiblyConditionalChainPart implements ModeOwner {
 
-  public Skip(boolean internal) {
-    this.internal = internal;
+  private final String process;
+
+  public MplStart(String process) {
+    this(process, null);
   }
 
-  public boolean isInternal() {
-    return internal;
+  public MplStart(String process, @Nullable Conditional conditional) {
+    super(conditional);
+    this.process = checkNotNull(process, "process == null!");
+  }
+
+  public MplStart(String process, @Nullable Conditional conditional, @Nullable ModeOwner previous) {
+    super(conditional, previous);
+    this.process = checkNotNull(process, "process == null!");
   }
 
   @Override
   public String getName() {
-    return "name";
+    return "start";
   }
 
   @Override
-  public MplBlock toBlock(Coordinate3D coordinate) {
-    return new Transmitter(internal, coordinate);
+  public Mode getMode() {
+    return CHAIN;
   }
 
   @Override
   public void accept(MplAstVisitor visitor) {
-    visitor.visitSkip(this);
+    visitor.visitStart(this);
+  }
+
+  public String getProcess() {
+    return process;
   }
 
 }

@@ -62,40 +62,45 @@ import com.google.common.collect.SetMultimap;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.antlr.MplBaseListener;
+import de.adrodoc55.minecraft.mpl.ast.MplAstVisitorImpl;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
+import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
-import de.adrodoc55.minecraft.mpl.chain.MplProcess;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
-import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
-import de.adrodoc55.minecraft.mpl.compilation.interpretation.Include;
-import de.adrodoc55.minecraft.mpl.compilation.interpretation.MplInterpreter;
-import de.adrodoc55.minecraft.mpl.compilation.placement.MplChainPlacer;
-import de.adrodoc55.minecraft.mpl.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.program.MplProject;
+import de.adrodoc55.minecraft.mpl.interpretation.Include;
+import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter;
+import de.adrodoc55.minecraft.mpl.placement.MplChainPlacer;
 
 /**
  * @author Adrodoc55
  */
 public class MplCompiler extends MplBaseListener {
 
-  public static MplCompilationResult compile(File programFile, CompilerOption... options)
+  public static MplCompilationResult compile(File programFile, CompilerOptions options)
       throws IOException, CompilationFailedException {
     MplProgram program = assembleProgram(programFile);
-    List<CommandBlockChain> chains = place(program);
+
+    MplAstVisitorImpl visitor = new MplAstVisitorImpl(options);
+    program.accept(visitor);
+    ChainContainer container = visitor.getResult();
+
+    List<CommandBlockChain> chains = place(container);
     List<MplBlock> blocks =
         chains.stream().flatMap(c -> c.getBlocks().stream()).collect(Collectors.toList());
     ImmutableMap<Coordinate3D, MplBlock> result = Maps.uniqueIndex(blocks, b -> b.getCoordinate());
     return new MplCompilationResult(program.getOrientation(), result);
   }
 
-  private static List<CommandBlockChain> place(MplProgram program) {
-    List<CommandBlockChain> chains = MplChainPlacer.place(program);
+  private static List<CommandBlockChain> place(ChainContainer container) {
+    List<CommandBlockChain> chains = MplChainPlacer.place(container);
     for (CommandBlockChain chain : chains) {
-      insertRelativeCoordinates(chain.getBlocks(), program.getOrientation());
+      insertRelativeCoordinates(chain.getBlocks(), container.getOrientation());
     }
     return chains;
   }
@@ -116,7 +121,7 @@ public class MplCompiler extends MplBaseListener {
   private SetMultimap<File, String> programContent = HashMultimap.create();
   private Set<File> addedInterpreters = new HashSet<>();
   private LinkedList<Include> includeTodos;
-  private MplProject project;
+  private MplProgram program;
 
   private Map<File, MplInterpreter> interpreterCache = new HashMap<>();
 
@@ -133,30 +138,30 @@ public class MplCompiler extends MplBaseListener {
   private MplProgram assemble(File programFile) throws IOException {
     includeTodos = new LinkedList<Include>();
     MplInterpreter main = interpret(programFile);
-    if (!main.isProject()) {
-      return main.getScript();
+    if (main.getProgram().isScript()) {
+      return main.getProgram();
     }
-    project = main.getProject();
+    program = main.getProgram();
 
     // The main interpreter does not need to be added to itself
     addedInterpreters.add(programFile);
 
     // Skip includes that reference the same file
     List<Include> includes = main.getIncludes().values().stream()
-        .filter(include -> !project.containsProcess(include.getProcessName()))
+        .filter(include -> !program.containsProcess(include.getProcessName()))
         .collect(Collectors.toList());
     includeTodos.addAll(includes);
 
     // Mark all processes of the main file
-    project.getProcesses().stream().map(p -> p.getName()).forEach(name -> {
+    program.getProcesses().stream().map(p -> p.getName()).forEach(name -> {
       programContent.put(programFile, name);
     });
 
     doIncludes();
-    if (project.hasBreakpoint()) {
-      // addBreakpointProcess();
-    }
-    return project;
+    // if (project.hasBreakpoint()) {
+    // addBreakpointProcess();
+    // }
+    return program;
   }
 
   // private void addBreakpointProcess() {
@@ -201,11 +206,8 @@ public class MplCompiler extends MplBaseListener {
         lastException = new FileException(ex, file);
         continue;
       }
-      if (!interpreter.isProject()) {
-        continue;
-      }
-      MplProject project = interpreter.getProject();
-      if (project.containsProcess(processName)) {
+      MplProgram program = interpreter.getProgram();
+      if (program.containsProcess(processName)) {
         found.add(interpreter);
       }
     }
@@ -213,10 +215,10 @@ public class MplCompiler extends MplBaseListener {
     if (found.isEmpty()) {
       CompilerException ex = new CompilerException(include.getSource(),
           "Could not resolve process " + processName, lastException);
-      project.getExceptions().add(ex);
+      program.getExceptions().add(ex);
     } else if (found.size() > 1) {
       CompilerException ex = createAmbigiousProcessException(include, found);
-      project.getExceptions().add(ex);
+      program.getExceptions().add(ex);
     } else {
       MplInterpreter interpreter = found.get(0);
       addInterpreter(interpreter);
@@ -243,11 +245,11 @@ public class MplCompiler extends MplBaseListener {
   }
 
   public void addProcess(MplInterpreter interpreter, String processName) {
-    MplProcess process = interpreter.getProject().getProcess(processName);
+    MplProcess process = interpreter.getProgram().getProcess(processName);
     File file = interpreter.getProgramFile();
     Set<String> processNames = programContent.get(file);
     if (!processNames.contains(process.getName())) {
-      project.addProcess(process);
+      program.addProcess(process);
       includeTodos.addAll(interpreter.getIncludes().get(processName));
       programContent.put(file, processName);
     }
@@ -261,13 +263,13 @@ public class MplCompiler extends MplBaseListener {
       } catch (IOException ex) {
         CompilerException compilerException =
             new CompilerException(include.getSource(), "Couldn't include '" + file + "'", ex);
-        project.getExceptions().add(compilerException);
+        program.getExceptions().add(compilerException);
         return;
       }
-      if (!interpreter.isProject()) {
+      if (interpreter.getProgram().isScript()) {
         CompilerException compilerException = new CompilerException(include.getSource(),
             "Can't include script '" + file.getName() + "'. Scripts may not be included.");
-        project.getExceptions().add(compilerException);
+        program.getExceptions().add(compilerException);
         return;
       }
       addInterpreter(interpreter);
@@ -276,7 +278,7 @@ public class MplCompiler extends MplBaseListener {
   }
 
   public void addAllProcesses(MplInterpreter interpreter) {
-    Collection<MplProcess> processes = interpreter.getProject().getProcesses();
+    Collection<MplProcess> processes = interpreter.getProgram().getProcesses();
     for (MplProcess process : processes) {
       addProcess(interpreter, process.getName());
     }
@@ -284,11 +286,11 @@ public class MplCompiler extends MplBaseListener {
 
   public void addInterpreter(MplInterpreter interpreter) {
     if (addedInterpreters.add(interpreter.getProgramFile())) {
-      MplProject project = interpreter.getProject();
-      this.project.setHasBreakpoint(this.project.hasBreakpoint() | project.hasBreakpoint());
-      this.project.getExceptions().addAll(project.getExceptions());
-      this.project.getInstallation().addAll(project.getInstallation());
-      this.project.getUninstallation().addAll(project.getUninstallation());
+      MplProgram program = interpreter.getProgram();
+      this.program.setHasBreakpoint(this.program.hasBreakpoint() | program.hasBreakpoint());
+      this.program.getExceptions().addAll(program.getExceptions());
+      this.program.getInstall().addAll(program.getInstall());
+      this.program.getUninstall().addAll(program.getUninstall());
     }
   }
 

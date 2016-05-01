@@ -37,48 +37,82 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
-import javax.annotation.concurrent.Immutable;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import java.util.ArrayDeque;
+import java.util.Deque;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
-import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
+import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
-@Immutable
-@EqualsAndHashCode
-@ToString(includeFieldNames = true)
-public class Skip implements ChainPart, ChainLink {
-  private final boolean internal;
+@EqualsAndHashCode(of = {"not", "condition"})
+@ToString(includeFieldNames = true, of = {"not", "condition"})
+public class MplIf implements ChainPart, ChainPartBuffer {
+  private final @Nullable ChainPartBuffer parent;
+  private final boolean not;
+  private final @Nonnull String condition;
+  private final Deque<ChainPart> thenParts = new ArrayDeque<>();
+  private final Deque<ChainPart> elseParts = new ArrayDeque<>();
+  private boolean inElse;
 
-  public Skip(boolean internal) {
-    this.internal = internal;
+  public MplIf(boolean not, @Nonnull String condition) {
+    this(null, not, condition);
   }
 
-  public boolean isInternal() {
-    return internal;
+  public MplIf(@Nullable ChainPartBuffer parent, boolean not, @Nonnull String condition) {
+    this.parent = parent;
+    this.not = not;
+    this.condition = checkNotNull(condition, "condition == null!");
+  }
+
+  @Override
+  public void add(ChainPart cp) {
+    if (!inElse) {
+      thenParts.add(cp);
+    } else {
+      elseParts.add(cp);
+    }
+  }
+
+  @Override
+  public Deque<ChainPart> getChainParts() {
+    if (!inElse) {
+      return thenParts;
+    } else {
+      return elseParts;
+    }
+  }
+
+  public void enterThen() {
+    inElse = false;
+  }
+
+  public void enterElse() {
+    inElse = true;
+  }
+
+  public @Nullable ChainPartBuffer exit() {
+    return parent;
   }
 
   @Override
   public String getName() {
-    return "name";
-  }
-
-  @Override
-  public MplBlock toBlock(Coordinate3D coordinate) {
-    return new Transmitter(internal, coordinate);
+    return "if";
   }
 
   @Override
   public void accept(MplAstVisitor visitor) {
-    visitor.visitSkip(this);
+    visitor.visitIf(this);
   }
 
 }

@@ -21,15 +21,19 @@ import static de.kussm.direction.Direction.WEST;
 import com.google.common.collect.ImmutableSet;
 
 import de.kussm.direction.Direction;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 /**
  * @author Michael Kuß
  */
-@lombok.RequiredArgsConstructor(staticName = "at")
-@lombok.Getter
-@lombok.EqualsAndHashCode
-@lombok.ToString
+@RequiredArgsConstructor(staticName = "at")
+@Getter
+@EqualsAndHashCode
+@ToString
 public class Position {
   private final int x;
   private final int y;

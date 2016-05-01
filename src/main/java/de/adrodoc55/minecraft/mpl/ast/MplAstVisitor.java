@@ -37,48 +37,43 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+package de.adrodoc55.minecraft.mpl.ast;
 
-import javax.annotation.concurrent.Immutable;
-
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
-import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
 
 /**
  * @author Adrodoc55
  */
-@Immutable
-@EqualsAndHashCode
-@ToString(includeFieldNames = true)
-public class Skip implements ChainPart, ChainLink {
-  private final boolean internal;
+public interface MplAstVisitor {
+  void visitProgram(MplProgram program);
 
-  public Skip(boolean internal) {
-    this.internal = internal;
-  }
+  void visitProcess(MplProcess process);
 
-  public boolean isInternal() {
-    return internal;
-  }
+  void visitCommand(MplCommand command);
 
-  @Override
-  public String getName() {
-    return "name";
-  }
+  void visitStart(MplStart start);
 
-  @Override
-  public MplBlock toBlock(Coordinate3D coordinate) {
-    return new Transmitter(internal, coordinate);
-  }
+  void visitStop(MplStop stop);
 
-  @Override
-  public void accept(MplAstVisitor visitor) {
-    visitor.visitSkip(this);
-  }
+  void visitWaitfor(MplWaitfor waitfor);
 
+  void visitNotify(MplNotify notify);
+
+  void visitIntercept(MplIntercept intercept);
+
+  void visitBreakpoint(MplBreakpoint breakpoint);
+
+  void visitSkip(Skip skip);
+
+  void visitIf(MplIf mplIf);
 }

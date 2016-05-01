@@ -37,48 +37,77 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+package de.adrodoc55.minecraft.mpl.interpretation;
 
-import javax.annotation.concurrent.Immutable;
+import java.io.File;
+import java.util.Collection;
 
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
-import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 
 /**
  * @author Adrodoc55
  */
-@Immutable
-@EqualsAndHashCode
-@ToString(includeFieldNames = true)
-public class Skip implements ChainPart, ChainLink {
-  private final boolean internal;
+public class Include {
+  private final MplSource source;
+  private final String processName;
+  private final Collection<File> files;
 
-  public Skip(boolean internal) {
-    this.internal = internal;
+  public Include(MplSource source, Collection<File> imports) {
+    this(source, null, imports);
   }
 
-  public boolean isInternal() {
-    return internal;
+  public Include(MplSource source, String processName, Collection<File> imports) {
+    this.source = source;
+    this.processName = processName;
+    files = imports;
+  }
+
+  public MplSource getSource() {
+    return source;
+  }
+
+  public String getProcessName() {
+    return processName;
+  }
+
+  public Collection<File> getFiles() {
+    return files;
   }
 
   @Override
-  public String getName() {
-    return "name";
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((files == null) ? 0 : files.hashCode());
+    result = prime * result + ((processName == null) ? 0 : processName.hashCode());
+    return result;
   }
 
   @Override
-  public MplBlock toBlock(Coordinate3D coordinate) {
-    return new Transmitter(internal, coordinate);
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    Include other = (Include) obj;
+    if (files == null) {
+      if (other.files != null)
+        return false;
+    } else if (!files.equals(other.files))
+      return false;
+    if (processName == null) {
+      if (other.processName != null)
+        return false;
+    } else if (!processName.equals(other.processName))
+      return false;
+    return true;
   }
 
   @Override
-  public void accept(MplAstVisitor visitor) {
-    visitor.visitSkip(this);
+  public String toString() {
+    return "Include [processName=" + processName + "]";
   }
 
 }

@@ -37,48 +37,22 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+package de.adrodoc55.minecraft.mpl.chain;
 
-import javax.annotation.concurrent.Immutable;
+import java.util.List;
 
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
-import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import de.adrodoc55.minecraft.coordinate.Orientation3D;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Adrodoc55
  */
-@Immutable
-@EqualsAndHashCode
-@ToString(includeFieldNames = true)
-public class Skip implements ChainPart, ChainLink {
-  private final boolean internal;
-
-  public Skip(boolean internal) {
-    this.internal = internal;
-  }
-
-  public boolean isInternal() {
-    return internal;
-  }
-
-  @Override
-  public String getName() {
-    return "name";
-  }
-
-  @Override
-  public MplBlock toBlock(Coordinate3D coordinate) {
-    return new Transmitter(internal, coordinate);
-  }
-
-  @Override
-  public void accept(MplAstVisitor visitor) {
-    visitor.visitSkip(this);
-  }
-
+@RequiredArgsConstructor
+@Getter
+public class ChainContainer {
+  protected final Orientation3D orientation;
+  protected final CommandChain install;
+  protected final CommandChain uninstall;
+  protected final List<CommandChain> processes;
 }

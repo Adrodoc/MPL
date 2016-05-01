@@ -44,10 +44,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 
 import de.adrodoc55.minecraft.mpl.MplTestBase;
-import de.adrodoc55.minecraft.mpl.chain.MplProcess;
 import de.adrodoc55.minecraft.mpl.chain.NamedCommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.commands.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import net.karneim.pojobuilder.Builder;
 

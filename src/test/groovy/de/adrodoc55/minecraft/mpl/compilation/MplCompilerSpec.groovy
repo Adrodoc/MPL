@@ -45,15 +45,13 @@ import org.junit.Test
 
 import de.adrodoc55.minecraft.coordinate.Orientation3D
 import de.adrodoc55.minecraft.mpl.MplSpecBase
+import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram
 import de.adrodoc55.minecraft.mpl.blocks.AirBlock
 import de.adrodoc55.minecraft.mpl.blocks.Transmitter
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain
 import de.adrodoc55.minecraft.mpl.chain.CommandChain
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.program.MplProgram
-import de.adrodoc55.minecraft.mpl.program.MplProject
-import de.adrodoc55.minecraft.mpl.program.MplScript
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command
 
 class MplCompilerSpec extends MplSpecBase {
 

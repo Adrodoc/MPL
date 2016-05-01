@@ -41,14 +41,17 @@ package de.adrodoc55.minecraft.mpl.compilation;
 
 import java.util.Arrays;
 
+import javax.annotation.concurrent.Immutable;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
  * @author Adrodoc55
  */
+@Immutable
 public class CompilerOptions {
-  private ImmutableSet<CompilerOption> options;
+  private final ImmutableSet<CompilerOption> options;
 
   public CompilerOptions(CompilerOption... options) {
     this.options = Sets.immutableEnumSet(Arrays.asList(options));

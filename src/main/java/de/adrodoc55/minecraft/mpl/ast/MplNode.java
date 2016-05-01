@@ -37,48 +37,11 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
-
-import javax.annotation.concurrent.Immutable;
-
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
-import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+package de.adrodoc55.minecraft.mpl.ast;
 
 /**
  * @author Adrodoc55
  */
-@Immutable
-@EqualsAndHashCode
-@ToString(includeFieldNames = true)
-public class Skip implements ChainPart, ChainLink {
-  private final boolean internal;
-
-  public Skip(boolean internal) {
-    this.internal = internal;
-  }
-
-  public boolean isInternal() {
-    return internal;
-  }
-
-  @Override
-  public String getName() {
-    return "name";
-  }
-
-  @Override
-  public MplBlock toBlock(Coordinate3D coordinate) {
-    return new Transmitter(internal, coordinate);
-  }
-
-  @Override
-  public void accept(MplAstVisitor visitor) {
-    visitor.visitSkip(this);
-  }
-
+public interface MplNode {
+  void accept(MplAstVisitor visitor);
 }

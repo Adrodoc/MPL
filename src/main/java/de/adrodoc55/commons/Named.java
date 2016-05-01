@@ -39,9 +39,11 @@
  */
 package de.adrodoc55.commons;
 
+import javax.annotation.Nullable;
+
 /**
  * @author Adrodoc55
  */
 public interface Named {
-  String getName();
+  public @Nullable String getName();
 }

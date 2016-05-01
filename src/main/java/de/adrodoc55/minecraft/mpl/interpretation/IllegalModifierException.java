@@ -37,48 +37,27 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
-
-import javax.annotation.concurrent.Immutable;
-
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
-import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+package de.adrodoc55.minecraft.mpl.interpretation;
 
 /**
  * @author Adrodoc55
  */
-@Immutable
-@EqualsAndHashCode
-@ToString(includeFieldNames = true)
-public class Skip implements ChainPart, ChainLink {
-  private final boolean internal;
+public class IllegalModifierException extends Exception {
 
-  public Skip(boolean internal) {
-    this.internal = internal;
+  private static final long serialVersionUID = 1L;
+
+  public IllegalModifierException() {}
+
+  public IllegalModifierException(String message) {
+    super(message);
   }
 
-  public boolean isInternal() {
-    return internal;
+  public IllegalModifierException(Throwable cause) {
+    super(cause);
   }
 
-  @Override
-  public String getName() {
-    return "name";
-  }
-
-  @Override
-  public MplBlock toBlock(Coordinate3D coordinate) {
-    return new Transmitter(internal, coordinate);
-  }
-
-  @Override
-  public void accept(MplAstVisitor visitor) {
-    visitor.visitSkip(this);
+  public IllegalModifierException(String message, Throwable cause) {
+    super(message, cause);
   }
 
 }
