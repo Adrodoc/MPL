@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.compilation
+package de.adrodoc55.minecraft.mpl.compilation.placement
 
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$Command
 import static de.adrodoc55.minecraft.mpl.MplTestBase.some

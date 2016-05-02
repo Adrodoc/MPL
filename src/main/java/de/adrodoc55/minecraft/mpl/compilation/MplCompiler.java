@@ -72,6 +72,7 @@ import de.adrodoc55.minecraft.mpl.commands.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.Include;
 import de.adrodoc55.minecraft.mpl.compilation.interpretation.MplInterpreter;
+import de.adrodoc55.minecraft.mpl.compilation.placement.MplChainPlacer;
 import de.adrodoc55.minecraft.mpl.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.program.MplProject;
 

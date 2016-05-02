@@ -37,15 +37,15 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.compilation.placement;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.Test;
 
+import de.adrodoc55.minecraft.mpl.MplTestBase;
 import de.adrodoc55.minecraft.mpl.commands.Command;
-import de.adrodoc55.minecraft.mpl.compilation.MplChainPlacer;
 
 public class MplChainPlacerTest extends MplTestBase {
 
