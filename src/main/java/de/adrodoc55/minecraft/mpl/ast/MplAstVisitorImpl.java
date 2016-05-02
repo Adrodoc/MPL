@@ -44,6 +44,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept.INTERCEPTED;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.CONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.commands.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
@@ -152,8 +153,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       ModeOwner previous = chainPart.getPrevious();
       checkState(previous != null,
           "Cannot invert ChainPart; no previous command found for " + chainPart);
-      InvertingCommand e = new InvertingCommand(previous.getMode());
-      commands.add(e);
+      commands.add(new InvertingCommand(previous.getMode()));
     }
   }
 
@@ -310,6 +310,8 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     commands.add(skip);
   }
 
+  // private Deque<MplIf> ifNestingParents = new ArrayDeque<>();
+
   @Override
   public void visitIf(MplIf mplIf) {
     InternalCommand ref = new InternalCommand(mplIf.getCondition());
@@ -326,7 +328,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       // First then does not need a reference
       addWithoutRef(thenParts.pop());
     }
-    addWithRef(ref, thenParts, !mplIf.isNot());
+    addAllWithRef(thenParts, ref, !mplIf.isNot());
 
     // else
     Deque<ChainPart> elseParts = mplIf.getElseParts();
@@ -335,16 +337,25 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       // First else does not need a reference, if there is no then part
       addWithoutRef(elseParts.pop());
     }
-    addWithRef(ref, elseParts, mplIf.isNot());
+    addAllWithRef(elseParts, ref, mplIf.isNot());
   }
 
-  private void addWithRef(InternalCommand ref, Deque<ChainPart> chainParts, boolean success) {
+  private void addAllWithRef(Deque<ChainPart> chainParts, InternalCommand ref, boolean success) {
     while (!chainParts.isEmpty()) {
       ChainPart chainPart = chainParts.pop();
-      if (!((PossiblyConditionalChainPart) chainPart).isConditional()) {
-        int relative = countToRef(ref);
+      PossiblyConditionalChainPart casted = (PossiblyConditionalChainPart) chainPart;
+      if (casted.getConditional() == INVERT) {
+        visitPossiblyConditional(casted);
+        casted.setConditional(CONDITIONAL);
+        int relative = getCountToRef(ref);
+        commands.add(new ReferencingTestforSuccessCommand(relative, CHAIN, success, true));
+      } else if (casted.getConditional() != CONDITIONAL) {
+        int relative = getCountToRef(ref);
         commands.add(new ReferencingTestforSuccessCommand(relative, CHAIN, success));
       }
+      // if (!success) {
+      // addParentReferences();
+      // }
       addWithoutRef(chainPart);
     }
   }
@@ -357,24 +368,25 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     chainPart.accept(this);
   }
 
-  private int countToRef(InternalCommand ref) {
-    return -commands.size() + commands.lastIndexOf(ref);
+  // private void addParentReferences() {
+  // ifNestingParents.iterator();
+  //
+  // }
+
+  private int getCountToRef(InternalCommand ref) {
+    int lastIndex = -1;
+    for (int i = commands.size() - 1; i >= 0; i--) {
+      if (ref == commands.get(i)) {
+        lastIndex = i;
+        break;
+      }
+    }
+    return -commands.size() + lastIndex;
   }
 
   public static boolean needsNormalizer(MplIf mplIf) {
     if (!mplIf.isNot()) {
-      Iterator<ChainPart> it = mplIf.getThenParts().iterator();
-      if (it.hasNext()) {
-        it.next(); // Ignore the first element.
-      }
-      while (it.hasNext()) {
-        ChainPart chainPart = it.next();
-        PossiblyConditionalChainPart command = (PossiblyConditionalChainPart) chainPart;
-        if (!command.isConditional()) {
-          return true;
-        }
-      }
-      return false;
+      return containsConditionReference(mplIf.getThenParts());
     } else {
       if (!mplIf.getThenParts().isEmpty()) {
         if (!mplIf.getElseParts().isEmpty())
@@ -382,19 +394,39 @@ public class MplAstVisitorImpl implements MplAstVisitor {
         else
           return false;
       }
-      Iterator<ChainPart> it = mplIf.getElseParts().iterator();
-      if (it.hasNext()) {
-        it.next(); // Ignore the first element.
-      }
-      while (it.hasNext()) {
-        ChainPart chainPart = it.next();
-        PossiblyConditionalChainPart command = (PossiblyConditionalChainPart) chainPart;
-        if (!command.isConditional()) {
+      return containsConditionReference(mplIf.getElseParts());
+    }
+  }
+
+  private static boolean containsConditionReference(Iterable<ChainPart> iterable) {
+    Iterator<ChainPart> it = iterable.iterator();
+    if (it.hasNext()) {
+      it.next(); // Ignore the first element.
+    }
+    while (it.hasNext()) {
+      ChainPart chainPart = it.next();
+      if (chainPart instanceof MplIf) {
+        if (needsParentNormalizer((MplIf) chainPart)) {
+          return true;
+        }
+      } else if (chainPart instanceof PossiblyConditionalChainPart) {
+        PossiblyConditionalChainPart cp = (PossiblyConditionalChainPart) chainPart;
+        if (!cp.isConditional()) {
           return true;
         }
       }
-      return false;
     }
+    return false;
+  }
+
+  private static boolean needsParentNormalizer(MplIf mplIf) {
+    Deque<ChainPart> chainParts;
+    if (mplIf.isNot()) {
+      chainParts = mplIf.getThenParts();
+    } else {
+      chainParts = mplIf.getElseParts();
+    }
+    return containsConditionReference(chainParts);
   }
 
 }

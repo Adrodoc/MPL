@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static de.adrodoc55.minecraft.mpl.commands.Conditional.UNCONDITIONAL;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -59,9 +60,9 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode(of = {"not", "condition"})
+@EqualsAndHashCode(callSuper = true, of = {"not", "condition"})
 @ToString(includeFieldNames = true, of = {"not", "condition"})
-public class MplIf implements ChainPart, ChainPartBuffer {
+public class MplIf extends PossiblyConditionalChainPart implements ChainPart, ChainPartBuffer {
   private final @Nullable ChainPartBuffer parent;
 
   @Getter
@@ -79,6 +80,7 @@ public class MplIf implements ChainPart, ChainPartBuffer {
   }
 
   public MplIf(@Nullable ChainPartBuffer parent, boolean not, String condition) {
+    super(UNCONDITIONAL);
     this.parent = parent;
     this.not = not;
     this.condition = checkNotNull(condition, "condition == null!");
