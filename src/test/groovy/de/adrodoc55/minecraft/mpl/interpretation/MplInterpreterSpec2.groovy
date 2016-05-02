@@ -924,6 +924,51 @@ class MplInterpreterSpec2 extends MplSpecBase {
   // ----------------------------------------------------------------------------------------------------
 
   @Test
+  public void "if with leading conditional in then"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    if: /say if
+    then (
+      conditional: /say then
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "The first part of a chain must be unconditional"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'conditional'
+    program.exceptions[0].source.token.line == 4
+    program.exceptions.size() == 1
+  }
+
+  @Test
+  public void "if with leading conditional in else"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    if: /say if
+    then (
+    ) else (
+      conditional: /say else
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "The first part of a chain must be unconditional"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'conditional'
+    program.exceptions[0].source.token.line == 5
+    program.exceptions.size() == 1
+  }
+
+  @Test
   public void "if then else"() {
     given:
     String identifier = someIdentifier()

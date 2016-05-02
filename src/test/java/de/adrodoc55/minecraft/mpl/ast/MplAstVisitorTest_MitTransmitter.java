@@ -40,7 +40,6 @@
 package de.adrodoc55.minecraft.mpl.ast;
 
 import static de.adrodoc55.TestBase.$Enum;
-import static de.adrodoc55.TestBase.$oneOf;
 import static de.adrodoc55.TestBase.listOf;
 import static de.adrodoc55.TestBase.some;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplBreakpoint;
@@ -48,6 +47,7 @@ import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplCommand;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplIf;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplIntercept;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplNotify;
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplSkip;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStart;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStop;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWaitfor;
@@ -62,7 +62,9 @@ import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOpt
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModeOwner;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
@@ -76,10 +78,11 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NormalizingCommand;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MplAstVisitorTest_MitTransmitter {
 
   MplAstVisitorImpl underTest;
@@ -244,7 +247,7 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplWaitfor.getEvent()
             + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
-        new Skip(), //
+        new MplSkip(), //
         new InternalCommand("/setblock ${this - 1} stone", IMPULSE));
   }
 
@@ -263,7 +266,7 @@ public class MplAstVisitorTest_MitTransmitter {
             + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
         new InvertingCommand(CHAIN), //
         new InternalCommand("/setblock ${this + 1} redstone_block", true), //
-        new Skip(), //
+        new MplSkip(), //
         new InternalCommand("/setblock ${this - 1} stone", IMPULSE));
   }
 
@@ -282,7 +285,7 @@ public class MplAstVisitorTest_MitTransmitter {
         new InvertingCommand(CHAIN), //
         new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplWaitfor.getEvent()
             + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
-        new Skip(), //
+        new MplSkip(), //
         new InternalCommand("/setblock ${this - 1} stone", IMPULSE));
   }
 
@@ -379,7 +382,7 @@ public class MplAstVisitorTest_MitTransmitter {
             + mplIntercept.getEvent() + INTERCEPTED + "}"), //
         new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplIntercept.getEvent()
             + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
-        new Skip(), //
+        new MplSkip(), //
         new InternalCommand("/setblock ${this - 1} stone", IMPULSE), //
         new InternalCommand("/kill @e[name=" + mplIntercept.getEvent() + ",r=2]"), //
         new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + INTERCEPTED
@@ -410,7 +413,7 @@ public class MplAstVisitorTest_MitTransmitter {
             + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
         new InvertingCommand(CHAIN), //
         new InternalCommand("/setblock ${this + 1} redstone_block", true), //
-        new Skip(), //
+        new MplSkip(), //
         new InternalCommand("/setblock ${this - 1} stone", IMPULSE), //
         new InternalCommand("/kill @e[name=" + mplIntercept.getEvent() + ",r=2]"), //
         new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + INTERCEPTED
@@ -441,7 +444,7 @@ public class MplAstVisitorTest_MitTransmitter {
             + mplIntercept.getEvent() + INTERCEPTED + "}", true), //
         new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplIntercept.getEvent()
             + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
-        new Skip(), //
+        new MplSkip(), //
         new InternalCommand("/setblock ${this - 1} stone", IMPULSE), //
         new InternalCommand("/kill @e[name=" + mplIntercept.getEvent() + ",r=2]"), //
         new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + INTERCEPTED
@@ -474,7 +477,7 @@ public class MplAstVisitorTest_MitTransmitter {
         new InternalCommand("/execute @e[name=breakpoint] ~ ~ ~ setblock ~ ~ ~ redstone_block"), //
         new InternalCommand(
             "/summon ArmorStand ${this + 1} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
-        new Skip(), //
+        new MplSkip(), //
         new InternalCommand("/setblock ${this - 1} stone", IMPULSE));
   }
 
@@ -497,30 +500,38 @@ public class MplAstVisitorTest_MitTransmitter {
             true), //
         new InvertingCommand(CHAIN), //
         new InternalCommand("/setblock ${this + 1} redstone_block", true), //
-        new Skip(), //
+        new MplSkip(), //
         new InternalCommand("/setblock ${this - 1} stone", IMPULSE));
   }
 
   @Test
   public void test_invert_Breakpoint() {
     // given:
+    Mode mode = some($Enum(Mode.class));
     MplBreakpoint mplBreakpoint = some($MplBreakpoint()//
-        .withConditional(INVERT));
+        .withConditional(INVERT)//
+        .withPrevious(new ModeOwner() {
+          @Override
+          public Mode getMode() {
+            return mode;
+          }
+        }));
 
     // when:
     mplBreakpoint.accept(underTest);
 
     // then:
     assertThat(underTest.commands).containsExactly(//
-        new InternalCommand("/setblock ${this + 5} redstone_block", true), //
-        new InvertingCommand(CHAIN), //
+        new InvertingCommand(mode), //
         new InternalCommand("/say " + mplBreakpoint.getMessage(), true), //
         new InternalCommand("/execute @e[name=breakpoint] ~ ~ ~ setblock ~ ~ ~ redstone_block",
             true), //
         new InternalCommand(
-            "/summon ArmorStand ${this + 1} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
+            "/summon ArmorStand ${this + 3} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
             true), //
-        new Skip(), //
+        new InvertingCommand(CHAIN), //
+        new InternalCommand("/setblock ${this + 1} redstone_block", true), //
+        new MplSkip(), //
         new InternalCommand("/setblock ${this - 1} stone", IMPULSE));
   }
 
@@ -536,7 +547,47 @@ public class MplAstVisitorTest_MitTransmitter {
   // @formatter:on
 
   @Test
-  public void test_If_mit_nur_einem_then_wird_zu_einem_consitional() {
+  public void test_If_then_mit_skip_wirft_exception() {
+    // given:
+    MplIf mplIf = some($MplIf()//
+        .withNot(false)//
+        .withThenParts(listOf(some($MplSkip()))));
+
+    // when:
+    Exception act = null;
+    try {
+      mplIf.accept(underTest);
+    } catch (IllegalStateException ex) {
+      act = ex;
+    }
+
+    // then:
+    assertThat(act).isNotNull();
+    assertThat(act.getMessage()).isEqualTo("If cannot contain skip");
+  }
+
+  @Test
+  public void test_If_else_mit_skip_wirft_exception() {
+    // given:
+    MplIf mplIf = some($MplIf()//
+        .withNot(false)//
+        .withElseParts(listOf(some($MplSkip()))));
+
+    // when:
+    Exception act = null;
+    try {
+      mplIf.accept(underTest);
+    } catch (IllegalStateException ex) {
+      act = ex;
+    }
+
+    // then:
+    assertThat(act).isNotNull();
+    assertThat(act.getMessage()).isEqualTo("If cannot contain skip");
+  }
+
+  @Test
+  public void test_If_mit_nur_einem_then_wird_zu_einem_conditional() {
     // given:
     MplCommand then1 = some($MplCommand().withConditional(UNCONDITIONAL));
     MplIf mplIf = some($MplIf()//
@@ -549,7 +600,26 @@ public class MplAstVisitorTest_MitTransmitter {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true)//
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone())//
+    );
+  }
+
+  @Test
+  public void test_If_mit_nur_einem_else_wird_zu_einem_invert() {
+    // given:
+    MplCommand else1 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplIf mplIf = some($MplIf()//
+        .withNot(false)//
+        .withElseParts(listOf(else1)));
+
+    // when:
+    mplIf.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new InternalCommand(mplIf.getCondition()), //
+        new InvertingCommand(CHAIN), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone())//
     );
   }
 
@@ -568,7 +638,25 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InvertingCommand(CHAIN), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true)//
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone())//
+    );
+  }
+
+  @Test
+  public void test_If_not_mit_nur_einem_else_wird_zu_einem_conditional() {
+    // given:
+    MplCommand else1 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplIf mplIf = some($MplIf()//
+        .withNot(true)//
+        .withElseParts(listOf(else1)));
+
+    // when:
+    mplIf.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new InternalCommand(mplIf.getCondition()), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone())//
     );
   }
 
@@ -588,9 +676,9 @@ public class MplAstVisitorTest_MitTransmitter {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true), //
-        new InvertingCommand(CHAIN), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true)//
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
+        new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:0}"), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone())//
     );
   }
 
@@ -611,11 +699,11 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true), //
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
         new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone()), //
         new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true)//
+        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.needsRedstone())//
     );
   }
 
@@ -635,12 +723,12 @@ public class MplAstVisitorTest_MitTransmitter {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true), //
-        new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true), //
-        new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true)//
+        new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
+        new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}"), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone()), //
+        new InternalCommand("/testforblock ${this - 5} chain_command_block -1 {SuccessCount:0}"), //
+        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.needsRedstone())//
     );
   }
 
@@ -660,12 +748,12 @@ public class MplAstVisitorTest_MitTransmitter {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true), //
-        new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true), //
-        new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true)//
+        new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
+        new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}"), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone()), //
+        new InternalCommand("/testforblock ${this - 5} chain_command_block -1 {SuccessCount:0}"), //
+        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.needsRedstone())//
     );
   }
 
@@ -686,11 +774,11 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
         new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone()), //
         new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true)//
+        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.needsRedstone())//
     );
   }
 
@@ -716,18 +804,18 @@ public class MplAstVisitorTest_MitTransmitter {
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
         // then
-        new InternalCommand(then1.getCommand(), then1.getMode(), true), //
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
         new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone()), //
         new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true), //
+        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.needsRedstone()), //
         // else
         new InternalCommand("/testforblock ${this - 6} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
         new InternalCommand("/testforblock ${this - 8} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone()), //
         new InternalCommand("/testforblock ${this - 10} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true)//
+        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.needsRedstone())//
     );
   }
 
@@ -754,65 +842,19 @@ public class MplAstVisitorTest_MitTransmitter {
         new NormalizingCommand(), //
         // then
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true), //
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
         new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone()), //
         new InternalCommand("/testforblock ${this - 5} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true), //
+        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.needsRedstone()), //
         // else
         new InternalCommand("/testforblock ${this - 7} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
         new InternalCommand("/testforblock ${this - 9} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone()), //
         new InternalCommand("/testforblock ${this - 11} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true)//
+        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.needsRedstone())//
     );
-  }
-
-  @Test
-  public void test_If_erzeugt_Exception_wenn_erster_then_nicht_unconditional() {
-    // given:
-    MplIf mplIf = some($MplIf()//
-        .withNot(false)//
-        .withThenParts(listOf(//
-            some($MplCommand().withConditional($oneOf(CONDITIONAL, INVERT)))//
-    )));
-
-    // when:
-    Exception act = null;
-    try {
-      mplIf.accept(underTest);
-    } catch (IllegalStateException ex) {
-      act = ex;
-    }
-
-    // then:
-    assertThat(act).isNotNull();
-    assertThat(act.getMessage())
-        .isEqualTo("The first command in a then part must be unconditional");
-  }
-
-  @Test
-  public void test_If_erzeugt_Exception_wenn_erster_else_nicht_unconditional() {
-    // given:
-    MplIf mplIf = some($MplIf()//
-        .withNot(false)//
-        .withElseParts(listOf(//
-            some($MplCommand().withConditional($oneOf(CONDITIONAL, INVERT)))//
-    )));
-
-    // when:
-    Exception act = null;
-    try {
-      mplIf.accept(underTest);
-    } catch (IllegalStateException ex) {
-      act = ex;
-    }
-
-    // then:
-    assertThat(act).isNotNull();
-    assertThat(act.getMessage())
-        .isEqualTo("The first command in an else part must be unconditional");
   }
 
   @Test
@@ -832,10 +874,10 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true), //
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone()), //
         new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true)//
+        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.needsRedstone())//
     );
   }
 
@@ -854,24 +896,24 @@ public class MplAstVisitorTest_MitTransmitter {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true)//
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone())//
     );
   }
 
   @Test
   public void test_If_mit_invert_im_then() {
     // given:
-    Mode mode = some($Enum(Mode.class));
-    MplCommand then1 = some($MplCommand().withConditional(UNCONDITIONAL)//
-        .withPrevious(new ModeOwner() {
-          @Override
-          public Mode getMode() {
-            return mode;
-          }
-        }));
-    MplCommand then2 = some($MplCommand().withConditional(INVERT));
-    MplCommand then3 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand then1 = some($MplCommand()//
+        .withConditional(UNCONDITIONAL));
+
+    MplCommand then2 = some($MplCommand()//
+        .withConditional(INVERT)//
+        .withPrevious(then1));
+
+    MplCommand then3 = some($MplCommand()//
+        .withConditional(UNCONDITIONAL));
+
     MplIf mplIf = some($MplIf()//
         .withNot(false)//
         .withThenParts(listOf(then1, then2, then3)));
@@ -883,26 +925,24 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true), //
-        new InvertingCommand(mode), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true), //
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
+        new InvertingCommand(then1.getMode()), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone()), //
         new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true)//
+        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.needsRedstone())//
     );
   }
 
   @Test
   public void test_If_mit_invert_im_then___kein_normalizer() {
     // given:
-    Mode mode = some($Enum(Mode.class));
-    MplCommand then1 = some($MplCommand().withConditional(UNCONDITIONAL)//
-        .withPrevious(new ModeOwner() {
-          @Override
-          public Mode getMode() {
-            return mode;
-          }
-        }));
-    MplCommand then2 = some($MplCommand().withConditional(INVERT));
+    MplCommand then1 = some($MplCommand()//
+        .withConditional(UNCONDITIONAL));
+
+    MplCommand then2 = some($MplCommand()//
+        .withConditional(INVERT)//
+        .withPrevious(then1));
+
     MplIf mplIf = some($MplIf()//
         .withNot(false)//
         .withThenParts(listOf(then1, then2)));
@@ -913,9 +953,9 @@ public class MplAstVisitorTest_MitTransmitter {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true), //
-        new InvertingCommand(mode), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true)//
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
+        new InvertingCommand(then1.getMode()), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone())//
     );
   }
 
@@ -936,26 +976,26 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone()), //
         new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true)//
+        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.needsRedstone())//
     );
   }
 
   @Test
   public void test_If_mit_invert_im_else() {
     // given:
-    Mode mode = some($Enum(Mode.class));
-    MplCommand else1 = some($MplCommand().withConditional(UNCONDITIONAL)//
-        .withPrevious(new ModeOwner() {
-          @Override
-          public Mode getMode() {
-            return mode;
-          }
-        }));
-    MplCommand else2 = some($MplCommand().withConditional(INVERT));
-    MplCommand else3 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand else1 = some($MplCommand()//
+        .withConditional(UNCONDITIONAL));
+
+    MplCommand else2 = some($MplCommand()//
+        .withConditional(INVERT)//
+        .withPrevious(else1));
+
+    MplCommand else3 = some($MplCommand()//
+        .withConditional(UNCONDITIONAL));
+
     MplIf mplIf = some($MplIf()//
         .withNot(false)//
         .withElseParts(listOf(else1, else2, else3)));
@@ -967,11 +1007,168 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true), //
-        new InvertingCommand(mode), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
+        new InvertingCommand(else1.getMode()), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone()), //
+        new InternalCommand("/testforblock ${this - 5} chain_command_block -1 {SuccessCount:0}"), //
+        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.needsRedstone())//
+    );
+  }
+
+  @Test
+  public void test_If_not_mit_conditional_im_then() {
+    // given:
+    MplCommand then1 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand then2 = some($MplCommand().withConditional(CONDITIONAL));
+    MplCommand then3 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplIf mplIf = some($MplIf()//
+        .withNot(true)//
+        .withThenParts(listOf(then1, then2, then3)));
+
+    // when:
+    mplIf.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new InternalCommand(mplIf.getCondition()), //
+        new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone()), //
         new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true)//
+        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.needsRedstone())//
+    );
+  }
+
+  @Test
+  public void test_If_not_mit_invert_im_then() {
+    // given:
+    MplCommand then1 = some($MplCommand()//
+        .withConditional(UNCONDITIONAL));
+
+    MplCommand then2 = some($MplCommand()//
+        .withConditional(INVERT)//
+        .withPrevious(then1));
+
+    MplCommand then3 = some($MplCommand()//
+        .withConditional(UNCONDITIONAL));
+    MplIf mplIf = some($MplIf()//
+        .withNot(true)//
+        .withThenParts(listOf(then1, then2, then3)));
+
+    // when:
+    mplIf.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new InternalCommand(mplIf.getCondition()), //
+        new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
+        new InvertingCommand(then1.getMode()), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone()), //
+        new InternalCommand("/testforblock ${this - 5} chain_command_block -1 {SuccessCount:0}"), //
+        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.needsRedstone())//
+    );
+  }
+
+  @Test
+  public void test_If_not_mit_conditional_im_else() {
+    // given:
+    MplCommand else1 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand else2 = some($MplCommand().withConditional(CONDITIONAL));
+    MplCommand else3 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplIf mplIf = some($MplIf()//
+        .withNot(true)//
+        .withElseParts(listOf(else1, else2, else3)));
+
+    // when:
+    mplIf.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new InternalCommand(mplIf.getCondition()), //
+        new NormalizingCommand(), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone()), //
+        new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}"), //
+        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.needsRedstone())//
+    );
+  }
+
+  @Test
+  public void test_If_not_mit_conditional_im_else___kein_normalizer() {
+    // given:
+    MplCommand else1 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand else2 = some($MplCommand().withConditional(CONDITIONAL));
+    MplIf mplIf = some($MplIf()//
+        .withNot(true)//
+        .withElseParts(listOf(else1, else2)));
+
+    // when:
+    mplIf.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new InternalCommand(mplIf.getCondition()), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone())//
+    );
+  }
+
+  @Test
+  public void test_If_not_mit_invert_im_else() {
+    // given:
+    MplCommand else1 = some($MplCommand()//
+        .withConditional(UNCONDITIONAL));
+
+    MplCommand else2 = some($MplCommand()//
+        .withConditional(INVERT)//
+        .withPrevious(else1));
+
+    MplCommand else3 = some($MplCommand()//
+        .withConditional(UNCONDITIONAL));
+
+    MplIf mplIf = some($MplIf()//
+        .withNot(true)//
+        .withElseParts(listOf(else1, else2, else3)));
+
+    // when:
+    mplIf.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new InternalCommand(mplIf.getCondition()), //
+        new NormalizingCommand(), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
+        new InvertingCommand(else1.getMode()), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone()), //
+        new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:1}"), //
+        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.needsRedstone())//
+    );
+  }
+
+  @Test
+  public void test_If_not_mit_invert_im_else___kein_normalizer() {
+    // given:
+    MplCommand else1 = some($MplCommand()//
+        .withConditional(UNCONDITIONAL));
+
+    MplCommand else2 = some($MplCommand()//
+        .withConditional(INVERT)//
+        .withPrevious(else1));
+
+    MplIf mplIf = some($MplIf()//
+        .withNot(true)//
+        .withElseParts(listOf(else1, else2)));
+
+    // when:
+    mplIf.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new InternalCommand(mplIf.getCondition()), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
+        new InvertingCommand(else1.getMode()), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone())//
     );
   }
 

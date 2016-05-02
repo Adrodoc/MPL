@@ -43,17 +43,17 @@ package de.adrodoc55.minecraft.mpl.commands.chainlinks;
  * @author Adrodoc55
  */
 @Deprecated
-public class ReferencingIfCommand extends InternalCommand {
+public class ReferencingIfCommandOld extends InternalCommand {
   private static final String HEAD = "testforblock ";
   private final String tail;
   private int relative;
   private boolean referenceInserted = false;
 
-  public ReferencingIfCommand(int relative, String blockId, boolean success) {
+  public ReferencingIfCommandOld(int relative, String blockId, boolean success) {
     this(relative, blockId, success, null);
   }
 
-  public ReferencingIfCommand(int relative, String blockId, boolean success, Boolean conditional) {
+  public ReferencingIfCommandOld(int relative, String blockId, boolean success, Boolean conditional) {
     super(null, conditional);
     this.relative = relative;
     int successCount = success ? 1 : 0;

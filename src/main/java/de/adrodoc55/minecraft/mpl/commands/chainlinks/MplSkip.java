@@ -48,6 +48,7 @@ import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
@@ -55,14 +56,15 @@ import lombok.ToString;
 @Immutable
 @EqualsAndHashCode
 @ToString(includeFieldNames = true)
-public class Skip implements ChainPart, ChainLink {
+public class MplSkip implements ChainPart, ChainLink {
   private final boolean internal;
 
-  public Skip() {
+  public MplSkip() {
     this(false);
   }
 
-  public Skip(boolean internal) {
+  @GenerateMplPojoBuilder
+  public MplSkip(boolean internal) {
     this.internal = internal;
   }
 

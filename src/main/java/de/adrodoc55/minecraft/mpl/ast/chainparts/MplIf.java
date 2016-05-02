@@ -124,10 +124,18 @@ public class MplIf implements ChainPart, ChainPartBuffer {
     visitor.visitIf(this);
   }
 
+  public Deque<ChainPart> getThenParts() {
+    return new ArrayDeque<>(thenParts);
+  }
+
   @VisibleForTesting
   void setThenParts(Collection<ChainPart> thenParts) {
     this.thenParts.clear();
     this.thenParts.addAll(thenParts);
+  }
+
+  public Deque<ChainPart> getElseParts() {
+    return new ArrayDeque<>(elseParts);
   }
 
   @VisibleForTesting

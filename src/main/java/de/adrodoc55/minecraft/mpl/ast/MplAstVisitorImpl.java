@@ -51,6 +51,8 @@ import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 
 import org.assertj.core.util.VisibleForTesting;
@@ -77,8 +79,10 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.NormalizingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingTestforSuccessCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
 /**
@@ -121,7 +125,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   public void visitProcess(MplProcess process) {
     commands = new ArrayList<>(process.getChainParts().size());
     if (options.hasOption(TRANSMITTER)) {
-      commands.add(new Skip(false));
+      commands.add(new MplSkip(false));
     }
     if (process.isRepeating()) {
       // if (chainParts.isEmpty()) {
@@ -203,27 +207,26 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     } else {
       summon.setConditional(true);
       ReferencingCommand jump = new ReferencingCommand("setblock " + REF + " redstone_block", true);
-
-      ReferencingCommand first, second;
       if (waitfor.getConditional() == CONDITIONAL) {
-        first = summon;
-        second = jump;
+        summon.setRelative(3);
+        jump.setRelative(1);
+        commands.add(summon);
+        commands.add(new InvertingCommand(CHAIN));
+        commands.add(jump);
       } else { // conditional == INVERT
-        first = jump;
-        second = summon;
+        jump.setRelative(3);
+        summon.setRelative(1);
+        commands.add(jump);
+        commands.add(new InvertingCommand(CHAIN));
+        commands.add(summon);
       }
-      first.setRelative(3);
-      second.setRelative(1);
-      commands.add(first);
-      commands.add(new InvertingCommand(CHAIN));
-      commands.add(second);
     }
 
     if (options.hasOption(TRANSMITTER)) {
-      commands.add(new Skip(false));
+      commands.add(new MplSkip(false));
       commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
     } else {
-      commands.add(new InternalCommand("entitydata ~ ~ ~ {auto:0}", Mode.IMPULSE, false));
+      commands.add(new InternalCommand("blockdata ~ ~ ~ {auto:0}", Mode.IMPULSE, false));
     }
   }
 
@@ -247,18 +250,44 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   @Override
   public void visitIntercept(MplIntercept intercept) {
     String event = intercept.getEvent();
-    if (intercept.isConditional()) {
-      if (intercept.getConditional() == Conditional.CONDITIONAL) {
-        commands.add(new InvertingCommand(intercept.getPrevious().getMode()));
+    boolean conditional = intercept.isConditional();
+
+    InternalCommand entitydata = new InternalCommand(
+        "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}", conditional);
+
+    ReferencingCommand summon = new ReferencingCommand("summon ArmorStand " + REF + " {CustomName:"
+        + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", conditional);
+
+
+    if (intercept.getConditional() == UNCONDITIONAL) {
+      summon.setRelative(1);
+      commands.add(entitydata);
+      commands.add(summon);
+    } else {
+      ReferencingCommand jump = new ReferencingCommand("setblock " + REF + " redstone_block", true);
+      if (intercept.getConditional() == CONDITIONAL) {
+        summon.setRelative(3);
+        jump.setRelative(1);
+        commands.add(entitydata);
+        commands.add(summon);
+        commands.add(new InvertingCommand(CHAIN));
+        commands.add(jump);
+      } else { // conditional == INVERT
+        jump.setRelative(4);
+        summon.setRelative(1);
+        commands.add(jump);
+        commands.add(new InvertingCommand(CHAIN));
+        commands.add(entitydata);
+        commands.add(summon);
       }
-      commands.add(new InternalCommand("setblock ${this + 3} redstone_block", true));
     }
-    commands.add(new InternalCommand(
-        "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}"));
-    commands.add(new InternalCommand("summon ArmorStand ${this + 1} {CustomName:" + event
-        + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
-    commands.add(new Skip(false));
-    commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
+
+    if (options.hasOption(TRANSMITTER)) {
+      commands.add(new MplSkip(false));
+      commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
+    } else {
+      commands.add(new InternalCommand("blockdata ~ ~ ~ {auto:0}", Mode.IMPULSE, false));
+    }
     commands.add(new InternalCommand("kill @e[name=" + event + ",r=2]"));
     commands.add(new InternalCommand(
         "entitydata @e[name=" + event + INTERCEPTED + "] {CustomName:" + event + "}"));
@@ -271,20 +300,101 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     boolean cond = breakpoint.isConditional();
     commands.add(new InternalCommand("say " + breakpoint.getMessage(), cond));
 
-    Conditional conditional = cond ? Conditional.CONDITIONAL : Conditional.UNCONDITIONAL;
+    Conditional conditional = cond ? CONDITIONAL : UNCONDITIONAL;
     visitStart(new MplStart("breakpoint", conditional));
     visitWaitfor(new MplWaitfor("breakpoint" + NOTIFY, conditional));
   }
 
   @Override
-  public void visitSkip(Skip skip) {
+  public void visitSkip(MplSkip skip) {
     commands.add(skip);
   }
 
   @Override
   public void visitIf(MplIf mplIf) {
+    InternalCommand ref = new InternalCommand(mplIf.getCondition());
+    commands.add(ref);
+    if (needsNormalizer(mplIf)) {
+      ref = new NormalizingCommand();
+      commands.add(ref);
+    }
 
+    // then
+    Deque<ChainPart> thenParts = mplIf.getThenParts();
+    boolean emptyThen = thenParts.isEmpty();
+    if (!mplIf.isNot() && !emptyThen) {
+      // First then does not need a reference
+      addWithoutRef(thenParts.pop());
+    }
+    addWithRef(ref, thenParts, !mplIf.isNot());
 
+    // else
+    Deque<ChainPart> elseParts = mplIf.getElseParts();
+    boolean emptyElse = elseParts.isEmpty();
+    if (mplIf.isNot() && emptyThen && !emptyElse) {
+      // First else does not need a reference, if there is no then part
+      addWithoutRef(elseParts.pop());
+    }
+    addWithRef(ref, elseParts, mplIf.isNot());
+  }
+
+  private void addWithRef(InternalCommand ref, Deque<ChainPart> chainParts, boolean success) {
+    while (!chainParts.isEmpty()) {
+      ChainPart chainPart = chainParts.pop();
+      if (!((PossiblyConditionalChainPart) chainPart).isConditional()) {
+        int relative = countToRef(ref);
+        commands.add(new ReferencingTestforSuccessCommand(relative, CHAIN, success));
+      }
+      addWithoutRef(chainPart);
+    }
+  }
+
+  private void addWithoutRef(ChainPart chainPart) {
+    PossiblyConditionalChainPart casted = (PossiblyConditionalChainPart) chainPart;
+    if (casted.getConditional() == UNCONDITIONAL) {
+      casted.setConditional(CONDITIONAL);
+    }
+    chainPart.accept(this);
+  }
+
+  private int countToRef(InternalCommand ref) {
+    return -commands.size() + commands.lastIndexOf(ref);
+  }
+
+  public static boolean needsNormalizer(MplIf mplIf) {
+    if (!mplIf.isNot()) {
+      Iterator<ChainPart> it = mplIf.getThenParts().iterator();
+      if (it.hasNext()) {
+        it.next(); // Ignore the first element.
+      }
+      while (it.hasNext()) {
+        ChainPart chainPart = it.next();
+        PossiblyConditionalChainPart command = (PossiblyConditionalChainPart) chainPart;
+        if (!command.isConditional()) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      if (!mplIf.getThenParts().isEmpty()) {
+        if (!mplIf.getElseParts().isEmpty())
+          return true;
+        else
+          return false;
+      }
+      Iterator<ChainPart> it = mplIf.getElseParts().iterator();
+      if (it.hasNext()) {
+        it.next(); // Ignore the first element.
+      }
+      while (it.hasNext()) {
+        ChainPart chainPart = it.next();
+        PossiblyConditionalChainPart command = (PossiblyConditionalChainPart) chainPart;
+        if (!command.isConditional()) {
+          return true;
+        }
+      }
+      return false;
+    }
   }
 
 }

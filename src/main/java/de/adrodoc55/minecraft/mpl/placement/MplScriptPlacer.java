@@ -51,7 +51,7 @@ import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 
 /**
  * @author Adrodoc55
@@ -66,7 +66,7 @@ public class MplScriptPlacer extends MplChainPlacer {
     // The first block of each chain that start's with a RECIEVER must be a TRANSMITTER
     List<ChainPart> commands = chain.getCommands();
     if (!commands.isEmpty() && isReceiver(commands.get(0))) {
-      commands.add(0, new Skip(false /* First TRANSMITTER can be referenced */));
+      commands.add(0, new MplSkip(false /* First TRANSMITTER can be referenced */));
     }
   }
 
@@ -146,11 +146,11 @@ public class MplScriptPlacer extends MplChainPlacer {
 
     if (!installation.isEmpty()) {
       installation.add(0, new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
-      installation.add(0, new Skip(false /* First TRANSMITTER can be referenced */));
+      installation.add(0, new MplSkip(false /* First TRANSMITTER can be referenced */));
     }
     if (!uninstallation.isEmpty()) {
       uninstallation.add(0, new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
-      uninstallation.add(0, new Skip(false /* First TRANSMITTER can be referenced */));
+      uninstallation.add(0, new MplSkip(false /* First TRANSMITTER can be referenced */));
     }
 
     generateUnInstallation();

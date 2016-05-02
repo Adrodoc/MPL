@@ -49,7 +49,7 @@ import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NormalizingCommand;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingIfCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingIfCommandOld;
 import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
 
 /**
@@ -239,7 +239,7 @@ class LayerCompressor {
       }
       String blockId = MplConverter.toBlockId(referencedMode);
       boolean dependsOnFailure = dependsOnFailure(current);
-      ReferencingIfCommand reference = new ReferencingIfCommand(relative, blockId, !dependsOnFailure);
+      ReferencingIfCommandOld reference = new ReferencingIfCommandOld(relative, blockId, !dependsOnFailure);
       reference.setConditional(!first);
       layerCommands.add(reference);
 

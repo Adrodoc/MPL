@@ -49,7 +49,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 
 /**
  * @author Adrodoc55
@@ -73,7 +73,7 @@ public interface MplAstVisitor {
 
   void visitBreakpoint(MplBreakpoint breakpoint);
 
-  void visitSkip(Skip skip);
+  void visitSkip(MplSkip skip);
 
   void visitIf(MplIf mplIf);
 }

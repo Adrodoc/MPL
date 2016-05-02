@@ -52,6 +52,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcessBuilder;
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.CommandBuilder;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkipBuilder;
 import net.karneim.pojobuilder.Builder;
 
 public class MplTestBase extends TestBase {
@@ -133,6 +134,12 @@ public class MplTestBase extends TestBase {
     return new MplBreakpointBuilder()//
         .withConditional($Enum(Conditional.class))//
         .withMessage($String())//
+        ;
+  }
+
+  public static MplSkipBuilder $MplSkip() {
+    return new MplSkipBuilder()//
+        .withInternal($boolean())//
         ;
   }
 

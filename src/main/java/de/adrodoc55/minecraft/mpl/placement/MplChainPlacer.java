@@ -74,7 +74,7 @@ import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.kussm.ChainLayouter;
 import de.kussm.chain.Chain;
@@ -235,8 +235,8 @@ public abstract class MplChainPlacer {
         ChainLink chainLink = chainLinks.pop();
         if (chainLink instanceof Command) {
           blocks.add(new CommandBlock((Command) chainLink, d, coord));
-        } else if (chainLink instanceof Skip) {
-          blocks.add(new Transmitter(((Skip) chainLink).isInternal(), coord));
+        } else if (chainLink instanceof MplSkip) {
+          blocks.add(new Transmitter(((MplSkip) chainLink).isInternal(), coord));
         }
       }
     }
@@ -343,7 +343,7 @@ public abstract class MplChainPlacer {
   }
 
   public static boolean isTransmitter(ChainLink chainLink) {
-    return chainLink instanceof Skip;
+    return chainLink instanceof MplSkip;
   }
 
   public static boolean isReceiver(MplBlock block) {

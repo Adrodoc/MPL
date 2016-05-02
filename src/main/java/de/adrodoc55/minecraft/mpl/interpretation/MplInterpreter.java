@@ -106,7 +106,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 
@@ -652,7 +652,7 @@ public class MplInterpreter extends MplBaseListener {
           "Skip can not be the first command of a repeating process"));
       return;
     }
-    chainBuffer.add(new Skip(false));
+    chainBuffer.add(new MplSkip(false));
   }
 
   @Override

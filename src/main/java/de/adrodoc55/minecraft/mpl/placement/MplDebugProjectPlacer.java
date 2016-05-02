@@ -10,7 +10,7 @@ import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.kussm.direction.Directions;
 
 public class MplDebugProjectPlacer extends MplChainPlacer {
@@ -36,7 +36,7 @@ public class MplDebugProjectPlacer extends MplChainPlacer {
         getOrientation().getA().getAxis());
     Directions template = newDirectionsTemplate(max, getOrientation());
 
-    chain.getCommands().add(0, new Skip(false /* First TRANSMITTER can be referenced */));
+    chain.getCommands().add(0, new MplSkip(false /* First TRANSMITTER can be referenced */));
     CommandBlockChain result = generateFlat(chain, start, template);
     chains.add(result);
     start = start.plus(getOrientation().getC().toCoordinate().mult(2));

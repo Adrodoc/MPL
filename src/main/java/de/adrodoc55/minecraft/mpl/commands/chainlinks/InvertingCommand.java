@@ -40,12 +40,11 @@
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import de.adrodoc55.minecraft.mpl.commands.Mode;
-import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
 
 /**
  * @author Adrodoc55
  */
-public class InvertingCommand extends InternalCommand {
+public class InvertingCommand extends ReferencingTestforSuccessCommand {
 
   /**
    * Constructs a Command, wich's success is always the opposite of the given command, if the
@@ -64,12 +63,7 @@ public class InvertingCommand extends InternalCommand {
    * @param previous
    */
   public InvertingCommand(Mode previousMode) {
-    super(getInvert(previousMode));
-  }
-
-  private static String getInvert(Mode previousMode) {
-    String blockId = MplConverter.toBlockId(previousMode);
-    return "/testforblock ${this - 1} " + blockId + " -1 {SuccessCount:0}";
+    super(-1, previousMode, false);
   }
 
 }
