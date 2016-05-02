@@ -89,16 +89,19 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnMenuItem bnmntmOpen;
   private BnMenuItem bnmntmSave;
   private BnMenuItem bnmntmSaveUnder;
-  private BnMenuItem bnmntmCompile;
-  private BnMenuItem bnmntmCompileUnder;
+  private BnMenuItem bnmntmCompileToCommand;
+  private BnMenuItem bnmntmCompileToSchematic;
+  private BnMenuItem bnmntmCompileToSchematicUnder;
   private JToolBar toolBar;
   private BnButton bnbtnNew;
   private BnButton bnbtnOpen;
   private BnButton bnbtnSave;
-  private BnButton bnbtnCompilePython;
+  private BnButton bnbtnCompileToCommand;
+  private BnButton bnbtnCompileToSchematic;
+  private BnButton bnbtnCompileToFilter;
   private JTabbedPane tabbedPane;
-  private BnButton bnbtnCompileCommand;
-  private BnMenuItem bnmntmCompileCommand;
+  private BnMenuItem bnmntmCompileToFilter;
+  private BnMenuItem bnmntmCompileToFilterUnder;
 
   /**
    * Constructs a new <code>MplFrame</code>.
@@ -272,9 +275,11 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
       mnFile.add(getBnmntmOpen());
       mnFile.add(getBnmntmSave());
       mnFile.add(getBnmntmSaveUnder());
-      mnFile.add(getBnmntmCompile());
-      mnFile.add(getBnmntmCompileUnder());
-      mnFile.add(getBnmntmCompileCommand());
+      mnFile.add(getBnmntmCompileToCommand());
+      mnFile.add(getBnmntmCompileToSchematic());
+      mnFile.add(getBnmntmCompileToSchematicUnder());
+      mnFile.add(getBnmntmCompileToFilter());
+      mnFile.add(getBnmntmCompileToFilterUnder());
     }
     return mnFile;
   }
@@ -319,34 +324,54 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
     return bnmntmSaveUnder;
   }
 
-  private BnMenuItem getBnmntmCompile() {
-    if (bnmntmCompile == null) {
-      bnmntmCompile = new BnMenuItem();
-      bnmntmCompile.setPath(new Path("this.compileFile"));
-      bnmntmCompile.setModelProvider(getLocalModelProvider());
-      bnmntmCompile.setText("Compile");
+  private BnMenuItem getBnmntmCompileToCommand() {
+    if (bnmntmCompileToCommand == null) {
+      bnmntmCompileToCommand = new BnMenuItem();
+      bnmntmCompileToCommand.setPath(new Path("this.compileToCommand"));
+      bnmntmCompileToCommand.setModelProvider(getLocalModelProvider());
+      bnmntmCompileToCommand.setText("Compile to one Command");
     }
-    return bnmntmCompile;
+    return bnmntmCompileToCommand;
   }
 
-  private BnMenuItem getBnmntmCompileUnder() {
-    if (bnmntmCompileUnder == null) {
-      bnmntmCompileUnder = new BnMenuItem();
-      bnmntmCompileUnder.setPath(new Path("this.compileFileUnder"));
-      bnmntmCompileUnder.setModelProvider(getLocalModelProvider());
-      bnmntmCompileUnder.setText("Compile under...");
+  private BnMenuItem getBnmntmCompileToSchematic() {
+    if (bnmntmCompileToSchematic == null) {
+      bnmntmCompileToSchematic = new BnMenuItem();
+      bnmntmCompileToSchematic.setPath(new Path("this.compileToSchematic"));
+      bnmntmCompileToSchematic.setModelProvider(getLocalModelProvider());
+      bnmntmCompileToSchematic.setText("Compile to Schematic");
     }
-    return bnmntmCompileUnder;
+    return bnmntmCompileToSchematic;
   }
 
-  private BnMenuItem getBnmntmCompileCommand() {
-    if (bnmntmCompileCommand == null) {
-      bnmntmCompileCommand = new BnMenuItem();
-      bnmntmCompileCommand.setPath(new Path("this.compileCommand"));
-      bnmntmCompileCommand.setModelProvider(getLocalModelProvider());
-      bnmntmCompileCommand.setText("Compile to one Command");
+  private BnMenuItem getBnmntmCompileToSchematicUnder() {
+    if (bnmntmCompileToSchematicUnder == null) {
+      bnmntmCompileToSchematicUnder = new BnMenuItem();
+      bnmntmCompileToSchematicUnder.setPath(new Path("this.compileToSchematicUnder"));
+      bnmntmCompileToSchematicUnder.setModelProvider(getLocalModelProvider());
+      bnmntmCompileToSchematicUnder.setText("Compile to Schematic under...");
     }
-    return bnmntmCompileCommand;
+    return bnmntmCompileToSchematicUnder;
+  }
+
+  private BnMenuItem getBnmntmCompileToFilter() {
+    if (bnmntmCompileToFilter == null) {
+      bnmntmCompileToFilter = new BnMenuItem();
+      bnmntmCompileToFilter.setPath(new Path("this.compileToFilter"));
+      bnmntmCompileToFilter.setModelProvider(getLocalModelProvider());
+      bnmntmCompileToFilter.setText("Compile to Filter");
+    }
+    return bnmntmCompileToFilter;
+  }
+
+  private BnMenuItem getBnmntmCompileToFilterUnder() {
+    if (bnmntmCompileToFilterUnder == null) {
+      bnmntmCompileToFilterUnder = new BnMenuItem();
+      bnmntmCompileToFilterUnder.setPath(new Path("this.compileToFilterUnder"));
+      bnmntmCompileToFilterUnder.setModelProvider(getLocalModelProvider());
+      bnmntmCompileToFilterUnder.setText("Compile to Filter under ...");
+    }
+    return bnmntmCompileToFilterUnder;
   }
 
   private JToolBar getToolBar() {
@@ -355,8 +380,9 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
       toolBar.add(getBnbtnNew());
       toolBar.add(getBnbtnOpen());
       toolBar.add(getBnbtnSave());
-      toolBar.add(getBnbtnCompilePython());
-      toolBar.add(getBnbtnCompileCommand());
+      toolBar.add(getBnbtnCompileToCommand());
+      toolBar.add(getBnbtnCompileToSchematic());
+      toolBar.add(getBnbtnCompileToFilter());
     }
     return toolBar;
   }
@@ -391,26 +417,37 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
     return bnbtnSave;
   }
 
-  private BnButton getBnbtnCompilePython() {
-    if (bnbtnCompilePython == null) {
-      bnbtnCompilePython = new BnButton();
-      bnbtnCompilePython
-          .setIcon(new ImageIcon(MplFrame.class.getResource("/icons/gear_run_16.png")));
-      bnbtnCompilePython.setPath(new Path("this.compileFile"));
-      bnbtnCompilePython.setModelProvider(getLocalModelProvider());
-    }
-    return bnbtnCompilePython;
-  }
-
-  private BnButton getBnbtnCompileCommand() {
-    if (bnbtnCompileCommand == null) {
-      bnbtnCompileCommand = new BnButton();
-      bnbtnCompileCommand.setPath(new Path("this.compileCommand"));
-      bnbtnCompileCommand.setModelProvider(getLocalModelProvider());
-      bnbtnCompileCommand
+  private BnButton getBnbtnCompileToCommand() {
+    if (bnbtnCompileToCommand == null) {
+      bnbtnCompileToCommand = new BnButton();
+      bnbtnCompileToCommand.setPath(new Path("this.compileToCommand"));
+      bnbtnCompileToCommand.setModelProvider(getLocalModelProvider());
+      bnbtnCompileToCommand
           .setIcon(new ImageIcon(MplFrame.class.getResource("/icons/commandblock_icon_16.png")));
     }
-    return bnbtnCompileCommand;
+    return bnbtnCompileToCommand;
+  }
+
+  private BnButton getBnbtnCompileToSchematic() {
+    if (bnbtnCompileToSchematic == null) {
+      bnbtnCompileToSchematic = new BnButton();
+      bnbtnCompileToSchematic
+          .setIcon(new ImageIcon(MplFrame.class.getResource("/icons/schematic_16.png")));
+      bnbtnCompileToSchematic.setPath(new Path("this.compileToSchematic"));
+      bnbtnCompileToSchematic.setModelProvider(getLocalModelProvider());
+    }
+    return bnbtnCompileToSchematic;
+  }
+
+  private BnButton getBnbtnCompileToFilter() {
+    if (bnbtnCompileToFilter == null) {
+      bnbtnCompileToFilter = new BnButton();
+      bnbtnCompileToFilter.setPath(new Path("this.compileToFilter"));
+      bnbtnCompileToFilter.setModelProvider(getLocalModelProvider());
+      bnbtnCompileToFilter
+          .setIcon(new ImageIcon(MplFrame.class.getResource("/icons/mcedit_16.png")));
+    }
+    return bnbtnCompileToFilter;
   }
 
   private JTabbedPane getTabbedPane() {

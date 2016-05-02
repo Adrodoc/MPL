@@ -119,4 +119,14 @@ public class CommandBlock extends MplBlock {
     return "CommandBlock [command=" + command + ", coordinate=" + coordinate + "]";
   }
 
+  @Override
+  public byte getByteBlockId() {
+    return getMode().toByteBlockId();
+  }
+
+  @Override
+  public String getStringBlockId() {
+    return getMode().toStringBlockId();
+  }
+
 }

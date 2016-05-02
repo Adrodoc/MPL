@@ -40,10 +40,12 @@
 package de.adrodoc55.minecraft.mpl.blocks;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
+@ToString(includeFieldNames = true)
 public class Transmitter extends MplBlock {
   private final boolean internal;
 
@@ -57,8 +59,13 @@ public class Transmitter extends MplBlock {
   }
 
   @Override
-  public String toString() {
-    return "Transmitter [internal=" + internal + ", coordinate=" + coordinate + "]";
+  public byte getByteBlockId() {
+    return 1;
+  }
+
+  @Override
+  public String getStringBlockId() {
+    return "stone";
   }
 
 }

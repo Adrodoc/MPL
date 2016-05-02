@@ -48,6 +48,7 @@ import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
  */
 public abstract class MplConverter {
 
+  @Deprecated
   public static String toBlockId(Mode mode) {
     if (mode == null) {
       throw new NullPointerException("mode == null");
@@ -63,6 +64,7 @@ public abstract class MplConverter {
     throw new IllegalArgumentException("Unknown Mode: " + mode);
   }
 
+  @Deprecated
   protected static int toIntBlockId(Mode mode) {
     if (mode == null) {
       throw new NullPointerException("mode == null");
@@ -78,15 +80,15 @@ public abstract class MplConverter {
     throw new IllegalArgumentException("Unknown Mode: " + mode);
   }
 
-  protected static int toDamageValue(CommandBlock block) {
-    int damage = toDamageValue(block.getDirection());
+  protected static byte toDamageValue(CommandBlock block) {
+    byte damage = toDamageValue(block.getDirection());
     if (block.isConditional()) {
       damage += 8;
     }
     return damage;
   }
 
-  private static int toDamageValue(Direction3D direction) {
+  private static byte toDamageValue(Direction3D direction) {
     if (direction == null) {
       throw new NullPointerException("mode == null");
     }

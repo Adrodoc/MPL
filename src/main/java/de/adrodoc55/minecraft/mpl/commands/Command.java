@@ -107,7 +107,45 @@ public class Command implements ChainPart {
   }
 
   public static enum Mode {
-    IMPULSE, CHAIN, REPEAT;
+    IMPULSE {
+      @Override
+      public byte toByteBlockId() {
+        return (byte) 137;
+      }
+
+      @Override
+      public String toStringBlockId() {
+        return "command_block";
+      }
+    },
+    CHAIN {
+      @Override
+      public byte toByteBlockId() {
+        return (byte) 211;
+      }
+
+      @Override
+      public String toStringBlockId() {
+        return "chain_command_block";
+      }
+
+    },
+    REPEAT {
+      @Override
+      public byte toByteBlockId() {
+        return (byte) 210;
+      }
+
+      @Override
+      public String toStringBlockId() {
+        return "repeating_command_block";
+      }
+    };
+
+    public abstract byte toByteBlockId();
+
+    public abstract String toStringBlockId();
+
   }
 
   public boolean isConditional() {

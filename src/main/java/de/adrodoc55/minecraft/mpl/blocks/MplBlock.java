@@ -39,29 +39,30 @@
  */
 package de.adrodoc55.minecraft.mpl.blocks;
 
-import javax.annotation.Nonnull;
-
 import com.google.common.base.Preconditions;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
+@EqualsAndHashCode
+@ToString(includeFieldNames = true)
+@Getter
+@Setter
 public abstract class MplBlock {
 
   protected Coordinate3D coordinate;
 
-  public MplBlock(@Nonnull Coordinate3D coordinate) {
+  public MplBlock(Coordinate3D coordinate) {
     this.setCoordinate(coordinate);
   }
 
-  @Nonnull
-  public Coordinate3D getCoordinate() {
-    return coordinate;
-  }
-
-  public void setCoordinate(@Nonnull Coordinate3D coordinate) {
+  public void setCoordinate(Coordinate3D coordinate) {
     this.coordinate = Preconditions.checkNotNull(coordinate, "coordinate == null!");
   }
 
@@ -77,34 +78,7 @@ public abstract class MplBlock {
     return coordinate.getZ();
   }
 
-  @Override
-  public String toString() {
-    return "MplBlock [coordinate=" + coordinate + "]";
-  }
+  public abstract byte getByteBlockId();
 
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((coordinate == null) ? 0 : coordinate.hashCode());
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    MplBlock other = (MplBlock) obj;
-    if (coordinate == null) {
-      if (other.coordinate != null)
-        return false;
-    } else if (!coordinate.equals(other.coordinate))
-      return false;
-    return true;
-  }
-
+  public abstract String getStringBlockId();
 }

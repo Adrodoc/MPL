@@ -50,4 +50,14 @@ public class AirBlock extends MplBlock {
     super(coordinate);
   }
 
+  @Override
+  public byte getByteBlockId() {
+    return 0;
+  }
+
+  @Override
+  public String getStringBlockId() {
+    return "air";
+  }
+
 }
