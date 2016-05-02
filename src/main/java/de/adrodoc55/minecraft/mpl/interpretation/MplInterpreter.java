@@ -109,6 +109,7 @@ import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer.ChainPartBufferImpl;
 
 /**
  * @author Adrodoc55
@@ -234,8 +235,7 @@ public class MplInterpreter extends MplBaseListener {
       return;
     }
 
-    Orientation3D newOrientation = new Orientation3D(def);
-    newOrientation.setToken(newToken);
+    Orientation3D newOrientation = new Orientation3D(def, newToken);
     program.setOrientation(newOrientation);
   }
 

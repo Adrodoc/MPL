@@ -39,8 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.placement;
 
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -48,12 +48,11 @@ import de.adrodoc55.minecraft.coordinate.Axis3D;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
@@ -64,26 +63,25 @@ import de.kussm.direction.Directions;
  */
 public class MplProjectPlacer extends MplChainPlacer {
 
-  private final LinkedList<MplProcess> processes;
   private final int[] occupied;
 
   public MplProjectPlacer(ChainContainer container, CompilerOptions options) {
-    super(project, options);
-    processes = new LinkedList<>(project.getProcesses());
-    occupied = new int[processes.size()];
+    super(container, options);
+    int size = container.getChains().size() + 2;
+    this.occupied = new int[size];
   }
 
-  @Override
   public List<CommandBlockChain> place() {
+    List<CommandChain> chains = new ArrayList<>(container.getChains());
     // start with the longest chain
-    processes.sort((o1, o2) -> {
-      return Integer.compare(o1.getChainParts().size(), o2.getChainParts().size()) * -1;
+    chains.sort((o1, o2) -> {
+      return Integer.compare(o1.getCommands().size(), o2.getCommands().size()) * -1;
     });
-    for (MplProcess process : processes) {
-      addChain(process.toCommandChain(options));
+    for (CommandChain chain : chains) {
+      addChain(chain);
     }
     addUnInstallation();
-    return chains;
+    return this.chains;
   }
 
   private void addChain(CommandChain chain) {
@@ -153,13 +151,13 @@ public class MplProjectPlacer extends MplChainPlacer {
     Direction3D a = orientation.getA();
     Direction3D b = orientation.getB();
     Direction3D c = orientation.getC();
-    int maxA = program.getMax().get(a.getAxis());
-    int maxB = program.getMax().get(b.getAxis());
-    int maxC = program.getMax().get(c.getAxis());
+    int maxA = container.getMax().get(a.getAxis());
+    int maxB = container.getMax().get(b.getAxis());
+    int maxC = container.getMax().get(c.getAxis());
 
     int installLength = calculateFutureInstallSize() + calculateFutureUninstallSize();
-    int longestProcessLength = processes.stream().map(p -> p.getChainParts().size())
-        .max(Comparator.naturalOrder()).orElse(0);
+    int longestProcessLength = container.getChains().stream()
+        .map(chain -> chain.getCommands().size()).max(Comparator.naturalOrder()).orElse(0);
     int longestChainLength = Math.max(installLength, longestProcessLength);
 
     int optB = (int) Math.ceil(Math.sqrt(longestChainLength));
@@ -177,19 +175,19 @@ public class MplProjectPlacer extends MplChainPlacer {
 
   private int calculateFutureInstallSize() {
     // Plus 3 for first Transmitter, first Receiver and final air block
-    return 3 + getInstallation().size() + processes.size();
+    return 3 + getInstall().getCommands().size() + container.getChains().size();
   }
 
   private int calculateFutureUninstallSize() {
     // Plus 3 for first Transmitter, first Receiver and final air block
-    return 3 + getUninstallation().size() + processes.size();
+    return 3 + getUninstall().getCommands().size() + container.getChains().size();
   }
 
   public final int getLongestSuccessiveConditionalCount() {
     return Stream
-        .concat(processes.stream().map(p -> p.getChainParts()),
-            Stream.of(getInstallation(), getUninstallation()))
-        .map(chainParts -> getLongestSuccessiveConditionalCount(chainParts))
+        .concat(container.getChains().stream().map(c -> c.getCommands()),
+            Stream.of(getInstall().getCommands(), getUninstall().getCommands()))
+        .map(commands -> getLongestSuccessiveConditionalCount(commands))
         .max(Comparator.naturalOrder()).orElse(0);
   }
 
@@ -204,11 +202,11 @@ public class MplProjectPlacer extends MplChainPlacer {
   }
 
   private void addUnInstallation() {
-    List<ChainPart> installation = program.getInstallation();
-    List<ChainPart> uninstallation = program.getUninstallation();
+    List<ChainLink> install = getInstall().getCommands();
+    List<ChainLink> uninstall = getUninstall().getCommands();
 
     Orientation3D orientation = getOrientation();
-    if (!processes.isEmpty() || !installation.isEmpty() || !uninstallation.isEmpty()) {
+    if (!container.getChains().isEmpty() || !install.isEmpty() || !uninstall.isEmpty()) {
       // move all chains by 1 block, if installation or uninstallation is added.
       // if there is at least one process, both installation and unistallation will be added.
       for (CommandBlockChain chain : chains) {
@@ -219,25 +217,25 @@ public class MplProjectPlacer extends MplChainPlacer {
     for (CommandBlockChain chain : chains) {
       Coordinate3D chainStart = chain.getBlocks().get(0).getCoordinate();
       // TODO: Alle ArmorStands taggen, damit nur ein uninstallation command notwendig
-      installation
+      install
           .add(0,
               new Command("/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString()
                   + ")} {CustomName:" + chain.getName()
                   + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
-      uninstallation.add(new Command("/kill @e[type=ArmorStand,name=" + chain.getName() + "]"));
+      uninstall.add(new Command("/kill @e[type=ArmorStand,name=" + chain.getName() + "]"));
       // uninstallation
       // .add(0,new Command("/kill @e[type=ArmorStand,name=" + name + "_NOTIFY]"));
       // uninstallation
       // .add(0,new Command("/kill @e[type=ArmorStand,name=" + name + "_INTERCEPTED]"));
     }
 
-    if (!installation.isEmpty()) {
-      installation.add(0, new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
-      installation.add(0, new MplSkip(false /* First TRANSMITTER can be referenced */));
+    if (!install.isEmpty()) {
+      install.add(0, new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
+      install.add(0, new MplSkip(false /* First TRANSMITTER can be referenced */));
     }
-    if (!uninstallation.isEmpty()) {
-      uninstallation.add(0, new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
-      uninstallation.add(0, new MplSkip(false /* First TRANSMITTER can be referenced */));
+    if (!uninstall.isEmpty()) {
+      uninstall.add(0, new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
+      uninstall.add(0, new MplSkip(false /* First TRANSMITTER can be referenced */));
     }
 
     generateUnInstallation();

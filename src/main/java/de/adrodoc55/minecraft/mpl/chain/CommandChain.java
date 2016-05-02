@@ -48,6 +48,7 @@ import com.google.common.base.Preconditions;
 import de.adrodoc55.commons.Named;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import lombok.Getter;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
@@ -62,6 +63,7 @@ public class CommandChain implements Named {
     this(null, commands);
   }
 
+  @GenerateMplPojoBuilder
   public CommandChain(@Nullable String name, List<ChainLink> commands) {
     this.name = name;
     this.commands = Preconditions.checkNotNull(commands, "commands == null!");

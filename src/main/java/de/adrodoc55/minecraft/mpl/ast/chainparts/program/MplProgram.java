@@ -84,11 +84,11 @@ public class MplProgram implements MplNode, Named {
 
   @Getter
   @Setter
-  protected MplProcess install;
+  protected MplProcess install = new MplProcess("install");
 
   @Getter
   @Setter
-  protected MplProcess uninstall;
+  protected MplProcess uninstall = new MplProcess("uninstall");
 
   @Getter
   protected final List<CompilerException> exceptions = new LinkedList<>();

@@ -39,20 +39,34 @@
  */
 package de.adrodoc55.minecraft.mpl.chain;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.List;
 
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
-@RequiredArgsConstructor
 @Getter
 public class ChainContainer {
   protected final Orientation3D orientation;
+  protected final Coordinate3D max;
   protected final CommandChain install;
   protected final CommandChain uninstall;
-  protected final List<CommandChain> processes;
+  protected final List<CommandChain> chains;
+
+  @GenerateMplPojoBuilder
+  public ChainContainer(Orientation3D orientation, Coordinate3D max, CommandChain install,
+      CommandChain uninstall, List<CommandChain> chains) {
+    this.orientation = checkNotNull(orientation, "orientation == null!");
+    this.max = checkNotNull(max, "max == null!");
+    this.install = checkNotNull(install, "install == null!");
+    this.uninstall = checkNotNull(uninstall, "uninstall == null!");
+    this.chains = checkNotNull(chains, "chains == null!");
+  }
+
 }

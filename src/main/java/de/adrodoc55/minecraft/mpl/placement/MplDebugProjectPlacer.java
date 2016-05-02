@@ -1,31 +1,30 @@
 package de.adrodoc55.minecraft.mpl.placement;
 
-import java.util.Collection;
 import java.util.List;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
+import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.kussm.direction.Directions;
 
 public class MplDebugProjectPlacer extends MplChainPlacer {
 
-  protected MplDebugProjectPlacer(MplAstProject project) {
-    super(project);
-  }
-
   private Coordinate3D start = new Coordinate3D().plus(4, getOrientation().getC().getAxis());
+
+  public MplDebugProjectPlacer(ChainContainer container, CompilerOptions options) {
+    super(container, options);
+  }
 
   @Override
   public List<CommandBlockChain> place() {
-    Collection<MplProcess> processes = getProject().getProcesses();
-    for (MplProcess process : processes) {
-      addChain(process);
+    for (CommandChain chain : container.getChains()) {
+      addChain(chain);
     }
     addUnInstallation();
     return chains;
@@ -42,14 +41,10 @@ public class MplDebugProjectPlacer extends MplChainPlacer {
     start = start.plus(getOrientation().getC().toCoordinate().mult(2));
   }
 
-  public MplAstProject getProject() {
-    return (MplAstProject) program;
-  }
-
   protected void addUnInstallation() {
     start = new Coordinate3D();
-    List<ChainPart> installation = program.getInstallation();
-    List<ChainPart> uninstallation = program.getUninstallation();
+    List<ChainLink> installation = container.getInstall().getCommands();
+    List<ChainLink> uninstallation = container.getUninstall().getCommands();
 
     for (CommandBlockChain chain : chains) {
       Coordinate3D chainStart = chain.getBlocks().get(0).getCoordinate();
@@ -76,13 +71,8 @@ public class MplDebugProjectPlacer extends MplChainPlacer {
 
   @Override
   protected void generateUnInstallation() {
-    List<ChainPart> installation = program.getInstallation();
-    NamedCommandChain install = new NamedCommandChain("install", installation);
-    addChain(install);
-
-    List<ChainPart> uninstallation = program.getUninstallation();
-    NamedCommandChain uninstall = new NamedCommandChain("uninstall", uninstallation);
-    addChain(uninstall);
+    addChain(container.getInstall());
+    addChain(container.getUninstall());
   }
 
   @Override

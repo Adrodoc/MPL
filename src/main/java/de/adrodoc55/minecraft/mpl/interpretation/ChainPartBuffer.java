@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation;
 
+import java.util.ArrayDeque;
 import java.util.Deque;
 
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
@@ -50,4 +51,21 @@ public interface ChainPartBuffer {
   void add(ChainPart cp);
 
   Deque<ChainPart> getChainParts();
+
+  /**
+   * @author Adrodoc55
+   */
+  public static class ChainPartBufferImpl implements ChainPartBuffer {
+    protected final Deque<ChainPart> chainParts = new ArrayDeque<>();
+
+    @Override
+    public void add(ChainPart cp) {
+      chainParts.add(cp);
+    }
+
+    @Override
+    public Deque<ChainPart> getChainParts() {
+      return chainParts;
+    }
+  }
 }

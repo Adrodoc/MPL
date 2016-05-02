@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation;
 
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -75,7 +77,8 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.interpretation.Include;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter;
-import de.adrodoc55.minecraft.mpl.placement.MplChainPlacer;
+import de.adrodoc55.minecraft.mpl.placement.MplDebugProjectPlacer;
+import de.adrodoc55.minecraft.mpl.placement.MplProjectPlacer;
 
 /**
  * @author Adrodoc55
@@ -84,25 +87,30 @@ public class MplCompiler extends MplBaseListener {
 
   public static MplCompilationResult compile(File programFile, CompilerOptions options)
       throws IOException, CompilationFailedException {
+    // Assembly
     MplProgram program = assembleProgram(programFile);
 
+    // Materializing
     MplAstVisitorImpl visitor = new MplAstVisitorImpl(options);
     program.accept(visitor);
     ChainContainer container = visitor.getResult();
 
-    List<CommandBlockChain> chains = place(container);
+    // Placement
+    List<CommandBlockChain> chains;
+    if (options.hasOption(DEBUG)) {
+      chains = new MplDebugProjectPlacer(container, options).place();
+    } else {
+      chains = new MplProjectPlacer(container, options).place();
+    }
+    for (CommandBlockChain chain : chains) {
+      insertRelativeCoordinates(chain.getBlocks(), container.getOrientation());
+    }
+
+    // Result
     List<MplBlock> blocks =
         chains.stream().flatMap(c -> c.getBlocks().stream()).collect(Collectors.toList());
     ImmutableMap<Coordinate3D, MplBlock> result = Maps.uniqueIndex(blocks, b -> b.getCoordinate());
     return new MplCompilationResult(program.getOrientation(), result);
-  }
-
-  private static List<CommandBlockChain> place(ChainContainer container) {
-    List<CommandBlockChain> chains = MplChainPlacer.place(container);
-    for (CommandBlockChain chain : chains) {
-      insertRelativeCoordinates(chain.getBlocks(), container.getOrientation());
-    }
-    return chains;
   }
 
   public static MplProgram assembleProgram(File programFile)
@@ -287,7 +295,6 @@ public class MplCompiler extends MplBaseListener {
   public void addInterpreter(MplInterpreter interpreter) {
     if (addedInterpreters.add(interpreter.getProgramFile())) {
       MplProgram program = interpreter.getProgram();
-      this.program.setHasBreakpoint(this.program.hasBreakpoint() | program.hasBreakpoint());
       this.program.getExceptions().addAll(program.getExceptions());
       this.program.getInstall().addAll(program.getInstall());
       this.program.getUninstall().addAll(program.getUninstall());

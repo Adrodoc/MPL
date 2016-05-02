@@ -158,19 +158,24 @@ public class TestBase {
 
   }
 
+  public static <P> Builder<List<P>> $listOf(int count, Builder<P> prototype) {
+    return new Builder<List<P>>() {
+      @Override
+      public List<P> build() {
+        return listOf(count, prototype);
+      }
+    };
+  }
+
   @SafeVarargs
   public static <E> List<E> listOf(E... elements) {
     return Arrays.asList(elements);
   }
 
-  public static <P> LinkedList<P> listOf(Builder<P> builder) {
-    return listOf(someInt(100), builder);
-  }
-
-  public static <P> LinkedList<P> listOf(int count, Builder<P> builder) {
+  public static <P> LinkedList<P> listOf(int count, Builder<P> prototype) {
     LinkedList<P> list = new LinkedList<>();
     for (int i = 0; i < count; i++) {
-      list.add(builder.build());
+      list.add(prototype.build());
     }
     return list;
   }

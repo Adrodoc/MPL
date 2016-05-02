@@ -39,7 +39,18 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
+import static de.adrodoc55.minecraft.coordinate.Direction3D.DOWN;
+import static de.adrodoc55.minecraft.coordinate.Direction3D.EAST;
+import static de.adrodoc55.minecraft.coordinate.Direction3D.NORTH;
+import static de.adrodoc55.minecraft.coordinate.Direction3D.SOUTH;
+import static de.adrodoc55.minecraft.coordinate.Direction3D.UP;
+import static de.adrodoc55.minecraft.coordinate.Direction3D.WEST;
+
+import java.util.ArrayList;
+
 import de.adrodoc55.TestBase;
+import de.adrodoc55.minecraft.coordinate.Orientation3D;
+import de.adrodoc55.minecraft.coordinate.Orientation3DBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpointBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommandBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIfBuilder;
@@ -49,6 +60,9 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStartBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStopBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitforBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcessBuilder;
+import de.adrodoc55.minecraft.mpl.chain.ChainContainerBuilder;
+import de.adrodoc55.minecraft.mpl.chain.CommandChain;
+import de.adrodoc55.minecraft.mpl.chain.CommandChainBuilder;
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.CommandBuilder;
@@ -147,6 +161,29 @@ public class MplTestBase extends TestBase {
     return new MplIfBuilder()//
         .withNot($boolean())//
         .withCondition($CommandString())//
+        ;
+  }
+
+  public static Orientation3DBuilder $Orientation3D() {
+    return new Orientation3DBuilder()//
+        .withA($oneOf(EAST, WEST))//
+        .withB($oneOf(UP, DOWN))//
+        .withB($oneOf(SOUTH, NORTH))//
+        ;
+  }
+
+  public static ChainContainerBuilder $ChainContainer() {
+    return new ChainContainerBuilder()//
+        .withOrientation(new Orientation3D())//
+        .withInstall(new CommandChain(new ArrayList<>()))//
+        .withUninstall(new CommandChain(new ArrayList<>()))//
+        .withChains(new ArrayList<>())//
+        ;
+  }
+
+  public static CommandChainBuilder $CommandChain() {
+    return new CommandChainBuilder()//
+        .withName($String())//
         ;
   }
 

@@ -58,6 +58,7 @@ import java.util.List;
 
 import org.assertj.core.util.VisibleForTesting;
 
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModeOwner;
@@ -106,11 +107,14 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitProgram(MplProgram program) {
+    chains = new ArrayList<>();
     Orientation3D orientation = program.getOrientation();
+    Coordinate3D max = program.getMax();
 
     program.getInstall().accept(this);
     CommandChain install = chains.get(chains.size() - 1);
     chains.remove(chains.size() - 1);
+
     program.getUninstall().accept(this);
     CommandChain uninstall = chains.get(chains.size() - 1);
     chains.remove(chains.size() - 1);
@@ -119,7 +123,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     for (MplProcess process : program.getProcesses()) {
       process.accept(this);
     }
-    container = new ChainContainer(orientation, install, uninstall, chains);
+    container = new ChainContainer(orientation, max, install, uninstall, chains);
   }
 
   @Override

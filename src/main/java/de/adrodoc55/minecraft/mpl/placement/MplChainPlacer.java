@@ -61,8 +61,6 @@ import de.adrodoc55.minecraft.coordinate.Axis3D;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.blocks.AirBlock;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
@@ -73,8 +71,8 @@ import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.kussm.ChainLayouter;
 import de.kussm.chain.Chain;
@@ -86,38 +84,25 @@ import de.kussm.position.Position;
  * @author Adrodoc55
  */
 public abstract class MplChainPlacer {
-
-  public static List<CommandBlockChain> place(ChainContainer container) {
-    if (program instanceof MplAstProject) {
-      MplAstProject project = (MplAstProject) program;
-      return new MplDebugProjectPlacer(project).place();
-    }
-    if (program instanceof MplScript) {
-      MplScript script = (MplScript) program;
-      return new MplScriptPlacer(script).place();
-    }
-    throw new IllegalArgumentException("Unknown MplProgram class: " + program.getClass());
-  }
-
-  protected final MplProgram program;
+  protected final ChainContainer container;
   protected final CompilerOptions options;
-  protected final List<CommandBlockChain> chains = new LinkedList<CommandBlockChain>();
+  protected final List<CommandBlockChain> chains = new ArrayList<>();
 
-  protected MplChainPlacer(MplProgram program, CompilerOptions options) {
-    this.program = program;
+  protected MplChainPlacer(ChainContainer container, CompilerOptions options) {
+    this.container = container;
     this.options = options;
   }
 
   protected Orientation3D getOrientation() {
-    return program.getOrientation();
+    return container.getOrientation();
   }
 
-  protected List<ChainPart> getInstallation() {
-    return program.getInstallation();
+  protected CommandChain getInstall() {
+    return container.getInstall();
   }
 
-  protected List<ChainPart> getUninstallation() {
-    return program.getUninstallation();
+  protected CommandChain getUninstall() {
+    return container.getUninstall();
   }
 
   public abstract List<CommandBlockChain> place();
@@ -156,8 +141,9 @@ public abstract class MplChainPlacer {
     LinkedHashMap<Position, ChainLinkType> placed =
         place(chainLinkChain, template, forbiddenReceiver, forbiddenTransmitter);
 
-    String name = chain instanceof NamedCommandChain ? ((NamedCommandChain) chain).getName() : null;
-    CommandBlockChain materialized = new CommandBlockChain(name, toBlocks(commands, placed));
+    String name = chain.getName();
+    List<MplBlock> blocks = toBlocks(commands, placed);
+    CommandBlockChain materialized = new CommandBlockChain(name, blocks);
     materialized.move(start);
     return materialized;
   }
@@ -262,26 +248,22 @@ public abstract class MplChainPlacer {
     int aInstall = aSize / 2;
     int aUninstall = aSize - aInstall;
 
-    List<ChainPart> uninstallation = program.getUninstallation();
-    if (!uninstallation.isEmpty()) {
-      Coordinate3D uninstallSize = optimalSize.minus(aInstall, aAxis);
-
-      NamedCommandChain chain = new NamedCommandChain("uninstall", uninstallation);
+    CommandChain uninstall = getUninstall();
+    if (!uninstall.getCommands().isEmpty()) {
       Coordinate3D start = orientation.getB().toCoordinate();
-      Directions template = newDirectionsTemplate(uninstallSize, orientation);
-      CommandBlockChain materialised = generateFlat(chain, start, template);
+      Coordinate3D size = optimalSize.minus(aInstall, aAxis);
+      Directions template = newDirectionsTemplate(size, orientation);
+      CommandBlockChain materialised = generateFlat(uninstall, start, template);
       chains.add(materialised);
     }
 
-    List<ChainPart> installation = program.getInstallation();
-    if (!installation.isEmpty()) {
-      Coordinate3D size = optimalSize.minus(aUninstall, aAxis);
-
-      NamedCommandChain chain = new NamedCommandChain("install", installation);
+    CommandChain install = getInstall();
+    if (!install.getCommands().isEmpty()) {
       Coordinate3D start = new Coordinate3D();
+      Coordinate3D size = optimalSize.minus(aUninstall, aAxis);
       Directions template =
           $(EAST.repeat(Math.abs(aUninstall)), newDirectionsTemplate(size, orientation));
-      CommandBlockChain materialised = generateFlat(chain, start, template);
+      CommandBlockChain materialised = generateFlat(install, start, template);
       chains.add(materialised);
     }
   }
