@@ -314,7 +314,7 @@ public class MplInterpreter extends MplBaseListener {
 
   private void newChainBuffer() {
     chainBufferStack.push(chainBuffer);
-    chainBuffer = new ChainBuffer();
+    chainBuffer = new ChainPartBufferImpl();
     // this.ifBuffer = new IfBuffer(chainBuffer);
   }
 

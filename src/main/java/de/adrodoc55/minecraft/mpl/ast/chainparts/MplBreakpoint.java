@@ -46,30 +46,33 @@ import javax.annotation.Nullable;
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true, includeFieldNames = true)
+@Getter
 public class MplBreakpoint extends PossiblyConditionalChainPart {
+  private final String message;
 
-  private final String source;
-
-  public MplBreakpoint(String source) {
-    this(source, null);
+  public MplBreakpoint(String message) {
+    this(message, null);
   }
 
-  public MplBreakpoint(String source, @Nullable Conditional conditional) {
+  public MplBreakpoint(String message, @Nullable Conditional conditional) {
     super(conditional);
-    this.source = checkNotNull(source, "source == null!");
+    this.message = checkNotNull(message, "message == null!");
   }
 
-  public MplBreakpoint(String source, @Nullable Conditional conditional,
+  @GenerateMplPojoBuilder
+  public MplBreakpoint(String message, @Nullable Conditional conditional,
       @Nullable ModeOwner previous) {
     super(conditional, previous);
-    this.source = checkNotNull(source, "source == null!");
+    this.message = checkNotNull(message, "message == null!");
   }
 
   @Override
@@ -82,7 +85,4 @@ public class MplBreakpoint extends PossiblyConditionalChainPart {
     visitor.visitBreakpoint(this);
   }
 
-  public String getSource() {
-    return source;
-  }
 }

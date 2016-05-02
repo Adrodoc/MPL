@@ -58,7 +58,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NormalizingCommand
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingIfCommand
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip
 
 public class MplInterpreterSpec extends MplSpecBase {
@@ -1082,7 +1082,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands[0] == new Command('testfor @p')
-    commands[1] == new ReferencingCommand(-1, 'chain_command_block', false)
+    commands[1] == new ReferencingIfCommand(-1, 'chain_command_block', false)
     commands[2] == new Command('say then', true)
     commands.size() == 3
   }
@@ -1108,7 +1108,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     List<Command> commands = chain.commands
     commands[0] == new Command('testfor @p')
     commands[1] == new Command('say then', true)
-    commands[2] == new ReferencingCommand(-2, 'chain_command_block', false)
+    commands[2] == new ReferencingIfCommand(-2, 'chain_command_block', false)
     commands[3] == new Command('say else', true)
     commands.size() == 4
   }
@@ -1135,9 +1135,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[0] == new Command('testfor @p')
     commands[1] == new NormalizingCommand()
     commands[2] == new Command('say then1', true)
-    commands[3] == new ReferencingCommand(-2, 'chain_command_block', true)
+    commands[3] == new ReferencingIfCommand(-2, 'chain_command_block', true)
     commands[4] == new Command('say then2', true)
-    commands[5] == new ReferencingCommand(-4, 'chain_command_block', true)
+    commands[5] == new ReferencingIfCommand(-4, 'chain_command_block', true)
     commands[6] == new Command('say then3', true)
     commands.size() == 7
   }
@@ -1162,11 +1162,11 @@ public class MplInterpreterSpec extends MplSpecBase {
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands[0] == new Command('testfor @p')
-    commands[1] == new ReferencingCommand(-1, 'chain_command_block', false)
+    commands[1] == new ReferencingIfCommand(-1, 'chain_command_block', false)
     commands[2] == new Command('say then1', true)
-    commands[3] == new ReferencingCommand(-3, 'chain_command_block', false)
+    commands[3] == new ReferencingIfCommand(-3, 'chain_command_block', false)
     commands[4] == new Command('say then2', true)
-    commands[5] == new ReferencingCommand(-5, 'chain_command_block', false)
+    commands[5] == new ReferencingIfCommand(-5, 'chain_command_block', false)
     commands[6] == new Command('say then3', true)
     commands.size() == 7
   }
@@ -1197,15 +1197,15 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[0] == new Command('testfor @p')
     commands[1] == new NormalizingCommand()
     commands[2] == new Command('say then1', true)
-    commands[3] == new ReferencingCommand(-2, 'chain_command_block', true)
+    commands[3] == new ReferencingIfCommand(-2, 'chain_command_block', true)
     commands[4] == new Command('say then2', true)
-    commands[5] == new ReferencingCommand(-4, 'chain_command_block', true)
+    commands[5] == new ReferencingIfCommand(-4, 'chain_command_block', true)
     commands[6] == new Command('say then3', true)
-    commands[7] == new ReferencingCommand(-6, 'chain_command_block', false)
+    commands[7] == new ReferencingIfCommand(-6, 'chain_command_block', false)
     commands[8] == new Command('say else1', true)
-    commands[9] == new ReferencingCommand(-8, 'chain_command_block', false)
+    commands[9] == new ReferencingIfCommand(-8, 'chain_command_block', false)
     commands[10] == new Command('say else2', true)
-    commands[11] == new ReferencingCommand(-10, 'chain_command_block', false)
+    commands[11] == new ReferencingIfCommand(-10, 'chain_command_block', false)
     commands[12] == new Command('say else3', true)
     commands.size() == 13
   }
@@ -1235,17 +1235,17 @@ public class MplInterpreterSpec extends MplSpecBase {
     List<Command> commands = chain.commands
     commands[0] == new Command('testfor @p')
     commands[1] == new NormalizingCommand()
-    commands[2] == new ReferencingCommand(-1, 'chain_command_block', false)
+    commands[2] == new ReferencingIfCommand(-1, 'chain_command_block', false)
     commands[3] == new Command('say then1', true)
-    commands[4] == new ReferencingCommand(-3, 'chain_command_block', false)
+    commands[4] == new ReferencingIfCommand(-3, 'chain_command_block', false)
     commands[5] == new Command('say then2', true)
-    commands[6] == new ReferencingCommand(-5, 'chain_command_block', false)
+    commands[6] == new ReferencingIfCommand(-5, 'chain_command_block', false)
     commands[7] == new Command('say then3', true)
-    commands[8] == new ReferencingCommand(-7, 'chain_command_block', true)
+    commands[8] == new ReferencingIfCommand(-7, 'chain_command_block', true)
     commands[9] == new Command('say else1', true)
-    commands[10] == new ReferencingCommand(-9, 'chain_command_block', true)
+    commands[10] == new ReferencingIfCommand(-9, 'chain_command_block', true)
     commands[11] == new Command('say else2', true)
-    commands[12] == new ReferencingCommand(-11, 'chain_command_block', true)
+    commands[12] == new ReferencingIfCommand(-11, 'chain_command_block', true)
     commands[13] == new Command('say else3', true)
     commands.size() == 14
   }
@@ -1273,7 +1273,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[1] == new NormalizingCommand()
     commands[2] == new Command('say then1', true)
     commands[3] == new Command('say then2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung false, muss auch mein vorgänger false sein.
-    commands[4] == new ReferencingCommand(-3, 'chain_command_block', true)
+    commands[4] == new ReferencingIfCommand(-3, 'chain_command_block', true)
     commands[5] == new Command('say then3', true)
     commands.size() == 6
   }
@@ -1324,7 +1324,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[1] == new NormalizingCommand()
     commands[2] == new Command('say then1', true)
     commands[3] == new InvertingCommand(Mode.CHAIN)
-    commands[4] == new ReferencingCommand(-3, 'chain_command_block', true, true)
+    commands[4] == new ReferencingIfCommand(-3, 'chain_command_block', true, true)
     commands[5] == new Command('say then2', true)
     commands.size() == 6
   }
@@ -1351,7 +1351,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     List<Command> commands = chain.commands
     commands[0] == new Command('testfor @p')
     commands[1] == new Command('say then', true)
-    commands[2] == new ReferencingCommand(-2, 'chain_command_block', false)
+    commands[2] == new ReferencingIfCommand(-2, 'chain_command_block', false)
     commands[3] == new Command('say else1', true)
     commands[4] == new Command('say else2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung true, muss auch mein vorgänger false sein.
     commands.size() == 5
@@ -1379,10 +1379,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     List<Command> commands = chain.commands
     commands[0] == new Command('testfor @p')
     commands[1] == new Command('say then', true)
-    commands[2] == new ReferencingCommand(-2, 'chain_command_block', false)
+    commands[2] == new ReferencingIfCommand(-2, 'chain_command_block', false)
     commands[3] == new Command('say else1', true)
     commands[4] == new InvertingCommand(Mode.CHAIN)
-    commands[5] == new ReferencingCommand(-5, 'chain_command_block', false, true)
+    commands[5] == new ReferencingIfCommand(-5, 'chain_command_block', false, true)
     commands[6] == new Command('say else2', true)
     commands.size() == 7
   }
@@ -1407,10 +1407,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands[0] == new Command('testfor @p')
-    commands[1] == new ReferencingCommand(-1, 'chain_command_block', false)
+    commands[1] == new ReferencingIfCommand(-1, 'chain_command_block', false)
     commands[2] == new Command('say then1', true)
     commands[3] == new Command('say then2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung false, muss auch mein vorgänger false sein.
-    commands[4] == new ReferencingCommand(-4, 'chain_command_block', false)
+    commands[4] == new ReferencingIfCommand(-4, 'chain_command_block', false)
     commands[5] == new Command('say then3', true)
     commands.size() == 6
   }
@@ -1434,10 +1434,10 @@ public class MplInterpreterSpec extends MplSpecBase {
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands[0] == new Command('testfor @p')
-    commands[1] == new ReferencingCommand(-1, 'chain_command_block', false)
+    commands[1] == new ReferencingIfCommand(-1, 'chain_command_block', false)
     commands[2] == new Command('say then1', true)
     commands[3] == new InvertingCommand(Mode.CHAIN)
-    commands[4] == new ReferencingCommand(-4, 'chain_command_block', false, true)
+    commands[4] == new ReferencingIfCommand(-4, 'chain_command_block', false, true)
     commands[5] == new Command('say then2', true)
     commands.size() == 6
   }
@@ -1464,9 +1464,9 @@ public class MplInterpreterSpec extends MplSpecBase {
     List<Command> commands = chain.commands
     commands[0] == new Command('testfor @p')
     commands[1] == new NormalizingCommand()
-    commands[2] == new ReferencingCommand(-1, 'chain_command_block', false)
+    commands[2] == new ReferencingIfCommand(-1, 'chain_command_block', false)
     commands[3] == new Command('say then', true)
-    commands[4] == new ReferencingCommand(-3, 'chain_command_block', true)
+    commands[4] == new ReferencingIfCommand(-3, 'chain_command_block', true)
     commands[5] == new Command('say else1', true)
     commands[6] == new Command('say else2', true) // kein test auf if-Bedingung notwendig. Falls if-Bedingung true, muss auch mein vorgänger false sein.
     commands.size() == 7
@@ -1494,12 +1494,12 @@ public class MplInterpreterSpec extends MplSpecBase {
     List<Command> commands = chain.commands
     commands[0] == new Command('testfor @p')
     commands[1] == new NormalizingCommand()
-    commands[2] == new ReferencingCommand(-1, 'chain_command_block', false)
+    commands[2] == new ReferencingIfCommand(-1, 'chain_command_block', false)
     commands[3] == new Command('say then', true)
-    commands[4] == new ReferencingCommand(-3, 'chain_command_block', true)
+    commands[4] == new ReferencingIfCommand(-3, 'chain_command_block', true)
     commands[5] == new Command('say else1', true)
     commands[6] == new InvertingCommand(Mode.CHAIN)
-    commands[7] == new ReferencingCommand(-6, 'chain_command_block', true, true)
+    commands[7] == new ReferencingIfCommand(-6, 'chain_command_block', true, true)
     commands[8] == new Command('say else2', true)
     commands.size() == 9
   }
@@ -1532,7 +1532,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     List<Command> commands = process.commands
     commands[0] == new Command('testfor @p', Mode.REPEAT, false)
     commands[1] == new Command('say then', true)
-    commands[2] == new ReferencingCommand(-2, 'repeating_command_block', false)
+    commands[2] == new ReferencingIfCommand(-2, 'repeating_command_block', false)
     commands[3] == new Command('say else', true)
     commands.size() == 4
   }
@@ -1566,15 +1566,15 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[0] == new Command('outer condition')
     commands[1] == new NormalizingCommand()
     commands[2] == new Command('say outer then1', true)
-    commands[3] == new ReferencingCommand(-2, 'chain_command_block', true)
+    commands[3] == new ReferencingIfCommand(-2, 'chain_command_block', true)
     commands[4] == new Command('inner condition', true)
     commands[5] == new Command('say inner then', true)
-    commands[6] == new ReferencingCommand(-5, 'chain_command_block', true)
-    commands[7] == new ReferencingCommand(-3, 'chain_command_block', false, true)
+    commands[6] == new ReferencingIfCommand(-5, 'chain_command_block', true)
+    commands[7] == new ReferencingIfCommand(-3, 'chain_command_block', false, true)
     commands[8] == new Command('say inner else', true)
-    commands[9] == new ReferencingCommand(-8, 'chain_command_block', true)
+    commands[9] == new ReferencingIfCommand(-8, 'chain_command_block', true)
     commands[10] == new Command('say outer then2', true)
-    commands[11] == new ReferencingCommand(-10, 'chain_command_block', false)
+    commands[11] == new ReferencingIfCommand(-10, 'chain_command_block', false)
     commands[12] == new Command('say outer else', true)
     commands.size() == 13
   }
@@ -1615,24 +1615,24 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[0] == new Command('outer condition')
     commands[1] == new NormalizingCommand()
     commands[2] == new Command('say outer then1', true)
-    commands[3] == new ReferencingCommand(-2, 'chain_command_block', true)
+    commands[3] == new ReferencingIfCommand(-2, 'chain_command_block', true)
     commands[4] == new Command('middle condition', true)
     commands[5] == new NormalizingCommand()
     commands[6] == new Command('say middle then1', true)
-    commands[7] == new ReferencingCommand(-2, 'chain_command_block', true)
+    commands[7] == new ReferencingIfCommand(-2, 'chain_command_block', true)
     commands[8] == new Command('inner condition', true)
     commands[9] == new Command('say inner then', true)
-    commands[10] == new ReferencingCommand(-5, 'chain_command_block', true)
-    commands[11] == new ReferencingCommand(-3, 'chain_command_block', false, true)
+    commands[10] == new ReferencingIfCommand(-5, 'chain_command_block', true)
+    commands[11] == new ReferencingIfCommand(-3, 'chain_command_block', false, true)
     commands[12] == new Command('say inner else', true)
-    commands[13] == new ReferencingCommand(-8, 'chain_command_block', true)
+    commands[13] == new ReferencingIfCommand(-8, 'chain_command_block', true)
     commands[14] == new Command('say middle then2', true)
-    commands[15] == new ReferencingCommand(-14, 'chain_command_block', true)
-    commands[16] == new ReferencingCommand(-11, 'chain_command_block', false, true)
+    commands[15] == new ReferencingIfCommand(-14, 'chain_command_block', true)
+    commands[16] == new ReferencingIfCommand(-11, 'chain_command_block', false, true)
     commands[17] == new Command('say middle else', true)
-    commands[18] == new ReferencingCommand(-17, 'chain_command_block', true)
+    commands[18] == new ReferencingIfCommand(-17, 'chain_command_block', true)
     commands[19] == new Command('say outer then2', true)
-    commands[20] == new ReferencingCommand(-19, 'chain_command_block', false)
+    commands[20] == new ReferencingIfCommand(-19, 'chain_command_block', false)
     commands[21] == new Command('say outer else', true)
     commands.size() == 22
   }
@@ -1672,26 +1672,26 @@ public class MplInterpreterSpec extends MplSpecBase {
     List<Command> commands = chain.commands
     commands[0] == new Command('outer condition')
     commands[1] == new Command('say outer then', true)
-    commands[2] == new ReferencingCommand(-2, 'chain_command_block', false)
+    commands[2] == new ReferencingIfCommand(-2, 'chain_command_block', false)
     commands[3]== new Command('say outer else1', true)
-    commands[4] == new ReferencingCommand(-4, 'chain_command_block', false)
+    commands[4] == new ReferencingIfCommand(-4, 'chain_command_block', false)
     commands[5] == new Command('middle condition', true)
     commands[6] == new Command('say middle then', true)
-    commands[7] == new ReferencingCommand(-7, 'chain_command_block', false)
-    commands[8] == new ReferencingCommand(-3, 'chain_command_block', false, true)
+    commands[7] == new ReferencingIfCommand(-7, 'chain_command_block', false)
+    commands[8] == new ReferencingIfCommand(-3, 'chain_command_block', false, true)
     commands[9] == new Command('say middle else1', true)
-    commands[10] == new ReferencingCommand(-10, 'chain_command_block', false)
-    commands[11] == new ReferencingCommand(-6, 'chain_command_block', false, true)
+    commands[10] == new ReferencingIfCommand(-10, 'chain_command_block', false)
+    commands[11] == new ReferencingIfCommand(-6, 'chain_command_block', false, true)
     commands[12] == new Command('inner condition', true)
     commands[13] == new Command('say inner then', true)
-    commands[14] == new ReferencingCommand(-14, 'chain_command_block', false)
-    commands[15] == new ReferencingCommand(-10, 'chain_command_block', false, true)
-    commands[16] == new ReferencingCommand(-4, 'chain_command_block', false, true)
+    commands[14] == new ReferencingIfCommand(-14, 'chain_command_block', false)
+    commands[15] == new ReferencingIfCommand(-10, 'chain_command_block', false, true)
+    commands[16] == new ReferencingIfCommand(-4, 'chain_command_block', false, true)
     commands[17] == new Command('say inner else', true)
-    commands[18] == new ReferencingCommand(-18, 'chain_command_block', false)
-    commands[19] == new ReferencingCommand(-14, 'chain_command_block', false, true)
+    commands[18] == new ReferencingIfCommand(-18, 'chain_command_block', false)
+    commands[19] == new ReferencingIfCommand(-14, 'chain_command_block', false, true)
     commands[20] == new Command('say middle else2', true)
-    commands[21] == new ReferencingCommand(-21, 'chain_command_block', false)
+    commands[21] == new ReferencingIfCommand(-21, 'chain_command_block', false)
     commands[22] == new Command('say outer else2', true)
     commands.size() == 23
   }

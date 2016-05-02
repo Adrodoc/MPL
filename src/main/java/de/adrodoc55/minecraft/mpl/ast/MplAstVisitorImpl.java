@@ -39,16 +39,25 @@
  */
 package de.adrodoc55.minecraft.mpl.ast;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept.INTERCEPTED;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
+import static de.adrodoc55.minecraft.mpl.commands.Conditional.CONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.commands.Conditional.UNCONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.assertj.core.util.VisibleForTesting;
+
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.ModeOwner;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
@@ -68,6 +77,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Skip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
@@ -77,11 +87,12 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 public class MplAstVisitorImpl implements MplAstVisitor {
   private ChainContainer container;
   private List<CommandChain> chains;
-  private List<ChainLink> commands;
+  @VisibleForTesting
+  List<ChainLink> commands = new ArrayList<>();
   private CompilerOptions options;
 
   public MplAstVisitorImpl(CompilerOptions options) {
-    this.options = options;
+    this.options = checkNotNull(options, "options == null!");
   }
 
   public ChainContainer getResult() {
@@ -134,7 +145,10 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   public void visitPossiblyConditional(PossiblyConditionalChainPart chainPart) {
     if (chainPart.getConditional() == Conditional.INVERT) {
-      InvertingCommand e = new InvertingCommand(chainPart.getPrevious().getMode());
+      ModeOwner previous = chainPart.getPrevious();
+      checkState(previous != null,
+          "Cannot invert ChainPart; no previous command found for " + chainPart);
+      InvertingCommand e = new InvertingCommand(previous.getMode());
       commands.add(e);
     }
   }
@@ -180,22 +194,31 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitWaitfor(MplWaitfor waitfor) {
-    visitPossiblyConditional(waitfor);
+    ReferencingCommand summon = new ReferencingCommand("summon ArmorStand " + REF + " {CustomName:"
+        + waitfor.getEvent() + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
 
-    String event = waitfor.getEvent();
-    if (waitfor.isConditional()) {
-      commands.add(new InternalCommand("summon ArmorStand ${this + 3} {CustomName:" + event
-          + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true));
-      commands.add(new InvertingCommand(Mode.CHAIN));
-      if (options.hasOption(TRANSMITTER)) {
-        commands.add(new InternalCommand("setblock ${this + 1} redstone_block", true));
-      } else {
-        commands.add(new InternalCommand("blockdata ${this + 1} {auto:1}", true));
-      }
+    if (waitfor.getConditional() == UNCONDITIONAL) {
+      summon.setRelative(1);
+      commands.add(summon);
     } else {
-      commands.add(new InternalCommand("summon ArmorStand ${this + 1} {CustomName:" + event
-          + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
+      summon.setConditional(true);
+      ReferencingCommand jump = new ReferencingCommand("setblock " + REF + " redstone_block", true);
+
+      ReferencingCommand first, second;
+      if (waitfor.getConditional() == CONDITIONAL) {
+        first = summon;
+        second = jump;
+      } else { // conditional == INVERT
+        first = jump;
+        second = summon;
+      }
+      first.setRelative(3);
+      second.setRelative(1);
+      commands.add(first);
+      commands.add(new InvertingCommand(CHAIN));
+      commands.add(second);
     }
+
     if (options.hasOption(TRANSMITTER)) {
       commands.add(new Skip(false));
       commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
@@ -223,8 +246,6 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitIntercept(MplIntercept intercept) {
-    visitPossiblyConditional(intercept);
-
     String event = intercept.getEvent();
     if (intercept.isConditional()) {
       if (intercept.getConditional() == Conditional.CONDITIONAL) {
@@ -248,7 +269,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     visitPossiblyConditional(breakpoint);
 
     boolean cond = breakpoint.isConditional();
-    commands.add(new InternalCommand("say encountered breakpoint " + breakpoint.getSource(), cond));
+    commands.add(new InternalCommand("say " + breakpoint.getMessage(), cond));
 
     Conditional conditional = cond ? Conditional.CONDITIONAL : Conditional.UNCONDITIONAL;
     visitStart(new MplStart("breakpoint", conditional));
@@ -262,8 +283,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitIf(MplIf mplIf) {
-    throw new RuntimeException("not yet implemented");
-    // TODO Auto-generated method stub
+
 
   }
 

@@ -40,9 +40,19 @@
 package de.adrodoc55.minecraft.mpl;
 
 import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.chain.MplProcessBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpointBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommandBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIfBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplInterceptBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotifyBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStartBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStopBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitforBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcessBuilder;
+import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.CommandBuilder;
+import net.karneim.pojobuilder.Builder;
 
 public class MplTestBase extends TestBase {
 
@@ -50,22 +60,87 @@ public class MplTestBase extends TestBase {
     return "Identifier_" + somePositiveInt();
   }
 
-  public static CommandBuilder $Command() {
-    // @formatter:off
-    return new CommandBuilder()
-        .withCommand(someCommand())
-        .withMode(some(Mode.class))
-        .withConditional(someBoolean())
-        .withNeedsRedstone(someBoolean());
-    //  @formatter:on
+  public static Builder<String> $CommandString() {
+    return new Builder<String>() {
+      @Override
+      public String build() {
+        return "/command " + some($String());
+      }
+    };
   }
 
-  private static String someCommand() {
-    return "/" + someString();
+  public static CommandBuilder $Command() {
+    return new CommandBuilder()//
+        .withCommand($CommandString())//
+        .withMode($Enum(Mode.class))//
+        .withConditional($boolean())//
+        .withNeedsRedstone($boolean())//
+        ;
+  }
+
+  public static MplCommandBuilder $MplCommand() {
+    return new MplCommandBuilder()//
+        .withCommand($CommandString())//
+        .withMode($Enum(Mode.class))//
+        .withConditional($Enum(Conditional.class))//
+        .withNeedsRedstone($boolean())//
+        ;
   }
 
   public MplProcessBuilder $MplProcess() {
-    return new MplProcessBuilder();
+    return new MplProcessBuilder()//
+        .withName($String())//
+        .withRepeating($boolean())//
+        ;
+  }
+
+  public static MplStartBuilder $MplStart() {
+    return new MplStartBuilder()//
+        .withConditional($Enum(Conditional.class))//
+        .withProcess($String())//
+        ;
+  }
+
+  public static MplStopBuilder $MplStop() {
+    return new MplStopBuilder()//
+        .withConditional($Enum(Conditional.class))//
+        .withProcess($String())//
+        ;
+  }
+
+  public static MplWaitforBuilder $MplWaitfor() {
+    return new MplWaitforBuilder()//
+        .withConditional($Enum(Conditional.class))//
+        .withEvent($String())//
+        ;
+  }
+
+  public static MplNotifyBuilder $MplNotify() {
+    return new MplNotifyBuilder()//
+        .withConditional($Enum(Conditional.class))//
+        .withProcess($String())//
+        ;
+  }
+
+  public static MplInterceptBuilder $MplIntercept() {
+    return new MplInterceptBuilder()//
+        .withConditional($Enum(Conditional.class))//
+        .withEvent($String())//
+        ;
+  }
+
+  public static MplBreakpointBuilder $MplBreakpoint() {
+    return new MplBreakpointBuilder()//
+        .withConditional($Enum(Conditional.class))//
+        .withMessage($String())//
+        ;
+  }
+
+  public static MplIfBuilder $MplIf() {
+    return new MplIfBuilder()//
+        .withNot($boolean())//
+        .withCondition($CommandString())//
+        ;
   }
 
 }

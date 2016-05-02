@@ -39,43 +39,45 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import de.adrodoc55.minecraft.mpl.commands.Mode;
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * @author Adrodoc55
  */
+@Getter
+@Setter
 public class ReferencingCommand extends InternalCommand {
-  private static final String HEAD = "testforblock ";
-  private final String tail;
-  private int relative;
-  private boolean referenceInserted = false;
+  public static final String REF = "${this}";
 
-  public ReferencingCommand(int relative, String blockId, boolean success) {
-    this(relative, blockId, success, null);
+  protected int relative;
+
+  public ReferencingCommand() {
+    super();
   }
 
-  public ReferencingCommand(int relative, String blockId, boolean success, Boolean conditional) {
-    super(null, conditional);
-    this.relative = relative;
-    int successCount = success ? 1 : 0;
-    tail = " " + blockId + " -1 {SuccessCount:" + successCount + "}";
+  public ReferencingCommand(String command) {
+    super(command);
   }
 
-  public void addToRelative(int r) {
-    relative += r;
+  public ReferencingCommand(String command, Boolean conditional) {
+    super(command, conditional);
+  }
+
+  public ReferencingCommand(String command, Mode mode, Boolean conditional, Boolean needsRedstone) {
+    super(command, mode, conditional, needsRedstone);
+  }
+
+  public ReferencingCommand(String command, Mode mode, Boolean conditional) {
+    super(command, mode, conditional);
   }
 
   @Override
   public String getCommand() {
-    if (referenceInserted) {
-      return super.getCommand();
-    }
-    int abs = Math.abs(relative);
     String operator = relative < 0 ? "-" : "+";
-    return HEAD + "${this " + operator + " " + abs + "}" + tail;
+    int abs = Math.abs(relative);
+    return command.replace(REF, "${this " + operator + " " + abs + "}");
   }
 
-  @Override
-  public void setCommand(String command) {
-    super.setCommand(command);
-    referenceInserted = true;
-  }
 }

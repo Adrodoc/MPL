@@ -41,16 +41,10 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
-import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -98,18 +92,6 @@ public abstract class PossiblyConditionalChainPart implements ChainPart {
 
   public void setPrevious(ModeOwner previousMode) {
     this.previous = previousMode;
-  }
-
-  public List<ChainLink> toCommands() throws IllegalModifierException {
-    ArrayList<ChainLink> commands = new ArrayList<>();
-    if (conditional == Conditional.INVERT) {
-      if (getPrevious() == null) {
-        throw new IllegalModifierException("The first part of a chain must be unconditional");
-      }
-      InvertingCommand e = new InvertingCommand(getPrevious().getMode());
-      commands.add(e);
-    }
-    return commands;
   }
 
   public ModeOwner getPrevious() {

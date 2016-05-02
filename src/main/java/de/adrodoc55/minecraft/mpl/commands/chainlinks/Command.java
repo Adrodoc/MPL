@@ -44,24 +44,35 @@ import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
+@EqualsAndHashCode(doNotUseGetters = false)
+@ToString(includeFieldNames = true)
+@Getter
+@Setter
 public class Command implements ChainLink {
-
-  private String command;
-  private Mode mode;
-  private boolean conditional;
-  private boolean needsRedstone;
+  protected String command;
+  protected Mode mode;
+  protected boolean conditional;
+  protected boolean needsRedstone;
 
   public Command() {
     this("");
   }
 
   public Command(String command) {
-    this(command, null);
+    this(command, null, null);
+  }
+
+  public Command(String command, Mode mode) {
+    this(command, mode, null);
   }
 
   public Command(String command, Boolean conditional) {
@@ -90,10 +101,6 @@ public class Command implements ChainLink {
     this(command.getCommand(), command.getMode(), command.isConditional(), command.needsRedstone());
   }
 
-  public String getCommand() {
-    return command;
-  }
-
   public void setCommand(String command) {
     if (command != null && command.startsWith("/")) {
       this.command = command.substring(1);
@@ -102,74 +109,14 @@ public class Command implements ChainLink {
     }
   }
 
-  public Mode getMode() {
-    return mode;
-  }
-
-  public void setMode(Mode mode) {
-    this.mode = mode;
-  }
-
-  public boolean isConditional() {
-    return conditional;
-  }
-
-  public void setConditional(boolean conditional) {
-    this.conditional = conditional;
-  }
-
   public boolean needsRedstone() {
-    return needsRedstone;
-  }
-
-  public void setNeedsRedstone(boolean needsRedstone) {
-    this.needsRedstone = needsRedstone;
+    return isNeedsRedstone();
   }
 
   @Override
   public MplBlock toBlock(Coordinate3D coordinate) {
     // FIXME: Direction korrigieren
     return new CommandBlock(this, Direction3D.UP, coordinate);
-  }
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((command == null) ? 0 : command.hashCode());
-    result = prime * result + (conditional ? 1231 : 1237);
-    result = prime * result + ((mode == null) ? 0 : mode.hashCode());
-    result = prime * result + (needsRedstone ? 1231 : 1237);
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    Command other = (Command) obj;
-    if (command == null) {
-      if (other.command != null)
-        return false;
-    } else if (!command.equals(other.command))
-      return false;
-    if (conditional != other.conditional)
-      return false;
-    if (mode != other.mode)
-      return false;
-    if (needsRedstone != other.needsRedstone)
-      return false;
-    return true;
-  }
-
-  @Override
-  public String toString() {
-    return "Command [command='" + getCommand() + "', mode=" + mode + ", conditional=" + conditional
-        + ", needsRedstone=" + needsRedstone + "]";
   }
 
 }

@@ -49,6 +49,7 @@ import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
@@ -69,6 +70,7 @@ public class MplNotify extends PossiblyConditionalChainPart implements ModeOwner
     this.process = checkNotNull(process, "process == null!");
   }
 
+  @GenerateMplPojoBuilder
   public MplNotify(String process, @Nullable Conditional conditional,
       @Nullable ModeOwner previous) {
     super(conditional, previous);

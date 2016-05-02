@@ -54,6 +54,10 @@ public class InternalCommand extends Command {
     super(command);
   }
 
+  public InternalCommand(String command, Mode mode) {
+    super(command, mode);
+  }
+
   public InternalCommand(String command, Boolean conditional) {
     super(command, conditional);
   }

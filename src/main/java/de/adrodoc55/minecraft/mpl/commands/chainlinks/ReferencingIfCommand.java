@@ -39,50 +39,44 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
-import javax.annotation.concurrent.Immutable;
-
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
-import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
 /**
  * @author Adrodoc55
  */
-@Immutable
-@EqualsAndHashCode
-@ToString(includeFieldNames = true)
-public class Skip implements ChainPart, ChainLink {
-  private final boolean internal;
+@Deprecated
+public class ReferencingIfCommand extends InternalCommand {
+  private static final String HEAD = "testforblock ";
+  private final String tail;
+  private int relative;
+  private boolean referenceInserted = false;
 
-  public Skip() {
-    this(false);
+  public ReferencingIfCommand(int relative, String blockId, boolean success) {
+    this(relative, blockId, success, null);
   }
 
-  public Skip(boolean internal) {
-    this.internal = internal;
+  public ReferencingIfCommand(int relative, String blockId, boolean success, Boolean conditional) {
+    super(null, conditional);
+    this.relative = relative;
+    int successCount = success ? 1 : 0;
+    tail = " " + blockId + " -1 {SuccessCount:" + successCount + "}";
   }
 
-  public boolean isInternal() {
-    return internal;
-  }
-
-  @Override
-  public String getName() {
-    return "name";
-  }
-
-  @Override
-  public MplBlock toBlock(Coordinate3D coordinate) {
-    return new Transmitter(internal, coordinate);
+  public void addToRelative(int r) {
+    relative += r;
   }
 
   @Override
-  public void accept(MplAstVisitor visitor) {
-    visitor.visitSkip(this);
+  public String getCommand() {
+    if (referenceInserted) {
+      return super.getCommand();
+    }
+    int abs = Math.abs(relative);
+    String operator = relative < 0 ? "-" : "+";
+    return HEAD + "${this " + operator + " " + abs + "}" + tail;
   }
 
+  @Override
+  public void setCommand(String command) {
+    super.setCommand(command);
+    referenceInserted = true;
+  }
 }

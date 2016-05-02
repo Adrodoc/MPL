@@ -49,7 +49,7 @@ import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NormalizingCommand;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingIfCommand;
 import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
 
 /**
@@ -57,14 +57,14 @@ import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
  */
 @Deprecated
 class IfBuffer {
-  private final ChainBuffer origin;
+  private final ChainPartBufferImpl origin;
   private final LinkedList<IfNestingLayer> stack = new LinkedList<>();
 
-  public IfBuffer(ChainBuffer chainBuffer) {
+  public IfBuffer(ChainPartBufferImpl chainBuffer) {
     origin = chainBuffer;
   }
 
-  public ChainBuffer enterIf(boolean not, Command condition) {
+  public ChainPartBufferImpl enterIf(boolean not, Command condition) {
     IfNestingLayer layer = new IfNestingLayer(not, condition, origin);
     stack.push(layer);
     return layer;
@@ -74,7 +74,7 @@ class IfBuffer {
     stack.peek().switchToElseBlock();
   }
 
-  public ChainBuffer exitIf() {
+  public ChainPartBufferImpl exitIf() {
     CompressedLayerCommand compressed = LayerCompressor.compress(stack.pop());
     IfNestingLayer parent = stack.peek();
     if (parent == null) {
@@ -239,7 +239,7 @@ class LayerCompressor {
       }
       String blockId = MplConverter.toBlockId(referencedMode);
       boolean dependsOnFailure = dependsOnFailure(current);
-      ReferencingCommand reference = new ReferencingCommand(relative, blockId, !dependsOnFailure);
+      ReferencingIfCommand reference = new ReferencingIfCommand(relative, blockId, !dependsOnFailure);
       reference.setConditional(!first);
       layerCommands.add(reference);
 
@@ -291,15 +291,15 @@ class CompressedLayerCommand extends Command {
 /**
  * @author Adrodoc55
  */
-class IfNestingLayer extends ChainBuffer {
+class IfNestingLayer extends ChainPartBufferImpl {
   private final boolean not;
   private final Command condition;
   private final LinkedList<ChainPart> thenBlock = new LinkedList<>();
   private boolean inElse = false;
 
-  private ChainBuffer origin;
+  private ChainPartBufferImpl origin;
 
-  public IfNestingLayer(boolean not, Command condition, ChainBuffer origin) {
+  public IfNestingLayer(boolean not, Command condition, ChainPartBufferImpl origin) {
     this.not = not;
     this.condition = condition;
     this.origin = origin;

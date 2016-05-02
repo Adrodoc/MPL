@@ -42,15 +42,19 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import org.assertj.core.util.VisibleForTesting;
 
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
@@ -59,17 +63,22 @@ import lombok.ToString;
 @ToString(includeFieldNames = true, of = {"not", "condition"})
 public class MplIf implements ChainPart, ChainPartBuffer {
   private final @Nullable ChainPartBuffer parent;
+
+  @Getter
   private final boolean not;
-  private final @Nonnull String condition;
+  @Getter
+  private final String condition;
+
   private final Deque<ChainPart> thenParts = new ArrayDeque<>();
   private final Deque<ChainPart> elseParts = new ArrayDeque<>();
   private boolean inElse;
 
-  public MplIf(boolean not, @Nonnull String condition) {
+  @GenerateMplPojoBuilder
+  public MplIf(boolean not, String condition) {
     this(null, not, condition);
   }
 
-  public MplIf(@Nullable ChainPartBuffer parent, boolean not, @Nonnull String condition) {
+  public MplIf(@Nullable ChainPartBuffer parent, boolean not, String condition) {
     this.parent = parent;
     this.not = not;
     this.condition = checkNotNull(condition, "condition == null!");
@@ -115,4 +124,15 @@ public class MplIf implements ChainPart, ChainPartBuffer {
     visitor.visitIf(this);
   }
 
+  @VisibleForTesting
+  void setThenParts(Collection<ChainPart> thenParts) {
+    this.thenParts.clear();
+    this.thenParts.addAll(thenParts);
+  }
+
+  @VisibleForTesting
+  void setElseParts(Collection<ChainPart> elseParts) {
+    this.elseParts.clear();
+    this.elseParts.addAll(elseParts);
+  }
 }

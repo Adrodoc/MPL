@@ -47,6 +47,7 @@ import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
@@ -66,6 +67,7 @@ public class MplWaitfor extends PossiblyConditionalChainPart {
     this.event = checkNotNull(event, "event == null!");
   }
 
+  @GenerateMplPojoBuilder
   public MplWaitfor(String event, @Nullable Conditional conditional, @Nullable ModeOwner previous) {
     super(conditional, previous);
     this.event = checkNotNull(event, "event == null!");
