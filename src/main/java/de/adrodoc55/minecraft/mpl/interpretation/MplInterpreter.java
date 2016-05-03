@@ -92,7 +92,6 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.ThenContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.UninstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.WaitforContext;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ModeOwner;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
@@ -493,9 +492,8 @@ public class MplInterpreter extends MplBaseListener {
           new CompilerException(source, "The first part of a chain must be unconditional"));
       return;
     }
-
-    if (prev instanceof ModeOwner) {
-      chainPart.setPrevious((ModeOwner) prev);
+    if (prev.canBeDependedOn()) {
+      chainPart.setPrevious(prev);
       chainBuffer.add(chainPart);
     } else {
       Token token = modifierBuffer.getConditionalToken();
@@ -644,7 +642,7 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterSkip(SkipContext ctx) {
-    if (chainBuffer.getChainParts().isEmpty()) {
+    if (process.isRepeating() && chainBuffer.getChainParts().isEmpty()) {
       Token token = ctx.SKIP().getSymbol();
       String line = lines.get(token.getLine());
       MplSource source = new MplSource(programFile, token, line);

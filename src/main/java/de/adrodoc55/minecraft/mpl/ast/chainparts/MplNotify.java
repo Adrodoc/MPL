@@ -40,7 +40,6 @@
 package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 
 import javax.annotation.Nullable;
 
@@ -48,6 +47,8 @@ import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
@@ -56,10 +57,13 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  */
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true, includeFieldNames = true)
-public class MplNotify extends PossiblyConditionalChainPart implements ModeOwner {
+@Getter
+@Setter
+public class MplNotify extends PossiblyConditionalChainPart {
   public static final String NOTIFY = "_NOTIFY";
 
   private final String process;
+  private @Nullable Mode mode;
 
   public MplNotify(String process) {
     this(process, null);
@@ -72,7 +76,7 @@ public class MplNotify extends PossiblyConditionalChainPart implements ModeOwner
 
   @GenerateMplPojoBuilder
   public MplNotify(String process, @Nullable Conditional conditional,
-      @Nullable ModeOwner previous) {
+      @Nullable ChainPart previous) {
     super(conditional, previous);
     this.process = checkNotNull(process, "process == null!");
   }
@@ -83,17 +87,17 @@ public class MplNotify extends PossiblyConditionalChainPart implements ModeOwner
   }
 
   @Override
-  public Mode getMode() {
-    return CHAIN;
-  }
-
-  @Override
   public void accept(MplAstVisitor visitor) {
     visitor.visitNotify(this);
   }
 
-  public String getProcess() {
-    return process;
+  @Override
+  public boolean canBeDependedOn() {
+    return true;
   }
 
+  @Override
+  public Mode getModeForInverting() {
+    return getMode();
+  }
 }

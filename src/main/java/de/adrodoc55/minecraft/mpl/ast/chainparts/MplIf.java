@@ -51,17 +51,19 @@ import javax.annotation.Nullable;
 import org.assertj.core.util.VisibleForTesting;
 
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode(callSuper = true, of = {"not", "condition"})
-@ToString(includeFieldNames = true, of = {"not", "condition"})
+@EqualsAndHashCode(callSuper = true, exclude = {"thenParts", "elseParts", "inElse"})
+@ToString(includeFieldNames = true, exclude = {"thenParts", "elseParts", "inElse"})
 public class MplIf extends PossiblyConditionalChainPart implements ChainPart, ChainPartBuffer {
   private final @Nullable ChainPartBuffer parent;
 
@@ -69,10 +71,14 @@ public class MplIf extends PossiblyConditionalChainPart implements ChainPart, Ch
   private final boolean not;
   @Getter
   private final String condition;
+  @Getter
+  @Setter
+  private @Nullable Mode mode;
 
   private final Deque<ChainPart> thenParts = new ArrayDeque<>();
   private final Deque<ChainPart> elseParts = new ArrayDeque<>();
   private boolean inElse;
+
 
   @GenerateMplPojoBuilder
   public MplIf(boolean not, String condition) {
@@ -116,16 +122,6 @@ public class MplIf extends PossiblyConditionalChainPart implements ChainPart, Ch
     return parent;
   }
 
-  @Override
-  public String getName() {
-    return "if";
-  }
-
-  @Override
-  public void accept(MplAstVisitor visitor) {
-    visitor.visitIf(this);
-  }
-
   public Deque<ChainPart> getThenParts() {
     return new ArrayDeque<>(thenParts);
   }
@@ -144,5 +140,15 @@ public class MplIf extends PossiblyConditionalChainPart implements ChainPart, Ch
   void setElseParts(Collection<ChainPart> elseParts) {
     this.elseParts.clear();
     this.elseParts.addAll(elseParts);
+  }
+
+  @Override
+  public String getName() {
+    return "if";
+  }
+
+  @Override
+  public void accept(MplAstVisitor visitor) {
+    visitor.visitIf(this);
   }
 }

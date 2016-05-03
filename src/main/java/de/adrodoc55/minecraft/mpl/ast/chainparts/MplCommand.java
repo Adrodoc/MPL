@@ -39,10 +39,16 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import javax.annotation.Nullable;
+
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
@@ -51,7 +57,9 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  */
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true, includeFieldNames = true)
-public class MplCommand extends PossiblyConditionalChainPart implements ModeOwner {
+@Getter
+@Setter
+public class MplCommand extends PossiblyConditionalChainPart {
 
   private String command;
   private Mode mode;
@@ -74,9 +82,10 @@ public class MplCommand extends PossiblyConditionalChainPart implements ModeOwne
   }
 
   @GenerateMplPojoBuilder
-  public MplCommand(String command, Mode mode, Conditional conditional, Boolean needsRedstone) {
+  public MplCommand(String command, @Nullable Mode mode, Conditional conditional,
+      @Nullable Boolean needsRedstone) {
     super(conditional);
-    setCommand(command);
+    this.command = checkNotNull(command, "command == null!");
     this.mode = (mode != null) ? mode : Mode.CHAIN;
     if (needsRedstone != null) {
       this.needsRedstone = needsRedstone;
@@ -90,29 +99,8 @@ public class MplCommand extends PossiblyConditionalChainPart implements ModeOwne
         command.needsRedstone());
   }
 
-  public String getCommand() {
-    return command;
-  }
-
-  public void setCommand(String command) {
-    this.command = command;
-  }
-
-  @Override
-  public Mode getMode() {
-    return mode;
-  }
-
-  public void setMode(Mode mode) {
-    this.mode = mode;
-  }
-
   public boolean needsRedstone() {
-    return needsRedstone;
-  }
-
-  public void setNeedsRedstone(boolean needsRedstone) {
-    this.needsRedstone = needsRedstone;
+    return isNeedsRedstone();
   }
 
   @Override
@@ -125,4 +113,13 @@ public class MplCommand extends PossiblyConditionalChainPart implements ModeOwne
     visitor.visitCommand(this);
   }
 
+  @Override
+  public boolean canBeDependedOn() {
+    return true;
+  }
+
+  @Override
+  public Mode getModeForInverting() {
+    return getMode();
+  }
 }

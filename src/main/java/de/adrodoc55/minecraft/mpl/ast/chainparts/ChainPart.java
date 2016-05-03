@@ -41,10 +41,58 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import de.adrodoc55.commons.Named;
 import de.adrodoc55.minecraft.mpl.ast.MplNode;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 
 /**
  * @author Adrodoc55
  */
 public interface ChainPart extends MplNode, Named {
+  /**
+   * Returns whether a following CONDITIONAL or INVERT {@link ChainPart} can depend on this.
+   * <p>
+   * Subclasses that are dependable should override this method along with
+   * {@link #getModeForInverting()}.
+   *
+   * @return whether a following {@link ChainPart} can depend on this
+   */
+  default boolean canBeDependedOn() {
+    return false;
+  }
 
+  /**
+   * Returns the {@link Mode} that should be used for an invert depending on this {@link ChainPart}
+   * (optional operation).
+   * <p>
+   * Subclasses that are dependable should override this method along with
+   * {@link #canBeDependedOn()}.
+   *
+   * @return the {@link Mode} of this {@link ChainPart}
+   * @throws UnsupportedOperationException if this {@link ChainPart} is not dependable as defined by
+   *         {@link #canBeDependedOn()}
+   */
+  default Mode getModeForInverting() throws UnsupportedOperationException {
+    throw new UnsupportedOperationException(
+        "The class " + getClass() + " is not dependable and does not have a mode");
+  }
+
+  /**
+   * Set the {@link Mode} of this {@link ChainPart} (optional operation).
+   * <p>
+   * Setting the {@link Mode} of this {@link ChainPart} does not necessarily affect the output of
+   * {@link #getMode()}. That is because {@link #setMode(Mode)} primarily affects the first of the
+   * generated {@link ChainLink}s, while {@link #getMode()} returns the {@link Mode} of the last
+   * {@link ChainLink} and is used in conjunction with {@link #canBeDependedOn()}.
+   * <p>
+   * Subclasses should override this method if they support multiple {@link Mode}s.
+   *
+   * @param mode
+   * @throws IllegalModifierException if this {@link ChainPart} cannot possess the given
+   *         {@link Mode}
+   */
+  default void setMode(Mode mode) throws IllegalModifierException {
+    throw new IllegalModifierException(
+        "The class " + getClass() + " does not support multiple modes");
+  }
 }

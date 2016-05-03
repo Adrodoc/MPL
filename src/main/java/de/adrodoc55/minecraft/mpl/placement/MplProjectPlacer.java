@@ -51,10 +51,8 @@ import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.kussm.direction.Directions;
 
@@ -215,10 +213,13 @@ public class MplProjectPlacer extends MplChainPlacer {
     }
 
     for (CommandBlockChain chain : chains) {
+      if (chain.getName() == null) {
+        continue;
+      }
       Coordinate3D chainStart = chain.getBlocks().get(0).getCoordinate();
       // TODO: Alle ArmorStands taggen, damit nur ein uninstallation command notwendig
       install
-          .add(0,
+          .add(2,
               new Command("/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString()
                   + ")} {CustomName:" + chain.getName()
                   + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
@@ -228,16 +229,6 @@ public class MplProjectPlacer extends MplChainPlacer {
       // uninstallation
       // .add(0,new Command("/kill @e[type=ArmorStand,name=" + name + "_INTERCEPTED]"));
     }
-
-    if (!install.isEmpty()) {
-      install.add(0, new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
-      install.add(0, new MplSkip(false /* First TRANSMITTER can be referenced */));
-    }
-    if (!uninstall.isEmpty()) {
-      uninstall.add(0, new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
-      uninstall.add(0, new MplSkip(false /* First TRANSMITTER can be referenced */));
-    }
-
     generateUnInstallation();
   }
 

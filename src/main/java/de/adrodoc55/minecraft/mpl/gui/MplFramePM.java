@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.gui;
 
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
+
 import java.awt.KeyboardFocusManager;
 import java.awt.Window;
 import java.io.BufferedWriter;
@@ -267,7 +269,7 @@ public class MplFramePM extends AbstractPM {
       return null;
     }
     try {
-      MplCompilationResult result = MplCompiler.compile(file, new CompilerOptions());
+      MplCompilationResult result = MplCompiler.compile(file, new CompilerOptions(TRANSMITTER));
       for (MplEditorPM editorPm : editors) {
         editorPm.setCompilerExceptions(Collections.emptyList());
       }

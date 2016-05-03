@@ -49,7 +49,6 @@ import org.junit.Test
 import spock.lang.Unroll
 import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ModeOwner
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf
@@ -384,7 +383,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    ModeOwner previous = null
+    ChainPart previous = null
     if (conditional != UNCONDITIONAL) {
       previous = process.chainParts[0]
     }
@@ -470,7 +469,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    ModeOwner previous = null
+    ChainPart previous = null
     if (conditional != UNCONDITIONAL) {
       previous = process.chainParts[0]
     }
@@ -597,7 +596,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    ModeOwner previous = null
+    ChainPart previous = null
     if (conditional != UNCONDITIONAL) {
       previous = process.chainParts[0]
     }
@@ -724,7 +723,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    ModeOwner previous = null
+    ChainPart previous = null
     if (conditional != UNCONDITIONAL) {
       previous = process.chainParts[0]
     }
@@ -811,7 +810,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    ModeOwner previous = null
+    ChainPart previous = null
     if (conditional != UNCONDITIONAL) {
       previous = process.chainParts[0]
     }
@@ -876,7 +875,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    ModeOwner previous = null
+    ChainPart previous = null
     if (conditional != UNCONDITIONAL) {
       previous = process.chainParts[0]
     }

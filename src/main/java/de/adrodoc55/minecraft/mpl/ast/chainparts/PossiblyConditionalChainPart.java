@@ -39,8 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
@@ -57,22 +56,17 @@ import lombok.ToString;
 @Getter
 @Setter
 public abstract class PossiblyConditionalChainPart implements ChainPart {
-  protected Conditional conditional;
-  @Nullable
-  private ModeOwner previous;
+  protected @Nonnull Conditional conditional;
+  private @Nullable ChainPart previous;
 
   public PossiblyConditionalChainPart(@Nullable Conditional conditional) {
     this(conditional, null);
   }
 
   public PossiblyConditionalChainPart(@Nullable Conditional conditional,
-      @Nullable ModeOwner previous) {
+      @Nullable ChainPart previous) {
     this.conditional = (conditional != null) ? conditional : Conditional.DEFAULT;
-    this.setPrevious(previous);
-  }
-
-  public void setConditional(Conditional conditional) {
-    this.conditional = checkNotNull(conditional, "conditional == null!");
+    this.previous = previous;
   }
 
   public boolean isConditional() {
@@ -86,5 +80,4 @@ public abstract class PossiblyConditionalChainPart implements ChainPart {
         throw new IllegalArgumentException("Unknown Conditional: " + conditional);
     }
   }
-
 }

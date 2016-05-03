@@ -45,7 +45,10 @@ import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
@@ -54,10 +57,13 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  */
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true, includeFieldNames = true)
+@Getter
+@Setter
 public class MplIntercept extends PossiblyConditionalChainPart {
   public static final String INTERCEPTED = "_INTERCEPTED";
 
   private final String event;
+  private @Nullable Mode mode;
 
   public MplIntercept(String event) {
     this(event, null);
@@ -70,7 +76,7 @@ public class MplIntercept extends PossiblyConditionalChainPart {
 
   @GenerateMplPojoBuilder
   public MplIntercept(String event, @Nullable Conditional conditional,
-      @Nullable ModeOwner previous) {
+      @Nullable ChainPart previous) {
     super(conditional, previous);
     this.event = checkNotNull(event, "event == null!");
   }
@@ -83,9 +89,5 @@ public class MplIntercept extends PossiblyConditionalChainPart {
   @Override
   public void accept(MplAstVisitor visitor) {
     visitor.visitIntercept(this);
-  }
-
-  public String getEvent() {
-    return event;
   }
 }

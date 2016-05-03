@@ -61,7 +61,6 @@ import org.assertj.core.util.VisibleForTesting;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ModeOwner;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
@@ -86,6 +85,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.NormalizingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingTestforSuccessCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 
 /**
  * @author Adrodoc55
@@ -107,7 +107,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitProgram(MplProgram program) {
-    chains = new ArrayList<>();
+    chains = new ArrayList<>(1);
     Orientation3D orientation = program.getOrientation();
     Coordinate3D max = program.getMax();
 
@@ -119,7 +119,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     CommandChain uninstall = chains.get(chains.size() - 1);
     chains.remove(chains.size() - 1);
 
-    List<CommandChain> chains = new ArrayList<>(program.getProcesses().size());
+    chains = new ArrayList<>(program.getProcesses().size());
     for (MplProcess process : program.getProcesses()) {
       process.accept(this);
     }
@@ -128,17 +128,21 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitProcess(MplProcess process) {
-    commands = new ArrayList<>(process.getChainParts().size());
+    List<ChainPart> chainParts = process.getChainParts();
+    if (chainParts.isEmpty()) {
+      return;
+    }
+    commands = new ArrayList<>(chainParts.size());
     if (options.hasOption(TRANSMITTER)) {
       commands.add(new MplSkip(false));
     }
     if (process.isRepeating()) {
-      // if (chainParts.isEmpty()) {
-      commands.add(new InternalCommand("", REPEAT, false));
-      // } else {
-      // ChainPart first = chainParts.get(0);
-      // first.setMode(REPEAT);
-      // }
+      ChainPart first = chainParts.get(0);
+      try {
+        first.setMode(REPEAT);
+      } catch (IllegalModifierException ex) {
+        throw new IllegalStateException(ex.getMessage(), ex);
+      }
     } else {
       if (options.hasOption(TRANSMITTER)) {
         commands.add(new InternalCommand("/setblock ${this - 1} stone", Mode.IMPULSE, false));
@@ -146,24 +150,24 @@ public class MplAstVisitorImpl implements MplAstVisitor {
         commands.add(new InternalCommand("/entitydata ~ ~ ~ {auto:0}", Mode.IMPULSE, false));
       }
     }
-    for (ChainPart chainPart : process.getChainParts()) {
+    for (ChainPart chainPart : chainParts) {
       chainPart.accept(this);
     }
     chains.add(new CommandChain(process.getName(), commands));
   }
 
-  public void visitPossiblyConditional(PossiblyConditionalChainPart chainPart) {
+  protected void visitPossibleInvert(PossiblyConditionalChainPart chainPart) {
     if (chainPart.getConditional() == Conditional.INVERT) {
-      ModeOwner previous = chainPart.getPrevious();
+      ChainPart previous = chainPart.getPrevious();
       checkState(previous != null,
           "Cannot invert ChainPart; no previous command found for " + chainPart);
-      commands.add(new InvertingCommand(previous.getMode()));
+      commands.add(new InvertingCommand(previous.getModeForInverting()));
     }
   }
 
   @Override
   public void visitCommand(MplCommand command) {
-    visitPossiblyConditional(command);
+    visitPossibleInvert(command);
 
     String cmd = command.getCommand();
     Mode mode = command.getMode();
@@ -174,7 +178,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitStart(MplStart start) {
-    visitPossiblyConditional(start);
+    visitPossibleInvert(start);
 
     String process = start.getProcess();
     String command;
@@ -188,7 +192,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitStop(MplStop stop) {
-    visitPossiblyConditional(stop);
+    visitPossibleInvert(stop);
 
     String process = stop.getProcess();
     String command;
@@ -236,7 +240,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitNotify(MplNotify notify) {
-    visitPossiblyConditional(notify);
+    visitPossibleInvert(notify);
 
     String process = notify.getProcess();
     boolean conditional = notify.isConditional();
@@ -299,7 +303,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitBreakpoint(MplBreakpoint breakpoint) {
-    visitPossiblyConditional(breakpoint);
+    visitPossibleInvert(breakpoint);
 
     boolean cond = breakpoint.isConditional();
     commands.add(new InternalCommand("say " + breakpoint.getMessage(), cond));
@@ -349,7 +353,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       ChainPart chainPart = chainParts.pop();
       PossiblyConditionalChainPart casted = (PossiblyConditionalChainPart) chainPart;
       if (casted.getConditional() == INVERT) {
-        visitPossiblyConditional(casted);
+        visitPossibleInvert(casted);
         casted.setConditional(CONDITIONAL);
         int relative = getCountToRef(ref);
         commands.add(new ReferencingTestforSuccessCommand(relative, CHAIN, success, true));
