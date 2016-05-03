@@ -62,8 +62,8 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode(callSuper = true, exclude = {"thenParts", "elseParts", "inElse"})
-@ToString(includeFieldNames = true, exclude = {"thenParts", "elseParts", "inElse"})
+@EqualsAndHashCode(callSuper = true, of = {"not", "condition", "mode"})
+@ToString(includeFieldNames = true, of = {"not", "condition", "mode"})
 public class MplIf extends PossiblyConditionalChainPart implements ChainPart, ChainPartBuffer {
   private final @Nullable ChainPartBuffer parent;
 
