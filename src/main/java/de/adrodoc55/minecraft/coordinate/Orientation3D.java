@@ -46,7 +46,6 @@ import static de.adrodoc55.minecraft.coordinate.Direction3D.UP;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 import org.antlr.v4.runtime.Token;
@@ -54,6 +53,7 @@ import org.antlr.v4.runtime.Token;
 import com.google.common.base.Preconditions;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
@@ -61,8 +61,8 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  */
 @Immutable
 @EqualsAndHashCode(exclude = "token")
+@Getter
 public class Orientation3D {
-
   private final Token token;
   private Direction3D a;
   private Direction3D b;
@@ -86,7 +86,7 @@ public class Orientation3D {
   }
 
   public Orientation3D(String def, Token token) {
-    this.token = null;
+    this.token = token;
     Preconditions.checkNotNull(def, "def == null!");
     char[] defArray = def.toCharArray();
     List<Direction3D> r = new ArrayList<>(3);
@@ -126,10 +126,6 @@ public class Orientation3D {
     this.a = a;
     this.b = b;
     this.c = c;
-  }
-
-  public @Nullable Token getToken() {
-    return token;
   }
 
   /**
