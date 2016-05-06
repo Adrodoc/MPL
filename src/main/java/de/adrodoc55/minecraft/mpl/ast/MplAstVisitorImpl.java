@@ -51,10 +51,13 @@ import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.annotation.Nonnull;
 
 import org.assertj.core.util.VisibleForTesting;
 
@@ -88,6 +91,9 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingTestforSuccessC
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author Adrodoc55
@@ -173,10 +179,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     visitPossibleInvert(command);
 
     String cmd = command.getCommand();
-    Mode mode = command.getMode();
-    boolean conditional = command.isConditional();
-    boolean needsRedstone = command.getNeedsRedstone();
-    commands.add(new Command(cmd, mode, conditional, needsRedstone));
+    commands.add(new Command(cmd, command));
   }
 
   @Override
@@ -190,7 +193,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     } else {
       command = "execute @e[name=" + process + "] ~ ~ ~ blockdata ~ ~ ~ {auto:1}";
     }
-    commands.add(new Command(command, start.isConditional()));
+    commands.add(new Command(command, start));
   }
 
   @Override
@@ -204,7 +207,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     } else {
       command = "execute @e[name=" + process + "] ~ ~ ~ blockdata ~ ~ ~ {auto:0}";
     }
-    commands.add(new Command(command, stop.isConditional()));
+    commands.add(new Command(command, stop));
   }
 
   @Override
@@ -322,68 +325,102 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     commands.add(skip);
   }
 
-  // private Deque<MplIf> ifNestingParents = new ArrayDeque<>();
+  @RequiredArgsConstructor
+  @Getter
+  @Setter
+  private static class IfNestingLayer {
+    private final boolean not;
+    private final @Nonnull InternalCommand ref;
+    private boolean inElse;
+  }
+
+  private Deque<IfNestingLayer> ifNestingLayers = new ArrayDeque<>();
 
   @Override
   public void visitIf(MplIf mplIf) {
-    InternalCommand ref = new InternalCommand(mplIf.getCondition());
+    String condition = mplIf.getCondition();
+    InternalCommand ref = new InternalCommand(condition, mplIf);
     commands.add(ref);
     if (needsNormalizer(mplIf)) {
       ref = new NormalizingCommand();
       commands.add(ref);
     }
+    IfNestingLayer layer = new IfNestingLayer(mplIf.isNot(), ref);
+    ifNestingLayers.push(layer);
 
     // then
+    layer.setInElse(false);
     Deque<ChainPart> thenParts = mplIf.getThenParts();
     boolean emptyThen = thenParts.isEmpty();
     if (!mplIf.isNot() && !emptyThen) {
       // First then does not need a reference
-      addWithoutRef(thenParts.pop());
+      addAsConditional(thenParts.pop());
     }
-    addAllWithRef(thenParts, ref, !mplIf.isNot());
+    addAllWithRef(thenParts);
 
     // else
+    layer.setInElse(true);
     Deque<ChainPart> elseParts = mplIf.getElseParts();
     boolean emptyElse = elseParts.isEmpty();
     if (mplIf.isNot() && emptyThen && !emptyElse) {
       // First else does not need a reference, if there is no then part
-      addWithoutRef(elseParts.pop());
+      addAsConditional(elseParts.pop());
     }
-    addAllWithRef(elseParts, ref, mplIf.isNot());
+    addAllWithRef(elseParts);
+
+    ifNestingLayers.pop();
   }
 
-  private void addAllWithRef(Deque<ChainPart> chainParts, InternalCommand ref, boolean success) {
-    while (!chainParts.isEmpty()) {
-      ChainPart chainPart = chainParts.pop();
-      ModifiableChainPart casted = (ModifiableChainPart) chainPart;
-      if (casted.getConditional() == INVERT) {
-        visitPossibleInvert(casted);
-        casted.setConditional(CONDITIONAL);
-        int relative = getCountToRef(ref);
-        commands.add(new ReferencingTestforSuccessCommand(relative, CHAIN, success, true));
-      } else if (casted.getConditional() != CONDITIONAL) {
-        int relative = getCountToRef(ref);
-        commands.add(new ReferencingTestforSuccessCommand(relative, CHAIN, success));
+  private void addAllWithRef(Iterable<ChainPart> chainParts) {
+    for (ChainPart chainPart : chainParts) {
+      addWithRef(cast(chainPart));
+    }
+  }
+
+  private void addWithRef(ModifiableChainPart chainPart) {
+    if (chainPart.getConditional() == INVERT) {
+      visitPossibleInvert(chainPart);
+    }
+    if (chainPart.getConditional() != CONDITIONAL) {
+      addConditionReferences(chainPart);
+    }
+    if (chainPart.getConditional() == INVERT) {
+      chainPart.setConditional(CONDITIONAL);
+    }
+    addAsConditional(chainPart);
+  }
+
+  /**
+   * Add's all references to required {@link MplIf}s. If the chainPart depends on the parent's
+   * failure a reference to the grandparent is also added. This method is recursive and will add
+   * parent references, until the root is reached or until a layer depends on it's parent's success
+   * rather that failure.
+   */
+  private void addConditionReferences(ModifiableChainPart chainPart) {
+    Deque<IfNestingLayer> requiredReferences = new ArrayDeque<>();
+    for (IfNestingLayer layer : ifNestingLayers) {
+      requiredReferences.push(layer);
+      boolean dependingOnFailure = layer.isNot() ^ layer.isInElse();
+      if (!dependingOnFailure) {
+        break;
       }
-      // if (!success) {
-      // addParentReferences();
-      // }
-      addWithoutRef(chainPart);
+    }
+    if (chainPart.getConditional() == UNCONDITIONAL) {
+      IfNestingLayer first = requiredReferences.pop();
+      commands.add(getConditionReference(first));
+    }
+    for (IfNestingLayer layer : requiredReferences) {
+      ReferencingTestforSuccessCommand ref = getConditionReference(layer);
+      ref.setConditional(true);
+      commands.add(ref);
     }
   }
 
-  private void addWithoutRef(ChainPart chainPart) {
-    ModifiableChainPart casted = (ModifiableChainPart) chainPart;
-    if (casted.getConditional() == UNCONDITIONAL) {
-      casted.setConditional(CONDITIONAL);
-    }
-    chainPart.accept(this);
+  private ReferencingTestforSuccessCommand getConditionReference(IfNestingLayer layer) {
+    int relative = getCountToRef(layer.getRef());
+    boolean dependingOnFailure = layer.isNot() ^ layer.isInElse();
+    return new ReferencingTestforSuccessCommand(relative, CHAIN, !dependingOnFailure);
   }
-
-  // private void addParentReferences() {
-  // ifNestingParents.iterator();
-  //
-  // }
 
   private int getCountToRef(InternalCommand ref) {
     int lastIndex = -1;
@@ -394,6 +431,21 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       }
     }
     return -commands.size() + lastIndex;
+  }
+
+  private void addAsConditional(ChainPart chainPart) {
+    ModifiableChainPart casted = cast(chainPart);
+    if (casted.getConditional() == UNCONDITIONAL) {
+      casted.setConditional(CONDITIONAL);
+    }
+    chainPart.accept(this);
+  }
+
+  private static ModifiableChainPart cast(ChainPart chainPart) {
+    if (!(chainPart instanceof ModifiableChainPart)) {
+      throw new IllegalStateException("If cannot contain skip");
+    }
+    return (ModifiableChainPart) chainPart;
   }
 
   public static boolean needsNormalizer(MplIf mplIf) {

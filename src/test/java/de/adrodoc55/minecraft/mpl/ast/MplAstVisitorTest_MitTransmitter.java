@@ -108,21 +108,8 @@ public class MplAstVisitorTest_MitTransmitter {
     // given:
     MplStart mplStart = some($MplStart()//
         .withConditional(UNCONDITIONAL));
-
-    // when:
-    mplStart.accept(underTest);
-
-    // then:
-    assertThat(underTest.commands).containsExactly(//
-        new InternalCommand(
-            "/execute @e[name=" + mplStart.getProcess() + "] ~ ~ ~ setblock ~ ~ ~ redstone_block"));
-  }
-
-  @Test
-  public void test_conditional_Start() {
-    // given:
-    MplStart mplStart = some($MplStart()//
-        .withConditional(CONDITIONAL));
+    Mode mode = mplStart.getMode();
+    boolean needsRedstone = mplStart.getNeedsRedstone();
 
     // when:
     mplStart.accept(underTest);
@@ -131,13 +118,31 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(
             "/execute @e[name=" + mplStart.getProcess() + "] ~ ~ ~ setblock ~ ~ ~ redstone_block",
-            true));
+            mode, false, needsRedstone));
+  }
+
+  @Test
+  public void test_conditional_Start() {
+    // given:
+    MplStart mplStart = some($MplStart()//
+        .withConditional(CONDITIONAL));
+    Mode mode = mplStart.getMode();
+    boolean needsRedstone = mplStart.getNeedsRedstone();
+
+    // when:
+    mplStart.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new InternalCommand(
+            "/execute @e[name=" + mplStart.getProcess() + "] ~ ~ ~ setblock ~ ~ ~ redstone_block",
+            mode, true, needsRedstone));
   }
 
   @Test
   public void test_invert_Start() {
     // given:
-    Mode mode = some($Enum(Mode.class));
+    Mode modeForInverting = some($Enum(Mode.class));
     MplStart mplStart = some($MplStart()//
         .withConditional(INVERT)//
         .withPrevious(new Dependable() {
@@ -148,19 +153,21 @@ public class MplAstVisitorTest_MitTransmitter {
 
           @Override
           public Mode getModeForInverting() throws UnsupportedOperationException {
-            return mode;
+            return modeForInverting;
           }
         }));
+    Mode mode = mplStart.getMode();
+    boolean needsRedstone = mplStart.getNeedsRedstone();
 
     // when:
     mplStart.accept(underTest);
 
     // then:
     assertThat(underTest.commands).containsExactly(//
-        new InvertingCommand(mode),
+        new InvertingCommand(modeForInverting), //
         new InternalCommand(
             "/execute @e[name=" + mplStart.getProcess() + "] ~ ~ ~ setblock ~ ~ ~ redstone_block",
-            mplStart.isConditional()));
+            mode, true, needsRedstone));
   }
 
   // @formatter:off
@@ -179,6 +186,8 @@ public class MplAstVisitorTest_MitTransmitter {
     // given:
     MplStop mplStop = some($MplStop()//
         .withConditional(UNCONDITIONAL));
+    Mode mode = mplStop.getMode();
+    boolean needsRedstone = mplStop.getNeedsRedstone();
 
     // when:
     mplStop.accept(underTest);
@@ -186,7 +195,8 @@ public class MplAstVisitorTest_MitTransmitter {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(
-            "/execute @e[name=" + mplStop.getProcess() + "] ~ ~ ~ setblock ~ ~ ~ stone"));
+            "/execute @e[name=" + mplStop.getProcess() + "] ~ ~ ~ setblock ~ ~ ~ stone", mode,
+            false, needsRedstone));
   }
 
   @Test
@@ -194,6 +204,8 @@ public class MplAstVisitorTest_MitTransmitter {
     // given:
     MplStop mplStop = some($MplStop()//
         .withConditional(CONDITIONAL));
+    Mode mode = mplStop.getMode();
+    boolean needsRedstone = mplStop.getNeedsRedstone();
 
     // when:
     mplStop.accept(underTest);
@@ -201,13 +213,14 @@ public class MplAstVisitorTest_MitTransmitter {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(
-            "/execute @e[name=" + mplStop.getProcess() + "] ~ ~ ~ setblock ~ ~ ~ stone", true));
+            "/execute @e[name=" + mplStop.getProcess() + "] ~ ~ ~ setblock ~ ~ ~ stone", mode, true,
+            needsRedstone));
   }
 
   @Test
   public void test_invert_Stop() {
     // given:
-    Mode mode = some($Enum(Mode.class));
+    Mode modeForInvering = some($Enum(Mode.class));
     MplStop mplStop = some($MplStop()//
         .withConditional(INVERT)//
         .withPrevious(new Dependable() {
@@ -218,19 +231,21 @@ public class MplAstVisitorTest_MitTransmitter {
 
           @Override
           public Mode getModeForInverting() throws UnsupportedOperationException {
-            return mode;
+            return modeForInvering;
           }
         }));
+    Mode mode = mplStop.getMode();
+    boolean needsRedstone = mplStop.getNeedsRedstone();
 
     // when:
     mplStop.accept(underTest);
 
     // then:
     assertThat(underTest.commands).containsExactly(//
-        new InvertingCommand(mode),
+        new InvertingCommand(modeForInvering),
         new InternalCommand(
-            "/execute @e[name=" + mplStop.getProcess() + "] ~ ~ ~ setblock ~ ~ ~ stone",
-            mplStop.isConditional()));
+            "/execute @e[name=" + mplStop.getProcess() + "] ~ ~ ~ setblock ~ ~ ~ stone", mode, true,
+            needsRedstone));
   }
 
   // @formatter:off

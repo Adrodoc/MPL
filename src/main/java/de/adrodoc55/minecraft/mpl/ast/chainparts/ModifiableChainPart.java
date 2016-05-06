@@ -57,7 +57,7 @@ import lombok.ToString;
 @ToString(includeFieldNames = true)
 @Getter
 @Setter
-public abstract class ModifiableChainPart implements ChainPart {
+public abstract class ModifiableChainPart implements Modifiable, ChainPart {
   protected @Nonnull Mode mode;
   protected @Nonnull Conditional conditional;
   protected boolean needsRedstone;
@@ -83,11 +83,13 @@ public abstract class ModifiableChainPart implements ChainPart {
     this.previous = previous;
   }
 
-  public boolean isConditional() {
+  @Override
+  public @Nonnull Boolean isConditional() {
     return getConditional().isConditional();
   }
 
-  public boolean getNeedsRedstone() {
+  @Override
+  public @Nonnull Boolean getNeedsRedstone() {
     return needsRedstone;
   }
 }

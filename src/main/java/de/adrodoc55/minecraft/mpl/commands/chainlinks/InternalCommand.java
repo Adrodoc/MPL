@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import de.adrodoc55.minecraft.mpl.ast.chainparts.Modifiable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 
 /**
@@ -68,6 +69,10 @@ public class InternalCommand extends Command {
 
   public InternalCommand(String command, Mode mode, Boolean conditional, Boolean needsRedstone) {
     super(command, mode, conditional, needsRedstone);
+  }
+
+  public InternalCommand(String command, Modifiable modifier) {
+    super(command, modifier);
   }
 
 }

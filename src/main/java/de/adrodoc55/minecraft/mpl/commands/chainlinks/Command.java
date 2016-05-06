@@ -39,8 +39,11 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import javax.annotation.Nonnull;
+
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.Modifiable;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -57,7 +60,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @ToString(includeFieldNames = true)
 @Getter
 @Setter
-public class Command implements ChainLink {
+public class Command implements ChainLink, Modifiable {
   protected String command;
   protected Mode mode;
   protected boolean conditional;
@@ -98,7 +101,11 @@ public class Command implements ChainLink {
   }
 
   public Command(Command command) {
-    this(command.getCommand(), command.getMode(), command.isConditional(), command.needsRedstone());
+    this(command.getCommand(), command);
+  }
+
+  public Command(String command, Modifiable modifier) {
+    this(command, modifier.getMode(), modifier.isConditional(), modifier.getNeedsRedstone());
   }
 
   public void setCommand(String command) {
@@ -109,8 +116,14 @@ public class Command implements ChainLink {
     }
   }
 
-  public boolean needsRedstone() {
-    return isNeedsRedstone();
+  @Override
+  public @Nonnull Boolean isConditional() {
+    return conditional;
+  }
+
+  @Override
+  public @Nonnull Boolean getNeedsRedstone() {
+    return needsRedstone;
   }
 
   @Override

@@ -50,20 +50,18 @@ import javax.annotation.Nullable;
 import org.assertj.core.util.VisibleForTesting;
 
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode(callSuper = true, of = {"not", "condition", "mode"})
-@ToString(includeFieldNames = true, of = {"not", "condition", "mode"})
+@EqualsAndHashCode(callSuper = true, of = {"not", "condition"})
+@ToString(includeFieldNames = true, of = {"not", "condition"})
 public class MplIf extends ModifiableChainPart implements ChainPartBuffer {
   private final @Nullable ChainPartBuffer parent;
 
@@ -71,14 +69,10 @@ public class MplIf extends ModifiableChainPart implements ChainPartBuffer {
   private final boolean not;
   @Getter
   private final String condition;
-  @Getter
-  @Setter
-  private @Nullable Mode mode;
 
   private final Deque<ChainPart> thenParts = new ArrayDeque<>();
   private final Deque<ChainPart> elseParts = new ArrayDeque<>();
   private boolean inElse;
-
 
   @GenerateMplPojoBuilder
   public MplIf(boolean not, String condition) {

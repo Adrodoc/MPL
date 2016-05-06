@@ -97,8 +97,8 @@ public class CommandBlock extends MplBlock {
     command.setMode(mode);
   }
 
-  public boolean needsRedstone() {
-    return command != null ? command.needsRedstone() : false;
+  public boolean getNeedsRedstone() {
+    return command != null ? command.getNeedsRedstone() : false;
   }
 
   public void setNeedsRedstone(boolean needsRedstone) {
