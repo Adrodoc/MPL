@@ -44,7 +44,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept.INTERCEPTED;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.CONDITIONAL;
-import static de.adrodoc55.minecraft.mpl.commands.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
@@ -378,14 +377,9 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   }
 
   private void addWithRef(ModifiableChainPart chainPart) {
-    if (chainPart.getConditional() == INVERT) {
-      visitPossibleInvert(chainPart);
-    }
+    visitPossibleInvert(chainPart);
     if (chainPart.getConditional() != CONDITIONAL) {
       addConditionReferences(chainPart);
-    }
-    if (chainPart.getConditional() == INVERT) {
-      chainPart.setConditional(CONDITIONAL);
     }
     addAsConditional(chainPart);
   }
@@ -434,18 +428,16 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   }
 
   private void addAsConditional(ChainPart chainPart) {
-    ModifiableChainPart casted = cast(chainPart);
-    if (casted.getConditional() == UNCONDITIONAL) {
-      casted.setConditional(CONDITIONAL);
-    }
+    cast(chainPart).setConditional(CONDITIONAL);
     chainPart.accept(this);
   }
 
   private static ModifiableChainPart cast(ChainPart chainPart) {
-    if (!(chainPart instanceof ModifiableChainPart)) {
-      throw new IllegalStateException("If cannot contain skip");
+    try {
+      return (ModifiableChainPart) chainPart;
+    } catch (ClassCastException ex) {
+      throw new IllegalStateException("If cannot contain skip", ex);
     }
-    return (ModifiableChainPart) chainPart;
   }
 
   public static boolean needsNormalizer(MplIf mplIf) {
@@ -484,13 +476,11 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   }
 
   private static boolean needsParentNormalizer(MplIf mplIf) {
-    Deque<ChainPart> chainParts;
     if (mplIf.isNot()) {
-      chainParts = mplIf.getThenParts();
+      return containsConditionReference(mplIf.getThenParts());
     } else {
-      chainParts = mplIf.getElseParts();
+      return containsConditionReference(mplIf.getElseParts());
     }
-    return containsConditionReference(chainParts);
   }
 
 }
