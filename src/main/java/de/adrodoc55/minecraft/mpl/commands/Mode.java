@@ -44,4 +44,5 @@ package de.adrodoc55.minecraft.mpl.commands;
  */
 public enum Mode {
   IMPULSE, CHAIN, REPEAT;
+  public static final Mode DEFAULT = Mode.CHAIN;
 }

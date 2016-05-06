@@ -66,7 +66,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ModeOwner;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
@@ -140,9 +140,14 @@ public class MplAstVisitorTest_MitTransmitter {
     Mode mode = some($Enum(Mode.class));
     MplStart mplStart = some($MplStart()//
         .withConditional(INVERT)//
-        .withPrevious(new ModeOwner() {
+        .withPrevious(new Dependable() {
           @Override
-          public Mode getMode() {
+          public boolean canBeDependedOn() {
+            return true;
+          }
+
+          @Override
+          public Mode getModeForInverting() throws UnsupportedOperationException {
             return mode;
           }
         }));
@@ -205,9 +210,14 @@ public class MplAstVisitorTest_MitTransmitter {
     Mode mode = some($Enum(Mode.class));
     MplStop mplStop = some($MplStop()//
         .withConditional(INVERT)//
-        .withPrevious(new ModeOwner() {
+        .withPrevious(new Dependable() {
           @Override
-          public Mode getMode() {
+          public boolean canBeDependedOn() {
+            return true;
+          }
+
+          @Override
+          public Mode getModeForInverting() throws UnsupportedOperationException {
             return mode;
           }
         }));
@@ -338,9 +348,14 @@ public class MplAstVisitorTest_MitTransmitter {
     Mode mode = some($Enum(Mode.class));
     MplNotify mplNotify = some($MplNotify()//
         .withConditional(INVERT)//
-        .withPrevious(new ModeOwner() {
+        .withPrevious(new Dependable() {
           @Override
-          public Mode getMode() {
+          public boolean canBeDependedOn() {
+            return true;
+          }
+
+          @Override
+          public Mode getModeForInverting() throws UnsupportedOperationException {
             return mode;
           }
         }));
@@ -395,9 +410,14 @@ public class MplAstVisitorTest_MitTransmitter {
     Mode mode = some($Enum(Mode.class));
     MplIntercept mplIntercept = some($MplIntercept()//
         .withConditional(CONDITIONAL)//
-        .withPrevious(new ModeOwner() {
+        .withPrevious(new Dependable() {
           @Override
-          public Mode getMode() {
+          public boolean canBeDependedOn() {
+            return true;
+          }
+
+          @Override
+          public Mode getModeForInverting() throws UnsupportedOperationException {
             return mode;
           }
         }));
@@ -426,9 +446,14 @@ public class MplAstVisitorTest_MitTransmitter {
     Mode mode = some($Enum(Mode.class));
     MplIntercept mplIntercept = some($MplIntercept()//
         .withConditional(INVERT)//
-        .withPrevious(new ModeOwner() {
+        .withPrevious(new Dependable() {
           @Override
-          public Mode getMode() {
+          public boolean canBeDependedOn() {
+            return true;
+          }
+
+          @Override
+          public Mode getModeForInverting() throws UnsupportedOperationException {
             return mode;
           }
         }));
@@ -510,9 +535,14 @@ public class MplAstVisitorTest_MitTransmitter {
     Mode mode = some($Enum(Mode.class));
     MplBreakpoint mplBreakpoint = some($MplBreakpoint()//
         .withConditional(INVERT)//
-        .withPrevious(new ModeOwner() {
+        .withPrevious(new Dependable() {
           @Override
-          public Mode getMode() {
+          public boolean canBeDependedOn() {
+            return true;
+          }
+
+          @Override
+          public Mode getModeForInverting() throws UnsupportedOperationException {
             return mode;
           }
         }));
@@ -600,7 +630,7 @@ public class MplAstVisitorTest_MitTransmitter {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone())//
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone())//
     );
   }
 
@@ -619,7 +649,7 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InvertingCommand(CHAIN), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone())//
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone())//
     );
   }
 
@@ -638,7 +668,7 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InvertingCommand(CHAIN), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone())//
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone())//
     );
   }
 
@@ -656,7 +686,7 @@ public class MplAstVisitorTest_MitTransmitter {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone())//
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone())//
     );
   }
 
@@ -676,9 +706,9 @@ public class MplAstVisitorTest_MitTransmitter {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone())//
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone())//
     );
   }
 
@@ -699,11 +729,11 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone()), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.needsRedstone())//
+        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.getNeedsRedstone())//
     );
   }
 
@@ -724,11 +754,11 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone()), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 5} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.needsRedstone())//
+        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.getNeedsRedstone())//
     );
   }
 
@@ -749,11 +779,11 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone()), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 5} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.needsRedstone())//
+        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.getNeedsRedstone())//
     );
   }
 
@@ -774,11 +804,11 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone()), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.needsRedstone())//
+        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.getNeedsRedstone())//
     );
   }
 
@@ -804,18 +834,18 @@ public class MplAstVisitorTest_MitTransmitter {
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
         // then
-        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone()), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.needsRedstone()), //
+        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.getNeedsRedstone()), //
         // else
         new InternalCommand("/testforblock ${this - 6} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 8} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone()), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 10} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.needsRedstone())//
+        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.getNeedsRedstone())//
     );
   }
 
@@ -842,18 +872,18 @@ public class MplAstVisitorTest_MitTransmitter {
         new NormalizingCommand(), //
         // then
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone()), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 5} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.needsRedstone()), //
+        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.getNeedsRedstone()), //
         // else
         new InternalCommand("/testforblock ${this - 7} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 9} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone()), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 11} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.needsRedstone())//
+        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.getNeedsRedstone())//
     );
   }
 
@@ -874,10 +904,10 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone()), //
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.needsRedstone())//
+        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.getNeedsRedstone())//
     );
   }
 
@@ -896,8 +926,8 @@ public class MplAstVisitorTest_MitTransmitter {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone())//
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone())//
     );
   }
 
@@ -925,13 +955,13 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
         new InvertingCommand(then1.getMode()), //
         new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}",
             true), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone()), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 5} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.needsRedstone())//
+        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.getNeedsRedstone())//
     );
   }
 
@@ -952,10 +982,10 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone()), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.needsRedstone())//
+        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.getNeedsRedstone())//
     );
   }
 
@@ -983,13 +1013,13 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
         new InvertingCommand(else1.getMode()), //
         new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}",
             true), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone()), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 6} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.needsRedstone())//
+        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.getNeedsRedstone())//
     );
   }
 
@@ -1010,10 +1040,10 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone()), //
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.needsRedstone())//
+        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.getNeedsRedstone())//
     );
   }
 
@@ -1040,13 +1070,13 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.needsRedstone()), //
+        new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
         new InvertingCommand(then1.getMode()), //
         new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}",
             true), //
-        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.needsRedstone()), //
+        new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 6} chain_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.needsRedstone())//
+        new InternalCommand(then3.getCommand(), then3.getMode(), true, then3.getNeedsRedstone())//
     );
   }
 
@@ -1067,10 +1097,10 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone()), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.needsRedstone())//
+        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.getNeedsRedstone())//
     );
   }
 
@@ -1089,8 +1119,8 @@ public class MplAstVisitorTest_MitTransmitter {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone())//
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone())//
     );
   }
 
@@ -1118,13 +1148,13 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
-        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.needsRedstone()), //
+        new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
         new InvertingCommand(else1.getMode()), //
         new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}",
             true), //
-        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.needsRedstone()), //
+        new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 5} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.needsRedstone())//
+        new InternalCommand(else3.getCommand(), else3.getMode(), true, else3.getNeedsRedstone())//
     );
   }
 
@@ -1168,18 +1198,18 @@ public class MplAstVisitorTest_MitTransmitter {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
-        new InternalCommand(outer1.getCommand(), outer1.getMode(), true, outer1.needsRedstone()), //
+        new InternalCommand(outer1.getCommand(), outer1.getMode(), true, outer1.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}"), //
         new InternalCommand(outer2.getCondition(), true), //
         new InternalCommand(innerThen.getCommand(), innerThen.getMode(), true,
-            innerThen.needsRedstone()), //
+            innerThen.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 5} chain_command_block -1 {SuccessCount:1}"), //
         new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}",
             true), //
         new InternalCommand(innerElse.getCommand(), innerElse.getMode(), true,
-            innerElse.needsRedstone()), //
+            innerElse.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 8} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand(outer3.getCommand(), outer3.getMode(), true, outer3.needsRedstone())//
+        new InternalCommand(outer3.getCommand(), outer3.getMode(), true, outer3.getNeedsRedstone())//
     );
   }
 

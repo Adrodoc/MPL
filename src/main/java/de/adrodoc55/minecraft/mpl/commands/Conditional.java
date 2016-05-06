@@ -39,15 +39,17 @@
  */
 package de.adrodoc55.minecraft.mpl.commands;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * @author Adrodoc55
  */
+@RequiredArgsConstructor
+@Getter
 public enum Conditional {
-  UNCONDITIONAL,
-  /**
-   * HI
-   */
-  CONDITIONAL, INVERT;
+  UNCONDITIONAL(false), CONDITIONAL(true), INVERT(true);
+  public static final Conditional DEFAULT = UNCONDITIONAL;
 
-  public static Conditional DEFAULT = UNCONDITIONAL;
+  private final boolean conditional;
 }

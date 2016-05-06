@@ -41,11 +41,9 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import javax.annotation.Nullable;
-
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -59,48 +57,17 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @ToString(callSuper = true, includeFieldNames = true)
 @Getter
 @Setter
-public class MplCommand extends PossiblyConditionalChainPart {
-
+public class MplCommand extends ModifiableChainPart {
   private String command;
-  private Mode mode;
-  private boolean needsRedstone;
-
-  public MplCommand() {
-    this("");
-  }
 
   public MplCommand(String command) {
-    this(command, null);
-  }
-
-  public MplCommand(String command, Conditional conditional) {
-    this(command, null, conditional);
-  }
-
-  public MplCommand(String command, Mode mode, Conditional conditional) {
-    this(command, mode, conditional, null);
+    this(command, new ModifierBuffer());
   }
 
   @GenerateMplPojoBuilder
-  public MplCommand(String command, @Nullable Mode mode, Conditional conditional,
-      @Nullable Boolean needsRedstone) {
-    super(conditional);
+  public MplCommand(String command, ModifierBuffer modifier) {
+    super(modifier);
     this.command = checkNotNull(command, "command == null!");
-    this.mode = (mode != null) ? mode : Mode.CHAIN;
-    if (needsRedstone != null) {
-      this.needsRedstone = needsRedstone;
-    } else {
-      this.needsRedstone = (this.mode == Mode.CHAIN) ? false : true;
-    }
-  }
-
-  public MplCommand(MplCommand command) {
-    this(command.getCommand(), command.getMode(), command.getConditional(),
-        command.needsRedstone());
-  }
-
-  public boolean needsRedstone() {
-    return isNeedsRedstone();
   }
 
   @Override

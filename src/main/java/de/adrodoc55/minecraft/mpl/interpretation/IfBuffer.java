@@ -45,6 +45,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
@@ -137,7 +138,7 @@ class LayerCompressor {
       add(thenIt, false);
     } else {
       if (thenIt.hasNext()) { // First normal then does not need a reference
-        ChainPart firstThen = thenIt.next();
+        Dependable firstThen = thenIt.next();
         if (!(firstThen instanceof Command)) {
           // TODO: Besseren Fehler werfen
           throw new IllegalStateException("Skip is not allowed within if body!");
@@ -165,7 +166,7 @@ class LayerCompressor {
   private void add(Iterator<ChainPart> it, boolean dependOnSuccess) {
     boolean lastWasInverting = false;
     while (it.hasNext()) {
-      ChainPart chainPart = it.next();
+      Dependable chainPart = it.next();
       if (!(chainPart instanceof Command)) {
         // TODO: Besseren Fehler werfen
         throw new IllegalStateException("Skip is not allowed within if body!");
@@ -324,7 +325,7 @@ class IfNestingLayer extends ChainPartBufferImpl {
         it.next(); // Ignore the first element.
       }
       while (it.hasNext()) {
-        ChainPart chainPart = it.next();
+        Dependable chainPart = it.next();
         if (!(chainPart instanceof Command)) {
           // TODO: Besseren Fehler werfen
           throw new IllegalStateException("Skip is not allowed within if body!");

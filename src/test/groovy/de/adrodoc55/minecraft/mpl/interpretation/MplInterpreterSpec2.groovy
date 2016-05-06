@@ -383,13 +383,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
+    ModifierBuffer modifierBuffer = new ModifierBuffer()
+    modifierBuffer.setConditional(conditional);
     ChainPart previous = null
     if (conditional != UNCONDITIONAL) {
       previous = process.chainParts[0]
     }
 
     process.chainParts[0] == new MplCommand('/say hi')
-    process.chainParts[1] == new MplStart(identifier, conditional, previous)
+    process.chainParts[1] == new MplStart(identifier, modifierBuffer, previous)
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -469,13 +471,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
+    ModifierBuffer modifierBuffer = new ModifierBuffer()
+    modifierBuffer.setConditional(conditional);
     ChainPart previous = null
     if (conditional != UNCONDITIONAL) {
       previous = process.chainParts[0]
     }
 
     process.chainParts[0] == new MplCommand('/say hi')
-    process.chainParts[1] == new MplStop(identifier, conditional, previous)
+    process.chainParts[1] == new MplStop(identifier, modifierBuffer, previous)
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -596,13 +600,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
+    ModifierBuffer modifierBuffer = new ModifierBuffer()
+    modifierBuffer.setConditional(conditional);
     ChainPart previous = null
     if (conditional != UNCONDITIONAL) {
       previous = process.chainParts[0]
     }
 
     process.chainParts[0] == new MplCommand('/say hi')
-    process.chainParts[1] == new MplWaitfor(identifier, conditional, previous)
+    process.chainParts[1] == new MplWaitfor(identifier, modifierBuffer, previous)
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -723,13 +729,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
+    ModifierBuffer modifierBuffer = new ModifierBuffer()
+    modifierBuffer.setConditional(conditional);
     ChainPart previous = null
     if (conditional != UNCONDITIONAL) {
       previous = process.chainParts[0]
     }
 
     process.chainParts[0] == new MplCommand('/say hi')
-    process.chainParts[1] == new MplNotify(identifier, conditional, previous)
+    process.chainParts[1] == new MplNotify(identifier, modifierBuffer, previous)
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -810,13 +818,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
+    ModifierBuffer modifierBuffer = new ModifierBuffer()
+    modifierBuffer.setConditional(conditional);
     ChainPart previous = null
     if (conditional != UNCONDITIONAL) {
       previous = process.chainParts[0]
     }
 
     process.chainParts[0] == new MplCommand('/say hi')
-    process.chainParts[1] == new MplIntercept(identifier, conditional, previous)
+    process.chainParts[1] == new MplIntercept(identifier, modifierBuffer, previous)
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -875,13 +885,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
+    ModifierBuffer modifierBuffer = new ModifierBuffer()
+    modifierBuffer.setConditional(conditional);
     ChainPart previous = null
     if (conditional != UNCONDITIONAL) {
       previous = process.chainParts[0]
     }
 
     process.chainParts[0] == new MplCommand('/say hi')
-    process.chainParts[1] == new MplBreakpoint("${lastTempFile.name} : line 3" , conditional, previous)
+    process.chainParts[1] == new MplBreakpoint("${lastTempFile.name} : line 3" , modifierBuffer, previous)
     process.chainParts.size() == 2
     where:
     modifier        | conditional

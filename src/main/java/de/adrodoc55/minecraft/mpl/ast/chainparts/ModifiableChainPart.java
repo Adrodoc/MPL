@@ -37,45 +37,57 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.interpretation;
+package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import org.antlr.v4.runtime.Token;
 
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import net.karneim.pojobuilder.GenerateMplPojoBuilder;
+import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
+@EqualsAndHashCode
+@ToString(includeFieldNames = true)
 @Getter
 @Setter
-@GenerateMplPojoBuilder
-public class ModifierBuffer {
-  private @Nullable Mode mode;
-  private @Nullable Conditional conditional;
-  private @Nullable Boolean needsRedstone;
-  private @Nullable Token modeToken;
-  private @Nullable Token conditionalToken;
-  private @Nullable Token needsRedstoneToken;
+public abstract class ModifiableChainPart implements ChainPart {
+  protected @Nonnull Mode mode;
+  protected @Nonnull Conditional conditional;
+  protected boolean needsRedstone;
 
-  public @Nullable Boolean isConditional() {
-    if (conditional == null) {
-      return null;
-    }
-    switch (conditional) {
-      case UNCONDITIONAL:
-        return false;
-      case CONDITIONAL:
-      case INVERT:
-        return true;
-      default:
-        return null;
-    }
+  private @Nullable Dependable previous;
+
+  public ModifiableChainPart(ModifierBuffer modifier) {
+    this(modifier, null);
   }
 
+  public ModifiableChainPart(ModifierBuffer modifier, @Nullable Dependable previous) {
+    Mode mode = modifier.getMode();
+    Conditional conditional = modifier.getConditional();
+    Boolean needsRedstone = modifier.getNeedsRedstone();
+
+    this.mode = (mode != null) ? mode : Mode.DEFAULT;
+    this.conditional = (conditional != null) ? conditional : Conditional.DEFAULT;
+    if (needsRedstone != null) {
+      this.needsRedstone = needsRedstone;
+    } else {
+      this.needsRedstone = (this.mode == Mode.CHAIN) ? false : true;
+    }
+    this.previous = previous;
+  }
+
+  public boolean isConditional() {
+    return getConditional().isConditional();
+  }
+
+  public boolean getNeedsRedstone() {
+    return needsRedstone;
+  }
 }

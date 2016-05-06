@@ -39,45 +39,37 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import de.adrodoc55.minecraft.mpl.commands.Conditional;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode
-@ToString(includeFieldNames = true)
-@Getter
-@Setter
-public abstract class PossiblyConditionalChainPart implements ChainPart {
-  protected @Nonnull Conditional conditional;
-  private @Nullable ChainPart previous;
-
-  public PossiblyConditionalChainPart(@Nullable Conditional conditional) {
-    this(conditional, null);
+public interface Dependable {
+  /**
+   * Returns whether a following CONDITIONAL or INVERT {@link ChainPart} can depend on this.
+   * <p>
+   * Subclasses that are dependable should override this method along with
+   * {@link #getModeForInverting()}.
+   *
+   * @return whether a following {@link ChainPart} can depend on this
+   */
+  default boolean canBeDependedOn() {
+    return false;
   }
 
-  public PossiblyConditionalChainPart(@Nullable Conditional conditional,
-      @Nullable ChainPart previous) {
-    this.conditional = (conditional != null) ? conditional : Conditional.DEFAULT;
-    this.previous = previous;
-  }
-
-  public boolean isConditional() {
-    switch (conditional) {
-      case UNCONDITIONAL:
-        return false;
-      case CONDITIONAL:
-      case INVERT:
-        return true;
-      default:
-        throw new IllegalArgumentException("Unknown Conditional: " + conditional);
-    }
+  /**
+   * Returns the {@link Mode} that should be used for an invert depending on this {@link ChainPart}
+   * (optional operation).
+   * <p>
+   * Subclasses that are dependable should override this method along with
+   * {@link #canBeDependedOn()}.
+   *
+   * @return the {@link Mode} of this {@link ChainPart}
+   * @throws UnsupportedOperationException if this {@link ChainPart} is not dependable as defined by
+   *         {@link #canBeDependedOn()}
+   */
+  default Mode getModeForInverting() throws UnsupportedOperationException {
+    throw new UnsupportedOperationException(
+        "The class " + getClass() + " is not dependable and does not have a mode");
   }
 }

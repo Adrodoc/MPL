@@ -67,6 +67,7 @@ import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.CommandBuilder;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkipBuilder;
+import de.adrodoc55.minecraft.mpl.interpretation.ModifierBufferBuilder;
 import net.karneim.pojobuilder.Builder;
 
 public class MplTestBase extends TestBase {
@@ -95,7 +96,13 @@ public class MplTestBase extends TestBase {
 
   public static MplCommandBuilder $MplCommand() {
     return new MplCommandBuilder()//
+        .withModifier($ModifierBuffer())//
         .withCommand($CommandString())//
+        ;
+  }
+
+  private static ModifierBufferBuilder $ModifierBuffer() {
+    return new ModifierBufferBuilder()//
         .withMode($Enum(Mode.class))//
         .withConditional($Enum(Conditional.class))//
         .withNeedsRedstone($boolean())//
@@ -111,42 +118,42 @@ public class MplTestBase extends TestBase {
 
   public static MplStartBuilder $MplStart() {
     return new MplStartBuilder()//
-        .withConditional($Enum(Conditional.class))//
+        .withModifier($ModifierBuffer())//
         .withProcess($String())//
         ;
   }
 
   public static MplStopBuilder $MplStop() {
     return new MplStopBuilder()//
-        .withConditional($Enum(Conditional.class))//
+        .withModifier($ModifierBuffer())//
         .withProcess($String())//
         ;
   }
 
   public static MplWaitforBuilder $MplWaitfor() {
     return new MplWaitforBuilder()//
-        .withConditional($Enum(Conditional.class))//
+        .withModifier($ModifierBuffer())//
         .withEvent($String())//
         ;
   }
 
   public static MplNotifyBuilder $MplNotify() {
     return new MplNotifyBuilder()//
-        .withConditional($Enum(Conditional.class))//
+        .withModifier($ModifierBuffer())//
         .withProcess($String())//
         ;
   }
 
   public static MplInterceptBuilder $MplIntercept() {
     return new MplInterceptBuilder()//
-        .withConditional($Enum(Conditional.class))//
+        .withModifier($ModifierBuffer())//
         .withEvent($String())//
         ;
   }
 
   public static MplBreakpointBuilder $MplBreakpoint() {
     return new MplBreakpointBuilder()//
-        .withConditional($Enum(Conditional.class))//
+        .withModifier($ModifierBuffer())//
         .withMessage($String())//
         ;
   }

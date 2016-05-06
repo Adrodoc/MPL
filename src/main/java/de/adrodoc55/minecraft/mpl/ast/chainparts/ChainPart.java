@@ -48,35 +48,7 @@ import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 /**
  * @author Adrodoc55
  */
-public interface ChainPart extends MplNode, Named {
-  /**
-   * Returns whether a following CONDITIONAL or INVERT {@link ChainPart} can depend on this.
-   * <p>
-   * Subclasses that are dependable should override this method along with
-   * {@link #getModeForInverting()}.
-   *
-   * @return whether a following {@link ChainPart} can depend on this
-   */
-  default boolean canBeDependedOn() {
-    return false;
-  }
-
-  /**
-   * Returns the {@link Mode} that should be used for an invert depending on this {@link ChainPart}
-   * (optional operation).
-   * <p>
-   * Subclasses that are dependable should override this method along with
-   * {@link #canBeDependedOn()}.
-   *
-   * @return the {@link Mode} of this {@link ChainPart}
-   * @throws UnsupportedOperationException if this {@link ChainPart} is not dependable as defined by
-   *         {@link #canBeDependedOn()}
-   */
-  default Mode getModeForInverting() throws UnsupportedOperationException {
-    throw new UnsupportedOperationException(
-        "The class " + getClass() + " is not dependable and does not have a mode");
-  }
-
+public interface ChainPart extends MplNode, Named, Dependable {
   /**
    * Set the {@link Mode} of this {@link ChainPart} (optional operation).
    * <p>
@@ -94,5 +66,18 @@ public interface ChainPart extends MplNode, Named {
   default void setMode(Mode mode) throws IllegalModifierException {
     throw new IllegalModifierException(
         "The class " + getClass() + " does not support multiple modes");
+  }
+
+  /**
+   * Set whether this {@link ChainPart} needs redstone (optional operation).
+   * <p>
+   * Subclasses should override this method if they support the need for a redstone signal.
+   *
+   * @param needsRedstone
+   * @throws IllegalModifierException if this {@link ChainPart} cannot need a redstone signal
+   */
+  default void setNeedsRedstone(boolean needsRedstone) throws IllegalModifierException {
+    throw new IllegalModifierException(
+        "The class " + getClass() + " does not support the need for a redstone signal");
   }
 }

@@ -172,13 +172,13 @@ public class MplProjectPlacer extends MplChainPlacer {
   }
 
   private int calculateFutureInstallSize() {
-    // Plus 3 for first Transmitter, first Receiver and final air block
-    return 3 + getInstall().getCommands().size() + container.getChains().size();
+    // Plus 1 for final air block
+    return 1 + getInstall().getCommands().size() + container.getChains().size();
   }
 
   private int calculateFutureUninstallSize() {
-    // Plus 3 for first Transmitter, first Receiver and final air block
-    return 3 + getUninstall().getCommands().size() + container.getChains().size();
+    // Plus 1 for final air block
+    return 1 + getUninstall().getCommands().size() + container.getChains().size();
   }
 
   public final int getLongestSuccessiveConditionalCount() {

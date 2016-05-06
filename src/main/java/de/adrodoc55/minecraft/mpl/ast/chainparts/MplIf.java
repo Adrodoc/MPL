@@ -40,7 +40,6 @@
 package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static de.adrodoc55.minecraft.mpl.commands.Conditional.UNCONDITIONAL;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -53,6 +52,7 @@ import org.assertj.core.util.VisibleForTesting;
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer;
+import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -64,7 +64,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  */
 @EqualsAndHashCode(callSuper = true, of = {"not", "condition", "mode"})
 @ToString(includeFieldNames = true, of = {"not", "condition", "mode"})
-public class MplIf extends PossiblyConditionalChainPart implements ChainPart, ChainPartBuffer {
+public class MplIf extends ModifiableChainPart implements ChainPartBuffer {
   private final @Nullable ChainPartBuffer parent;
 
   @Getter
@@ -86,7 +86,7 @@ public class MplIf extends PossiblyConditionalChainPart implements ChainPart, Ch
   }
 
   public MplIf(@Nullable ChainPartBuffer parent, boolean not, String condition) {
-    super(UNCONDITIONAL);
+    super(new ModifierBuffer());
     this.parent = parent;
     this.not = not;
     this.condition = checkNotNull(condition, "condition == null!");

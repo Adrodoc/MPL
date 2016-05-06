@@ -61,6 +61,8 @@ import org.assertj.core.util.VisibleForTesting;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
@@ -69,7 +71,6 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.PossiblyConditionalChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
@@ -86,6 +87,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingTestforSuccessCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
+import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 
 /**
  * @author Adrodoc55
@@ -140,6 +142,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       ChainPart first = chainParts.get(0);
       try {
         first.setMode(REPEAT);
+        first.setNeedsRedstone(true);
       } catch (IllegalModifierException ex) {
         throw new IllegalStateException(ex.getMessage(), ex);
       }
@@ -156,9 +159,9 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     chains.add(new CommandChain(process.getName(), commands));
   }
 
-  protected void visitPossibleInvert(PossiblyConditionalChainPart chainPart) {
+  protected void visitPossibleInvert(ModifiableChainPart chainPart) {
     if (chainPart.getConditional() == Conditional.INVERT) {
-      ChainPart previous = chainPart.getPrevious();
+      Dependable previous = chainPart.getPrevious();
       checkState(previous != null,
           "Cannot invert ChainPart; no previous command found for " + chainPart);
       commands.add(new InvertingCommand(previous.getModeForInverting()));
@@ -172,7 +175,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     String cmd = command.getCommand();
     Mode mode = command.getMode();
     boolean conditional = command.isConditional();
-    boolean needsRedstone = command.needsRedstone();
+    boolean needsRedstone = command.getNeedsRedstone();
     commands.add(new Command(cmd, mode, conditional, needsRedstone));
   }
 
@@ -308,9 +311,10 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     boolean cond = breakpoint.isConditional();
     commands.add(new InternalCommand("say " + breakpoint.getMessage(), cond));
 
-    Conditional conditional = cond ? CONDITIONAL : UNCONDITIONAL;
-    visitStart(new MplStart("breakpoint", conditional));
-    visitWaitfor(new MplWaitfor("breakpoint" + NOTIFY, conditional));
+    ModifierBuffer modifier = new ModifierBuffer();
+    modifier.setConditional(cond ? CONDITIONAL : UNCONDITIONAL);
+    visitStart(new MplStart("breakpoint", modifier));
+    visitWaitfor(new MplWaitfor("breakpoint" + NOTIFY, modifier));
   }
 
   @Override
@@ -351,7 +355,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   private void addAllWithRef(Deque<ChainPart> chainParts, InternalCommand ref, boolean success) {
     while (!chainParts.isEmpty()) {
       ChainPart chainPart = chainParts.pop();
-      PossiblyConditionalChainPart casted = (PossiblyConditionalChainPart) chainPart;
+      ModifiableChainPart casted = (ModifiableChainPart) chainPart;
       if (casted.getConditional() == INVERT) {
         visitPossibleInvert(casted);
         casted.setConditional(CONDITIONAL);
@@ -369,7 +373,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   }
 
   private void addWithoutRef(ChainPart chainPart) {
-    PossiblyConditionalChainPart casted = (PossiblyConditionalChainPart) chainPart;
+    ModifiableChainPart casted = (ModifiableChainPart) chainPart;
     if (casted.getConditional() == UNCONDITIONAL) {
       casted.setConditional(CONDITIONAL);
     }
@@ -417,8 +421,8 @@ public class MplAstVisitorImpl implements MplAstVisitor {
         if (needsParentNormalizer((MplIf) chainPart)) {
           return true;
         }
-      } else if (chainPart instanceof PossiblyConditionalChainPart) {
-        PossiblyConditionalChainPart cp = (PossiblyConditionalChainPart) chainPart;
+      } else if (chainPart instanceof ModifiableChainPart) {
+        ModifiableChainPart cp = (ModifiableChainPart) chainPart;
         if (!cp.isConditional()) {
           return true;
         }

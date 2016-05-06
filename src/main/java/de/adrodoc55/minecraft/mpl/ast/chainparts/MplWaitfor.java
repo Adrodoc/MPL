@@ -44,8 +44,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -59,22 +59,22 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @ToString(callSuper = true, includeFieldNames = true)
 @Getter
 @Setter
-public class MplWaitfor extends PossiblyConditionalChainPart {
+public class MplWaitfor extends ModifiableChainPart {
   private final String event;
   private @Nullable Mode mode;
 
   public MplWaitfor(String event) {
-    this(event, null);
+    this(event, new ModifierBuffer());
   }
 
-  public MplWaitfor(String event, @Nullable Conditional conditional) {
-    super(conditional);
+  public MplWaitfor(String event, ModifierBuffer modifier) {
+    super(modifier);
     this.event = checkNotNull(event, "event == null!");
   }
 
   @GenerateMplPojoBuilder
-  public MplWaitfor(String event, @Nullable Conditional conditional, @Nullable ChainPart previous) {
-    super(conditional, previous);
+  public MplWaitfor(String event, ModifierBuffer modifier, @Nullable Dependable previous) {
+    super(modifier, previous);
     this.event = checkNotNull(event, "event == null!");
   }
 

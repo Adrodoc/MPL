@@ -44,8 +44,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -59,22 +59,22 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @ToString(callSuper = true, includeFieldNames = true)
 @Getter
 @Setter
-public class MplStop extends PossiblyConditionalChainPart {
+public class MplStop extends ModifiableChainPart {
   private final String process;
   private @Nullable Mode mode;
 
   public MplStop(String process) {
-    this(process, null);
+    this(process, new ModifierBuffer());
   }
 
-  public MplStop(String process, @Nullable Conditional conditional) {
-    super(conditional);
+  public MplStop(String process, ModifierBuffer modifier) {
+    super(modifier);
     this.process = checkNotNull(process, "process == null!");
   }
 
   @GenerateMplPojoBuilder
-  public MplStop(String process, @Nullable Conditional conditional, @Nullable ChainPart previous) {
-    super(conditional, previous);
+  public MplStop(String process, ModifierBuffer modifier, @Nullable Dependable previous) {
+    super(modifier, previous);
     this.process = checkNotNull(process, "process == null!");
   }
 

@@ -44,8 +44,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -59,23 +59,22 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @ToString(callSuper = true, includeFieldNames = true)
 @Getter
 @Setter
-public class MplBreakpoint extends PossiblyConditionalChainPart {
+public class MplBreakpoint extends ModifiableChainPart {
   private final String message;
   private @Nullable Mode mode;
 
   public MplBreakpoint(String message) {
-    this(message, null);
+    this(message, new ModifierBuffer());
   }
 
-  public MplBreakpoint(String message, @Nullable Conditional conditional) {
-    super(conditional);
+  public MplBreakpoint(String message, ModifierBuffer modifier) {
+    super(modifier);
     this.message = checkNotNull(message, "message == null!");
   }
 
   @GenerateMplPojoBuilder
-  public MplBreakpoint(String message, @Nullable Conditional conditional,
-      @Nullable ChainPart previous) {
-    super(conditional, previous);
+  public MplBreakpoint(String message, ModifierBuffer modifier, @Nullable Dependable previous) {
+    super(modifier, previous);
     this.message = checkNotNull(message, "message == null!");
   }
 
