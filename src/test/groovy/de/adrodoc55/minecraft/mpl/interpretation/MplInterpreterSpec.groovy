@@ -45,14 +45,18 @@ import static org.assertj.core.api.Assertions.assertThat
 
 import org.junit.Test
 
+import spock.lang.Ignore
+
 import com.google.common.collect.ListMultimap
 
 import de.adrodoc55.minecraft.mpl.MplSpecBase
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram
 import de.adrodoc55.minecraft.mpl.chain.CommandChain
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NormalizingCommand
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingIfCommandOld
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingTestforSuccessCommand
 
+@Ignore // Legacy
 public class MplInterpreterSpec extends MplSpecBase {
 
   @Test
@@ -68,7 +72,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplProject project = interpreter.project
+    MplProgram project = interpreter.project
     project.exceptions[0].source.file == lastTempFile
     project.exceptions[0].source.token.line == 4
     project.exceptions[0].source.token.text == 'waitfor'
@@ -87,7 +91,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplScript script = interpreter.script
+    MplProgram script = interpreter.script
     script.exceptions[0].source.file == lastTempFile
     script.exceptions[0].source.token.line == 4
     script.exceptions[0].source.token.text == 'waitfor'
@@ -109,7 +113,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplProject project = interpreter.project
+    MplProgram project = interpreter.project
     project.exceptions[0].source.file == lastTempFile
     project.exceptions[0].source.token.line == 4
     project.exceptions[0].source.token.text == 'waitfor'
@@ -129,7 +133,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplScript script = interpreter.script
+    MplProgram script = interpreter.script
     script.exceptions[0].source.file == lastTempFile
     script.exceptions[0].source.token.line == 4
     script.exceptions[0].source.token.text == 'waitfor'
@@ -150,7 +154,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplProject project = interpreter.project
+    MplProgram project = interpreter.project
     project.exceptions[0].source.file == lastTempFile
     project.exceptions[0].source.token.line == 3
     project.exceptions[0].source.token.text == 'intercept'
@@ -169,7 +173,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplScript script = interpreter.script
+    MplProgram script = interpreter.script
     script.exceptions[0].source.file == lastTempFile
     script.exceptions[0].source.token.line == 3
     script.exceptions[0].source.token.text == 'intercept'
@@ -198,7 +202,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplScript script = interpreter.script
+    MplProgram script = interpreter.script
     script.exceptions.isEmpty()
 
     CommandChain chain = script.chain
@@ -206,15 +210,15 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[0] == new Command('outer condition')
     commands[1] == new NormalizingCommand()
     commands[2] == new Command('say outer then1', true)
-    commands[3] == new ReferencingIfCommandOld(-2, 'chain_command_block', true)
+    commands[3] == new ReferencingTestforSuccessCommand(-2, 'chain_command_block', true)
     commands[4] == new Command('inner condition', true)
     commands[5] == new Command('say inner then', true)
-    commands[6] == new ReferencingIfCommandOld(-5, 'chain_command_block', true)
-    commands[7] == new ReferencingIfCommandOld(-3, 'chain_command_block', false, true)
+    commands[6] == new ReferencingTestforSuccessCommand(-5, 'chain_command_block', true)
+    commands[7] == new ReferencingTestforSuccessCommand(-3, 'chain_command_block', false, true)
     commands[8] == new Command('say inner else', true)
-    commands[9] == new ReferencingIfCommandOld(-8, 'chain_command_block', true)
+    commands[9] == new ReferencingTestforSuccessCommand(-8, 'chain_command_block', true)
     commands[10] == new Command('say outer then2', true)
-    commands[11] == new ReferencingIfCommandOld(-10, 'chain_command_block', false)
+    commands[11] == new ReferencingTestforSuccessCommand(-10, 'chain_command_block', false)
     commands[12] == new Command('say outer else', true)
     commands.size() == 13
   }
@@ -247,7 +251,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplScript script = interpreter.script
+    MplProgram script = interpreter.script
     script.exceptions.isEmpty()
 
     CommandChain chain = script.chain
@@ -255,24 +259,24 @@ public class MplInterpreterSpec extends MplSpecBase {
     commands[0] == new Command('outer condition')
     commands[1] == new NormalizingCommand()
     commands[2] == new Command('say outer then1', true)
-    commands[3] == new ReferencingIfCommandOld(-2, 'chain_command_block', true)
+    commands[3] == new ReferencingTestforSuccessCommand(-2, 'chain_command_block', true)
     commands[4] == new Command('middle condition', true)
     commands[5] == new NormalizingCommand()
     commands[6] == new Command('say middle then1', true)
-    commands[7] == new ReferencingIfCommandOld(-2, 'chain_command_block', true)
+    commands[7] == new ReferencingTestforSuccessCommand(-2, 'chain_command_block', true)
     commands[8] == new Command('inner condition', true)
     commands[9] == new Command('say inner then', true)
-    commands[10] == new ReferencingIfCommandOld(-5, 'chain_command_block', true)
-    commands[11] == new ReferencingIfCommandOld(-3, 'chain_command_block', false, true)
+    commands[10] == new ReferencingTestforSuccessCommand(-5, 'chain_command_block', true)
+    commands[11] == new ReferencingTestforSuccessCommand(-3, 'chain_command_block', false, true)
     commands[12] == new Command('say inner else', true)
-    commands[13] == new ReferencingIfCommandOld(-8, 'chain_command_block', true)
+    commands[13] == new ReferencingTestforSuccessCommand(-8, 'chain_command_block', true)
     commands[14] == new Command('say middle then2', true)
-    commands[15] == new ReferencingIfCommandOld(-14, 'chain_command_block', true)
-    commands[16] == new ReferencingIfCommandOld(-11, 'chain_command_block', false, true)
+    commands[15] == new ReferencingTestforSuccessCommand(-14, 'chain_command_block', true)
+    commands[16] == new ReferencingTestforSuccessCommand(-11, 'chain_command_block', false, true)
     commands[17] == new Command('say middle else', true)
-    commands[18] == new ReferencingIfCommandOld(-17, 'chain_command_block', true)
+    commands[18] == new ReferencingTestforSuccessCommand(-17, 'chain_command_block', true)
     commands[19] == new Command('say outer then2', true)
-    commands[20] == new ReferencingIfCommandOld(-19, 'chain_command_block', false)
+    commands[20] == new ReferencingTestforSuccessCommand(-19, 'chain_command_block', false)
     commands[21] == new Command('say outer else', true)
     commands.size() == 22
   }
@@ -305,33 +309,33 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplScript script = interpreter.script
+    MplProgram script = interpreter.script
     script.exceptions.isEmpty()
 
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands[0] == new Command('outer condition')
     commands[1] == new Command('say outer then', true)
-    commands[2] == new ReferencingIfCommandOld(-2, 'chain_command_block', false)
+    commands[2] == new ReferencingTestforSuccessCommand(-2, 'chain_command_block', false)
     commands[3]== new Command('say outer else1', true)
-    commands[4] == new ReferencingIfCommandOld(-4, 'chain_command_block', false)
+    commands[4] == new ReferencingTestforSuccessCommand(-4, 'chain_command_block', false)
     commands[5] == new Command('middle condition', true)
     commands[6] == new Command('say middle then', true)
-    commands[7] == new ReferencingIfCommandOld(-7, 'chain_command_block', false)
-    commands[8] == new ReferencingIfCommandOld(-3, 'chain_command_block', false, true)
+    commands[7] == new ReferencingTestforSuccessCommand(-7, 'chain_command_block', false)
+    commands[8] == new ReferencingTestforSuccessCommand(-3, 'chain_command_block', false, true)
     commands[9] == new Command('say middle else1', true)
-    commands[10] == new ReferencingIfCommandOld(-10, 'chain_command_block', false)
-    commands[11] == new ReferencingIfCommandOld(-6, 'chain_command_block', false, true)
+    commands[10] == new ReferencingTestforSuccessCommand(-10, 'chain_command_block', false)
+    commands[11] == new ReferencingTestforSuccessCommand(-6, 'chain_command_block', false, true)
     commands[12] == new Command('inner condition', true)
     commands[13] == new Command('say inner then', true)
-    commands[14] == new ReferencingIfCommandOld(-14, 'chain_command_block', false)
-    commands[15] == new ReferencingIfCommandOld(-10, 'chain_command_block', false, true)
-    commands[16] == new ReferencingIfCommandOld(-4, 'chain_command_block', false, true)
+    commands[14] == new ReferencingTestforSuccessCommand(-14, 'chain_command_block', false)
+    commands[15] == new ReferencingTestforSuccessCommand(-10, 'chain_command_block', false, true)
+    commands[16] == new ReferencingTestforSuccessCommand(-4, 'chain_command_block', false, true)
     commands[17] == new Command('say inner else', true)
-    commands[18] == new ReferencingIfCommandOld(-18, 'chain_command_block', false)
-    commands[19] == new ReferencingIfCommandOld(-14, 'chain_command_block', false, true)
+    commands[18] == new ReferencingTestforSuccessCommand(-18, 'chain_command_block', false)
+    commands[19] == new ReferencingTestforSuccessCommand(-14, 'chain_command_block', false, true)
     commands[20] == new Command('say middle else2', true)
-    commands[21] == new ReferencingIfCommandOld(-21, 'chain_command_block', false)
+    commands[21] == new ReferencingTestforSuccessCommand(-21, 'chain_command_block', false)
     commands[22] == new Command('say outer else2', true)
     commands.size() == 23
   }
@@ -351,7 +355,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplProject project = interpreter.project
+    MplProgram project = interpreter.project
     project.exceptions.isEmpty()
 
     ListMultimap<String, Include> includeMap = interpreter.includes
@@ -375,8 +379,7 @@ public class MplInterpreterSpec extends MplSpecBase {
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    MplProject project = interpreter.project
+    MplProgram project = interpreter.project
     project.exceptions.isEmpty()
   }
-
 }

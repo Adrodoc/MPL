@@ -96,7 +96,7 @@ class MplLexerUtilsSpec extends MplSpecBase {
 
   void 'getContainedString returns contained String'() {
     given:
-    String string = someString()
+    String string = some($String())
 
     ANTLRInputStream input = new ANTLRInputStream('"' + string + '"')
     MplLexer lexer = new MplLexer(input);

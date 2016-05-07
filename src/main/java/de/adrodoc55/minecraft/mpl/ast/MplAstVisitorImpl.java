@@ -58,7 +58,7 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
-import org.assertj.core.util.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;

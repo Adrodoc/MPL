@@ -14,6 +14,7 @@
 package de.kussm.chain
 
 import static de.kussm.chain.ChainLinkType.*
+import spock.lang.Ignore
 import spock.lang.Specification
 
 /**
@@ -37,6 +38,7 @@ public class ChainSpec extends Specification {
     ex.message == 'chain must not start with a CONDITIONAL'
   }
 
+  @Ignore // Legacy
   def 'Chain.of(ChainLink...) throws IllegalArgumentException if RECEIVER is not preceded by a TRANSMITTER'() {
     when:
     Chain.of(RECEIVER, NORMAL)
@@ -58,6 +60,7 @@ public class ChainSpec extends Specification {
     ex.message == 'RECEIVER at index 1 is followed by a TRANSMITTER'
   }
 
+  @Ignore // Legacy
   def 'Chain.of(ChainLink...) throws IllegalArgumentException if TRANSMITTER is not followed by a RECEIVER'() {
     when:
     Chain.of(NORMAL, TRANSMITTER)

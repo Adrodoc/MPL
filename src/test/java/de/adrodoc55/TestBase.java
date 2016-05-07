@@ -39,10 +39,10 @@
  */
 package de.adrodoc55;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -172,8 +172,8 @@ public class TestBase {
     return Arrays.asList(elements);
   }
 
-  public static <P> LinkedList<P> listOf(int count, Builder<P> prototype) {
-    LinkedList<P> list = new LinkedList<>();
+  public static <P> List<P> listOf(int count, Builder<P> prototype) {
+    List<P> list = new ArrayList<>();
     for (int i = 0; i < count; i++) {
       list.add(prototype.build());
     }

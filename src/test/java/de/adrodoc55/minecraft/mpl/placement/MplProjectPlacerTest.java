@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
@@ -20,15 +21,17 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
+@Ignore
 public class MplProjectPlacerTest extends MplTestBase {
 
   @Test
   public void test_size() {
     // given:
     int chainCount = several();
+    List<ChainLink> list = listOf(some($Command()));
     ChainContainer container = some($ChainContainer()//
         .withChains($listOf(chainCount, $CommandChain()//
-            .withCommands((List<ChainLink>) $listOf(several(), $Command())))));
+            .withCommands(list))));
 
     // when:
     List<CommandBlockChain> chains =

@@ -39,14 +39,15 @@
  */
 package de.adrodoc55.commons
 
-import static de.adrodoc55.TestBase.someString
+import static de.adrodoc55.TestBase.$String
+import static de.adrodoc55.TestBase.some
 import spock.lang.Specification
 
 public class TabToSpaceConverterSpec extends Specification {
 
   void "String ohne tabs und newlines bleibt gleich"() {
     given:
-    String text = someString()
+    String text = some($String())
     when:
     String result = TabToSpaceConverter.convertTabsToSpaces(text)
     then:
@@ -55,7 +56,7 @@ public class TabToSpaceConverterSpec extends Specification {
 
   void "String ohne tabs mit verschiedenen newlines bleibt gleich"() {
     given:
-    String text = someString() + '\r' +someString() + '\n' + someString() + '\r\n' + someString()
+    String text = some($String()) + '\r' +some($String()) + '\n' + some($String()) + '\r\n' + some($String())
     when:
     String result = TabToSpaceConverter.convertTabsToSpaces(text)
     then:
@@ -64,7 +65,7 @@ public class TabToSpaceConverterSpec extends Specification {
 
   void "String mit tab am anfang ohne newlines: tab wird durch tabwidth * spaces ersetzt"() {
     given:
-    String string = someString()
+    String string = some($String())
     String text = '\t' + string
     when:
     String result = TabToSpaceConverter.convertTabsToSpaces(5, text)
@@ -74,7 +75,7 @@ public class TabToSpaceConverterSpec extends Specification {
 
   void "String mit tab in index 2 ohne newlines: tab wird durch (tabwidth - 2) * spaces ersetzt"() {
     given:
-    String string = someString()
+    String string = some($String())
     String text = 'ab\t' + string
     when:
     String result = TabToSpaceConverter.convertTabsToSpaces(5, text)
@@ -84,8 +85,8 @@ public class TabToSpaceConverterSpec extends Specification {
 
   void "String mit tab am anfang jeder newline: tab wird durch tabwidth * spaces ersetzt"() {
     given:
-    String string = someString()
-    String text = '\t' + someString() + '\r\t' + someString() + '\n\t' + someString() + '\r\n\t' + someString()
+    String string = some($String())
+    String text = '\t' + some($String()) + '\r\t' + some($String()) + '\n\t' + some($String()) + '\r\n\t' + some($String())
     when:
     String result = TabToSpaceConverter.convertTabsToSpaces(5, text)
     then:
@@ -94,8 +95,8 @@ public class TabToSpaceConverterSpec extends Specification {
 
   void "String mit tab am anfang einiger newlines: tab wird durch tabwidth * spaces ersetzt"() {
     given:
-    String string = someString()
-    String text = '\t' + someString() + '\r\t' + someString() + '\n\t' + '\r\n'
+    String string = some($String())
+    String text = '\t' + some($String()) + '\r\t' + some($String()) + '\n\t' + '\r\n'
     when:
     String result = TabToSpaceConverter.convertTabsToSpaces(5, text)
     then:
@@ -104,8 +105,8 @@ public class TabToSpaceConverterSpec extends Specification {
 
   void "String mit tab in index 2 in jeder newline: tab wird durch (tabwidth - 2) * spaces ersetzt()"() {
     given:
-    String string = someString()
-    String text = 'ab\t' + someString() + '\rcd\t' + someString() + '\nef\t' + someString() + '\rgh\n' + someString()
+    String string = some($String())
+    String text = 'ab\t' + some($String()) + '\rcd\t' + some($String()) + '\nef\t' + some($String()) + '\rgh\n' + some($String())
     when:
     String result = TabToSpaceConverter.convertTabsToSpaces(5, text)
     then:
@@ -114,8 +115,8 @@ public class TabToSpaceConverterSpec extends Specification {
 
   void "String mit tab in index 2 in einigen newlines: tab wird durch (tabwidth - 2) * spaces ersetzt()"() {
     given:
-    String string = someString()
-    String text = 'ab\t' + someString() + '\rcd\t' + someString() + '\nef\t' + '\rgh\n'
+    String string = some($String())
+    String text = 'ab\t' + some($String()) + '\rcd\t' + some($String()) + '\nef\t' + '\rgh\n'
     when:
     String result = TabToSpaceConverter.convertTabsToSpaces(5, text)
     then:
@@ -124,7 +125,7 @@ public class TabToSpaceConverterSpec extends Specification {
 
   void "String mit 2 aufeinander folgenden tabs wird durch 2 * tabwidth spaces ersetzt"() {
     given:
-    String string = someString()
+    String string = some($String())
     String text = '\t\t'
     when:
     String result = TabToSpaceConverter.convertTabsToSpaces(5, text)
@@ -134,7 +135,7 @@ public class TabToSpaceConverterSpec extends Specification {
 
   void "String mit 2 indirekt aufeinander folgenden tabs werden korrekt konvertiert"() {
     given:
-    String string = someString()
+    String string = some($String())
     String text = 'a\tab\t'
     when:
     String result = TabToSpaceConverter.convertTabsToSpaces(5, text)
@@ -144,7 +145,7 @@ public class TabToSpaceConverterSpec extends Specification {
 
   void "Offset beeinträchtigt nur für den ersten tab"() {
     given:
-    String string = someString()
+    String string = some($String())
     String text = 'a\tab\t'
     when:
     String result = TabToSpaceConverter.convertTabsToSpaces(2, 5, text)

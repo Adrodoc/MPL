@@ -49,6 +49,7 @@ import static de.adrodoc55.minecraft.coordinate.Direction3D.WEST;
 import java.util.ArrayList;
 
 import de.adrodoc55.TestBase;
+import de.adrodoc55.minecraft.coordinate.Coordinate3DBuilder;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3DBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpointBuilder;
@@ -179,9 +180,18 @@ public class MplTestBase extends TestBase {
         ;
   }
 
+  public static Coordinate3DBuilder $Coordinate3D() {
+    return new Coordinate3DBuilder()//
+        .withX(many())//
+        .withY(many())//
+        .withZ(many())//
+        ;
+  }
+
   public static ChainContainerBuilder $ChainContainer() {
     return new ChainContainerBuilder()//
         .withOrientation(new Orientation3D())//
+        .withMax($Coordinate3D())//
         .withInstall(new CommandChain(new ArrayList<>()))//
         .withUninstall(new CommandChain(new ArrayList<>()))//
         .withChains(new ArrayList<>())//

@@ -47,7 +47,7 @@ import java.util.Deque;
 
 import javax.annotation.Nullable;
 
-import org.assertj.core.util.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer;

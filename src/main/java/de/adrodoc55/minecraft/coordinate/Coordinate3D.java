@@ -44,6 +44,8 @@ import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
+
 /**
  * @author Adrodoc55
  */
@@ -70,6 +72,7 @@ public class Coordinate3D {
     this(other.x, other.y, other.z);
   }
 
+  @GenerateMplPojoBuilder
   public Coordinate3D(int x, int y, int z) {
     this.x = x;
     this.y = y;
