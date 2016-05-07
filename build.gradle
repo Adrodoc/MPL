@@ -136,6 +136,14 @@ tasks.withType(Test) {
 
 
 eclipse {
+  classpath {
+    file {
+      whenMerged { cp ->
+        def folder = cp.entries.find { it.path == 'src/antlr/gen' }
+        folder.entryAttributes << ['ignore_optional_problems': true]
+      }
+    }
+  }
   jdt {
     file {
       withProperties { properties ->
