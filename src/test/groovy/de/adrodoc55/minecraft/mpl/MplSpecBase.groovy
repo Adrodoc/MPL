@@ -39,8 +39,6 @@
  */
 package de.adrodoc55.minecraft.mpl
 
-import static de.adrodoc55.TestBase.someString
-
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 

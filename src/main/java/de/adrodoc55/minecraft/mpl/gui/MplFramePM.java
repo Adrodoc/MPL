@@ -239,7 +239,6 @@ public class MplFramePM extends AbstractPM {
       }
       String name = FileUtils.getFilenameWithoutExtension(selected.getTitle());
       String targetFileName = name + ".schematic";
-      // String targetFileName = name + ".py";
       File outputFile = new File(dir, targetFileName);
       outputFile.getParentFile().mkdirs();
       outputFile.createNewFile();
@@ -247,10 +246,6 @@ public class MplFramePM extends AbstractPM {
       try (NbtOutputStream out = new NbtOutputStream(new FileOutputStream(outputFile));) {
         out.write(schematic);
       }
-      // String python = PythonConverter.convert(result, name);
-      // try (BufferedWriter writer = Files.newBufferedWriter(outputFile.toPath());) {
-      // writer.write(python.toString());
-      // }
     } catch (Exception ex) {
       ex.printStackTrace();
       Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
