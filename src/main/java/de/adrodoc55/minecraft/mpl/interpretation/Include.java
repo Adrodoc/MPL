@@ -43,10 +43,14 @@ import java.io.File;
 import java.util.Collection;
 
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
+@EqualsAndHashCode(of = {"processName", "files"})
+@ToString(of = {"processName"})
 public class Include {
   private final MplSource source;
   private final String processName;
@@ -72,42 +76,6 @@ public class Include {
 
   public Collection<File> getFiles() {
     return files;
-  }
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((files == null) ? 0 : files.hashCode());
-    result = prime * result + ((processName == null) ? 0 : processName.hashCode());
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    Include other = (Include) obj;
-    if (files == null) {
-      if (other.files != null)
-        return false;
-    } else if (!files.equals(other.files))
-      return false;
-    if (processName == null) {
-      if (other.processName != null)
-        return false;
-    } else if (!processName.equals(other.processName))
-      return false;
-    return true;
-  }
-
-  @Override
-  public String toString() {
-    return "Include [processName=" + processName + "]";
   }
 
 }

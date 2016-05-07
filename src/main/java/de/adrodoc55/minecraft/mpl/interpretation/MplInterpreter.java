@@ -251,6 +251,10 @@ public class MplInterpreter extends MplBaseListener {
     }
     MplSource source = new MplSource(programFile, token, line);
     Include include = new Include(source, files);
+    if (includes.get(null).contains(include)) {
+      addException(new CompilerException(source, "Duplicate include"));
+      return;
+    }
     includes.put(null, include);
   }
 

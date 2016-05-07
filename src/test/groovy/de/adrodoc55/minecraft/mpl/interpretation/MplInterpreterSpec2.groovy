@@ -47,6 +47,9 @@ import static de.adrodoc55.minecraft.mpl.commands.Mode.*
 import org.junit.Test
 
 import spock.lang.Unroll
+
+import com.google.common.collect.ListMultimap
+
 import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint
@@ -252,6 +255,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
 
     program.install.chainParts[0] == new MplCommand('/say hi')
     program.install.chainParts[1] == new MplCommand('/say hi2')
@@ -261,6 +265,336 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.uninstall.chainParts[1] == new MplCommand('/say hi4')
     program.uninstall.chainParts.size() == 2
   }
+
+  // ----------------------------------------------------------------------------------------------------
+  //    ___                                 _        __  ___               _             _
+  //   |_ _| _ __ ___   _ __    ___   _ __ | |_     / / |_ _| _ __    ___ | | _   _   __| |  ___
+  //    | | | '_ ` _ \ | '_ \  / _ \ | '__|| __|   / /   | | | '_ \  / __|| || | | | / _` | / _ \
+  //    | | | | | | | || |_) || (_) || |   | |_   / /    | | | | | || (__ | || |_| || (_| ||  __/
+  //   |___||_| |_| |_|| .__/  \___/ |_|    \__| /_/    |___||_| |_| \___||_| \__,_| \__,_| \___|
+  //                   |_|
+  // ----------------------------------------------------------------------------------------------------
+
+  @Test
+  void "an interpreter will always include mpl subfiles of it's parent directory, including it's own file"() {
+    given:
+    File programFile = newTempFile()
+    File neighbourFile = new File(programFile.parentFile, 'neighbour.mpl')
+    neighbourFile.createNewFile()
+    MplInterpreter interpreter = new MplInterpreter(programFile)
+
+    expect:
+    interpreter.imports.containsAll([programFile, neighbourFile])
+    interpreter.imports.size() == 2
+  }
+
+  @Test
+  void "an interpreter will not include non mpl subfiles of it's parent directory by default"() {
+    given:
+    File programFile = newTempFile()
+    File neighbourFile = new File(programFile.parentFile, 'neighbour.txt')
+    neighbourFile.createNewFile()
+    MplInterpreter interpreter = new MplInterpreter(programFile)
+
+    expect:
+    interpreter.imports.containsAll([programFile])
+    interpreter.imports.size() == 1
+  }
+
+  @Test
+  void "addFileImport will add a file that is not in the same folder"() {
+    given:
+    File programFile = newTempFile()
+    File otherFile = new File(programFile.parentFile, 'folder/other.txt')
+    otherFile.parentFile.mkdirs()
+    otherFile.createNewFile()
+    MplInterpreter interpreter = new MplInterpreter(programFile)
+
+    when:
+    interpreter.addFileImport(null, otherFile)
+
+    then:
+    interpreter.imports.containsAll([programFile, otherFile])
+    interpreter.imports.size() == 2
+  }
+
+  @Test
+  void "the same file cannot be imported twice"() {
+    given:
+    String programString = """
+    import "newFolder/newFile.txt"
+    import "newFolder/newFile.txt"
+    """
+    File newFolder = new File(tempFolder.root, "newFolder")
+    newFolder.mkdirs()
+    File newFile = new File(newFolder, "newFile.txt")
+    newFile.createNewFile()
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == 'Duplicate import'
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == '"newFolder/newFile.txt"'
+    program.exceptions[0].source.token.line == 3
+    program.exceptions.size() == 1
+  }
+
+  @Test
+  public void "the same file cannot be included twice"() {
+    given:
+    String programString = """
+    project main (
+      include "newFolder/newFile.txt"
+      include "newFolder/newFile.txt"
+    )
+    """
+    File newFolder = new File(tempFolder.root, "newFolder")
+    newFolder.mkdirs()
+    File newFile = new File(newFolder, "newFile.txt")
+    newFile.createNewFile()
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == 'Duplicate include'
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == '"newFolder/newFile.txt"'
+    program.exceptions[0].source.token.line == 4
+    program.exceptions.size() == 1
+  }
+
+  @Test
+  public void "a project can include files and directories"() {
+    given:
+    String id1 = someIdentifier()
+    String programString = """
+    project ${id1} (
+      include "datei1.mpl"
+      include "ordner2"
+    )
+    """
+    File folder = tempFolder.root
+    new File(folder, 'datei1.mpl').createNewFile()
+    new File(folder, 'ordner2').mkdirs()
+    new File(folder, 'ordner2/datei4.mpl').createNewFile()
+    new File(folder, 'ordner2/datei5.txt').createNewFile()
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    File parent = lastTempFile.parentFile
+
+    ListMultimap<String, Include> includeMap = interpreter.includes
+    includeMap.size() == 2
+    List<Include> includes = includeMap.get(null); // null indicates that the whole file should be included
+    includes[0].files.containsAll([new File(parent, "datei1.mpl")])
+    includes[0].files.size() == 1
+    includes[0].processName == null
+    includes[1].files.containsAll([new File(parent, "ordner2/datei4.mpl")])
+    includes[1].files.size() == 1
+    includes[1].processName == null
+    includes.size() == 2
+  }
+
+  @Test
+  public void "starting a foreign process creates an include"() {
+    given:
+    String id1 = someIdentifier()
+    String id2 = someIdentifier()
+    String programString = """
+    process ${id1} (
+      start ${id2}
+    )
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    ListMultimap<String, Include> includeMap = interpreter.includes
+    includeMap.size() == 1
+    List<Include> includes = includeMap.get(id1);
+    includes[0].files.containsAll([lastTempFile])
+    includes[0].files.size() == 1
+    includes[0].processName == id2
+    includes.size() == 1
+  }
+
+  @Test
+  public void "starting a foreign process from a script does not create an include"() {
+    given:
+    String programString = """
+    start other
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    interpreter.includes.isEmpty()
+  }
+
+  @Test
+  public void "imported files are used for implicit includes"() {
+    given:
+    String id1 = someIdentifier()
+    String id2 = someIdentifier()
+    String programString = """
+    import "newFolder/newFile"
+
+    process ${id1} (
+      start ${id2}
+    )
+    """
+    File file = newTempFile()
+    File newFile = new File(file.parentFile, "newFolder/newFile")
+    newFile.parentFile.mkdirs()
+    newFile.createNewFile()
+
+    when:
+    MplInterpreter interpreter = interpret(programString, file)
+
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    ListMultimap<String, Include> includeMap = interpreter.includes
+    includeMap.size() == 1
+    List<Include> includes = includeMap.get(id1);
+    includes[0].files.containsAll([lastTempFile, newFile])
+    includes[0].files.size() == 2
+    includes[0].processName == id2
+    includes.size() == 1
+  }
+  @Test
+  public void "the subfiles of imported directories are used for implicit includes"() {
+    given:
+    String id1 = someIdentifier()
+    String id2 = someIdentifier()
+    String programString = """
+    import "newFolder"
+
+    process ${id1} (
+      start ${id2}
+    )
+    """
+    File file = newTempFile()
+    File newFolder = new File(file.parentFile, "newFolder")
+    newFolder.mkdirs()
+    File newFile = new File(newFolder, "newFile.mpl")
+    newFile.createNewFile()
+
+    when:
+    MplInterpreter interpreter = interpret(programString, file)
+
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    ListMultimap<String, Include> includeMap = interpreter.includes
+    includeMap.size() == 1
+    List<Include> includes = includeMap.get(id1);
+    includes[0].files.containsAll([lastTempFile, newFile])
+    includes[0].files.size() == 2
+    includes[0].processName == id2
+    includes.size() == 1
+  }
+
+  /**
+   * Grund hierfür ist: die Abhängigkeiten eines jeden Prozesses müssen durch die Includes
+   * dokumentiert werden, da bei imports nur einzelne Prozesse includiert werden und deren
+   * Abhängigkeiten sonst verloren gehen würden.
+   */
+  @Test
+  public void "starting a process in the same file creates an include (process definition after call)"() {
+    given:
+    String id1 = someIdentifier()
+    String id2 = someIdentifier()
+    String programString = """
+    process ${id1} (
+      start ${id2}
+    )
+
+    process ${id2} (
+      /say I am the second process
+    )
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    ListMultimap<String, Include> includeMap = interpreter.includes
+    includeMap.size() == 1
+    List<Include> includes = includeMap.get(id1);
+    includes[0].files.containsAll([lastTempFile])
+    includes[0].files.size() == 1
+    includes[0].processName == id2
+    includes.size() == 1
+  }
+
+  /**
+   * Grund hierfür ist: die Abhängigkeiten eines jeden Prozesses müssen durch die Includes
+   * dokumentiert werden, da bei imports nur einzelne Prozesse includiert werden und deren
+   * Abhängigkeiten sonst verloren gehen würden.
+   */
+  @Test
+  public void "starting a process in the same file creates an include (process definition before call)"() {
+    given:
+    String id1 = someIdentifier()
+    String id2 = someIdentifier()
+    String programString = """
+    process ${id1} (
+      /say I am a process
+    )
+
+    process ${id2} (
+      start ${id1}
+    )
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    ListMultimap<String, Include> includeMap = interpreter.includes
+    includeMap.size() == 1
+    List<Include> includes = includeMap.get(id2);
+    includes[0].files.containsAll([lastTempFile])
+    includes[0].files.size() == 1
+    includes[0].processName == id1
+    includes.size() == 1
+  }
+
+  // ----------------------------------------------------------------------------------------------------
+  //    __  __             _  _   __  _
+  //   |  \/  |  ___    __| |(_) / _|(_)  ___  _ __
+  //   | |\/| | / _ \  / _` || || |_ | | / _ \| '__|
+  //   | |  | || (_) || (_| || ||  _|| ||  __/| |
+  //   |_|  |_| \___/  \__,_||_||_|  |_| \___||_|
+  //
+  // ----------------------------------------------------------------------------------------------------
 
   @Test
   @Unroll("leading #conditional #command with identifier in script")
@@ -354,6 +688,64 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     where:
     [conditional, command]<< [['conditional', 'invert'], ['notify', 'breakpoint']].combinations()*.flatten()
+  }
+
+  @Test
+  public void "leading skip in repeating process"() {
+    given:
+    String testString = """
+    repeat process main (
+      skip
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(testString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "skip cannot be the first command of a repeating process"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'skip'
+    program.exceptions[0].source.token.line == 3
+    program.exceptions.size() == 1
+  }
+
+  @Test
+  public void "conditional depending on skip throws exception"() {
+    given:
+    String testString = """
+    skip
+    conditional: /say conditional
+    """
+    when:
+    MplInterpreter interpreter = interpret(testString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "conditional cannot depend on skip"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'conditional'
+    program.exceptions[0].source.token.line == 3
+    program.exceptions.size() == 1
+  }
+
+  @Test
+  public void "invert depending on skip throws exception"() {
+    given:
+    String testString = """
+    skip
+    invert: /say invert
+    """
+    when:
+    MplInterpreter interpreter = interpret(testString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "invert cannot depend on skip"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'invert'
+    program.exceptions[0].source.token.line == 3
+    program.exceptions.size() == 1
   }
 
   // ----------------------------------------------------------------------------------------------------
@@ -957,6 +1349,28 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
+  public void "if with leading invert in then"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    if: /say if
+    then (
+      invert: /say then
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "The first part of a chain must be unconditional"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'invert'
+    program.exceptions[0].source.token.line == 4
+    program.exceptions.size() == 1
+  }
+
+  @Test
   public void "if with leading conditional in else"() {
     given:
     String identifier = someIdentifier()
@@ -975,6 +1389,29 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.exceptions[0].message == "The first part of a chain must be unconditional"
     program.exceptions[0].source.file == lastTempFile
     program.exceptions[0].source.token.text == 'conditional'
+    program.exceptions[0].source.token.line == 5
+    program.exceptions.size() == 1
+  }
+
+  @Test
+  public void "if with leading invert in else"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    if: /say if
+    then (
+    ) else (
+      invert: /say else
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "The first part of a chain must be unconditional"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'invert'
     program.exceptions[0].source.token.line == 5
     program.exceptions.size() == 1
   }
