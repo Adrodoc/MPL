@@ -64,6 +64,7 @@ import com.google.common.collect.SetMultimap;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.antlr.MplBaseListener;
+import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitorImpl;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
@@ -91,11 +92,26 @@ public class MplCompiler extends MplBaseListener {
     MplProgram program = assembleProgram(programFile);
 
     // Materializing
-    MplAstVisitorImpl visitor = new MplAstVisitorImpl(options);
-    program.accept(visitor);
-    ChainContainer container = visitor.getResult();
+    ChainContainer container = materialize(program, options);
 
     // Placement
+    List<CommandBlockChain> chains = place(container, options);
+
+    // Result
+    List<MplBlock> blocks =
+        chains.stream().flatMap(c -> c.getBlocks().stream()).collect(Collectors.toList());
+    ImmutableMap<Coordinate3D, MplBlock> result = Maps.uniqueIndex(blocks, b -> b.getCoordinate());
+    return new MplCompilationResult(program.getOrientation(), result);
+  }
+
+  private static ChainContainer materialize(MplProgram program, CompilerOptions options) {
+    MplAstVisitor visitor = new MplAstVisitorImpl(options);
+    program.accept(visitor);
+    ChainContainer container = visitor.getResult();
+    return container;
+  }
+
+  private static List<CommandBlockChain> place(ChainContainer container, CompilerOptions options) {
     List<CommandBlockChain> chains;
     if (options.hasOption(DEBUG)) {
       chains = new MplDebugProjectPlacer(container, options).place();
@@ -105,12 +121,7 @@ public class MplCompiler extends MplBaseListener {
     for (CommandBlockChain chain : chains) {
       insertRelativeCoordinates(chain.getBlocks(), container.getOrientation());
     }
-
-    // Result
-    List<MplBlock> blocks =
-        chains.stream().flatMap(c -> c.getBlocks().stream()).collect(Collectors.toList());
-    ImmutableMap<Coordinate3D, MplBlock> result = Maps.uniqueIndex(blocks, b -> b.getCoordinate());
-    return new MplCompilationResult(program.getOrientation(), result);
+    return chains;
   }
 
   public static MplProgram assembleProgram(File programFile)

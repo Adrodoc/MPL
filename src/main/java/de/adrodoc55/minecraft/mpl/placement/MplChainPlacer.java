@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.placement;
 
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static de.kussm.direction.Direction.EAST;
 import static de.kussm.direction.Direction.NORTH;
 import static de.kussm.direction.Direction.WEST;
@@ -183,17 +184,19 @@ public abstract class MplChainPlacer {
 
   protected LinkedHashMap<Position, ChainLinkType> place(Chain linkChain, Directions template,
       Set<Position> forbiddenReceivers, Set<Position> forbiddenTransmitters) {
-    // receivers are not allowed at x=0 because the start transmitters of all chains are at x=0
-    Predicate<Position> isReceiverAllowed =
-        pos -> !forbiddenReceivers.contains(pos) && pos.getX() != 0;
+    if (options.hasOption(TRANSMITTER)) {
+      // receivers are not allowed at x=0 because the start transmitters of all chains are at x=0
+      Predicate<Position> isReceiverAllowed =
+          pos -> !forbiddenReceivers.contains(pos) && pos.getX() != 0;
 
-    // transmitters are not allowed at x=1 because the start receivers of all chains are at x=1
-    Predicate<Position> isTransmitterAllowed =
-        pos -> !forbiddenTransmitters.contains(pos) && pos.getX() != 1;
+      // transmitters are not allowed at x=1 because the start receivers of all chains are at x=1
+      Predicate<Position> isTransmitterAllowed =
+          pos -> !forbiddenTransmitters.contains(pos) && pos.getX() != 1;
 
-    LinkedHashMap<Position, ChainLinkType> placed =
-        ChainLayouter.place(linkChain, template, isReceiverAllowed, isTransmitterAllowed);
-    return placed;
+      return ChainLayouter.place(linkChain, template, isReceiverAllowed, isTransmitterAllowed);
+    } else {
+      return ChainLayouter.place(linkChain, template);
+    }
   }
 
   protected List<MplBlock> toBlocks(List<ChainLink> commands,

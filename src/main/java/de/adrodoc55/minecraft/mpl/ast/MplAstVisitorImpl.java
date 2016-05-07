@@ -108,6 +108,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     this.options = checkNotNull(options, "options == null!");
   }
 
+  @Override
   public ChainContainer getResult() {
     return container;
   }
@@ -117,14 +118,8 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     chains = new ArrayList<>(1);
     Orientation3D orientation = program.getOrientation();
     Coordinate3D max = program.getMax();
-
-    program.getInstall().accept(this);
-    CommandChain install = chains.get(chains.size() - 1);
-    chains.remove(chains.size() - 1);
-
-    program.getUninstall().accept(this);
-    CommandChain uninstall = chains.get(chains.size() - 1);
-    chains.remove(chains.size() - 1);
+    CommandChain install = visitUnInstall(program.getInstall());
+    CommandChain uninstall = visitUnInstall(program.getUninstall());
 
     chains = new ArrayList<>(program.getProcesses().size());
     for (MplProcess process : program.getProcesses()) {
@@ -133,12 +128,19 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     container = new ChainContainer(orientation, max, install, uninstall, chains);
   }
 
+  private CommandChain visitUnInstall(MplProcess process) {
+    process.accept(this);
+    CommandChain chain = chains.get(0);
+    chains.remove(0);
+    return chain;
+  }
+
   @Override
   public void visitProcess(MplProcess process) {
     List<ChainPart> chainParts = process.getChainParts();
-    if (chainParts.isEmpty()) {
-      return;
-    }
+    // if (chainParts.isEmpty()) {
+    // return;
+    // }
     commands = new ArrayList<>(chainParts.size());
     if (options.hasOption(TRANSMITTER)) {
       commands.add(new MplSkip(false));
@@ -155,7 +157,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       if (options.hasOption(TRANSMITTER)) {
         commands.add(new InternalCommand("/setblock ${this - 1} stone", Mode.IMPULSE, false));
       } else {
-        commands.add(new InternalCommand("/entitydata ~ ~ ~ {auto:0}", Mode.IMPULSE, false));
+        commands.add(new InternalCommand("/blockdata ~ ~ ~ {auto:0}", Mode.IMPULSE, false));
       }
     }
     for (ChainPart chainPart : chainParts) {

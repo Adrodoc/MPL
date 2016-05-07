@@ -125,8 +125,8 @@ public class MplProgram implements MplNode, Named {
     MplSource oldSource = previous.getSource();
     MplSource newSource = process.getSource();
     if (!newSource.file.equals(oldSource.file)) {
-      oldMessage += " Was also found in " + FileUtils.getCanonicalPath(newSource.file);
-      newMessage += " Was also found in " + FileUtils.getCanonicalPath(oldSource.file);
+      oldMessage += "; was also found in " + FileUtils.getCanonicalPath(newSource.file);
+      newMessage += "; was also found in " + FileUtils.getCanonicalPath(oldSource.file);
     }
     CompilerException ex1 = new CompilerException(oldSource, oldMessage);
     exceptions.add(ex1);

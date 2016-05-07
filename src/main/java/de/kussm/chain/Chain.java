@@ -57,8 +57,8 @@ public class Chain implements Iterable<ChainLinkType> {
    *         <li>the array {@code chainLinks} is empty
    *         <li>a {@link ChainLinkType#TRANSMITTER TRANSMITTER_RECEIVER} is not followed by a
    *         {@link ChainLinkType#RECEIVER RECEIVER}
-   *         <li>A {@link ChainLinkType#RECEIVER RECEIVER} is followed by a {@link ChainLinkType#TRANSMITTER
-   *         TRANSMITTER_RECEIVER}
+   *         <li>A {@link ChainLinkType#RECEIVER RECEIVER} is followed by a
+   *         {@link ChainLinkType#TRANSMITTER TRANSMITTER_RECEIVER}
    *         <li>A {@link ChainLinkType#RECEIVER RECEIVER} is not preceded by a
    *         {@link ChainLinkType#TRANSMITTER TRANSMITTER_RECEIVER}
    *         <li>The first or the last chain link is a {@link ChainLinkType#CONDITIONAL CONDITIONAL}
@@ -73,13 +73,13 @@ public class Chain implements Iterable<ChainLinkType> {
     // "chain must not end with a %s", CONDITIONAL);
     for (int i = 0; i < chainLinks.length; i++) {
       Preconditions.checkNotNull(chainLinks[i], "chain link at index %s must not be null", i);
-      if (chainLinks[i] == TRANSMITTER) {
-        Preconditions.checkArgument(i + 1 < chainLinks.length && chainLinks[i + 1] == RECEIVER,
-            "%s at index %s is not followed by a %s", TRANSMITTER, i, RECEIVER);
-      }
+      // if (chainLinks[i] == TRANSMITTER) {
+      // Preconditions.checkArgument(i + 1 < chainLinks.length && chainLinks[i + 1] == RECEIVER,
+      // "%s at index %s is not followed by a %s", TRANSMITTER, i, RECEIVER);
+      // }
       if (chainLinks[i] == RECEIVER) {
-        Preconditions.checkArgument(i - 1 >= 0 && chainLinks[i - 1] == TRANSMITTER,
-            "%s at index %s is not preceded by a %s", RECEIVER, i, TRANSMITTER);
+        // Preconditions.checkArgument(i - 1 >= 0 && chainLinks[i - 1] == TRANSMITTER,
+        // "%s at index %s is not preceded by a %s", RECEIVER, i, TRANSMITTER);
         Preconditions.checkArgument(i + 1 >= chainLinks.length || chainLinks[i + 1] != TRANSMITTER,
             "%s at index %s is followed by a %s", RECEIVER, i, TRANSMITTER);
       }
@@ -102,8 +102,8 @@ public class Chain implements Iterable<ChainLinkType> {
    *         <li>the array {@code chainLinks} is empty
    *         <li>a {@link ChainLinkType#TRANSMITTER TRANSMITTER_RECEIVER} is not followed by a
    *         {@link ChainLinkType#RECEIVER RECEIVER}
-   *         <li>A {@link ChainLinkType#RECEIVER RECEIVER} is followed by a {@link ChainLinkType#TRANSMITTER
-   *         TRANSMITTER_RECEIVER}
+   *         <li>A {@link ChainLinkType#RECEIVER RECEIVER} is followed by a
+   *         {@link ChainLinkType#TRANSMITTER TRANSMITTER_RECEIVER}
    *         <li>A {@link ChainLinkType#RECEIVER RECEIVER} is not preceded by a
    *         {@link ChainLinkType#TRANSMITTER TRANSMITTER_RECEIVER}
    *         <li>The first or the last chain link is a {@link ChainLinkType#CONDITIONAL CONDITIONAL}

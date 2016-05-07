@@ -49,6 +49,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 
 /**
@@ -76,4 +77,6 @@ public interface MplAstVisitor {
   void visitSkip(MplSkip skip);
 
   void visitIf(MplIf mplIf);
+
+  ChainContainer getResult();
 }
