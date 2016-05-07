@@ -47,30 +47,30 @@ import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
+@EqualsAndHashCode(callSuper = true)
+@ToString
+@Getter
+@Setter
 public class CommandBlock extends MplBlock {
+  private @Nonnull Command command;
+  private @Nonnull Direction3D direction;
 
-  @Nonnull
-  private Command command;
-  private Direction3D direction;
-
-  public CommandBlock(@Nonnull Command command, @Nonnull Direction3D direction,
-      @Nonnull Coordinate3D coordinate) {
+  public CommandBlock(Command command, Direction3D direction, Coordinate3D coordinate) {
     super(coordinate);
-    this.setCommand(command);
-    this.setDirection(direction);
+    this.command = Preconditions.checkNotNull(command, "command == null!");
+    this.direction = Preconditions.checkNotNull(direction, "direction == null!");
   }
 
-  @Nonnull
   public Command toCommand() {
     return command;
-  }
-
-  public void setCommand(@Nonnull Command command) {
-    this.command = Preconditions.checkNotNull(command, "command == null!");
   }
 
   public String getCommand() {
@@ -105,28 +105,13 @@ public class CommandBlock extends MplBlock {
     command.setNeedsRedstone(needsRedstone);
   }
 
-  @Nonnull
-  public Direction3D getDirection() {
-    return direction;
-  }
-
-  public void setDirection(@Nonnull Direction3D direction) {
-    this.direction = Preconditions.checkNotNull(direction, "direction == null!");
-  }
-
-  @Override
-  public String toString() {
-    return "CommandBlock [command=" + command + ", coordinate=" + coordinate + "]";
-  }
-
   @Override
   public byte getByteBlockId() {
-    return getMode().toByteBlockId();
+    return getMode().getByteBlockId();
   }
 
   @Override
   public String getStringBlockId() {
-    return getMode().toStringBlockId();
+    return getMode().getStringBlockId();
   }
-
 }

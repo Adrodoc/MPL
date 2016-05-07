@@ -1,7 +1,6 @@
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import de.adrodoc55.minecraft.mpl.commands.Mode;
-import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
 
 public class ReferencingTestforSuccessCommand extends ReferencingCommand {
 
@@ -16,8 +15,7 @@ public class ReferencingTestforSuccessCommand extends ReferencingCommand {
   }
 
   public static String constructCommand(Mode previousMode, boolean success) {
-    return "testforblock " + REF + " " + MplConverter.toBlockId(previousMode) + " -1 {SuccessCount:"
+    return "testforblock " + REF + " " + previousMode.getStringBlockId() + " -1 {SuccessCount:"
         + (success ? 1 : 0) + "}";
   }
-
 }

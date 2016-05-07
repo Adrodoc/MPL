@@ -55,7 +55,6 @@ import lombok.ToString;
 @Getter
 @Setter
 public abstract class MplBlock {
-
   protected Coordinate3D coordinate;
 
   public MplBlock(Coordinate3D coordinate) {

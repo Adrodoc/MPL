@@ -125,7 +125,7 @@ public class OneCommandConverter extends MplConverter {
 
   private static StringBuilder convert(CommandBlock block, Orientation3D orientation) {
     String coordinate = block.getCoordinate().plus(getOffset(orientation)).toRelativeString();
-    String blockId = toBlockId(block.getMode());
+    String blockId = block.getMode().getStringBlockId();
     int damage = toDamageValue(block);
     StringBuilder sb = new StringBuilder(COMMAND_HEADER);
     sb.append("setblock ");

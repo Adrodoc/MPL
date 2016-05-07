@@ -39,49 +39,20 @@
  */
 package de.adrodoc55.minecraft.mpl.commands;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * @author Adrodoc55
  */
+@RequiredArgsConstructor
+@Getter
 public enum Mode {
-  IMPULSE {
-    @Override
-    public byte toByteBlockId() {
-      return (byte) 137;
-    }
-
-    @Override
-    public String toStringBlockId() {
-      return "command_block";
-    }
-  },
-  CHAIN {
-    @Override
-    public byte toByteBlockId() {
-      return (byte) 211;
-    }
-
-    @Override
-    public String toStringBlockId() {
-      return "chain_command_block";
-    }
-
-  },
-  REPEAT {
-    @Override
-    public byte toByteBlockId() {
-      return (byte) 210;
-    }
-
-    @Override
-    public String toStringBlockId() {
-      return "repeating_command_block";
-    }
-  };
-
-  public abstract byte toByteBlockId();
-
-  public abstract String toStringBlockId();
-
-
+  IMPULSE((byte) 137, "command_block"), //
+  CHAIN((byte) 211, "chain_command_block"), //
+  REPEAT((byte) 210, "repeating_command_block");
   public static final Mode DEFAULT = Mode.CHAIN;
+
+  private final byte byteBlockId;
+  private final String stringBlockId;
 }

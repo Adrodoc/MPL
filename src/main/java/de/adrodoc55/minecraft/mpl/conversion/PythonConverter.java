@@ -96,7 +96,7 @@ public class PythonConverter extends MplConverter {
       CommandBlock commandBlock = (CommandBlock) block;
       String xyz = "(" + x + ", " + y + ", " + z + ")";
       String command = StringUtils.escapeBackslashes(commandBlock.getCommand());
-      int blockId = toIntBlockId(commandBlock.getMode());
+      byte blockId = commandBlock.getMode().getByteBlockId();
       int damage = toDamageValue(commandBlock);
       String auto = commandBlock.getNeedsRedstone() ? "False" : "True";
       return "create_command_block(level, " + xyz + ", '" + command + "', " + blockId + ", "
