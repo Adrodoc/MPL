@@ -61,15 +61,15 @@ public class ReferencingCommand extends InternalCommand {
     super(command);
   }
 
-  public ReferencingCommand(String command, Boolean conditional) {
+  public ReferencingCommand(String command, boolean conditional) {
     super(command, conditional);
   }
 
-  public ReferencingCommand(String command, Mode mode, Boolean conditional, Boolean needsRedstone) {
+  public ReferencingCommand(String command, Mode mode, boolean conditional, boolean needsRedstone) {
     super(command, mode, conditional, needsRedstone);
   }
 
-  public ReferencingCommand(String command, Mode mode, Boolean conditional) {
+  public ReferencingCommand(String command, Mode mode, boolean conditional) {
     super(command, mode, conditional);
   }
 

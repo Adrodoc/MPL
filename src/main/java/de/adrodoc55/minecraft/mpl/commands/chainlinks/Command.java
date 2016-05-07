@@ -71,33 +71,27 @@ public class Command implements ChainLink, Modifiable {
   }
 
   public Command(String command) {
-    this(command, null, null);
+    this(command, null, false);
   }
 
   public Command(String command, Mode mode) {
-    this(command, mode, null);
+    this(command, mode, false);
   }
 
-  public Command(String command, Boolean conditional) {
+  public Command(String command, boolean conditional) {
     this(command, null, conditional);
   }
 
-  public Command(String command, Mode mode, Boolean conditional) {
-    this(command, mode, conditional, null);
+  public Command(String command, Mode mode, boolean conditional) {
+    this(command, mode, conditional, (mode == null || mode == Mode.CHAIN) ? false : true);
   }
 
   @GenerateMplPojoBuilder
-  public Command(String command, Mode mode, Boolean conditional, Boolean needsRedstone) {
+  public Command(String command, Mode mode, boolean conditional, boolean needsRedstone) {
     setCommand(command);
-
-    this.conditional = (conditional != null) ? conditional : false;
     this.mode = (mode != null) ? mode : Mode.CHAIN;
-
-    if (needsRedstone != null) {
-      this.needsRedstone = needsRedstone;
-    } else {
-      this.needsRedstone = (this.mode == Mode.CHAIN) ? false : true;
-    }
+    this.conditional = conditional;
+    this.needsRedstone = needsRedstone;
   }
 
   public Command(Command command) {

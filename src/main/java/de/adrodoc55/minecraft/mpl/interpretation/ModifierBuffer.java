@@ -47,14 +47,14 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.Modifiable;
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import lombok.Getter;
-import lombok.Setter;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
 @Getter
-@Setter
+// https://github.com/mkarneim/pojobuilder/issues/86
+// @Setter
 @GenerateMplPojoBuilder
 public class ModifierBuffer implements Modifiable {
   private @Nullable Mode mode;
@@ -72,4 +72,29 @@ public class ModifierBuffer implements Modifiable {
     }
     return conditional.isConditional();
   }
+
+  public void setMode(Mode mode) {
+    this.mode = mode;
+  }
+
+  public void setConditional(Conditional conditional) {
+    this.conditional = conditional;
+  }
+
+  public void setNeedsRedstone(Boolean needsRedstone) {
+    this.needsRedstone = needsRedstone;
+  }
+
+  public void setModeToken(Token modeToken) {
+    this.modeToken = modeToken;
+  }
+
+  public void setConditionalToken(Token conditionalToken) {
+    this.conditionalToken = conditionalToken;
+  }
+
+  public void setNeedsRedstoneToken(Token needsRedstoneToken) {
+    this.needsRedstoneToken = needsRedstoneToken;
+  }
+
 }

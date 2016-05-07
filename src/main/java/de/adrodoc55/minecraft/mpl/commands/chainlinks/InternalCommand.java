@@ -59,15 +59,15 @@ public class InternalCommand extends Command {
     super(command, mode);
   }
 
-  public InternalCommand(String command, Boolean conditional) {
+  public InternalCommand(String command, boolean conditional) {
     super(command, conditional);
   }
 
-  public InternalCommand(String command, Mode mode, Boolean conditional) {
+  public InternalCommand(String command, Mode mode, boolean conditional) {
     super(command, mode, conditional);
   }
 
-  public InternalCommand(String command, Mode mode, Boolean conditional, Boolean needsRedstone) {
+  public InternalCommand(String command, Mode mode, boolean conditional, boolean needsRedstone) {
     super(command, mode, conditional, needsRedstone);
   }
 

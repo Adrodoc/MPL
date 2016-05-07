@@ -6,11 +6,11 @@ import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
 public class ReferencingTestforSuccessCommand extends ReferencingCommand {
 
   public ReferencingTestforSuccessCommand(int relative, Mode previousMode, boolean success) {
-    this(relative, previousMode, success, null);
+    this(relative, previousMode, success, false);
   }
 
   public ReferencingTestforSuccessCommand(int relative, Mode previousMode, boolean success,
-      Boolean conditional) {
+      boolean conditional) {
     super(constructCommand(previousMode, success), conditional);
     this.relative = relative;
   }

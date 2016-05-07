@@ -62,7 +62,7 @@ public abstract class ModifiableChainPart implements Modifiable, ChainPart {
   protected @Nonnull Conditional conditional;
   protected boolean needsRedstone;
 
-  private @Nullable Dependable previous;
+  protected @Nullable Dependable previous;
 
   public ModifiableChainPart(ModifierBuffer modifier) {
     this(modifier, null);
@@ -91,5 +91,14 @@ public abstract class ModifiableChainPart implements Modifiable, ChainPart {
   @Override
   public @Nonnull Boolean getNeedsRedstone() {
     return needsRedstone;
+  }
+
+  /**
+   * see https://github.com/mkarneim/pojobuilder/issues/86
+   *
+   * @param previous
+   */
+  public void setPrevious(Dependable previous) {
+    this.previous = previous;
   }
 }
