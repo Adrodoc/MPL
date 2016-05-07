@@ -39,9 +39,37 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
+import static de.adrodoc55.minecraft.coordinate.Direction3D.DOWN;
+import static de.adrodoc55.minecraft.coordinate.Direction3D.EAST;
+import static de.adrodoc55.minecraft.coordinate.Direction3D.NORTH;
+import static de.adrodoc55.minecraft.coordinate.Direction3D.SOUTH;
+import static de.adrodoc55.minecraft.coordinate.Direction3D.UP;
+import static de.adrodoc55.minecraft.coordinate.Direction3D.WEST;
+
+import java.util.ArrayList;
+
 import de.adrodoc55.TestBase;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
-import de.adrodoc55.minecraft.mpl.commands.CommandBuilder;
+import de.adrodoc55.minecraft.coordinate.Coordinate3DBuilder;
+import de.adrodoc55.minecraft.coordinate.Orientation3D;
+import de.adrodoc55.minecraft.coordinate.Orientation3DBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpointBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommandBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIfBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplInterceptBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotifyBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStartBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStopBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitforBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcessBuilder;
+import de.adrodoc55.minecraft.mpl.chain.ChainContainerBuilder;
+import de.adrodoc55.minecraft.mpl.chain.CommandChain;
+import de.adrodoc55.minecraft.mpl.chain.CommandChainBuilder;
+import de.adrodoc55.minecraft.mpl.commands.Conditional;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.CommandBuilder;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkipBuilder;
+import de.adrodoc55.minecraft.mpl.interpretation.ModifierBufferBuilder;
+import net.karneim.pojobuilder.Builder;
 
 public class MplTestBase extends TestBase {
 
@@ -49,22 +77,131 @@ public class MplTestBase extends TestBase {
     return "Identifier_" + somePositiveInt();
   }
 
+  public static Builder<String> $CommandString() {
+    return new Builder<String>() {
+      @Override
+      public String build() {
+        return "/command " + some($String());
+      }
+    };
+  }
+
   public static CommandBuilder $Command() {
-    CommandBuilder builder = new CommandBuilder();
-    builder.withCommand(someCommand());
-    builder.withMode(someMode());
-    builder.withConditional(someBoolean());
-    builder.withNeedsRedstone(someBoolean());
-    return builder;
+    return new CommandBuilder()//
+        .withCommand($CommandString())//
+        .withMode($Enum(Mode.class))//
+        .withConditional($boolean())//
+        .withNeedsRedstone($boolean())//
+        ;
   }
 
-  private static String someCommand() {
-    return "/" + someString();
+  public static MplCommandBuilder $MplCommand() {
+    return new MplCommandBuilder()//
+        .withModifier($ModifierBuffer())//
+        .withCommand($CommandString())//
+        ;
   }
 
-  private static Mode someMode() {
-    Mode[] values = Mode.values();
-    return values[someInt(values.length)];
+  private static ModifierBufferBuilder $ModifierBuffer() {
+    return new ModifierBufferBuilder()//
+        .withMode($Enum(Mode.class))//
+        .withConditional($Enum(Conditional.class))//
+        .withNeedsRedstone($boolean())//
+        ;
+  }
+
+  public static MplProcessBuilder $MplProcess() {
+    return new MplProcessBuilder()//
+        .withName($String())//
+        .withRepeating($boolean())//
+        ;
+  }
+
+  public static MplStartBuilder $MplStart() {
+    return new MplStartBuilder()//
+        .withModifier($ModifierBuffer())//
+        .withProcess($String())//
+        ;
+  }
+
+  public static MplStopBuilder $MplStop() {
+    return new MplStopBuilder()//
+        .withModifier($ModifierBuffer())//
+        .withProcess($String())//
+        ;
+  }
+
+  public static MplWaitforBuilder $MplWaitfor() {
+    return new MplWaitforBuilder()//
+        .withModifier($ModifierBuffer())//
+        .withEvent($String())//
+        ;
+  }
+
+  public static MplNotifyBuilder $MplNotify() {
+    return new MplNotifyBuilder()//
+        .withModifier($ModifierBuffer())//
+        .withProcess($String())//
+        ;
+  }
+
+  public static MplInterceptBuilder $MplIntercept() {
+    return new MplInterceptBuilder()//
+        .withModifier($ModifierBuffer())//
+        .withEvent($String())//
+        ;
+  }
+
+  public static MplBreakpointBuilder $MplBreakpoint() {
+    return new MplBreakpointBuilder()//
+        .withModifier($ModifierBuffer())//
+        .withMessage($String())//
+        ;
+  }
+
+  public static MplSkipBuilder $MplSkip() {
+    return new MplSkipBuilder()//
+        .withInternal($boolean())//
+        ;
+  }
+
+  public static MplIfBuilder $MplIf() {
+    return new MplIfBuilder()//
+        .withNot($boolean())//
+        .withCondition($CommandString())//
+        ;
+  }
+
+  public static Orientation3DBuilder $Orientation3D() {
+    return new Orientation3DBuilder()//
+        .withA($oneOf(EAST, WEST))//
+        .withB($oneOf(UP, DOWN))//
+        .withB($oneOf(SOUTH, NORTH))//
+        ;
+  }
+
+  public static Coordinate3DBuilder $Coordinate3D() {
+    return new Coordinate3DBuilder()//
+        .withX(many())//
+        .withY(many())//
+        .withZ(many())//
+        ;
+  }
+
+  public static ChainContainerBuilder $ChainContainer() {
+    return new ChainContainerBuilder()//
+        .withOrientation(new Orientation3D())//
+        .withMax($Coordinate3D())//
+        .withInstall(new CommandChain(new ArrayList<>()))//
+        .withUninstall(new CommandChain(new ArrayList<>()))//
+        .withChains(new ArrayList<>())//
+        ;
+  }
+
+  public static CommandChainBuilder $CommandChain() {
+    return new CommandChainBuilder()//
+        .withName($String())//
+        ;
   }
 
 }

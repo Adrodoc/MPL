@@ -134,7 +134,7 @@ public class OneCommandConverter extends MplConverter {
     sb.append(damage).append(' ');
     sb.append("replace").append(' ');
     sb.append('{');
-    if (!block.needsRedstone()) {
+    if (!block.getNeedsRedstone()) {
       sb.append("auto:1,");
     }
     sb.append("Command:");

@@ -45,7 +45,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
 import spock.lang.Specification
-import de.adrodoc55.minecraft.mpl.compilation.interpretation.MplInterpreter
+import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter
 
 class MplSpecBase extends Specification {
   @Rule

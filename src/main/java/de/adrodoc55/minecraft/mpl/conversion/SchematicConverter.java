@@ -145,7 +145,7 @@ public class SchematicConverter extends MplConverter {
     // control.setTag(new TagString("LastOutput", ""));
     control.setTag(new TagByte("TrackOutput", (byte) 0));
     control.setTag(new TagByte("powered", (byte) 0));
-    control.setTag(new TagByte("auto", (byte) (block.needsRedstone() ? 0 : 1)));
+    control.setTag(new TagByte("auto", (byte) (block.getNeedsRedstone() ? 0 : 1)));
     return control;
   }
 

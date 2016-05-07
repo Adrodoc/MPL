@@ -13,9 +13,9 @@
  */
 package de.kussm.position
 
-import spock.lang.Specification;
-import static de.kussm.chain.ChainLink.*
+import static de.kussm.chain.ChainLinkType.*
 import static de.kussm.direction.Direction.*
+import spock.lang.Specification
 
 /**
  * Tests for {@link Position}
@@ -24,14 +24,18 @@ import static de.kussm.direction.Direction.*
 public class PositionSpec extends Specification {
   def 'neighbour(Direction)'() {
     expect:
-      Position.at(1,3).neighbour(NORTH) == Position.at(1,4)
-      Position.at(1,3).neighbour(EAST) == Position.at(2,3)
-      Position.at(1,3).neighbour(SOUTH) == Position.at(1,2)
-      Position.at(1,3).neighbour(WEST) == Position.at(0,3)
+    Position.at(1,3).neighbour(NORTH) == Position.at(1,4)
+    Position.at(1,3).neighbour(EAST) == Position.at(2,3)
+    Position.at(1,3).neighbour(SOUTH) == Position.at(1,2)
+    Position.at(1,3).neighbour(WEST) == Position.at(0,3)
   }
 
   def 'neighbours()'() {
     expect:
-      Position.at(1,3).neighbours() == [ Position.at(1,4), Position.at(2,3), Position.at(1,2), Position.at(0,3) ] as Set
+    Position.at(1,3).neighbours() == [
+      Position.at(1,4),
+      Position.at(2,3),
+      Position.at(1,2),
+      Position.at(0,3) ] as Set
   }
 }

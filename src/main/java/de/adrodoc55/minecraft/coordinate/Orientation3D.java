@@ -46,19 +46,24 @@ import static de.adrodoc55.minecraft.coordinate.Direction3D.UP;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 
 import org.antlr.v4.runtime.Token;
 
 import com.google.common.base.Preconditions;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
+
 /**
  * @author Adrodoc55
  */
+@Immutable
+@EqualsAndHashCode(exclude = "token")
+@Getter
 public class Orientation3D {
-
-  private Token token;
+  private final Token token;
   private Direction3D a;
   private Direction3D b;
   private Direction3D c;
@@ -67,14 +72,21 @@ public class Orientation3D {
     this(EAST, UP, SOUTH);
   }
 
-  public Orientation3D(@Nonnull Direction3D a, @Nonnull Direction3D b, @Nonnull Direction3D c) {
+  @GenerateMplPojoBuilder
+  public Orientation3D(Direction3D a, Direction3D b, Direction3D c) {
+    this.token = null;
     Preconditions.checkNotNull(a, "a == null!");
     Preconditions.checkNotNull(b, "b == null!");
     Preconditions.checkNotNull(c, "c == null!");
     setValue(a, b, c);
   }
 
-  public Orientation3D(@Nonnull String def) {
+  public Orientation3D(String def) {
+    this(def, null);
+  }
+
+  public Orientation3D(String def, Token token) {
+    this.token = token;
     Preconditions.checkNotNull(def, "def == null!");
     char[] defArray = def.toCharArray();
     List<Direction3D> r = new ArrayList<>(3);
@@ -116,36 +128,28 @@ public class Orientation3D {
     this.c = c;
   }
 
-  public @Nullable Token getToken() {
-    return token;
-  }
-
-  public void setToken(@Nullable Token token) {
-    this.token = token;
-  }
-
   /**
    * @return <b>a</b> - the primary direction of this orientation
    */
-  public @Nonnull Direction3D getA() {
+  public Direction3D getA() {
     return a;
   }
 
   /**
    * @return <b>b</b> - the secondary direction of this orientation
    */
-  public @Nonnull Direction3D getB() {
+  public Direction3D getB() {
     return b;
   }
 
   /**
    * @return <b>c</b> - the tertiary direction of this orientation
    */
-  public @Nonnull Direction3D getC() {
+  public Direction3D getC() {
     return c;
   }
 
-  public @Nonnull Direction3D get(@Nonnull Axis3D axis) {
+  public Direction3D get(Axis3D axis) {
     Preconditions.checkNotNull(axis, "axis == null!");
     if (a.getAxis() == axis)
       return a;
@@ -155,34 +159,6 @@ public class Orientation3D {
       return c;
     throw new InternalError(
         "A, B and C must be on different axis and there are only 3 axis. Therefor this can never happen!");
-  }
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((a == null) ? 0 : a.hashCode());
-    result = prime * result + ((b == null) ? 0 : b.hashCode());
-    result = prime * result + ((c == null) ? 0 : c.hashCode());
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    Orientation3D other = (Orientation3D) obj;
-    if (a != other.a)
-      return false;
-    if (b != other.b)
-      return false;
-    if (c != other.c)
-      return false;
-    return true;
   }
 
 }

@@ -39,14 +39,20 @@
  */
 package de.adrodoc55;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
-import org.assertj.core.api.Assertions;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 
 import net.karneim.pojobuilder.Builder;
 
-public class TestBase extends Assertions {
+public class TestBase {
 
   private static final Random RANDOM = new Random(5);
 
@@ -60,37 +66,116 @@ public class TestBase extends Assertions {
 
   /**
    * @param lowerBound inclusive
-   * @param upperBound exclusive
+   * @param upperBound inclusive
    * @return
    */
   public static int someInt(int lowerBound, int upperBound) {
-    return RANDOM.nextInt(upperBound - lowerBound) + lowerBound;
+    return RANDOM.nextInt(upperBound + 1 - lowerBound) + lowerBound;
   }
 
   public static int somePositiveInt() {
     return RANDOM.nextInt(Integer.MAX_VALUE);
   }
 
-  public static String someString() {
-    return "String" + someInt();
+  public static int few() {
+    return someInt(2, 4);
   }
 
-  public static boolean someBoolean() {
-    return RANDOM.nextBoolean();
+  public static int several() {
+    return someInt(5, 10);
+  }
+
+  public static int many() {
+    return someInt(11, 100);
+  }
+
+  public static Builder<String> $String() {
+    return new Builder<String>() {
+      @Override
+      public String build() {
+        return "String" + someInt();
+      }
+    };
+  }
+
+  public static Builder<Boolean> $boolean() {
+    return new Builder<Boolean>() {
+      @Override
+      public Boolean build() {
+        return RANDOM.nextBoolean();
+      }
+    };
+  }
+
+  public static <E extends Enum<E>> Builder<E> $Enum(Class<E> type) {
+    return new Builder<E>() {
+      @Override
+      public E build() {
+        E[] values = type.getEnumConstants();
+        return values[someInt(values.length)];
+      }
+    };
   }
 
   public static <P> P some(Builder<P> builder) {
     return builder.build();
   }
 
-  public static <P> LinkedList<P> listOf(Builder<P> builder) {
-    return listOf(someInt(100), builder);
+  @SafeVarargs
+  public static <C> Builder<C> $oneOf(C... choices) {
+    return $oneOf(Arrays.asList(choices));
   }
 
-  public static <P> LinkedList<P> listOf(int count, Builder<P> builder) {
-    LinkedList<P> list = new LinkedList<>();
+  public static <C> Builder<C> $oneOf(Iterable<C> choices) {
+    return new OneOf<>(choices);
+  }
+
+  public static class OneOf<C> implements Builder<C> {
+    private final Map<C, Integer> counter;
+    private final Iterator<C> it;
+
+    public OneOf(Iterable<C> choices) {
+      int size = Iterables.size(choices);
+      counter = new IdentityHashMap<>(size);
+      it = Iterators.cycle(choices);
+      Iterators.advance(it, someInt(size));
+    }
+
+    public int getCount(C choice) {
+      Integer integer = counter.get(choice);
+      if (integer == null)
+        return 0;
+      else
+        return integer;
+    }
+
+    @Override
+    public C build() {
+      C next = it.next();
+      counter.put(next, getCount(next) + 1);
+      return next;
+    }
+
+  }
+
+  public static <P> Builder<List<P>> $listOf(int count, Builder<P> prototype) {
+    return new Builder<List<P>>() {
+      @Override
+      public List<P> build() {
+        return listOf(count, prototype);
+      }
+    };
+  }
+
+  @SafeVarargs
+  public static <E> List<E> listOf(E... elements) {
+    return Arrays.asList(elements);
+  }
+
+  public static <P> List<P> listOf(int count, Builder<P> prototype) {
+    List<P> list = new ArrayList<>();
     for (int i = 0; i < count; i++) {
-      list.add(builder.build());
+      list.add(prototype.build());
     }
     return list;
   }

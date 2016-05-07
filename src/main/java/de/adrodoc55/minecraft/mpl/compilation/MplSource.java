@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.File;
 
 import javax.annotation.Nonnegative;
@@ -46,8 +48,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 
 import org.antlr.v4.runtime.Token;
-
-import com.google.common.base.Preconditions;
 
 /**
  * @author Adrodoc55
@@ -64,9 +64,9 @@ public class MplSource {
 
   public MplSource(@Nonnull File file, @Nonnull Token token, @Nonnull String line)
       throws NullPointerException {
-    this.file = Preconditions.checkNotNull(file, "file == null!");
-    this.token = Preconditions.checkNotNull(token, "token == null!");
-    this.line = Preconditions.checkNotNull(line, "line == null!");
+    this.file = checkNotNull(file, "file == null!");
+    this.token = checkNotNull(token, "token == null!");
+    this.line = checkNotNull(line, "line == null!");
   }
 
   @Nonnegative

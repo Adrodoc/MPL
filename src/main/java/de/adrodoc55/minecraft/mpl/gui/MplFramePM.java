@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.gui;
 
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
+
 import java.awt.KeyboardFocusManager;
 import java.awt.Window;
 import java.io.BufferedWriter;
@@ -69,6 +71,7 @@ import com.google.common.collect.ListMultimap;
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
 import de.adrodoc55.minecraft.mpl.conversion.OneCommandConverter;
@@ -318,7 +321,7 @@ public class MplFramePM extends AbstractPM {
       return null;
     }
     try {
-      MplCompilationResult result = MplCompiler.compile(file);
+      MplCompilationResult result = MplCompiler.compile(file, new CompilerOptions(TRANSMITTER));
       for (MplEditorPM editorPm : editors) {
         editorPm.setCompilerExceptions(Collections.emptyList());
       }

@@ -41,26 +41,32 @@ package de.adrodoc55.minecraft.mpl.chain;
 
 import java.util.List;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
 
-import de.adrodoc55.minecraft.mpl.commands.ChainPart;
+import de.adrodoc55.commons.Named;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import lombok.Getter;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
-public class CommandChain {
+@Getter
+public class CommandChain implements Named {
 
-  protected final List<ChainPart> commands;
+  protected final String name;
+  protected final List<ChainLink> commands;
 
-  public CommandChain(@Nonnull List<ChainPart> commands) {
-    this.commands = Preconditions.checkNotNull(commands, "commands == null!");
+  public CommandChain(List<ChainLink> commands) {
+    this(null, commands);
   }
 
-  @Nonnull
-  public List<ChainPart> getCommands() {
-    return commands;
+  @GenerateMplPojoBuilder
+  public CommandChain(@Nullable String name, List<ChainLink> commands) {
+    this.name = name;
+    this.commands = Preconditions.checkNotNull(commands, "commands == null!");
   }
 
 }

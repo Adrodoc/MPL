@@ -45,8 +45,8 @@ import com.google.common.base.Preconditions;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
-import de.adrodoc55.minecraft.mpl.commands.Command;
-import de.adrodoc55.minecraft.mpl.commands.Command.Mode;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 
 /**
  * @author Adrodoc55
@@ -97,8 +97,8 @@ public class CommandBlock extends MplBlock {
     command.setMode(mode);
   }
 
-  public boolean needsRedstone() {
-    return command != null ? command.needsRedstone() : false;
+  public boolean getNeedsRedstone() {
+    return command != null ? command.getNeedsRedstone() : false;
   }
 
   public void setNeedsRedstone(boolean needsRedstone) {
