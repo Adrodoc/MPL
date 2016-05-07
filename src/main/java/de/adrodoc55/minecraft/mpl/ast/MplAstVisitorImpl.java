@@ -99,10 +99,13 @@ import lombok.Setter;
  */
 public class MplAstVisitorImpl implements MplAstVisitor {
   private ChainContainer container;
-  private List<CommandChain> chains;
+  @VisibleForTesting
+  List<CommandChain> chains = new ArrayList<>();
   @VisibleForTesting
   List<ChainLink> commands = new ArrayList<>();
-  private CompilerOptions options;
+  private final CompilerOptions options;
+
+  private boolean addBreakpointProcess;
 
   public MplAstVisitorImpl(CompilerOptions options) {
     this.options = checkNotNull(options, "options == null!");
@@ -125,6 +128,9 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     for (MplProcess process : program.getProcesses()) {
       process.accept(this);
     }
+    if (addBreakpointProcess) {
+      addBreakpointProcess(program);
+    }
     container = new ChainContainer(orientation, max, install, uninstall, chains);
   }
 
@@ -135,15 +141,33 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     return chain;
   }
 
+  private void addBreakpointProcess(MplProgram program) {
+    MplProcess process = new MplProcess("breakpoint");
+    List<ChainPart> commands = new ArrayList<>();
+    String start;
+    if (options.hasOption(TRANSMITTER)) {
+      start = "/execute @e[name=breakpoint_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block";
+    } else {
+      start = "/execute @e[name=breakpoint_NOTIFY] ~ ~ ~ blockdata ~ ~ ~ {auto:1}";
+    }
+
+    commands.add(new MplCommand(
+        "tellraw @a [{\"text\":\"[tp to breakpoint]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/tp @p @e[name=breakpoint_NOTIFY,c=-1]\"}},{\"text\":\" \"},{\"text\":\"[continue program]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\""
+            + start + "\"}}]"));
+
+    commands.add(new MplWaitfor("breakpoint" + NOTIFY));
+    commands.add(new MplCommand("kill @e[name=breakpoint_NOTIFY]"));
+    process.setChainParts(commands);
+    program.addProcess(process);
+    process.accept(this);
+  }
+
   @Override
   public void visitProcess(MplProcess process) {
     List<ChainPart> chainParts = process.getChainParts();
-    // if (chainParts.isEmpty()) {
-    // return;
-    // }
     commands = new ArrayList<>(chainParts.size());
     if (options.hasOption(TRANSMITTER)) {
-      commands.add(new MplSkip(false));
+      commands.add(new MplSkip());
     }
     if (process.isRepeating()) {
       ChainPart first = chainParts.get(0);
@@ -163,9 +187,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     for (ChainPart chainPart : chainParts) {
       chainPart.accept(this);
     }
-    if (chains != null) { // Can only be null in testing
-      chains.add(new CommandChain(process.getName(), commands));
-    }
+    chains.add(new CommandChain(process.getName(), commands));
   }
 
   protected void visitPossibleInvert(ModifiableChainPart chainPart) {
@@ -240,7 +262,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     }
 
     if (options.hasOption(TRANSMITTER)) {
-      commands.add(new MplSkip(false));
+      commands.add(new MplSkip());
       commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
     } else {
       commands.add(new InternalCommand("blockdata ~ ~ ~ {auto:0}", Mode.IMPULSE, false));
@@ -300,7 +322,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     }
 
     if (options.hasOption(TRANSMITTER)) {
-      commands.add(new MplSkip(false));
+      commands.add(new MplSkip());
       commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
     } else {
       commands.add(new InternalCommand("blockdata ~ ~ ~ {auto:0}", Mode.IMPULSE, false));
@@ -312,6 +334,8 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitBreakpoint(MplBreakpoint breakpoint) {
+    addBreakpointProcess = true;
+
     visitPossibleInvert(breakpoint);
 
     boolean cond = breakpoint.isConditional();

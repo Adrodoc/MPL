@@ -48,6 +48,7 @@ import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplIf;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplIntercept;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplNotify;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplProcess;
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplProgram;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplSkip;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStart;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStop;
@@ -63,6 +64,7 @@ import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -78,6 +80,8 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
@@ -644,6 +648,29 @@ public class MplAstVisitorTest_MitTransmitter {
         new InternalCommand("/setblock ${this + 1} redstone_block", true), //
         new MplSkip(), //
         new InternalCommand("/setblock ${this - 1} stone", IMPULSE));
+  }
+
+  @Test
+  public void test_when_visiting_a_breakpoint_the_breakpoint_process_is_added() {
+    // given:
+    MplBreakpoint mplBreakpoint = some($MplBreakpoint()//
+        .withConditional(UNCONDITIONAL));
+
+    MplProgram program = some($MplProgram());
+    program.addProcess(some($MplProcess()//
+        .withChainParts(listOf(mplBreakpoint))));
+
+    // when:
+    program.accept(underTest);
+
+    // then:
+    Condition<CommandChain> condition = new Condition<CommandChain>() {
+      @Override
+      public boolean matches(CommandChain value) {
+        return "breakpoint".equals(value.getName());
+      }
+    };
+    assertThat(underTest.chains).haveExactly(1, condition);
   }
 
   // @formatter:off

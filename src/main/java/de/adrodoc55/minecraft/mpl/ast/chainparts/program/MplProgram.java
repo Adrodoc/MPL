@@ -60,10 +60,12 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import lombok.Getter;
 import lombok.Setter;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
+@GenerateMplPojoBuilder
 public class MplProgram implements MplNode, Named {
 
   @Getter
@@ -71,11 +73,9 @@ public class MplProgram implements MplNode, Named {
   private Token token;
 
   @Getter
-  @Setter
   private String name;
 
   @Getter
-  @Setter
   private boolean script;
 
   @Getter
@@ -154,4 +154,11 @@ public class MplProgram implements MplNode, Named {
     visitor.visitProgram(this);
   }
 
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public void setScript(boolean script) {
+    this.script = script;
+  }
 }

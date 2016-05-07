@@ -47,15 +47,16 @@ import com.google.common.base.Preconditions;
 
 import de.adrodoc55.commons.Named;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
+@EqualsAndHashCode
 @Getter
 public class CommandChain implements Named {
-
   protected final String name;
   protected final List<ChainLink> commands;
 

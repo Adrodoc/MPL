@@ -61,6 +61,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStartBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStopBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitforBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcessBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgramBuilder;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainerBuilder;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChainBuilder;
@@ -107,6 +108,19 @@ public class MplTestBase extends TestBase {
         .withMode($Enum(Mode.class))//
         .withConditional($Enum(Conditional.class))//
         .withNeedsRedstone($boolean())//
+        ;
+  }
+
+  public static MplProgramBuilder $MplProgram() {
+    return new MplProgramBuilder()//
+        .withName($String())//
+        .withScript($boolean())//
+        .withOrientation($Orientation3D())//
+        .withInstall($MplProcess()//
+            .withRepeating(false))//
+        .withUninstall($MplProcess()//
+            .withRepeating(false))//
+        .withMax($Coordinate3D())//
         ;
   }
 
@@ -176,7 +190,7 @@ public class MplTestBase extends TestBase {
     return new Orientation3DBuilder()//
         .withA($oneOf(EAST, WEST))//
         .withB($oneOf(UP, DOWN))//
-        .withB($oneOf(SOUTH, NORTH))//
+        .withC($oneOf(SOUTH, NORTH))//
         ;
   }
 

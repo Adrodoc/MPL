@@ -647,7 +647,7 @@ public class MplInterpreter extends MplBaseListener {
           new CompilerException(source, "skip cannot be the first command of a repeating process"));
       return;
     }
-    chainBuffer.add(new MplSkip(false));
+    chainBuffer.add(new MplSkip());
   }
 
   @Override

@@ -90,9 +90,9 @@ import de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM;
  * @author Adrodoc55
  */
 public class MplFramePM extends AbstractPM {
-
   private static final String COMPILE_TO_SCHEMATIC = "Compile to Schematic";
   private static final String COMPILE_TO_FILTER = "Compile to MCEdit Filter";
+
   ListPM<MplEditorPM> editors = new ListPM<MplEditorPM>();
   OperationPM newFile = new OperationPM();
   OperationPM openFile = new OperationPM();

@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.placement;
 
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -218,8 +220,9 @@ public class MplProjectPlacer extends MplChainPlacer {
       }
       Coordinate3D chainStart = chain.getBlocks().get(0).getCoordinate();
       // TODO: Alle ArmorStands taggen, damit nur ein uninstallation command notwendig
+      int index = options.hasOption(TRANSMITTER) ? 2 : 1;
       install
-          .add(2,
+          .add(index,
               new Command("/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString()
                   + ")} {CustomName:" + chain.getName()
                   + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));

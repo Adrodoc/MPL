@@ -178,29 +178,8 @@ public class MplCompiler extends MplBaseListener {
     });
 
     doIncludes();
-    // if (project.hasBreakpoint()) {
-    // addBreakpointProcess();
-    // }
     return program;
   }
-
-  // private void addBreakpointProcess() {
-  // List<ChainPart> commands = new LinkedList<>();
-  // commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
-  // commands.add(new InternalCommand(
-  // "tellraw @a [{\"text\":\"[tp to
-  // breakpoint]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/tp @p
-  // @e[name=breakpoint_NOTIFY,c=-1]\"}},{\"text\":\" \"},{\"text\":\"[continue
-  // program]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/execute
-  // @e[name=breakpoint_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block\"}}]"));
-  // commands.add(new InternalCommand(
-  // "summon ArmorStand ${this + 1}
-  // {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
-  // commands.add(new Skip(true));
-  // commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
-  // commands.add(new InternalCommand("kill @e[name=breakpoint_NOTIFY]"));
-  // project.addProcess(new MplProcess("breakpoint", commands));
-  // }
 
   private void doIncludes() {
     while (!includeTodos.isEmpty()) {
