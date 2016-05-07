@@ -109,7 +109,7 @@ public class MplTestBase extends TestBase {
         ;
   }
 
-  public MplProcessBuilder $MplProcess() {
+  public static MplProcessBuilder $MplProcess() {
     return new MplProcessBuilder()//
         .withName($String())//
         .withRepeating($boolean())//

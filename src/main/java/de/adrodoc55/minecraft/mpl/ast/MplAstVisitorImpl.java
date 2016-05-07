@@ -161,7 +161,9 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     for (ChainPart chainPart : chainParts) {
       chainPart.accept(this);
     }
-    chains.add(new CommandChain(process.getName(), commands));
+    if (chains != null) { // Can only be null in testing
+      chains.add(new CommandChain(process.getName(), commands));
+    }
   }
 
   protected void visitPossibleInvert(ModifiableChainPart chainPart) {
@@ -411,9 +413,10 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   }
 
   private ReferencingTestforSuccessCommand getConditionReference(IfNestingLayer layer) {
-    int relative = getCountToRef(layer.getRef());
+    InternalCommand ref = layer.getRef();
+    int relative = getCountToRef(ref);
     boolean dependingOnFailure = layer.isNot() ^ layer.isInElse();
-    return new ReferencingTestforSuccessCommand(relative, CHAIN, !dependingOnFailure);
+    return new ReferencingTestforSuccessCommand(relative, ref.getMode(), !dependingOnFailure);
   }
 
   private int getCountToRef(InternalCommand ref) {

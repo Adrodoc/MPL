@@ -47,6 +47,7 @@ import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplCommand;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplIf;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplIntercept;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplNotify;
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplProcess;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplSkip;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStart;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStop;
@@ -58,6 +59,7 @@ import static de.adrodoc55.minecraft.mpl.commands.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
+import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -75,7 +77,9 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
@@ -85,11 +89,73 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MplAstVisitorTest_MitTransmitter {
 
-  MplAstVisitorImpl underTest;
+  private MplAstVisitorImpl underTest;
 
   @Before
   public void before() {
     underTest = new MplAstVisitorImpl(new CompilerOptions(TRANSMITTER));
+  }
+
+  // @formatter:off
+  // ----------------------------------------------------------------------------------------------------
+  //    ___                          _
+  //   |_ _| _ __ __   __ ___  _ __ | |_
+  //    | | | '_ \\ \ / // _ \| '__|| __|
+  //    | | | | | |\ V /|  __/| |   | |_
+  //   |___||_| |_| \_/  \___||_|    \__|
+  //
+  // ----------------------------------------------------------------------------------------------------
+  // @formatter:on
+
+  @Test
+  public void test_invert_modifier_referenziert_den_richtigen_mode() {
+    // given:
+    MplCommand first = some($MplCommand()//
+        .withConditional(UNCONDITIONAL));
+
+    MplCommand second = some($MplCommand()//
+        .withConditional(INVERT)//
+        .withPrevious(first));
+
+    MplProcess process = some($MplProcess()//
+        .withRepeating(false)//
+        .withChainParts(listOf(first, second)));
+
+    // when:
+    process.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new MplSkip(), //
+        new InternalCommand("/setblock ${this - 1} stone", IMPULSE), //
+        new Command(first.getCommand(), first), //
+        new InvertingCommand(first.getMode()), // Important line!
+        new Command(second.getCommand(), second));
+  }
+
+  @Test
+  public void test_Der_erste_invert_in_einem_repeating_process_referenziert_einen_repeating_command_block() {
+    // given:
+    MplCommand first = some($MplCommand()//
+        .withConditional(UNCONDITIONAL));
+
+    MplCommand second = some($MplCommand()//
+        .withConditional(INVERT)//
+        .withPrevious(first));
+
+    MplProcess process = some($MplProcess()//
+        .withRepeating(true)//
+        .withChainParts(listOf(first, second)));
+
+    // when:
+    process.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new MplSkip(), //
+        new Command(first.getCommand(), REPEAT, false, first.getNeedsRedstone()), //
+        new InvertingCommand(REPEAT), // Important line!
+        new Command(second.getCommand(), second));
   }
 
   // @formatter:off
@@ -590,6 +656,34 @@ public class MplAstVisitorTest_MitTransmitter {
   //
   // ----------------------------------------------------------------------------------------------------
   // @formatter:on
+
+  @Test
+  public void test_commands_im_ersten_if_ohne_normalizer_in_einem_repeating_process_referenzieren_einen_repeating_command_block() {
+    // given:
+    MplCommand first = some($MplCommand()//
+        .withConditional(UNCONDITIONAL));
+
+    MplIf mplIf = some($MplIf()//
+        .withNot(true)//
+        .withThenParts(listOf(first)));
+
+    MplProcess process = some($MplProcess()//
+        .withRepeating(true)//
+        .withChainParts(listOf(mplIf)));
+
+    // when:
+    process.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new MplSkip(), //
+        new InternalCommand(mplIf.getCondition(), REPEAT), //
+        // then
+        new InternalCommand(
+            "/testforblock ${this - 1} repeating_command_block -1 {SuccessCount:0}"), //
+        new InternalCommand(first.getCommand(), first.getMode(), true, first.getNeedsRedstone())//
+    );
+  }
 
   @Test
   public void test_If_then_mit_skip_wirft_exception() {

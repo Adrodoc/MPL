@@ -44,6 +44,7 @@ import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
@@ -244,7 +245,7 @@ public class MplInterpreter extends MplBaseListener {
     Token token = ctx.STRING().getSymbol();
     String line = lines.get(token.getLine() - 1);
     File file = new File(programFile.getParentFile(), includePath);
-    LinkedList<File> files = new LinkedList<File>();
+    List<File> files = new ArrayList<File>();
     if (!addFile(files, file, token)) {
       return;
     }
@@ -257,7 +258,7 @@ public class MplInterpreter extends MplBaseListener {
    * Adds the file to the list of imports that will be used to search processes. If the file is a
    * directory all direct subfiles will be added, this is not recursive.
    *
-   * @param projectToken the token that this import originated from
+   * @param ctx the token context that this import originated from
    * @param file the file to import
    */
   private void addFileImport(ImportDeclarationContext ctx, File file) {
@@ -499,7 +500,8 @@ public class MplInterpreter extends MplBaseListener {
       Token token = modifierBuffer.getConditionalToken();
       String line = lines.get(token.getLine() - 1);
       MplSource source = new MplSource(programFile, token, line);
-      addException(new CompilerException(source, "Cannot depend on " + prev.getName()));
+      addException(new CompilerException(source,
+          conditional.name().toLowerCase() + " cannot depend on " + prev.getName()));
     }
   }
 
@@ -633,12 +635,12 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterSkip(SkipContext ctx) {
-    if (process.isRepeating() && chainBuffer.getChainParts().isEmpty()) {
+    if (process != null && process.isRepeating() && chainBuffer.getChainParts().isEmpty()) {
       Token token = ctx.SKIP().getSymbol();
       String line = lines.get(token.getLine());
       MplSource source = new MplSource(programFile, token, line);
-      addException(new CompilerException(source,
-          "Skip can not be the first command of a repeating process"));
+      addException(
+          new CompilerException(source, "skip cannot be the first command of a repeating process"));
       return;
     }
     chainBuffer.add(new MplSkip(false));

@@ -74,7 +74,7 @@ public class MplSkip implements ChainPart, ChainLink {
 
   @Override
   public String getName() {
-    return "name";
+    return "skip";
   }
 
   @Override
