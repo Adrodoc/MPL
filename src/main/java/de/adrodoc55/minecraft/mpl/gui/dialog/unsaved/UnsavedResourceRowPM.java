@@ -37,54 +37,26 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.dialog;
-
-import java.util.Collections;
+package de.adrodoc55.minecraft.mpl.gui.dialog.unsaved;
 
 import org.beanfabrics.model.AbstractPM;
-import org.beanfabrics.model.ListPM;
+import org.beanfabrics.model.BooleanPM;
 import org.beanfabrics.model.PMManager;
 
-import de.adrodoc55.minecraft.mpl.autocompletion.AutoCompletionAction;
+import de.adrodoc55.minecraft.mpl.gui.MplEditorPM;
 
 /**
  * @author Adrodoc55
  */
-public class AutoCompletionDialogPM extends AbstractPM {
+public class UnsavedResourceRowPM extends AbstractPM {
 
-  public static interface Context {
-    void choose(AutoCompletionAction action);
-  }
+  BooleanPM save = new BooleanPM();
+  final MplEditorPM editorPm;
 
-  private final Context context;
-
-  final ListPM<AutoCompletionPM> options = new ListPM<>();
-
-  public AutoCompletionDialogPM(Context context) {
-    this(Collections.emptyList(), context);
-  }
-
-  public AutoCompletionDialogPM(Iterable<AutoCompletionAction> options, Context context) {
-    this.context = context;
-    setOptions(options);
+  public UnsavedResourceRowPM(MplEditorPM editorPm) {
+    save.setBoolean(true);
+    this.editorPm = editorPm;
     PMManager.setup(this);
-  }
-
-  public void setOptions(Iterable<AutoCompletionAction> options) {
-    this.options.clear();
-    for (AutoCompletionAction action : options) {
-      this.options.add(new AutoCompletionPM(action));
-    }
-    if (options.iterator().hasNext()) {
-      this.options.getSelection().add(this.options.getAt(0));
-    }
-  }
-
-  void chooseSelection() {
-    AutoCompletionPM first = options.getSelection().getFirst();
-    if (first == null)
-      return;
-    context.choose(first.getAction());
   }
 
 }

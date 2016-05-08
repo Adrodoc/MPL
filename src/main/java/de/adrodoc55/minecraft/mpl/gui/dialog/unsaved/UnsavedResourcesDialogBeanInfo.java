@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.dialog;
+package de.adrodoc55.minecraft.mpl.gui.dialog.unsaved;
 
 import org.beanfabrics.swing.ModelSubscriberBeanInfo;
 
@@ -45,10 +45,10 @@ import org.beanfabrics.swing.ModelSubscriberBeanInfo;
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class SearchAndReplaceDialogBeanInfo extends ModelSubscriberBeanInfo {
+public class UnsavedResourcesDialogBeanInfo extends ModelSubscriberBeanInfo {
   @Override
-  protected Class<SearchAndReplaceDialog> getBeanClass() {
-    return SearchAndReplaceDialog.class;
+  protected Class<UnsavedResourcesDialog> getBeanClass() {
+    return UnsavedResourcesDialog.class;
   }
 
   @Override

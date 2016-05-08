@@ -37,45 +37,22 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.dialog;
+package de.adrodoc55.minecraft.mpl.gui.dialog.command;
 
-import java.awt.KeyboardFocusManager;
-import java.awt.Window;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import org.beanfabrics.swing.ModelSubscriberBeanInfo;
 
 /**
  * @author Adrodoc55
+ * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class OneCommandDialogControler {
-  private OneCommandDialogPM pm;
-  private OneCommandDialog view;
-
-  public OneCommandDialogPM getPresentationModel() {
-    if (pm == null) {
-      pm = new OneCommandDialogPM(new OneCommandDialogPM.Context() {
-        @Override
-        public void close() {
-          getView().dispose();
-        }
-      });
-    }
-    return pm;
+public class CommandDialogBeanInfo extends ModelSubscriberBeanInfo {
+  @Override
+  protected Class<CommandDialog> getBeanClass() {
+    return CommandDialog.class;
   }
 
-  public OneCommandDialog getView() {
-    if (view == null) {
-      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-      view = new OneCommandDialog(activeWindow);
-      view.setPresentationModel(getPresentationModel());
-      view.addWindowListener(new WindowAdapter() {
-        @Override
-        public void windowClosed(WindowEvent e) {
-          view = null;
-          pm = null;
-        }
-      });
-    }
-    return view;
+  @Override
+  protected boolean isPathBound() {
+    return false;
   }
 }

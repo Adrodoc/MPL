@@ -37,47 +37,54 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.dialog;
+package de.adrodoc55.minecraft.mpl.gui.dialog.autocompletion;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
+import java.util.Collections;
 
 import org.beanfabrics.model.AbstractPM;
 import org.beanfabrics.model.ListPM;
 import org.beanfabrics.model.PMManager;
 
+import de.adrodoc55.minecraft.mpl.autocompletion.AutoCompletionAction;
+
 /**
  * @author Adrodoc55
  */
-public class OneCommandDialogPM extends AbstractPM {
+public class AutoCompletionDialogPM extends AbstractPM {
+
   public static interface Context {
-    void close();
+    void choose(AutoCompletionAction action);
   }
 
-  ListPM<OneCommandPM> commands = new ListPM<>();
   private final Context context;
 
-  public OneCommandDialogPM(Context context) {
-    this.context = checkNotNull(context, "context = null!");
+  final ListPM<AutoCompletionPM> options = new ListPM<>();
+
+  public AutoCompletionDialogPM(Context context) {
+    this(Collections.emptyList(), context);
+  }
+
+  public AutoCompletionDialogPM(Iterable<AutoCompletionAction> options, Context context) {
+    this.context = context;
+    setOptions(options);
     PMManager.setup(this);
   }
 
-  public void setCommands(List<String> commands) {
-    this.commands.clear();
-    int i = 1;
-    for (String command : commands) {
-      OneCommandPM element = new OneCommandPM(i++, command, new OneCommandPM.Context() {
-        @Override
-        public void close(OneCommandPM pm) {
-          ListPM<OneCommandPM> commands = OneCommandDialogPM.this.commands;
-          commands.remove(pm);
-          if (commands.isEmpty()) {
-            context.close();
-          }
-        }
-      });
-      this.commands.add(element);
+  public void setOptions(Iterable<AutoCompletionAction> options) {
+    this.options.clear();
+    for (AutoCompletionAction action : options) {
+      this.options.add(new AutoCompletionPM(action));
+    }
+    if (options.iterator().hasNext()) {
+      this.options.getSelection().add(this.options.getAt(0));
     }
   }
+
+  void chooseSelection() {
+    AutoCompletionPM first = options.getSelection().getFirst();
+    if (first == null)
+      return;
+    context.choose(first.getAction());
+  }
+
 }

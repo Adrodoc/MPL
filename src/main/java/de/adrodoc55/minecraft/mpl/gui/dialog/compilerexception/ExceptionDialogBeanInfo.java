@@ -37,24 +37,22 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.dialog;
+package de.adrodoc55.minecraft.mpl.gui.dialog.compilerexception;
 
-import org.beanfabrics.model.AbstractPM;
-import org.beanfabrics.model.PMManager;
-import org.beanfabrics.model.TextPM;
+import org.beanfabrics.swing.ModelSubscriberBeanInfo;
 
 /**
  * @author Adrodoc55
+ * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class ExceptionDialogPM extends AbstractPM {
-
-  TextPM title = new TextPM();
-  TextPM description = new TextPM();
-  TextPM details = new TextPM();
-
-  public ExceptionDialogPM() {
-    details.setEditable(false);
-    PMManager.setup(this);
+public class ExceptionDialogBeanInfo extends ModelSubscriberBeanInfo {
+  @Override
+  protected Class<ExceptionDialog> getBeanClass() {
+    return ExceptionDialog.class;
   }
 
+  @Override
+  protected boolean isPathBound() {
+    return false;
+  }
 }

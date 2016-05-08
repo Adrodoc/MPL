@@ -63,8 +63,8 @@ import org.beanfabrics.support.Operation;
 
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
-import de.adrodoc55.minecraft.mpl.gui.dialog.SearchAndReplaceDialog;
-import de.adrodoc55.minecraft.mpl.gui.dialog.SearchAndReplaceDialogPM;
+import de.adrodoc55.minecraft.mpl.gui.dialog.searchandreplace.SearchAndReplaceDialog;
+import de.adrodoc55.minecraft.mpl.gui.dialog.searchandreplace.SearchAndReplaceDialogPM;
 
 /**
  * @author Adrodoc55

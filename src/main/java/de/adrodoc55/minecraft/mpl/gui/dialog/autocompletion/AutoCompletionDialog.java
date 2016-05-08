@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.dialog;
+package de.adrodoc55.minecraft.mpl.gui.dialog.autocompletion;
 
 import java.awt.BorderLayout;
 import java.awt.Window;
@@ -67,15 +67,14 @@ import org.beanfabrics.swing.list.BnList;
 import org.beanfabrics.swing.list.CellConfig;
 
 /**
- * The AutoCompletionDialog is a {@link View} on a
- * {@link de.adrodoc55.minecraft.mpl.gui.dialog.AutoCompletionDialogPM}.
+ * The AutoCompletionDialog is a {@link View} on a {@link AutoCompletionDialogPM}.
  *
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
 @SuppressWarnings("serial")
 public class AutoCompletionDialog extends JDialog
-    implements View<de.adrodoc55.minecraft.mpl.gui.dialog.AutoCompletionDialogPM>, ModelSubscriber {
+    implements View<AutoCompletionDialogPM>, ModelSubscriber {
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
   private BnList bnList;
@@ -177,20 +176,18 @@ public class AutoCompletionDialog extends JDialog
   protected ModelProvider getLocalModelProvider() {
     if (localModelProvider == null) {
       localModelProvider = new ModelProvider(); // @wb:location=10,430
-      localModelProvider.setPresentationModelType(
-          de.adrodoc55.minecraft.mpl.gui.dialog.AutoCompletionDialogPM.class);
+      localModelProvider.setPresentationModelType(AutoCompletionDialogPM.class);
     }
     return localModelProvider;
   }
 
   /** {@inheritDoc} */
-  public de.adrodoc55.minecraft.mpl.gui.dialog.AutoCompletionDialogPM getPresentationModel() {
+  public AutoCompletionDialogPM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
-  public void setPresentationModel(
-      de.adrodoc55.minecraft.mpl.gui.dialog.AutoCompletionDialogPM pModel) {
+  public void setPresentationModel(AutoCompletionDialogPM pModel) {
     getLocalModelProvider().setPresentationModel(pModel);
   }
 

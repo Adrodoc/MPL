@@ -37,22 +37,68 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.dialog;
+package de.adrodoc55.minecraft.mpl.gui.dialog.unsaved;
 
-import org.beanfabrics.swing.ModelSubscriberBeanInfo;
+import java.util.Collection;
+
+import org.beanfabrics.model.AbstractPM;
+import org.beanfabrics.model.ListPM;
+import org.beanfabrics.model.OperationPM;
+import org.beanfabrics.model.PMManager;
+import org.beanfabrics.support.Operation;
+
+import de.adrodoc55.minecraft.mpl.gui.MplEditorPM;
 
 /**
  * @author Adrodoc55
- * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class AutoCompletionDialogBeanInfo extends ModelSubscriberBeanInfo {
-  @Override
-  protected Class<AutoCompletionDialog> getBeanClass() {
-    return AutoCompletionDialog.class;
+public class UnsavedResourcesDialogPM extends AbstractPM {
+
+  ListPM<UnsavedResourceRowPM> unsaved = new ListPM<UnsavedResourceRowPM>();
+  OperationPM selectAll = new OperationPM();
+  OperationPM deselectAll = new OperationPM();
+  OperationPM ok = new OperationPM();
+  OperationPM cancel = new OperationPM();
+  private boolean canceled;
+
+  public UnsavedResourcesDialogPM(Collection<MplEditorPM> unsavedEditors) {
+    for (MplEditorPM mplEditorPM : unsavedEditors) {
+      unsaved.add(new UnsavedResourceRowPM(mplEditorPM));
+    }
+    PMManager.setup(this);
   }
 
-  @Override
-  protected boolean isPathBound() {
-    return false;
+  @Operation
+  public void selectAll() {
+    for (UnsavedResourceRowPM unsavedResourceRowPM : unsaved) {
+      unsavedResourceRowPM.save.setBoolean(true);
+    }
   }
+
+  @Operation
+  public void deselectAll() {
+    for (UnsavedResourceRowPM unsavedResourceRowPM : unsaved) {
+      unsavedResourceRowPM.save.setBoolean(false);
+    }
+  }
+
+  @Operation
+  public void ok() {
+    for (UnsavedResourceRowPM unsavedResourceRowPM : unsaved) {
+      if (!unsavedResourceRowPM.save.getBoolean()) {
+        continue;
+      }
+      unsavedResourceRowPM.editorPm.save();
+    }
+  }
+
+  @Operation
+  public void cancel() {
+    canceled = true;
+  }
+
+  public boolean isCanceled() {
+    return canceled;
+  }
+
 }

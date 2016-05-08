@@ -37,22 +37,60 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.dialog;
+package de.adrodoc55.minecraft.mpl.gui.dialog.command;
 
-import org.beanfabrics.swing.ModelSubscriberBeanInfo;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+
+import org.beanfabrics.model.AbstractPM;
+import org.beanfabrics.model.OperationPM;
+import org.beanfabrics.model.PMManager;
+import org.beanfabrics.model.TextPM;
+import org.beanfabrics.support.Operation;
 
 /**
  * @author Adrodoc55
- * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class OneCommandDialogBeanInfo extends ModelSubscriberBeanInfo {
-  @Override
-  protected Class<OneCommandDialog> getBeanClass() {
-    return OneCommandDialog.class;
+public class CommandPM extends AbstractPM {
+  public static interface Context {
+    void close(CommandPM pm);
   }
 
-  @Override
-  protected boolean isPathBound() {
-    return false;
+  private final Context context;
+
+  TextPM title = new TextPM();
+  TextPM oneCommand = new TextPM();
+  OperationPM copyToClipboard = new OperationPM();
+  OperationPM copyAndClose = new OperationPM();
+  OperationPM close = new OperationPM();
+
+  public CommandPM(int number, String command, Context context) {
+    this.context = checkNotNull(context, "context == null!");
+    this.title.setEditable(false);
+    this.oneCommand.setEditable(false);
+    this.title.setText("Command " + number);
+    this.oneCommand.setText(command);
+    PMManager.setup(this);
+  }
+
+  @Operation
+  public void copyToClipboard() {
+    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+    StringSelection contents = new StringSelection(oneCommand.getText());
+    clipboard.setContents(contents, null);
+  }
+
+  @Operation
+  public void copyAndClose() {
+    copyToClipboard();
+    close();
+  }
+
+  @Operation
+  public void close() {
+    context.close(this);
   }
 }

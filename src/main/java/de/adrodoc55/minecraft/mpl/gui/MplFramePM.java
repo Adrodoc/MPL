@@ -78,15 +78,15 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
 import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
 import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
 import de.adrodoc55.minecraft.mpl.conversion.SchematicConverter;
-import de.adrodoc55.minecraft.mpl.gui.dialog.ExceptionDialog;
-import de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialog;
-import de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialogControler;
-import de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialogPM;
-import de.adrodoc55.minecraft.mpl.gui.dialog.SearchAndReplaceDialog;
-import de.adrodoc55.minecraft.mpl.gui.dialog.SearchAndReplaceDialogControler;
-import de.adrodoc55.minecraft.mpl.gui.dialog.SearchAndReplaceDialogPM;
-import de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialog;
-import de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM;
+import de.adrodoc55.minecraft.mpl.gui.dialog.command.CommandDialog;
+import de.adrodoc55.minecraft.mpl.gui.dialog.command.CommandDialogControler;
+import de.adrodoc55.minecraft.mpl.gui.dialog.command.CommandDialogPM;
+import de.adrodoc55.minecraft.mpl.gui.dialog.compilerexception.ExceptionDialog;
+import de.adrodoc55.minecraft.mpl.gui.dialog.searchandreplace.SearchAndReplaceDialog;
+import de.adrodoc55.minecraft.mpl.gui.dialog.searchandreplace.SearchAndReplaceDialogControler;
+import de.adrodoc55.minecraft.mpl.gui.dialog.searchandreplace.SearchAndReplaceDialogPM;
+import de.adrodoc55.minecraft.mpl.gui.dialog.unsaved.UnsavedResourcesDialog;
+import de.adrodoc55.minecraft.mpl.gui.dialog.unsaved.UnsavedResourcesDialogPM;
 
 /**
  * @author Adrodoc55
@@ -216,9 +216,9 @@ public class MplFramePM extends AbstractPM {
       return;
     }
     List<String> commands = CommandConverter.convert(result);
-    OneCommandDialogControler ctrl = new OneCommandDialogControler();
-    OneCommandDialogPM pm = ctrl.getPresentationModel();
-    OneCommandDialog view = ctrl.getView();
+    CommandDialogControler ctrl = new CommandDialogControler();
+    CommandDialogPM pm = ctrl.getPresentationModel();
+    CommandDialog view = ctrl.getView();
     pm.setCommands(commands);
     view.setVisible(true);
   }

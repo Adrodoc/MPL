@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.dialog;
+package de.adrodoc55.minecraft.mpl.gui.dialog.command;
 
 import java.awt.BorderLayout;
 import java.awt.Window;
@@ -70,26 +70,26 @@ import org.beanfabrics.event.ListListener;
 import org.beanfabrics.model.IListPM;
 
 /**
- * The OneCommandDialog is a {@link View} on a {@link OneCommandDialogPM}.
+ * The OneCommandDialog is a {@link View} on a {@link CommandDialogPM}.
  *
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
 @SuppressWarnings("serial")
-public class OneCommandDialog extends JDialog implements View<OneCommandDialogPM>, ModelSubscriber {
+public class CommandDialog extends JDialog implements View<CommandDialogPM>, ModelSubscriber {
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
   private JScrollPane scrollPane;
   private JPanel commandPanel;
 
-  public OneCommandDialog() {
+  public CommandDialog() {
     this(null);
   }
 
   /**
    * Constructs a new <code>OneCommandDialog</code>.
    */
-  public OneCommandDialog(Window parent) {
+  public CommandDialog(Window parent) {
     super(parent, "Import Commands");
     init();
     setModal(true);
@@ -121,18 +121,18 @@ public class OneCommandDialog extends JDialog implements View<OneCommandDialogPM
   protected ModelProvider getLocalModelProvider() {
     if (localModelProvider == null) {
       localModelProvider = new ModelProvider(); // @wb:location=10,430
-      localModelProvider.setPresentationModelType(OneCommandDialogPM.class);
+      localModelProvider.setPresentationModelType(CommandDialogPM.class);
     }
     return localModelProvider;
   }
 
   /** {@inheritDoc} */
-  public OneCommandDialogPM getPresentationModel() {
+  public CommandDialogPM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
-  public void setPresentationModel(OneCommandDialogPM pModel) {
+  public void setPresentationModel(CommandDialogPM pModel) {
     ListListener l = new ListListener() {
       @Override
       public void elementsSelected(ElementsSelectedEvent evt) {}
@@ -143,7 +143,7 @@ public class OneCommandDialog extends JDialog implements View<OneCommandDialogPM
         int length = evt.getLength();
         this.remove(beginIndex, length);
         @SuppressWarnings("unchecked")
-        IListPM<OneCommandPM> list = (IListPM<OneCommandPM>) evt.getSource();
+        IListPM<CommandPM> list = (IListPM<CommandPM>) evt.getSource();
         this.add(list, beginIndex, length);
       }
 
@@ -162,7 +162,7 @@ public class OneCommandDialog extends JDialog implements View<OneCommandDialogPM
         int beginIndex = evt.getBeginIndex();
         int length = evt.getLength();
         @SuppressWarnings("unchecked")
-        IListPM<OneCommandPM> list = (IListPM<OneCommandPM>) evt.getSource();
+        IListPM<CommandPM> list = (IListPM<CommandPM>) evt.getSource();
         this.add(list, beginIndex, length);
       }
 
@@ -179,10 +179,10 @@ public class OneCommandDialog extends JDialog implements View<OneCommandDialogPM
         setDefaultButton();
       }
 
-      private void add(IListPM<OneCommandPM> list, int beginIndex, int length) {
+      private void add(IListPM<CommandPM> list, int beginIndex, int length) {
         for (int i = 0; i < length; i++) {
           int index = beginIndex + i;
-          OneCommandPM commandPm = list.getAt(index);
+          CommandPM commandPm = list.getAt(index);
           this.addCommand(index, commandPm);
         }
         revalidate();
@@ -190,15 +190,15 @@ public class OneCommandDialog extends JDialog implements View<OneCommandDialogPM
         setDefaultButton();
       }
 
-      private void addCommand(int i, OneCommandPM commandPm) {
-        OneCommandPanel panel = new OneCommandPanel();
+      private void addCommand(int i, CommandPM commandPm) {
+        CommandPanel panel = new CommandPanel();
         panel.setPresentationModel(commandPm);
         getCommandPanel().add(panel, i);
       }
 
       private void setDefaultButton() {
         try {
-          OneCommandPanel first = (OneCommandPanel) getCommandPanel().getComponent(0);
+          CommandPanel first = (CommandPanel) getCommandPanel().getComponent(0);
           getRootPane().setDefaultButton(first.getBnbtnCopyAndClose());
         } catch (ArrayIndexOutOfBoundsException | ClassCastException ex) {
           // Do nothing

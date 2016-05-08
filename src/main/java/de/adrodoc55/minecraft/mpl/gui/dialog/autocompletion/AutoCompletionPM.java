@@ -37,22 +37,32 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.dialog;
+package de.adrodoc55.minecraft.mpl.gui.dialog.autocompletion;
 
-import org.beanfabrics.swing.ModelSubscriberBeanInfo;
+import org.beanfabrics.model.AbstractPM;
+import org.beanfabrics.model.PMManager;
+import org.beanfabrics.model.TextPM;
+
+import com.google.common.base.Preconditions;
+
+import de.adrodoc55.minecraft.mpl.autocompletion.AutoCompletionAction;
 
 /**
  * @author Adrodoc55
- * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class ExceptionDialogBeanInfo extends ModelSubscriberBeanInfo {
-  @Override
-  protected Class<ExceptionDialog> getBeanClass() {
-    return ExceptionDialog.class;
+public class AutoCompletionPM extends AbstractPM {
+  private final AutoCompletionAction action;
+
+  private TextPM displayName = new TextPM();
+
+  public AutoCompletionPM(AutoCompletionAction action) {
+    this.action = Preconditions.checkNotNull(action, "action == null!");
+    displayName.setText(getAction().getDisplayName());
+    PMManager.setup(this);
   }
 
-  @Override
-  protected boolean isPathBound() {
-    return false;
+  public AutoCompletionAction getAction() {
+    return action;
   }
+
 }

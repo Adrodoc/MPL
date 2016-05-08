@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.dialog;
+package de.adrodoc55.minecraft.mpl.gui.dialog.command;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -62,13 +62,13 @@ import org.beanfabrics.swing.BnLabel;
 import org.beanfabrics.swing.BnTextArea;
 
 /**
- * The OneCommandPanel is a {@link View} on a {@link OneCommandPM}.
+ * The OneCommandPanel is a {@link View} on a {@link CommandPM}.
  *
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
 @SuppressWarnings("serial")
-public class OneCommandPanel extends JPanel implements View<OneCommandPM>, ModelSubscriber {
+public class CommandPanel extends JPanel implements View<CommandPM>, ModelSubscriber {
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
   private JPanel buttonPanel;
@@ -82,7 +82,7 @@ public class OneCommandPanel extends JPanel implements View<OneCommandPM>, Model
   /**
    * Constructs a new <code>OneCommandPanel</code>.
    */
-  public OneCommandPanel() {
+  public CommandPanel() {
     super();
     setBorder(new CompoundBorder(new LineBorder(new Color(192, 192, 192), 1, true),
         new EmptyBorder(5, 5, 5, 5)));
@@ -100,18 +100,18 @@ public class OneCommandPanel extends JPanel implements View<OneCommandPM>, Model
   protected ModelProvider getLocalModelProvider() {
     if (localModelProvider == null) {
       localModelProvider = new ModelProvider(); // @wb:location=10,430
-      localModelProvider.setPresentationModelType(OneCommandPM.class);
+      localModelProvider.setPresentationModelType(CommandPM.class);
     }
     return localModelProvider;
   }
 
   /** {@inheritDoc} */
-  public OneCommandPM getPresentationModel() {
+  public CommandPM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
-  public void setPresentationModel(OneCommandPM pModel) {
+  public void setPresentationModel(CommandPM pModel) {
     getLocalModelProvider().setPresentationModel(pModel);
   }
 

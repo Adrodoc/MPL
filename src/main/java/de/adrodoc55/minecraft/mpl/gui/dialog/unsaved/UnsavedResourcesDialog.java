@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.dialog;
+package de.adrodoc55.minecraft.mpl.gui.dialog.unsaved;
 
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
@@ -74,15 +74,14 @@ import org.beanfabrics.swing.table.BnColumnBuilder;
 import org.beanfabrics.swing.table.BnTable;
 
 /**
- * The UnsavedFilesDialog is a {@link View} on a
- * {@link de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM}.
+ * The UnsavedFilesDialog is a {@link View} on a {@link UnsavedResourcesDialogPM}.
  *
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
 @SuppressWarnings("serial")
-public class UnsavedResourcesDialog extends JDialog implements
-    View<de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM>, ModelSubscriber {
+public class UnsavedResourcesDialog extends JDialog
+    implements View<UnsavedResourcesDialogPM>, ModelSubscriber {
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
   private JLabel lblDescription;
@@ -146,20 +145,18 @@ public class UnsavedResourcesDialog extends JDialog implements
   protected ModelProvider getLocalModelProvider() {
     if (localModelProvider == null) {
       localModelProvider = new ModelProvider(); // @wb:location=10,430
-      localModelProvider.setPresentationModelType(
-          de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM.class);
+      localModelProvider.setPresentationModelType(UnsavedResourcesDialogPM.class);
     }
     return localModelProvider;
   }
 
   /** {@inheritDoc} */
-  public de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM getPresentationModel() {
+  public UnsavedResourcesDialogPM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
-  public void setPresentationModel(
-      de.adrodoc55.minecraft.mpl.gui.dialog.UnsavedResourcesDialogPM pModel) {
+  public void setPresentationModel(UnsavedResourcesDialogPM pModel) {
     getLocalModelProvider().setPresentationModel(pModel);
   }
 

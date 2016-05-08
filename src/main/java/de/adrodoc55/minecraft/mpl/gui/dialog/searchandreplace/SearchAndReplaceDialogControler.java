@@ -1,11 +1,11 @@
-package de.adrodoc55.minecraft.mpl.gui.dialog;
+package de.adrodoc55.minecraft.mpl.gui.dialog.searchandreplace;
 
 import java.awt.KeyboardFocusManager;
 import java.awt.Window;
 
 import javax.swing.WindowConstants;
 
-import de.adrodoc55.minecraft.mpl.gui.dialog.SearchAndReplaceDialogPM.Context;
+import de.adrodoc55.minecraft.mpl.gui.dialog.searchandreplace.SearchAndReplaceDialogPM.Context;
 
 /**
  * @author Adrodoc55

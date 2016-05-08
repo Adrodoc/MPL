@@ -37,68 +37,47 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.dialog;
+package de.adrodoc55.minecraft.mpl.gui.dialog.command;
 
-import java.util.Collection;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
 
 import org.beanfabrics.model.AbstractPM;
 import org.beanfabrics.model.ListPM;
-import org.beanfabrics.model.OperationPM;
 import org.beanfabrics.model.PMManager;
-import org.beanfabrics.support.Operation;
-
-import de.adrodoc55.minecraft.mpl.gui.MplEditorPM;
 
 /**
  * @author Adrodoc55
  */
-public class UnsavedResourcesDialogPM extends AbstractPM {
+public class CommandDialogPM extends AbstractPM {
+  public static interface Context {
+    void close();
+  }
 
-  ListPM<UnsavedResourceRowPM> unsaved = new ListPM<UnsavedResourceRowPM>();
-  OperationPM selectAll = new OperationPM();
-  OperationPM deselectAll = new OperationPM();
-  OperationPM ok = new OperationPM();
-  OperationPM cancel = new OperationPM();
-  private boolean canceled;
+  ListPM<CommandPM> commands = new ListPM<>();
+  private final Context context;
 
-  public UnsavedResourcesDialogPM(Collection<MplEditorPM> unsavedEditors) {
-    for (MplEditorPM mplEditorPM : unsavedEditors) {
-      unsaved.add(new UnsavedResourceRowPM(mplEditorPM));
-    }
+  public CommandDialogPM(Context context) {
+    this.context = checkNotNull(context, "context = null!");
     PMManager.setup(this);
   }
 
-  @Operation
-  public void selectAll() {
-    for (UnsavedResourceRowPM unsavedResourceRowPM : unsaved) {
-      unsavedResourceRowPM.save.setBoolean(true);
+  public void setCommands(List<String> commands) {
+    this.commands.clear();
+    int i = 1;
+    for (String command : commands) {
+      CommandPM element = new CommandPM(i++, command, new CommandPM.Context() {
+        @Override
+        public void close(CommandPM pm) {
+          ListPM<CommandPM> commands = CommandDialogPM.this.commands;
+          commands.remove(pm);
+          if (commands.isEmpty()) {
+            context.close();
+          }
+        }
+      });
+      this.commands.add(element);
     }
   }
-
-  @Operation
-  public void deselectAll() {
-    for (UnsavedResourceRowPM unsavedResourceRowPM : unsaved) {
-      unsavedResourceRowPM.save.setBoolean(false);
-    }
-  }
-
-  @Operation
-  public void ok() {
-    for (UnsavedResourceRowPM unsavedResourceRowPM : unsaved) {
-      if (!unsavedResourceRowPM.save.getBoolean()) {
-        continue;
-      }
-      unsavedResourceRowPM.editorPm.save();
-    }
-  }
-
-  @Operation
-  public void cancel() {
-    canceled = true;
-  }
-
-  public boolean isCanceled() {
-    return canceled;
-  }
-
 }
