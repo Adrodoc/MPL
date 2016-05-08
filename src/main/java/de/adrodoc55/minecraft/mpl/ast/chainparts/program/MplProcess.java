@@ -111,6 +111,10 @@ public class MplProcess implements MplNode, Named {
     addAll(chainParts);
   }
 
+  public void add(ChainPart chainPart) {
+    this.chainParts.add(chainPart);
+  }
+
   public void addAll(Collection<ChainPart> chainParts) {
     this.chainParts.addAll(chainParts);
   }

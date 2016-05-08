@@ -171,6 +171,9 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       commands.add(new MplSkip());
     }
     if (process.isRepeating()) {
+      if (process.getChainParts().isEmpty()) {
+        process.add(new MplCommand(""));
+      }
       ChainPart first = chainParts.get(0);
       try {
         first.setMode(REPEAT);
