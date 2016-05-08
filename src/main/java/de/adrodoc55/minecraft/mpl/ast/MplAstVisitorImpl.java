@@ -48,6 +48,7 @@ import static de.adrodoc55.minecraft.mpl.commands.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.util.ArrayDeque;
@@ -334,6 +335,9 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitBreakpoint(MplBreakpoint breakpoint) {
+    if (!options.hasOption(DEBUG)) {
+      return;
+    }
     addBreakpointProcess = true;
 
     visitPossibleInvert(breakpoint);
