@@ -39,7 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.conversion;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -54,7 +56,8 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 /**
  * @author Adrodoc55
  */
-public class OneCommandConverter extends MplConverter {
+public class CommandConverter extends MplConverter {
+  public static final int MAX_COMMAND_LENGTH = 32500;
 
   private static final String HEADER =
       "summon FallingSand ~ ~1 ~ {Block:redstone_block,Time:1,Passengers:[{id:FallingSand,Block:activator_rail,Time:1,Passengers:[";
@@ -79,7 +82,8 @@ public class OneCommandConverter extends MplConverter {
     // @formatter:on
   }
 
-  public static String convert(MplCompilationResult result) {
+  public static List<String> convert(MplCompilationResult result) {
+    List<String> commands = new ArrayList<>();
     Orientation3D orientation = result.getOrientation();
 
     StringBuilder sb = new StringBuilder(HEADER);
@@ -98,11 +102,20 @@ public class OneCommandConverter extends MplConverter {
       if (!(block instanceof CommandBlock)) {
         continue;
       }
-      sb.append(convert((CommandBlock) block, orientation));
+      StringBuilder convert = convert((CommandBlock) block, orientation);
+      int totalLength = sb.length() + convert.length() + TAIL.length();
+      if (totalLength > MAX_COMMAND_LENGTH) {
+        sb.append(TAIL);
+        commands.add(sb.toString());
+        sb = new StringBuilder(HEADER);
+      }
+      sb.append(convert);
     }
-
     sb.append(TAIL);
-    return sb.toString();
+    commands.add(sb.toString());
+    sb = new StringBuilder(HEADER);
+
+    return commands;
   }
 
   private static Coordinate3D getMaxCoordinate(ImmutableSet<Coordinate3D> immutableSet) {

@@ -99,9 +99,9 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnButton bnbtnCompileToCommand;
   private BnButton bnbtnCompileToSchematic;
   private BnButton bnbtnCompileToFilter;
-  private JTabbedPane tabbedPane;
   private BnMenuItem bnmntmCompileToFilter;
   private BnMenuItem bnmntmCompileToFilterUnder;
+  private JTabbedPane tabbedPane;
 
   /**
    * Constructs a new <code>MplFrame</code>.
@@ -174,7 +174,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
     ListListener l = new ListListener() {
       @Override
       public void elementsSelected(ElementsSelectedEvent evt) {
-        tabbedPane.setSelectedIndex(evt.getBeginIndex());
+        getTabbedPane().setSelectedIndex(evt.getBeginIndex());
       }
 
       @Override
@@ -212,7 +212,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
       private void remove(int beginIndex, int length) {
         for (int i = 0; i < length; i++) {
           int index = beginIndex + i;
-          tabbedPane.remove(index);
+          getTabbedPane().remove(index);
         }
       }
 
@@ -230,10 +230,10 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
         editor.getTextPane().getCaret().setDot(0);
         editor.discardAllEdits();
         editorPm.setView(editor);
-        tabbedPane.insertTab(editorPm.getTitle(), null, editor, null, i);
+        getTabbedPane().insertTab(editorPm.getTitle(), null, editor, null, i);
         TabCloseComponent tabComponent = new TabCloseComponent();
         tabComponent.setPresentationModel(editorPm);
-        tabbedPane.setTabComponentAt(i, tabComponent);
+        getTabbedPane().setTabComponentAt(i, tabComponent);
       }
     };
     pModel.editors.addListListener(l);

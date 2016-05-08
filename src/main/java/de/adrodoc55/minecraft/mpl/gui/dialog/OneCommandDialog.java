@@ -40,19 +40,14 @@
 package de.adrodoc55.minecraft.mpl.gui.dialog;
 
 import java.awt.BorderLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
+import javax.swing.BoxLayout;
 import javax.swing.InputMap;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -65,26 +60,27 @@ import org.beanfabrics.ModelProvider;
 import org.beanfabrics.ModelSubscriber;
 import org.beanfabrics.Path;
 import org.beanfabrics.View;
-import org.beanfabrics.swing.BnButton;
-import org.beanfabrics.swing.BnTextArea;
+import org.beanfabrics.event.ElementChangedEvent;
+import org.beanfabrics.event.ElementsAddedEvent;
+import org.beanfabrics.event.ElementsDeselectedEvent;
+import org.beanfabrics.event.ElementsRemovedEvent;
+import org.beanfabrics.event.ElementsReplacedEvent;
+import org.beanfabrics.event.ElementsSelectedEvent;
+import org.beanfabrics.event.ListListener;
+import org.beanfabrics.model.IListPM;
 
 /**
- * The OneCommandDialog is a {@link View} on a
- * {@link de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialogPM}.
+ * The OneCommandDialog is a {@link View} on a {@link OneCommandDialogPM}.
  *
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
 @SuppressWarnings("serial")
-public class OneCommandDialog extends JDialog
-    implements View<de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialogPM>, ModelSubscriber {
+public class OneCommandDialog extends JDialog implements View<OneCommandDialogPM>, ModelSubscriber {
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
   private JScrollPane scrollPane;
-  private BnTextArea bnTextArea;
-  private JPanel pnlButtons;
-  private JButton btnCancel;
-  private BnButton bnbtnCopyToClipboard;
+  private JPanel commandPanel;
 
   public OneCommandDialog() {
     this(null);
@@ -94,24 +90,17 @@ public class OneCommandDialog extends JDialog
    * Constructs a new <code>OneCommandDialog</code>.
    */
   public OneCommandDialog(Window parent) {
-    super(parent, "Import via one Command");
+    super(parent, "Import Commands");
     init();
     setModal(true);
+    setResizable(false);
     setSize(500, 500);
     setLocationRelativeTo(getParent());
-    addWindowFocusListener(new WindowAdapter() {
-      @Override
-      public void windowGainedFocus(WindowEvent e) {
-        getBnTextArea().requestFocus();
-      }
-    });
   }
 
   private void init() {
     getContentPane().setLayout(new BorderLayout());
     getContentPane().add(getScrollPane(), BorderLayout.CENTER);
-    getContentPane().add(getPnlButtons(), BorderLayout.SOUTH);
-    getRootPane().setDefaultButton(getBnbtnCopyToClipboard());
     InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
     ActionMap actionMap = getRootPane().getActionMap();
     inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
@@ -132,20 +121,92 @@ public class OneCommandDialog extends JDialog
   protected ModelProvider getLocalModelProvider() {
     if (localModelProvider == null) {
       localModelProvider = new ModelProvider(); // @wb:location=10,430
-      localModelProvider
-          .setPresentationModelType(de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialogPM.class);
+      localModelProvider.setPresentationModelType(OneCommandDialogPM.class);
     }
     return localModelProvider;
   }
 
   /** {@inheritDoc} */
-  public de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialogPM getPresentationModel() {
+  public OneCommandDialogPM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
-  public void setPresentationModel(
-      de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialogPM pModel) {
+  public void setPresentationModel(OneCommandDialogPM pModel) {
+    ListListener l = new ListListener() {
+      @Override
+      public void elementsSelected(ElementsSelectedEvent evt) {}
+
+      @Override
+      public void elementsReplaced(ElementsReplacedEvent evt) {
+        int beginIndex = evt.getBeginIndex();
+        int length = evt.getLength();
+        this.remove(beginIndex, length);
+        @SuppressWarnings("unchecked")
+        IListPM<OneCommandPM> list = (IListPM<OneCommandPM>) evt.getSource();
+        this.add(list, beginIndex, length);
+      }
+
+      @Override
+      public void elementsRemoved(ElementsRemovedEvent evt) {
+        int beginIndex = evt.getBeginIndex();
+        int length = evt.getLength();
+        this.remove(beginIndex, length);
+      }
+
+      @Override
+      public void elementsDeselected(ElementsDeselectedEvent evt) {}
+
+      @Override
+      public void elementsAdded(ElementsAddedEvent evt) {
+        int beginIndex = evt.getBeginIndex();
+        int length = evt.getLength();
+        @SuppressWarnings("unchecked")
+        IListPM<OneCommandPM> list = (IListPM<OneCommandPM>) evt.getSource();
+        this.add(list, beginIndex, length);
+      }
+
+      @Override
+      public void elementChanged(ElementChangedEvent evt) {}
+
+      private void remove(int beginIndex, int length) {
+        for (int i = 0; i < length; i++) {
+          int index = beginIndex + i;
+          getCommandPanel().remove(index);
+        }
+        revalidate();
+        repaint();
+        setDefaultButton();
+      }
+
+      private void add(IListPM<OneCommandPM> list, int beginIndex, int length) {
+        for (int i = 0; i < length; i++) {
+          int index = beginIndex + i;
+          OneCommandPM commandPm = list.getAt(index);
+          this.addCommand(index, commandPm);
+        }
+        revalidate();
+        repaint();
+        setDefaultButton();
+      }
+
+      private void addCommand(int i, OneCommandPM commandPm) {
+        OneCommandPanel panel = new OneCommandPanel();
+        panel.setPresentationModel(commandPm);
+        getCommandPanel().add(panel, i);
+      }
+
+      private void setDefaultButton() {
+        try {
+          OneCommandPanel first = (OneCommandPanel) getCommandPanel().getComponent(0);
+          getRootPane().setDefaultButton(first.getBnbtnCopyAndClose());
+        } catch (ArrayIndexOutOfBoundsException | ClassCastException ex) {
+          // Do nothing
+        }
+      }
+
+    };
+    pModel.commands.addListListener(l);
     getLocalModelProvider().setPresentationModel(pModel);
   }
 
@@ -172,60 +233,17 @@ public class OneCommandDialog extends JDialog
   private JScrollPane getScrollPane() {
     if (scrollPane == null) {
       scrollPane = new JScrollPane();
-      scrollPane.setViewportView(getBnTextArea());
+      scrollPane.setViewportView(getCommandPanel());
     }
     return scrollPane;
   }
 
-  private BnTextArea getBnTextArea() {
-    if (bnTextArea == null) {
-      bnTextArea = new BnTextArea();
-      bnTextArea.setSelectAllOnFocusGainedEnabled(true);
-      bnTextArea.setLineWrap(true);
-      bnTextArea.setPath(new Path("this.oneCommand"));
-      bnTextArea.setModelProvider(getLocalModelProvider());
+  private JPanel getCommandPanel() {
+    if (commandPanel == null) {
+      commandPanel = new JPanel();
+      commandPanel.setLayout(new BoxLayout(commandPanel, BoxLayout.Y_AXIS));
     }
-    return bnTextArea;
+    return commandPanel;
   }
 
-  private JPanel getPnlButtons() {
-    if (pnlButtons == null) {
-      pnlButtons = new JPanel();
-      GridBagLayout gbl_pnlButtons = new GridBagLayout();
-      gbl_pnlButtons.columnWeights = new double[] {0.0, 0.0};
-      gbl_pnlButtons.rowWeights = new double[] {0.0};
-      pnlButtons.setLayout(gbl_pnlButtons);
-      GridBagConstraints gbc_bnbtnCopyToClipboard = new GridBagConstraints();
-      gbc_bnbtnCopyToClipboard.anchor = GridBagConstraints.EAST;
-      gbc_bnbtnCopyToClipboard.insets = new Insets(0, 0, 0, 5);
-      gbc_bnbtnCopyToClipboard.gridx = 0;
-      gbc_bnbtnCopyToClipboard.gridy = 0;
-      pnlButtons.add(getBnbtnCopyToClipboard(), gbc_bnbtnCopyToClipboard);
-      GridBagConstraints gbc_btnCancel = new GridBagConstraints();
-      gbc_btnCancel.anchor = GridBagConstraints.NORTHWEST;
-      gbc_btnCancel.gridx = 1;
-      gbc_btnCancel.gridy = 0;
-      pnlButtons.add(getBtnCancel(), gbc_btnCancel);
-    }
-    return pnlButtons;
-  }
-
-  private JButton getBtnCancel() {
-    if (btnCancel == null) {
-      btnCancel = new JButton("Cancel");
-      btnCancel.addActionListener(e -> dispose());
-    }
-    return btnCancel;
-  }
-
-  private BnButton getBnbtnCopyToClipboard() {
-    if (bnbtnCopyToClipboard == null) {
-      bnbtnCopyToClipboard = new BnButton();
-      bnbtnCopyToClipboard.setPath(new Path("this.copyToClipboard"));
-      bnbtnCopyToClipboard.setModelProvider(getLocalModelProvider());
-      bnbtnCopyToClipboard.setText("Copy to Clipboard");
-      bnbtnCopyToClipboard.addActionListener(e -> dispose());
-    }
-    return bnbtnCopyToClipboard;
-  }
 }

@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -74,11 +75,12 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
-import de.adrodoc55.minecraft.mpl.conversion.OneCommandConverter;
+import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
 import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
 import de.adrodoc55.minecraft.mpl.conversion.SchematicConverter;
 import de.adrodoc55.minecraft.mpl.gui.dialog.ExceptionDialog;
 import de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialog;
+import de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialogControler;
 import de.adrodoc55.minecraft.mpl.gui.dialog.OneCommandDialogPM;
 import de.adrodoc55.minecraft.mpl.gui.dialog.SearchAndReplaceDialog;
 import de.adrodoc55.minecraft.mpl.gui.dialog.SearchAndReplaceDialogControler;
@@ -213,13 +215,12 @@ public class MplFramePM extends AbstractPM {
     if (result == null) {
       return;
     }
-    String oneCommand = OneCommandConverter.convert(result);
-    Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-    OneCommandDialog dialog = new OneCommandDialog(activeWindow);
-    OneCommandDialogPM dialogPm = new OneCommandDialogPM();
-    dialogPm.setText(oneCommand);
-    dialog.setPresentationModel(dialogPm);
-    dialog.setVisible(true);
+    List<String> commands = CommandConverter.convert(result);
+    OneCommandDialogControler ctrl = new OneCommandDialogControler();
+    OneCommandDialogPM pm = ctrl.getPresentationModel();
+    OneCommandDialog view = ctrl.getView();
+    pm.setCommands(commands);
+    view.setVisible(true);
   }
 
   @Operation

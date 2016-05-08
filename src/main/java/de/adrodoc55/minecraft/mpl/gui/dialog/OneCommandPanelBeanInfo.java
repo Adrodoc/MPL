@@ -39,45 +39,20 @@
  */
 package de.adrodoc55.minecraft.mpl.gui.dialog;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
-
-import org.beanfabrics.model.AbstractPM;
-import org.beanfabrics.model.ListPM;
-import org.beanfabrics.model.PMManager;
+import org.beanfabrics.swing.ModelSubscriberBeanInfo;
 
 /**
  * @author Adrodoc55
+ * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class OneCommandDialogPM extends AbstractPM {
-  public static interface Context {
-    void close();
+public class OneCommandPanelBeanInfo extends ModelSubscriberBeanInfo {
+  @Override
+  protected Class<OneCommandPanel> getBeanClass() {
+    return OneCommandPanel.class;
   }
 
-  ListPM<OneCommandPM> commands = new ListPM<>();
-  private final Context context;
-
-  public OneCommandDialogPM(Context context) {
-    this.context = checkNotNull(context, "context = null!");
-    PMManager.setup(this);
-  }
-
-  public void setCommands(List<String> commands) {
-    this.commands.clear();
-    int i = 1;
-    for (String command : commands) {
-      OneCommandPM element = new OneCommandPM(i++, command, new OneCommandPM.Context() {
-        @Override
-        public void close(OneCommandPM pm) {
-          ListPM<OneCommandPM> commands = OneCommandDialogPM.this.commands;
-          commands.remove(pm);
-          if (commands.isEmpty()) {
-            context.close();
-          }
-        }
-      });
-      this.commands.add(element);
-    }
+  @Override
+  protected boolean isPathBound() {
+    return false;
   }
 }

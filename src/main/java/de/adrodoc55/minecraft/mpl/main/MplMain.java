@@ -43,6 +43,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 
 import javax.swing.JDialog;
 import javax.swing.SwingUtilities;
@@ -59,7 +60,7 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
-import de.adrodoc55.minecraft.mpl.conversion.OneCommandConverter;
+import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
 import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
 import de.adrodoc55.minecraft.mpl.conversion.SchematicConverter;
 import de.adrodoc55.minecraft.mpl.gui.MplFrame;
@@ -78,7 +79,7 @@ public class MplMain {
       startCompiler(args);
     } catch (CompilationFailedException ex) {
       System.err.println(ex.toString());
-    } catch(InvalidOptionException ex) {
+    } catch (InvalidOptionException ex) {
       System.err.println(ex.getLocalizedMessage());
     }
   }
@@ -220,8 +221,12 @@ public class MplMain {
       @Override
       public void write(MplCompilationResult compiled, OutputStream out, String name)
           throws IOException {
-        String convert = OneCommandConverter.convert(compiled);
-        out.write(convert.getBytes());
+        List<String> convert = CommandConverter.convert(compiled);
+        int i = 0;
+        for (String string : convert) {
+          out.write(("Command " + (++i) + ":\r\n").getBytes());
+          out.write(string.getBytes());
+        }
         out.close();
       }
     },

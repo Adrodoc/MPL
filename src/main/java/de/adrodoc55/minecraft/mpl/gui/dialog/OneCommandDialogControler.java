@@ -39,45 +39,43 @@
  */
 package de.adrodoc55.minecraft.mpl.gui.dialog;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
-
-import org.beanfabrics.model.AbstractPM;
-import org.beanfabrics.model.ListPM;
-import org.beanfabrics.model.PMManager;
+import java.awt.KeyboardFocusManager;
+import java.awt.Window;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
  * @author Adrodoc55
  */
-public class OneCommandDialogPM extends AbstractPM {
-  public static interface Context {
-    void close();
-  }
+public class OneCommandDialogControler {
+  private OneCommandDialogPM pm;
+  private OneCommandDialog view;
 
-  ListPM<OneCommandPM> commands = new ListPM<>();
-  private final Context context;
-
-  public OneCommandDialogPM(Context context) {
-    this.context = checkNotNull(context, "context = null!");
-    PMManager.setup(this);
-  }
-
-  public void setCommands(List<String> commands) {
-    this.commands.clear();
-    int i = 1;
-    for (String command : commands) {
-      OneCommandPM element = new OneCommandPM(i++, command, new OneCommandPM.Context() {
+  public OneCommandDialogPM getPresentationModel() {
+    if (pm == null) {
+      pm = new OneCommandDialogPM(new OneCommandDialogPM.Context() {
         @Override
-        public void close(OneCommandPM pm) {
-          ListPM<OneCommandPM> commands = OneCommandDialogPM.this.commands;
-          commands.remove(pm);
-          if (commands.isEmpty()) {
-            context.close();
-          }
+        public void close() {
+          getView().dispose();
         }
       });
-      this.commands.add(element);
     }
+    return pm;
+  }
+
+  public OneCommandDialog getView() {
+    if (view == null) {
+      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+      view = new OneCommandDialog(activeWindow);
+      view.setPresentationModel(getPresentationModel());
+      view.addWindowListener(new WindowAdapter() {
+        @Override
+        public void windowClosed(WindowEvent e) {
+          view = null;
+          pm = null;
+        }
+      });
+    }
+    return view;
   }
 }
