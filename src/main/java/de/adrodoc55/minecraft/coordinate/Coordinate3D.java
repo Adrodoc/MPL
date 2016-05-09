@@ -122,6 +122,15 @@ public class Coordinate3D {
     }
   }
 
+  public int get(Direction3D d) {
+    int value = get(d.getAxis());
+    if (d.isNegative()) {
+      return -value;
+    } else {
+      return value;
+    }
+  }
+
   public Coordinate3D plus(int skalar, Axis3D axis) {
     switch (axis) {
       case X:
@@ -250,4 +259,5 @@ public class Coordinate3D {
   private static List<Coordinate3D> getDirections() {
     return directions;
   }
+
 }

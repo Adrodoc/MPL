@@ -210,25 +210,9 @@ public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<Mp
       switch (token.getType()) {
         case MplLexer.EOF:
           break loop;
-        case MplLexer.IMPULSE:
-          Style style = getImpulseStyle();
-          styleToken(token, style);
-          break;
-        case MplLexer.CHAIN:
-          styleToken(token, getChainStyle());
-          break;
-        case MplLexer.REPEAT:
-          styleToken(token, getRepeatStyle());
-          break;
         case MplLexer.UNCONDITIONAL:
         case MplLexer.ALWAYS_ACTIVE:
           styleToken(token, getLowFocusKeywordStyle());
-          break;
-        case MplLexer.NEEDS_REDSTONE:
-          styleToken(token, getNeedsRedstoneStyle());
-          break;
-        case MplLexer.COMMENT:
-          styleToken(token, getCommentStyle());
           break;
         case MplLexer.ORIENTATION:
         case MplLexer.INCLUDE:
@@ -252,6 +236,18 @@ public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<Mp
         case MplLexer.ELSE:
           styleToken(token, getHighFocusKeywordStyle());
           break;
+        case MplLexer.IMPULSE:
+          styleToken(token, getImpulseStyle());
+          break;
+        case MplLexer.CHAIN:
+          styleToken(token, getChainStyle());
+          break;
+        case MplLexer.REPEAT:
+          styleToken(token, getRepeatStyle());
+          break;
+        case MplLexer.NEEDS_REDSTONE:
+          styleToken(token, getNeedsRedstoneStyle());
+          break;
         case MplLexer.IDENTIFIER:
           styleToken(token, getIdentifierStyle());
           break;
@@ -264,6 +260,9 @@ public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<Mp
             int stop = token.getStartIndex() + insert.end();
             styleToken(start, stop, getInsertStyle());
           }
+          break;
+        case MplLexer.COMMENT:
+          styleToken(token, getCommentStyle());
           break;
         case MplLexer.UNRECOGNIZED:
           styleToken(token, getErrorAttributes());
@@ -355,6 +354,16 @@ public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<Mp
     return needsRedstoneStyle;
   }
 
+  private Style getIdentifierStyle() {
+    Style identifierStyle = doc.getStyle("identifier");
+    if (identifierStyle == null) {
+      identifierStyle = doc.addStyle("identifier", getDefaultStyle());
+      StyleConstants.setBold(identifierStyle, true);
+      StyleConstants.setForeground(identifierStyle, new Color(128, 128, 0));
+    }
+    return identifierStyle;
+  }
+
   private Style getCommentStyle() {
     Style commentStyle = doc.getStyle("comment");
     if (commentStyle == null) {
@@ -372,16 +381,6 @@ public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<Mp
       StyleConstants.setBackground(insertStyle, new Color(240, 230, 140));
     }
     return insertStyle;
-  }
-
-  private Style getIdentifierStyle() {
-    Style identifierStyle = doc.getStyle("identifier");
-    if (identifierStyle == null) {
-      identifierStyle = doc.addStyle("identifier", getDefaultStyle());
-      StyleConstants.setBold(identifierStyle, true);
-      StyleConstants.setForeground(identifierStyle, new Color(128, 128, 0));
-    }
-    return identifierStyle;
   }
 
   private SimpleAttributeSet getErrorAttributes() {

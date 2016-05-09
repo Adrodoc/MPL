@@ -82,7 +82,7 @@ public class CommandBlockChain {
     return blocks;
   }
 
-  public Coordinate3D getFurthestFromStart(Orientation3D orientation) {
+  public Coordinate3D getBoundaries(Orientation3D orientation) {
     Iterator<MplBlock> it = blocks.iterator();
     if (!it.hasNext()) {
       return new Coordinate3D();

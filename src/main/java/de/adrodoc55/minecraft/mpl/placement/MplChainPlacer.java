@@ -46,6 +46,7 @@ import static de.kussm.direction.Direction.WEST;
 import static de.kussm.direction.Directions.$;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -54,6 +55,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
@@ -132,21 +134,31 @@ public abstract class MplChainPlacer {
    */
   protected CommandBlockChain generateFlat(CommandChain chain, Coordinate3D start,
       Directions template) {
-    List<ChainLink> commands = chain.getCommands();
-    Chain chainLinkChain = toChainLinkChain(commands);
-
-    Set<Position> forbiddenReceiver = new HashSet<>();
-    Set<Position> forbiddenTransmitter = new HashSet<>();
-    fillForbiddenPositions(start, forbiddenReceiver, forbiddenTransmitter);
-
-    LinkedHashMap<Position, ChainLinkType> placed =
-        place(chainLinkChain, template, forbiddenReceiver, forbiddenTransmitter);
-
+    LinkedHashMap<Position, ChainLinkType> placed = place(chain, start, template);
     String name = chain.getName();
-    List<MplBlock> blocks = toBlocks(commands, placed);
+    List<MplBlock> blocks = toBlocks(chain.getCommands(), placed);
     CommandBlockChain materialized = new CommandBlockChain(name, blocks);
     materialized.move(start);
     return materialized;
+  }
+
+  /**
+   * Places the given chain. The placement will not have any illegal transmitter or receiver
+   * regarding all chains that have already been added to {@link #chains}. Also the chain will not
+   * have any illegally placed conditional command blocks.
+   *
+   * @param chain
+   * @param start
+   * @param template
+   * @return
+   */
+  public LinkedHashMap<Position, ChainLinkType> place(CommandChain chain, Coordinate3D start,
+      Directions template) {
+    Chain chainLinkChain = toChainLinkChain(chain.getCommands());
+    Set<Position> forbiddenReceiver = new HashSet<>();
+    Set<Position> forbiddenTransmitter = new HashSet<>();
+    fillForbiddenPositions(start, forbiddenReceiver, forbiddenTransmitter);
+    return place(chainLinkChain, template, forbiddenReceiver, forbiddenTransmitter);
   }
 
   protected void fillForbiddenPositions(Coordinate3D start, Set<Position> forbiddenReceiver,
@@ -269,6 +281,14 @@ public abstract class MplChainPlacer {
       CommandBlockChain materialised = generateFlat(install, start, template);
       chains.add(materialised);
     }
+  }
+
+  public int getLongestSuccessiveConditionalCount() {
+    return Stream
+        .concat(container.getChains().stream().map(c -> c.getCommands()),
+            Stream.of(getInstall().getCommands(), getUninstall().getCommands()))
+        .map(commands -> getLongestSuccessiveConditionalCount(commands))
+        .max(Comparator.naturalOrder()).orElse(0);
   }
 
   public static int getLongestSuccessiveConditionalCount(List<? extends ChainLink> chainLinks) {

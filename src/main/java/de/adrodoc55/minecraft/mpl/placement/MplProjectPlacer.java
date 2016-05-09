@@ -44,7 +44,6 @@ import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOpt
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Stream;
 
 import de.adrodoc55.minecraft.coordinate.Axis3D;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
@@ -183,19 +182,11 @@ public class MplProjectPlacer extends MplChainPlacer {
     return 1 + getUninstall().getCommands().size() + container.getChains().size();
   }
 
-  public final int getLongestSuccessiveConditionalCount() {
-    return Stream
-        .concat(container.getChains().stream().map(c -> c.getCommands()),
-            Stream.of(getInstall().getCommands(), getUninstall().getCommands()))
-        .map(commands -> getLongestSuccessiveConditionalCount(commands))
-        .max(Comparator.naturalOrder()).orElse(0);
-  }
-
   private void occupyBlocks(CommandBlockChain materialized) {
     Orientation3D orientation = getOrientation();
     Direction3D b = orientation.getB();
     Direction3D c = orientation.getC();
-    Coordinate3D max = materialized.getFurthestFromStart(orientation);
+    Coordinate3D max = materialized.getBoundaries(orientation);
     int maxB = max.get(b.getAxis());
     int maxC = max.get(c.getAxis());
     occupied[Math.abs(maxC)] = Math.abs(maxB) + 1;
