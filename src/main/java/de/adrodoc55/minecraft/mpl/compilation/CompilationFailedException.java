@@ -42,7 +42,10 @@ package de.adrodoc55.minecraft.mpl.compilation;
 import java.io.File;
 import java.util.Map.Entry;
 
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
+
+import de.adrodoc55.minecraft.mpl.placement.NotEnoughSpaceException;
 
 /**
  * @author Adrodoc55
@@ -57,6 +60,11 @@ public class CompilationFailedException extends Exception {
     this.exceptions = exceptions;
   }
 
+  public CompilationFailedException(String message, NotEnoughSpaceException ex) {
+    super(message, ex);
+    exceptions = ImmutableListMultimap.of();
+  }
+
   public ListMultimap<File, CompilerException> getExceptions() {
     return exceptions;
   }
@@ -64,6 +72,10 @@ public class CompilationFailedException extends Exception {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
+    String message = getLocalizedMessage();
+    if (message != null) {
+      sb.append(message).append("\n\n");
+    }
     for (Entry<File, CompilerException> it : exceptions.entries()) {
       sb.append(it.getValue().toString());
       sb.append('\n');

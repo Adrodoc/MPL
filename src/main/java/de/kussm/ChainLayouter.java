@@ -5,6 +5,7 @@ import static de.kussm.chain.ChainLinkType.RECEIVER;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -14,6 +15,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import de.adrodoc55.minecraft.mpl.placement.NotEnoughSpaceException;
 import de.kussm.chain.Chain;
 import de.kussm.chain.ChainLinkType;
 import de.kussm.direction.Direction;
@@ -86,7 +88,10 @@ public class ChainLayouter {
     insertionPoint.currentChainLink = this.currentChainLink;
   }
 
-  private void restoreInsertionPoint() {
+  private void restoreInsertionPoint() throws NotEnoughSpaceException {
+    if (insertionPoint == null) {
+      throw new NotEnoughSpaceException();
+    }
     this.currentPosition = insertionPoint.currentPosition;
     this.placedReceivers = insertionPoint.placedReceivers;
     this.placedTransmitters = insertionPoint.placedTransmitters;
@@ -159,41 +164,47 @@ public class ChainLayouter {
   }
 
 
-  private LinkedHashMap<Position, ChainLinkType> getPlacement() {
-    while (currentChainLink != null) {
-      if (canPlaceChainLink()) {
-        if (insertionOfNoOperationIsPossible()) {
+  private LinkedHashMap<Position, ChainLinkType> getPlacement() throws NotEnoughSpaceException {
+    try {
+      while (currentChainLink != null) {
+        if (canPlaceChainLink()) {
+          if (insertionOfNoOperationIsPossible()) {
+            createInsertionPoint();
+          }
+          placeChainLink();
+        } else {
+          restoreInsertionPoint();
+          insertNoOperation();
           createInsertionPoint();
         }
-        placeChainLink();
-      } else {
-        restoreInsertionPoint();
-        insertNoOperation();
-        createInsertionPoint();
       }
+      return placedChainLinks;
+    } catch (NoSuchElementException ex) {
+      throw new NotEnoughSpaceException();
     }
-    return placedChainLinks;
   }
 
   public static LinkedHashMap<Position, ChainLinkType> place(Chain chain, Directions dirs,
       Position startPosition, Predicate<Position> isReceiverAllowed,
-      Predicate<Position> isTransmitterAllowed) {
+      Predicate<Position> isTransmitterAllowed) throws NotEnoughSpaceException {
     return new ChainLayouter(chain, dirs, startPosition, isReceiverAllowed, isTransmitterAllowed)
         .getPlacement();
   }
 
   public static LinkedHashMap<Position, ChainLinkType> place(Chain chain, Directions dirs,
-      Predicate<Position> isReceiverAllowed, Predicate<Position> isTransmitterAllowed) {
+      Predicate<Position> isReceiverAllowed, Predicate<Position> isTransmitterAllowed)
+          throws NotEnoughSpaceException {
     return place(chain, dirs, Position.at(0, 0), isReceiverAllowed, isTransmitterAllowed);
   }
 
-  public static LinkedHashMap<Position, ChainLinkType> place(Chain chain, Directions dirs) {
+  public static LinkedHashMap<Position, ChainLinkType> place(Chain chain, Directions dirs)
+      throws NotEnoughSpaceException {
     return place(chain, dirs, Position.at(0, 0), pos -> true, pos -> true);
   }
 
   public static LinkedHashMap<Position, ChainLinkType> place(Chain chain, Directions dirs,
-      Position startPosition, Set<Position> forbiddenReceivers,
-      Set<Position> forbiddenTransmitters) {
+      Position startPosition, Set<Position> forbiddenReceivers, Set<Position> forbiddenTransmitters)
+          throws NotEnoughSpaceException {
     return new ChainLayouter(chain, dirs, startPosition, pos -> !forbiddenReceivers.contains(pos),
         pos -> !forbiddenTransmitters.contains(pos)).getPlacement();
   }

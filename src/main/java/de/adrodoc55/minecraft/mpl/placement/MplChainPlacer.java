@@ -44,9 +44,9 @@ import static de.kussm.direction.Direction.EAST;
 import static de.kussm.direction.Direction.NORTH;
 import static de.kussm.direction.Direction.WEST;
 import static de.kussm.direction.Directions.$;
+import static java.util.Comparator.naturalOrder;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -108,17 +108,7 @@ public abstract class MplChainPlacer {
     return container.getUninstall();
   }
 
-  public abstract List<CommandBlockChain> place();
-
-  /**
-   * Calculates the optimal boundaries for this Program. The optimal boundaries must be smaller than
-   * {@code program.getMax()}, but should leave enough space for conditional chains.<br>
-   * The optimal size is a zero based exclusive coordinate. That means that a result of (1, 1, 1)
-   * relates to a 1 block sized cube.<br>
-   *
-   * @return opt the optimal boundaries
-   */
-  protected abstract Coordinate3D getOptimalSize();
+  public abstract List<CommandBlockChain> place() throws NotEnoughSpaceException;
 
   /**
    * Generates a flat {@link CommandBlockChain}. Flat means, that the chain will not have any width
@@ -131,9 +121,10 @@ public abstract class MplChainPlacer {
    * @param start the starting coordinate of the chain
    * @param template
    * @return
+   * @throws NotEnoughSpaceException
    */
-  protected CommandBlockChain generateFlat(CommandChain chain, Coordinate3D start,
-      Directions template) {
+  public CommandBlockChain generateFlat(CommandChain chain, Coordinate3D start, Directions template)
+      throws NotEnoughSpaceException {
     LinkedHashMap<Position, ChainLinkType> placed = place(chain, start, template);
     String name = chain.getName();
     List<MplBlock> blocks = toBlocks(chain.getCommands(), placed);
@@ -151,9 +142,10 @@ public abstract class MplChainPlacer {
    * @param start
    * @param template
    * @return
+   * @throws NotEnoughSpaceException
    */
   public LinkedHashMap<Position, ChainLinkType> place(CommandChain chain, Coordinate3D start,
-      Directions template) {
+      Directions template) throws NotEnoughSpaceException {
     Chain chainLinkChain = toChainLinkChain(chain.getCommands());
     Set<Position> forbiddenReceiver = new HashSet<>();
     Set<Position> forbiddenTransmitter = new HashSet<>();
@@ -161,7 +153,7 @@ public abstract class MplChainPlacer {
     return place(chainLinkChain, template, forbiddenReceiver, forbiddenTransmitter);
   }
 
-  protected void fillForbiddenPositions(Coordinate3D start, Set<Position> forbiddenReceiver,
+  private void fillForbiddenPositions(Coordinate3D start, Set<Position> forbiddenReceiver,
       Set<Position> forbiddenTransmitter) {
     Orientation3D orientation = getOrientation();
     Axis3D cAxis = orientation.getC().getAxis();
@@ -194,8 +186,35 @@ public abstract class MplChainPlacer {
     }
   }
 
-  protected LinkedHashMap<Position, ChainLinkType> place(Chain linkChain, Directions template,
-      Set<Position> forbiddenReceivers, Set<Position> forbiddenTransmitters) {
+  /**
+   * Places the chain according to the template without regarding forbidden transmitter/receiver
+   * positions. The chain will not have any illegally placed conditional command blocks.
+   *
+   * @param chain
+   * @param template
+   * @return
+   * @throws NotEnoughSpaceException
+   */
+  public LinkedHashMap<Position, ChainLinkType> place(Chain chain, Directions template)
+      throws NotEnoughSpaceException {
+    return place(chain, template, new HashSet<>(), new HashSet<>());
+  }
+
+  /**
+   * Places the given chain. The placement will not have any illegal transmitter or receiver
+   * regarding the parameters. Also the chain will not have any illegally placed conditional command
+   * blocks.
+   *
+   * @param chain
+   * @param template
+   * @param forbiddenReceivers
+   * @param forbiddenTransmitters
+   * @return
+   * @throws NotEnoughSpaceException
+   */
+  protected LinkedHashMap<Position, ChainLinkType> place(Chain chain, Directions template,
+      Set<Position> forbiddenReceivers, Set<Position> forbiddenTransmitters)
+          throws NotEnoughSpaceException {
     if (options.hasOption(TRANSMITTER)) {
       // receivers are not allowed at x=0 because the start transmitters of all chains are at x=0
       Predicate<Position> isReceiverAllowed =
@@ -205,9 +224,32 @@ public abstract class MplChainPlacer {
       Predicate<Position> isTransmitterAllowed =
           pos -> !forbiddenTransmitters.contains(pos) && pos.getX() != 1;
 
-      return ChainLayouter.place(linkChain, template, isReceiverAllowed, isTransmitterAllowed);
+      return ChainLayouter.place(chain, template, isReceiverAllowed, isTransmitterAllowed);
     } else {
-      return ChainLayouter.place(linkChain, template);
+      return ChainLayouter.place(chain, template);
+    }
+  }
+
+  protected void populateUnInstall() {
+    for (CommandBlockChain chain : chains) {
+      if (chain.getName() == null) {
+        continue;
+      }
+      Coordinate3D chainStart = chain.getBlocks().get(0).getCoordinate();
+      // TODO: Alle ArmorStands taggen, damit nur ein uninstallation command notwendig
+      int index = options.hasOption(TRANSMITTER) ? 2 : 1;
+
+      getInstall().getCommands()
+          .add(index,
+              new Command("/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString()
+                  + ")} {CustomName:" + chain.getName()
+                  + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
+      getUninstall().getCommands()
+          .add(new Command("/kill @e[type=ArmorStand,name=" + chain.getName() + "]"));
+      // uninstallation
+      // .add(0,new Command("/kill @e[type=ArmorStand,name=" + name + "_NOTIFY]"));
+      // uninstallation
+      // .add(0,new Command("/kill @e[type=ArmorStand,name=" + name + "_INTERCEPTED]"));
     }
   }
 
@@ -248,47 +290,12 @@ public abstract class MplChainPlacer {
     return blocks;
   }
 
-  /**
-   * This method generates both installation uninstallation of the program at (0, 0, 0) and adds
-   * them to {@link #chains}. The resulting chains are in the same flat plane.
-   *
-   * @see #generateFlat(CommandChain, Coordinate3D, Directions)
-   */
-  protected void generateUnInstallation() {
-    Orientation3D orientation = getOrientation();
-    Coordinate3D optimalSize = getOptimalSize();
-    Axis3D aAxis = orientation.getA().getAxis();
-    int aSize = optimalSize.get(aAxis);
-    // Bei ungerader Größe hat install einen Block weniger, da install effektiv 2 Reihen mehr hat.
-    int aInstall = aSize / 2;
-    int aUninstall = aSize - aInstall;
-
-    CommandChain uninstall = getUninstall();
-    if (!uninstall.getCommands().isEmpty()) {
-      Coordinate3D start = orientation.getB().toCoordinate();
-      Coordinate3D size = optimalSize.minus(aInstall, aAxis);
-      Directions template = newDirectionsTemplate(size, orientation);
-      CommandBlockChain materialised = generateFlat(uninstall, start, template);
-      chains.add(materialised);
-    }
-
-    CommandChain install = getInstall();
-    if (!install.getCommands().isEmpty()) {
-      Coordinate3D start = new Coordinate3D();
-      Coordinate3D size = optimalSize.minus(aUninstall, aAxis);
-      Directions template =
-          $(EAST.repeat(Math.abs(aUninstall)), newDirectionsTemplate(size, orientation));
-      CommandBlockChain materialised = generateFlat(install, start, template);
-      chains.add(materialised);
-    }
-  }
-
   public int getLongestSuccessiveConditionalCount() {
     return Stream
         .concat(container.getChains().stream().map(c -> c.getCommands()),
             Stream.of(getInstall().getCommands(), getUninstall().getCommands()))
-        .map(commands -> getLongestSuccessiveConditionalCount(commands))
-        .max(Comparator.naturalOrder()).orElse(0);
+        .map(commands -> getLongestSuccessiveConditionalCount(commands)).max(naturalOrder())
+        .orElse(0);
   }
 
   public static int getLongestSuccessiveConditionalCount(List<? extends ChainLink> chainLinks) {
@@ -394,12 +401,8 @@ public abstract class MplChainPlacer {
     return Chain.of(chainLinkTypes.toArray(new ChainLinkType[0]));
   }
 
-  public static Directions newDirectionsTemplate(Coordinate3D size, Orientation3D orientation) {
-    int sizeA = Math.abs(size.get(orientation.getA().getAxis()));
-    int sizeB = Math.abs(size.get(orientation.getB().getAxis()));
-    Directions dirs =
-        $(EAST.repeat(sizeA - 1), NORTH, WEST.repeat(sizeA - 1), NORTH).repeat((sizeB + 1) * sizeA);
-    return dirs;
+  protected static Directions newTemplate(int a) {
+    return $(EAST.repeat(a - 1), NORTH, WEST.repeat(a - 1), NORTH).repeat();
   }
 
 }

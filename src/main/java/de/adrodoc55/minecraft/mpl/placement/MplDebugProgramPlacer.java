@@ -45,25 +45,22 @@ import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.kussm.direction.Directions;
 
 /**
  * @author Adrodoc55
  */
-public class MplDebugProjectPlacer extends MplChainPlacer {
+public class MplDebugProgramPlacer extends MplChainPlacer {
 
   private Coordinate3D start = new Coordinate3D().plus(4, getOrientation().getC().getAxis());
 
-  public MplDebugProjectPlacer(ChainContainer container, CompilerOptions options) {
+  public MplDebugProgramPlacer(ChainContainer container, CompilerOptions options) {
     super(container, options);
   }
 
   @Override
-  public List<CommandBlockChain> place() {
+  public List<CommandBlockChain> place() throws NotEnoughSpaceException {
     for (CommandChain chain : container.getChains()) {
       addChain(chain);
     }
@@ -71,53 +68,36 @@ public class MplDebugProjectPlacer extends MplChainPlacer {
     return chains;
   }
 
-  public void addChain(CommandChain chain) {
-    Coordinate3D max = new Coordinate3D(1, 1, 1).plus(chain.getCommands().size() + 1,
-        getOrientation().getA().getAxis());
-    Directions template = newDirectionsTemplate(max, getOrientation());
+  public void addChain(CommandChain chain) throws NotEnoughSpaceException {
+    Directions template = newTemplate(chain.getCommands().size() + 1);
 
     CommandBlockChain result = generateFlat(chain, start, template);
     chains.add(result);
     start = start.plus(getOrientation().getC().toCoordinate().mult(2));
   }
 
-  protected void addUnInstallation() {
+  private void addUnInstallation() throws NotEnoughSpaceException {
     start = new Coordinate3D();
-    List<ChainLink> installation = container.getInstall().getCommands();
-    List<ChainLink> uninstallation = container.getUninstall().getCommands();
 
+    // move all chains by 2 block, if install is added and 2 more blocks if uninstall is added.
+    // if there is at least one process, both installation and unistallation will be added.
+    int offset = 0;
+    if (!container.getChains().isEmpty()) {
+      offset = 2;
+    } else if (!getInstall().getCommands().isEmpty()) {
+      offset++;
+    } else if (!getUninstall().getCommands().isEmpty()) {
+      offset++;
+    }
     for (CommandBlockChain chain : chains) {
-      Coordinate3D chainStart = chain.getBlocks().get(0).getCoordinate();
-      // TODO: Alle ArmorStands taggen, damit nur ein uninstallation command notwendig
-      installation.add(0,
-          new Command("/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString()
-              + ")} {CustomName:" + chain.getName()
-              + ",NoGravity:1,Invisible:1,Invulnerable:1,Marker:1,CustomNameVisible:1}"));
-      uninstallation.add(new Command("/kill @e[type=ArmorStand,name=" + chain.getName() + "]"));
-      // uninstallation
-      // .add(0,new Command("/kill @e[type=ArmorStand,name=" + name + "_NOTIFY]"));
-      // uninstallation
-      // .add(0,new Command("/kill @e[type=ArmorStand,name=" + name + "_INTERCEPTED]"));
+      chain.move(getOrientation().getC().toCoordinate().mult(offset));
     }
-
-    if (!installation.isEmpty()) {
-      installation.add(0, new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
-    }
-    if (!uninstallation.isEmpty()) {
-      uninstallation.add(0, new Command("/setblock ${this - 1} stone", Mode.IMPULSE, false));
-    }
-    generateUnInstallation();
+    populateUnInstall();
+    generateUnInstall();
   }
 
-  @Override
-  protected void generateUnInstallation() {
+  protected void generateUnInstall() throws NotEnoughSpaceException {
     addChain(container.getInstall());
     addChain(container.getUninstall());
   }
-
-  @Override
-  protected Coordinate3D getOptimalSize() {
-    throw new UnsupportedOperationException();
-  }
-
 }

@@ -25,7 +25,7 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 public class MplProjectPlacerTest extends MplTestBase {
 
   @Test
-  public void test_size() {
+  public void test_size() throws NotEnoughSpaceException {
     // given:
     int chainCount = several();
     List<ChainLink> list = listOf(some($Command()));
@@ -35,14 +35,14 @@ public class MplProjectPlacerTest extends MplTestBase {
 
     // when:
     List<CommandBlockChain> chains =
-        new MplProjectPlacer(container, new CompilerOptions(TRANSMITTER)).place();
+        new MplProgramPlacer(container, new CompilerOptions(TRANSMITTER)).place();
 
     // then:
     assertThat(chains.size()).isEqualTo(chainCount);
   }
 
   @Test
-  public void test_unconditional_Start() {
+  public void test_unconditional_Start() throws NotEnoughSpaceException {
     // given:
     CommandChain chain = some($CommandChain().withCommands(listOf(//
         new Command("/say hi"))));
@@ -52,7 +52,7 @@ public class MplProjectPlacerTest extends MplTestBase {
 
     // when:
     List<CommandBlockChain> chains =
-        new MplProjectPlacer(container, new CompilerOptions(TRANSMITTER)).place();
+        new MplProgramPlacer(container, new CompilerOptions(TRANSMITTER)).place();
 
     // then:
     assertThat(chains.size()).isEqualTo(1);

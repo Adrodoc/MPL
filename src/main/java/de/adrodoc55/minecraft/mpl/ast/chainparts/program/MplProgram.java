@@ -101,7 +101,7 @@ public class MplProgram implements MplNode, Named {
     if (max != null) {
       return max;
     } else {
-      return new Coordinate3D(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+      return new Coordinate3D(-1, -1, -1);
     }
   }
 

@@ -39,18 +39,15 @@
  */
 package de.adrodoc55.minecraft.mpl.placement;
 
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static de.kussm.direction.Direction.EAST;
-import static de.kussm.direction.Direction.NORTH;
-import static de.kussm.direction.Direction.WEST;
 import static de.kussm.direction.Directions.$;
+import static java.util.Comparator.naturalOrder;
 
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
@@ -60,7 +57,6 @@ import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
-import de.kussm.ChainLayouter;
 import de.kussm.chain.Chain;
 import de.kussm.chain.ChainLinkType;
 import de.kussm.direction.Directions;
@@ -72,43 +68,82 @@ import de.kussm.position.Position;
 public class MplProgramPlacer extends MplChainPlacer {
 
   private final int[] occupied;
+  private Position size;
 
-  protected MplProgramPlacer(ChainContainer container, CompilerOptions options) {
+  public MplProgramPlacer(ChainContainer container, CompilerOptions options) {
     super(container, options);
     int size = container.getChains().size() + 2;
     this.occupied = new int[size];
   }
 
   @Override
-  public List<CommandBlockChain> place() {
+  public List<CommandBlockChain> place() throws NotEnoughSpaceException {
     List<CommandChain> chains = new ArrayList<>(container.getChains());
     // start with the longest chain
     chains.sort((o1, o2) -> {
       return Integer.compare(o1.getCommands().size(), o2.getCommands().size()) * -1;
     });
     while (true) {
+      this.chains.clear();
       try {
         for (CommandChain chain : chains) {
-          Coordinate3D start = findStart(chain);
-          LinkedHashMap<Position, ChainLinkType> placed =
-              place(chain, start, newTemplate(getSize().getX()));
-          String name = chain.getName();
-          List<MplBlock> blocks = toBlocks(chain.getCommands(), placed);
-          CommandBlockChain materialized = new CommandBlockChain(name, blocks);
-          materialized.move(start);
-          occupyBlocks(materialized);
+          addChain(chain);
         }
+        addUnInstallation();
         break;
-      } catch (NotEnoughSpaceException e) {
+      } catch (NotEnoughSpaceException ex) {
         increaseSize();
         continue;
       }
     }
-
     return this.chains;
   }
 
-  protected Position getSize() {
+  private void addChain(CommandChain chain) throws NotEnoughSpaceException {
+    Coordinate3D start = findStart(chain);
+    LinkedHashMap<Position, ChainLinkType> placed =
+        place(chain, start, newTemplate(getSize().getX()));
+    String name = chain.getName();
+    List<MplBlock> blocks = toBlocks(chain.getCommands(), placed);
+    CommandBlockChain materialized = new CommandBlockChain(name, blocks);
+    materialized.move(start);
+    occupyBlocks(materialized);
+    this.chains.add(materialized);
+  }
+
+  private void increaseSize() throws NotEnoughSpaceException {
+    Coordinate3D max = container.getMax();
+    Orientation3D o = getOrientation();
+    Direction3D a = o.getA();
+    Direction3D b = o.getB();
+    int maxA = max.get(a.getAxis());
+    int maxB = max.get(b.getAxis());
+    int x = getSize().getX();
+    int y = getSize().getY();
+    if (x < maxA || maxA < 0) {
+      size = Position.at(x + 1, y);
+    } else if (y < maxB || maxB < 0) {
+      size = Position.at(x, y + 1);
+    } else {
+      throw new NotEnoughSpaceException();
+    }
+  }
+
+  /**
+   * Returns the current size to place the program. This is an exclusive, zero based
+   * {@link Position}, so (1, 1) refers to a 1 block size.
+   *
+   * @return
+   * @throws NotEnoughSpaceException
+   */
+  protected Position getSize() throws NotEnoughSpaceException {
+    if (size == null) {
+      size = calculateInitialSize();
+    }
+    return size;
+  }
+
+  private Position calculateInitialSize() throws NotEnoughSpaceException {
     Orientation3D orientation = getOrientation();
     Direction3D a = orientation.getA();
     Direction3D b = orientation.getB();
@@ -118,37 +153,47 @@ public class MplProgramPlacer extends MplChainPlacer {
       return Position.at(maxA, maxB);
     }
     if (maxB >= 0) {
-
-
-      return null;
+      int minA = estimateMinA();
+      return Position.at(minA, maxB);
     }
-    int optA;
+    int minA;
     if (maxA >= 0) {
-      optA = maxA;
+      minA = maxA;
     } else {
-      int installLength = container.getInstall().getCommands().size()
-          + container.getUninstall().getCommands().size() + 2;
-      int longestProcessLength = container.getChains().stream()
-          .map(chain -> chain.getCommands().size()).max(Comparator.naturalOrder()).orElse(0);
-      int longestChainLength = Math.max(installLength, longestProcessLength);
-
-      int length = (int) Math.ceil(Math.sqrt(longestChainLength));
-      optA = Math.max(length, getLongestSuccessiveConditionalCount() + 3);
+      minA = estimateMinA();
     }
 
-    int optB = 0;
+    int minB = 0;
     while (true) {
-      for (CommandChain chain : container.getChains()) {
-        optB = Math.max(optB, getMinB(chain, newTemplate(optA)));
+      int currentA = minA;
+      for (CommandChain c : container.getChains()) {
+        minB = Math.max(minB, getMinB(c, newTemplate(currentA)));
       }
-      if (optA < optB) {
-        optA = optB;
+      if (minA < minB) {
+        minA++;
         continue;
       }
-      break;
+      return Position.at(minA, minB);
     }
-    return Position.at(optA, optB);
+  }
 
+  /**
+   * Estimates the minimal a required to place all chains efficiently.
+   *
+   * @return
+   */
+  private int estimateMinA() {
+    int installLength = container.getInstall().getCommands().size()
+        + container.getUninstall().getCommands().size() + 2;
+
+    int longestProcessLength = container.getChains().stream()//
+        .map(chain -> chain.getCommands().size())//
+        .max(naturalOrder()).orElse(0);
+
+    int longestChainLength = Math.max(installLength, longestProcessLength);
+
+    int sqrtLength = (int) Math.ceil(Math.sqrt(longestChainLength));
+    return Math.max(sqrtLength, getLongestSuccessiveConditionalCount() + 3);
   }
 
   /**
@@ -184,12 +229,13 @@ public class MplProgramPlacer extends MplChainPlacer {
    */
   protected Coordinate3D findStart(int b) throws NotEnoughSpaceException {
     Orientation3D orientation = getOrientation();
+    Direction3D cDir = orientation.getC();
     Coordinate3D bPos = orientation.getB().toCoordinate();
-    Coordinate3D cPos = orientation.getC().toCoordinate();
+    Coordinate3D cPos = cDir.toCoordinate();
 
     Position size = getSize();
     for (int c = 0; c < occupied.length; c++) {
-      int totalB = occupied[c] + Math.abs(b);
+      int totalB = occupied[c] + b;
       if (totalB <= size.getY()) {
         return cPos.mult(c).plus(bPos.mult(occupied[c]));
       }
@@ -204,34 +250,13 @@ public class MplProgramPlacer extends MplChainPlacer {
    * @param chain
    * @param template
    * @return
+   * @throws NotEnoughSpaceException if the template is too small
    */
-  protected int getMinB(CommandChain chain, Directions template) {
+  protected int getMinB(CommandChain chain, Directions template) throws NotEnoughSpaceException {
     Chain chainLinkChain = toChainLinkChain(chain.getCommands());
     LinkedHashMap<Position, ChainLinkType> placed = place(chainLinkChain, template);
     Set<Position> keySet = placed.keySet();
-    return getMaxY(keySet);
-  }
-
-  /**
-   * Places the chain according to the template without regarding forbidden transmitter/receiver
-   * positions.
-   *
-   * @param chain
-   * @param template
-   * @return
-   */
-  protected LinkedHashMap<Position, ChainLinkType> place(Chain chain, Directions template) {
-    if (options.hasOption(TRANSMITTER)) {
-      // receivers are not allowed at x=0 because the start transmitters of all chains are at x=0
-      Predicate<Position> isReceiverAllowed = pos -> pos.getX() != 0;
-
-      // transmitters are not allowed at x=1 because the start receivers of all chains are at x=1
-      Predicate<Position> isTransmitterAllowed = pos -> pos.getX() != 1;
-
-      return ChainLayouter.place(chain, template, isReceiverAllowed, isTransmitterAllowed);
-    } else {
-      return ChainLayouter.place(chain, template);
-    }
+    return getMaxY(keySet) + 1; // +1 because y is zero based, but we want the actual height
   }
 
   /**
@@ -240,12 +265,8 @@ public class MplProgramPlacer extends MplChainPlacer {
    * @param positions
    * @return the greatest y value
    */
-  protected int getMaxY(Iterable<Position> positions) {
-    int y = 0;
-    for (Position position : positions) {
-      y = Math.max(y, position.getY());
-    }
-    return y;
+  protected int getMaxY(Collection<Position> positions) {
+    return positions.stream().map(p -> p.getY()).max(naturalOrder()).orElse(0);
   }
 
   protected void occupyBlocks(CommandBlockChain materialized) {
@@ -258,8 +279,47 @@ public class MplProgramPlacer extends MplChainPlacer {
     occupied[Math.abs(maxC)] = Math.abs(maxB) + 1;
   }
 
-  protected static Directions newTemplate(int a) {
-    return $(EAST.repeat(a - 1), NORTH, WEST.repeat(a - 1), NORTH).repeat();
+  private void addUnInstallation() throws NotEnoughSpaceException {
+    // move all chains by 1 block, if installation or uninstallation is added.
+    // if there is at least one process, both installation and unistallation will be added.
+    if (!container.getChains().isEmpty()//
+        || !getInstall().getCommands().isEmpty()//
+        || !getUninstall().getCommands().isEmpty()) {
+      for (CommandBlockChain chain : chains) {
+        chain.move(getOrientation().getC().toCoordinate());
+      }
+    }
+    populateUnInstall();
+    generateUnInstall();
+  }
+
+  /**
+   * This method generates both installation uninstallation of the program at (0, 0, 0) and adds
+   * them to {@link #chains}. The resulting chains are in the same flat plane.
+   *
+   * @see #generateFlat(CommandChain, Coordinate3D, Directions)
+   */
+  protected void generateUnInstall() throws NotEnoughSpaceException {
+    int sizeA = getSize().getX();
+    // Bei ungerader Größe hat install einen Block weniger, da install effektiv 2 Reihen mehr hat.
+    int installA = sizeA / 2;
+    int uninstallA = sizeA - installA;
+
+    CommandChain uninstall = getUninstall();
+    if (!uninstall.getCommands().isEmpty()) {
+      Coordinate3D start = getOrientation().getB().toCoordinate();
+      Directions template = newTemplate(installA);
+      CommandBlockChain materialised = generateFlat(uninstall, start, template);
+      chains.add(materialised);
+    }
+
+    CommandChain install = getInstall();
+    if (!install.getCommands().isEmpty()) {
+      Coordinate3D start = new Coordinate3D();
+      Directions template = $(EAST.repeat(Math.abs(uninstallA)), newTemplate(uninstallA));
+      CommandBlockChain materialised = generateFlat(install, start, template);
+      chains.add(materialised);
+    }
   }
 
 }

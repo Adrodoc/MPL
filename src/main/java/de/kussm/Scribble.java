@@ -9,6 +9,7 @@ import static de.kussm.direction.Direction.NORTH;
 import static de.kussm.direction.Direction.WEST;
 import static de.kussm.direction.Directions.$;
 
+import de.adrodoc55.minecraft.mpl.placement.NotEnoughSpaceException;
 import de.kussm.chain.Chain;
 import de.kussm.direction.Directions;
 
@@ -52,7 +53,7 @@ public class Scribble {
       NORMAL, NORMAL, NORMAL, NORMAL, NORMAL, NORMAL);
 
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws NotEnoughSpaceException {
     // Directions dirs = $(EAST.repeat(16), NORTH, WEST.repeat(16), NORTH).repeat(1000);
     Directions dirs = $(EAST.repeat(4), NORTH, WEST.repeat(4), NORTH).repeat();
     System.out.println(ChainLayouter.place(EXAMPLE_CHAIN1, dirs));

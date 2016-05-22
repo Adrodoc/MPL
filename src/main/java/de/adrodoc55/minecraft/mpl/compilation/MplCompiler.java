@@ -78,8 +78,9 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.interpretation.Include;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter;
-import de.adrodoc55.minecraft.mpl.placement.MplDebugProjectPlacer;
-import de.adrodoc55.minecraft.mpl.placement.MplProjectPlacer;
+import de.adrodoc55.minecraft.mpl.placement.MplDebugProgramPlacer;
+import de.adrodoc55.minecraft.mpl.placement.MplProgramPlacer;
+import de.adrodoc55.minecraft.mpl.placement.NotEnoughSpaceException;
 
 
 /**
@@ -112,12 +113,18 @@ public class MplCompiler extends MplBaseListener {
     return container;
   }
 
-  private static List<CommandBlockChain> place(ChainContainer container, CompilerOptions options) {
+  private static List<CommandBlockChain> place(ChainContainer container, CompilerOptions options)
+      throws CompilationFailedException {
     List<CommandBlockChain> chains;
-    if (options.hasOption(DEBUG)) {
-      chains = new MplDebugProjectPlacer(container, options).place();
-    } else {
-      chains = new MplProjectPlacer(container, options).place();
+    try {
+      if (options.hasOption(DEBUG)) {
+        chains = new MplDebugProgramPlacer(container, options).place();
+      } else {
+        chains = new MplProgramPlacer(container, options).place();
+      }
+    } catch (NotEnoughSpaceException ex) {
+      throw new CompilationFailedException(
+          "The maximum coordinate is to small to place the entire program", ex);
     }
     for (CommandBlockChain chain : chains) {
       insertRelativeCoordinates(chain.getBlocks(), container.getOrientation());
