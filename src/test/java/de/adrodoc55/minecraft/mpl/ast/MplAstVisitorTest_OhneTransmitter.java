@@ -56,7 +56,6 @@ import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
@@ -72,24 +71,23 @@ import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
-public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
+public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
 
   @Override
   protected MplAstVisitorImpl newUnderTest() {
-    return new MplAstVisitorImpl(new CompilerOptions(TRANSMITTER, DEBUG));
+    return new MplAstVisitorImpl(new CompilerOptions(DEBUG));
   }
 
   @Override
   protected String getOnCommand(String ref) {
-    return "setblock " + ref + " redstone_block";
+    return "blockdata " + ref + " {auto:1}";
   }
 
   @Override
   protected String getOffCommand(String ref) {
-    return "setblock " + ref + " stone";
+    return "blockdata " + ref + " {auto:0}";
   }
 
   // @formatter:off
@@ -122,8 +120,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
 
     // then:
     assertThat(underTest.commands).containsExactly(//
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE), //
+        new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE), //
         new Command(first.getCommand(), first), //
         new InvertingCommand(first.getMode()), // Important line!
         new Command(second.getCommand(), second));
@@ -148,7 +145,6 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
 
     // then:
     assertThat(underTest.commands).containsExactly(//
-        new MplSkip(), //
         new Command(first.getCommand(), REPEAT, false, first.getNeedsRedstone()), //
         new InvertingCommand(REPEAT), // Important line!
         new Command(second.getCommand(), second));
@@ -178,8 +174,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplWaitfor.getEvent()
             + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE));
+        new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE));
   }
 
   @Test
@@ -197,8 +192,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
             + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
         new InvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE));
+        new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE));
   }
 
   @Test
@@ -216,8 +210,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         new InvertingCommand(CHAIN), //
         new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplWaitfor.getEvent()
             + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE));
+        new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE));
   }
 
   // @formatter:off
@@ -246,8 +239,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
             + mplIntercept.getEvent() + INTERCEPTED + "}"), //
         new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplIntercept.getEvent()
             + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE), //
+        new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE), //
         new InternalCommand("/kill @e[name=" + mplIntercept.getEvent() + ",r=2]"), //
         new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + INTERCEPTED
             + "] {CustomName:" + mplIntercept.getEvent() + "}"));
@@ -282,8 +274,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
             + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
         new InvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE), //
+        new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE), //
         new InternalCommand("/kill @e[name=" + mplIntercept.getEvent() + ",r=2]"), //
         new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + INTERCEPTED
             + "] {CustomName:" + mplIntercept.getEvent() + "}"));
@@ -318,8 +309,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
             + mplIntercept.getEvent() + INTERCEPTED + "}", true), //
         new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplIntercept.getEvent()
             + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE), //
+        new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE), //
         new InternalCommand("/kill @e[name=" + mplIntercept.getEvent() + ",r=2]"), //
         new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + INTERCEPTED
             + "] {CustomName:" + mplIntercept.getEvent() + "}"));
@@ -351,8 +341,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         new InternalCommand("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~")), //
         new InternalCommand(
             "/summon ArmorStand ${this + 1} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE));
+        new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE));
   }
 
   @Test
@@ -373,8 +362,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
             true), //
         new InvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE));
+        new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE));
   }
 
   @Test
@@ -408,8 +396,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
             true), //
         new InvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE));
+        new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE));
   }
 
   // @formatter:off
@@ -442,7 +429,6 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
 
     // then:
     assertThat(underTest.commands).containsExactly(//
-        new MplSkip(), //
         new InternalCommand(mplIf.getCondition(), REPEAT), //
         // then
         new InternalCommand(

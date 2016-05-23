@@ -289,7 +289,12 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       commands.add(summon);
     } else {
       summon.setConditional(true);
-      ReferencingCommand jump = new ReferencingCommand("setblock " + REF + " redstone_block", true);
+      ReferencingCommand jump;
+      if (options.hasOption(TRANSMITTER)) {
+        jump = new ReferencingCommand("setblock " + REF + " redstone_block", true);
+      } else {
+        jump = new ReferencingCommand("blockdata " + REF + " {auto:1}", true);
+      }
       if (waitfor.getConditional() == CONDITIONAL) {
         summon.setRelative(3);
         jump.setRelative(1);
@@ -347,7 +352,12 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       commands.add(entitydata);
       commands.add(summon);
     } else {
-      ReferencingCommand jump = new ReferencingCommand("setblock " + REF + " redstone_block", true);
+      ReferencingCommand jump;
+      if (options.hasOption(TRANSMITTER)) {
+        jump = new ReferencingCommand("setblock " + REF + " redstone_block", true);
+      } else {
+        jump = new ReferencingCommand("blockdata " + REF + " {auto:1}", true);
+      }
       if (intercept.getConditional() == CONDITIONAL) {
         summon.setRelative(3);
         jump.setRelative(1);
