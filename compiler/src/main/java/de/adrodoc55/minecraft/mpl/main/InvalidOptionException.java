@@ -19,8 +19,8 @@
  *
  *
  *
- * MPL (Minecraft Programming Language): Eine Sprache für die einfache Entwicklung von Commandoblock
- * Anwendungen, beinhaltet eine IDE.
+ * MPL (Minecraft Programming Language): Eine Sprache für die einfache Entwicklung von
+ * Commandoblock Anwendungen, beinhaltet eine IDE.
  *
  * © Copyright (C) 2016 Adrodoc55
  *
@@ -31,28 +31,21 @@
  * veröffentlichten Version, weiterverbreiten und/oder modifizieren.
  *
  * MPL wird in der Hoffnung, dass es nützlich sein wird, aber OHNE JEDE GEWÄHRLEISTUNG,
- * bereitgestellt; sogar ohne die implizite Gewährleistung der MARKTFÄHIGKEIT oder EIGNUNG FÜR EINEN
- * BESTIMMTEN ZWECK. Siehe die GNU General Public License für weitere Details.
+ * bereitgestellt; sogar ohne die implizite Gewährleistung der MARKTFÄHIGKEIT oder EIGNUNG FÜR
+ * EINEN BESTIMMTEN ZWECK. Siehe die GNU General Public License für weitere Details.
  *
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace;
-
-import org.beanfabrics.swing.ModelSubscriberBeanInfo;
+package de.adrodoc55.minecraft.mpl.main;
 
 /**
  * @author Adrodoc55
- * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class SearchAndReplaceDialogBeanInfo extends ModelSubscriberBeanInfo {
-  @Override
-  protected Class<SearchAndReplaceDialog> getBeanClass() {
-    return SearchAndReplaceDialog.class;
-  }
+public class InvalidOptionException extends Exception {
+  private static final long serialVersionUID = 1L;
 
-  @Override
-  protected boolean isPathBound() {
-    return false;
+  public InvalidOptionException(String string) {
+    super(string);
   }
 }

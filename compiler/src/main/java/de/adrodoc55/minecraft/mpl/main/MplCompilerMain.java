@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.main;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -81,8 +82,18 @@ public class MplCompilerMain {
    * @throws IOException
    * @throws Exception
    */
-  public static void main(String[] args)
-      throws InvalidOptionException, IOException, CompilationFailedException {
+  public static void main(String[] args) throws Exception {
+    try {
+      startCompiler(args);
+    } catch (CompilationFailedException ex) {
+      System.err.println(ex.toString());
+    } catch (InvalidOptionException ex) {
+      System.err.println(ex.getLocalizedMessage());
+    }
+  }
+
+  private static void startCompiler(String[] args) throws InvalidOptionException,
+      FileNotFoundException, IOException, CompilationFailedException {
     String srcPath = null;
     OutputStream out = System.out;
     CompilationType type = CompilationType.SCHEMATIC;
@@ -209,13 +220,5 @@ public class MplCompilerMain {
     };
     public abstract void write(MplCompilationResult compiled, OutputStream out, String name)
         throws IOException;
-  }
-
-  private static class InvalidOptionException extends Exception {
-    private static final long serialVersionUID = 1L;
-
-    public InvalidOptionException(String string) {
-      super(string);
-    }
   }
 }

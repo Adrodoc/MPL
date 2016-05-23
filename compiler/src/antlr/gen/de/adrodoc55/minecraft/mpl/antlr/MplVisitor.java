@@ -1,4 +1,4 @@
-// Generated from C:\Users\adrian\Programme\workspace\MPL\compiler\src\antlr\def\de\adrodoc55\minecraft\mpl\antlr\Mpl.g4 by ANTLR 4.5
+// Generated from C:\Users\Adrian\Programme\workspace\MPL\compiler\src\antlr\def\de\adrodoc55\minecraft\mpl\antlr\Mpl.g4 by ANTLR 4.5
 package de.adrodoc55.minecraft.mpl.antlr;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;

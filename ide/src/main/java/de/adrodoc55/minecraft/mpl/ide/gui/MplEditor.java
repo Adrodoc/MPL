@@ -80,17 +80,17 @@ import org.beanfabrics.swing.internal.BnStyledDocument;
 
 import de.adrodoc55.commons.AncestorAdapter;
 import de.adrodoc55.commons.FileUtils;
-import de.adrodoc55.minecraft.mpl.autocompletion.AutoCompletion;
-import de.adrodoc55.minecraft.mpl.autocompletion.AutoCompletionAction;
-import de.adrodoc55.minecraft.mpl.gui.dialog.autocompletion.AutoCompletionDialog;
-import de.adrodoc55.minecraft.mpl.gui.dialog.autocompletion.AutoCompletionDialogControler;
-import de.adrodoc55.minecraft.mpl.gui.dialog.autocompletion.AutoCompletionDialogPM.Context;
-import de.adrodoc55.minecraft.mpl.gui.utils.BnJaggedEditorKit;
-import de.adrodoc55.minecraft.mpl.gui.utils.NoWrapBnTextPane;
-import de.adrodoc55.minecraft.mpl.gui.utils.RawUndoManager;
-import de.adrodoc55.minecraft.mpl.gui.utils.RedoAction;
-import de.adrodoc55.minecraft.mpl.gui.utils.TextLineNumber;
-import de.adrodoc55.minecraft.mpl.gui.utils.UndoAction;
+import de.adrodoc55.minecraft.mpl.ide.autocompletion.AutoCompletion;
+import de.adrodoc55.minecraft.mpl.ide.autocompletion.AutoCompletionAction;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialog;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialogControler;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialogPM.Context;
+import de.adrodoc55.minecraft.mpl.ide.gui.utils.BnJaggedEditorKit;
+import de.adrodoc55.minecraft.mpl.ide.gui.utils.NoWrapBnTextPane;
+import de.adrodoc55.minecraft.mpl.ide.gui.utils.RawUndoManager;
+import de.adrodoc55.minecraft.mpl.ide.gui.utils.RedoAction;
+import de.adrodoc55.minecraft.mpl.ide.gui.utils.TextLineNumber;
+import de.adrodoc55.minecraft.mpl.ide.gui.utils.UndoAction;
 
 /**
  * The MplEditor is a {@link View} on a {@link MplEditorPM}.

@@ -2,6 +2,8 @@ apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
 
+archivesBaseName = 'MPL-Compiler'
+
 File antlrDefDir = file('src/antlr/def')
 File antlrGenDir = file('src/antlr/gen')
 
@@ -15,10 +17,11 @@ File antlrGenDir = file('src/antlr/gen')
 // ----------------------------------------------------------------------------------------------------
 
 sourceSets {
-  antlr {
-    java { srcDirs = [antlrGenDir]}
-    resources { srcDirs = [antlrDefDir]}
+  main {
+    java.srcDir antlrGenDir
+    resources.srcDir antlrDefDir
   }
+  jdotsoft
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -32,21 +35,21 @@ sourceSets {
 
 configurations {
   antlr4
-  compile.extendsFrom annotationProccessing, antlrCompile
+  compileOnly.extendsFrom annotationProccessing
+  testCompileOnly.extendsFrom compileOnly
 }
 
 dependencies {
   antlr4 libs.antlr4
 
-  antlrCompile libs.antlr4_runtime
+  annotationProccessing libs.pojobuilder
 
-  compile sourceSets.antlr.output
+  compile sourceSets.jdotsoft.output
+  compile libs.antlr4_runtime
   compile libs.guava
   compile libs.jsr305
   compile libs.lombok
   compile libs.nbt
-
-  annotationProccessing libs.pojobuilder
 
   testCompile libs.assertj
   testCompile libs.guava
@@ -70,15 +73,15 @@ task cleanAntlr4 << {
 
 task generateAntlr4 {
   description = 'Generates Java sources from ANTLR4 grammars.'
-  logging.captureStandardOutput LogLevel.QUIET
 
-  fileTree(dir: antlrDefDir, include:'**/*.g4').each { File file ->
-    doLast {
+  doLast {
+    fileTree(dir: antlrDefDir, include:'**/*.g4').each { File file ->
       String relativePathToGrammar = antlrDefDir.toURI().relativize( file.getParentFile().toURI() ).toString()
+      String packageName = relativePathToGrammar.replaceFirst('/$', '').replace('/', '.')
+      logger.quiet "  Generating grammar sources for ${file.name} in package ${packageName}"
+
       File grammarDestDir = new File(antlrGenDir, relativePathToGrammar)
       mkdir grammarDestDir
-      String packageName = relativePathToGrammar.replaceFirst('/$', '').replace('/', '.')
-      println "  Generating grammar sources for ${file.name} in package $packageName"
       javaexec {
         classpath configurations.antlr4
         main = 'org.antlr.v4.Tool'
@@ -102,7 +105,6 @@ eclipseClasspath.dependsOn generateAntlr4
 // ----------------------------------------------------------------------------------------------------
 
 jar {
-  from sourceSets.antlr.output.classesDir
   manifest {
     attributes(
         'Created-By':               'Adrodoc55 (adrodoc55@googlemail.com)',
@@ -114,6 +116,29 @@ jar {
   }
 }
 
+task standaloneJar(type: Jar) {
+  from sourceSets.main.output
+  (configurations.runtime).each { File file ->
+    if(file.isDirectory()) {
+      from file
+    } else if (file.isFile() && file.name.endsWith('.jar')) {
+      from(file) { into '/lib' }
+    }
+  }
+  manifest {
+    attributes(
+        'Created-By':               'Adrodoc55 (adrodoc55@googlemail.com)',
+        'Specification-Title':      productName,
+        'Specification-Version':    version,
+        'Implementation-Title':     productName,
+        'Implementation-Version':   version,
+        'Main-Class':               'de.adrodoc55.minecraft.mpl.main.MplCompilerMainLauncher',
+        )
+  }
+  classifier 'standalone'
+}
+assemble.dependsOn standaloneJar
+test.dependsOn standaloneJar // wegen tests des standalone Jars
 
 // ----------------------------------------------------------------------------------------------------
 //    _____       _  _
@@ -143,7 +168,7 @@ eclipse {
 }
 
 task eclipseFactorypath {
-  ext.factorypath = new File('.factorypath')
+  ext.factorypath = file('.factorypath')
 } << {
   def writer = new StringWriter()
   def xml = new groovy.xml.MarkupBuilder(writer)

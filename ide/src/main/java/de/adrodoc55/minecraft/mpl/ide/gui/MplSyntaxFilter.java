@@ -66,7 +66,7 @@ import org.beanfabrics.View;
 import org.beanfabrics.event.BnPropertyChangeEvent;
 
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
-import de.adrodoc55.minecraft.mpl.gui.utils.TabToSpaceDocumentFilter;
+import de.adrodoc55.minecraft.mpl.ide.gui.utils.TabToSpaceDocumentFilter;
 import de.adrodoc55.minecraft.mpl.ide.gui.MplSyntaxFilterPM.CompilerExceptionWrapper;
 
 /**

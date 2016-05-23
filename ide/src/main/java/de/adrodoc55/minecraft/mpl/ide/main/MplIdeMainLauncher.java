@@ -37,68 +37,18 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.autocompletion;
+package de.adrodoc55.minecraft.mpl.ide.main;
 
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.tree.ErrorNode;
-import org.antlr.v4.runtime.tree.TerminalNode;
-
-import de.adrodoc55.minecraft.mpl.antlr.MplBaseListener;
-import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProcessContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProjectContext;
+import com.jdotsoft.jarloader.JarClassLoader;
 
 /**
  * @author Adrodoc55
  */
-public class AutoCompletionListener extends MplBaseListener {
-  private final int index;
+public class MplIdeMainLauncher {
 
-  private boolean inProject;
-  private boolean inProcess;
-
-  public AutoCompletionListener(int index) {
-    this.index = index;
+  public static void main(String[] args) throws Throwable {
+    JarClassLoader jcl = new JarClassLoader();
+    jcl.invokeMain("de.adrodoc55.minecraft.mpl.ide.main.MplIdeMain", args);
   }
 
-  @Override
-  public void enterProject(ProjectContext ctx) {
-    inProject = true;
-  }
-
-  @Override
-  public void exitProject(ProjectContext ctx) {
-    inProject = false;
-  }
-
-  @Override
-  public void enterProcess(ProcessContext ctx) {
-    inProcess = true;
-  }
-
-  @Override
-  public void exitProcess(ProcessContext ctx) {
-    inProcess = false;
-  }
-
-  @Override
-  public void visitErrorNode(ErrorNode node) {
-    visitNode(node);
-  }
-
-  @Override
-  public void visitTerminal(TerminalNode node) {
-    visitNode(node);
-  }
-
-  protected void visitNode(TerminalNode node) {
-    Token token = node.getSymbol();
-    if (token == null || index > token.getStopIndex() + 1)
-      return;
-    if (index < token.getStartIndex() || token.getType() == MplLexer.EOF) {
-      token = null;
-    }
-    AutoCompletionContext result = new AutoCompletionContext(token, inProject, inProcess);
-    throw new ResultException(result);
-  }
 }

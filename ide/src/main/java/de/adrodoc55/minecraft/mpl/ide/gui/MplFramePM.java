@@ -78,15 +78,15 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
 import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
 import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
 import de.adrodoc55.minecraft.mpl.conversion.SchematicConverter;
-import de.adrodoc55.minecraft.mpl.gui.dialog.command.CommandDialog;
-import de.adrodoc55.minecraft.mpl.gui.dialog.command.CommandDialogControler;
-import de.adrodoc55.minecraft.mpl.gui.dialog.command.CommandDialogPM;
-import de.adrodoc55.minecraft.mpl.gui.dialog.compilerexception.ExceptionDialog;
-import de.adrodoc55.minecraft.mpl.gui.dialog.searchandreplace.SearchAndReplaceDialog;
-import de.adrodoc55.minecraft.mpl.gui.dialog.searchandreplace.SearchAndReplaceDialogControler;
-import de.adrodoc55.minecraft.mpl.gui.dialog.searchandreplace.SearchAndReplaceDialogPM;
-import de.adrodoc55.minecraft.mpl.gui.dialog.unsaved.UnsavedResourcesDialog;
-import de.adrodoc55.minecraft.mpl.gui.dialog.unsaved.UnsavedResourcesDialogPM;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialog;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialogControler;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialogPM;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.compilerexception.ExceptionDialog;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialog;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogControler;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogPM;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.unsaved.UnsavedResourcesDialog;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.unsaved.UnsavedResourcesDialogPM;
 
 /**
  * @author Adrodoc55

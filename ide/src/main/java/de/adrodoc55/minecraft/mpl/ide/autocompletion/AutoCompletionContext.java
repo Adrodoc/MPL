@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.autocompletion;
+package de.adrodoc55.minecraft.mpl.ide.autocompletion;
 
 import org.antlr.v4.runtime.Token;
 

@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.dialog.autocompletion;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion;
 
 import java.awt.Dimension;
 import java.awt.KeyboardFocusManager;
@@ -49,8 +49,8 @@ import java.util.Collections;
 
 import com.google.common.base.Preconditions;
 
-import de.adrodoc55.minecraft.mpl.autocompletion.AutoCompletionAction;
-import de.adrodoc55.minecraft.mpl.gui.dialog.autocompletion.AutoCompletionDialogPM.Context;
+import de.adrodoc55.minecraft.mpl.ide.autocompletion.AutoCompletionAction;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialogPM.Context;
 
 /**
  * @author Adrodoc55

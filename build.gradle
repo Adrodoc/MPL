@@ -19,7 +19,9 @@ ext {
   ]
 }
 
-task wrapper (type: Wrapper) { gradleVersion = 2.9 }
+apply plugin: 'eclipse'
+
+task wrapper (type: Wrapper) { gradleVersion = 2.13 }
 
 allprojects { Project proj ->
   repositories {

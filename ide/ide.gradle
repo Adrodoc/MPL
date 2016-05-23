@@ -1,5 +1,8 @@
 apply plugin: 'java'
+apply plugin: 'groovy'
 apply plugin: 'eclipse'
+
+archivesBaseName = 'MPL-IDE'
 
 // ----------------------------------------------------------------------------------------------------
 //    ____                                 _                     _
@@ -13,6 +16,9 @@ apply plugin: 'eclipse'
 dependencies {
   compile project(':compiler')
   compile libs.beanfabrics
+
+  testCompile libs.spock
+  testCompile project(':compiler').sourceSets.test.output
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -25,15 +31,6 @@ dependencies {
 // ----------------------------------------------------------------------------------------------------
 
 jar {
-
-//  from sourceSets.antlr.output.classesDir
-//  (configurations.compile - configurations.annotationProccessing - sourceSets.antlr.output).each { File file ->
-//    if(file.isDirectory()) {
-//      from file
-//    } else if (file.isFile() && file.name.endsWith('.jar')) {
-//      from(file) { into '/lib' }
-//    }
-//  }
   manifest {
     attributes(
         'Created-By':               'Adrodoc55 (adrodoc55@googlemail.com)',
@@ -41,7 +38,30 @@ jar {
         'Specification-Version':    version,
         'Implementation-Title':     productName,
         'Implementation-Version':   version,
-        'Main-Class':               'de.adrodoc55.minecraft.mpl.main.MplMainLauncher',
+        'Main-Class':               'de.adrodoc55.minecraft.mpl.ide.main.MplIdeMainLauncher',
         )
   }
 }
+
+task standaloneJar(type: Jar) {
+  from sourceSets.main.output
+  (configurations.runtime).each { File file ->
+    if(file.isDirectory()) {
+      from file
+    } else if (file.isFile() && file.name.endsWith('.jar')) {
+      from(file) { into '/lib' }
+    }
+  }
+  manifest {
+    attributes(
+        'Created-By':               'Adrodoc55 (adrodoc55@googlemail.com)',
+        'Specification-Title':      productName,
+        'Specification-Version':    version,
+        'Implementation-Title':     productName,
+        'Implementation-Version':   version,
+        'Main-Class':               'de.adrodoc55.minecraft.mpl.ide.main.MplIdeMainLauncher',
+        )
+  }
+  classifier 'standalone'
+}
+assemble.dependsOn standaloneJar

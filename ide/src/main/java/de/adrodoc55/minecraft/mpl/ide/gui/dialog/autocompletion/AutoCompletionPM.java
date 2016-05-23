@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.dialog.autocompletion;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion;
 
 import org.beanfabrics.model.AbstractPM;
 import org.beanfabrics.model.PMManager;
@@ -45,7 +45,7 @@ import org.beanfabrics.model.TextPM;
 
 import com.google.common.base.Preconditions;
 
-import de.adrodoc55.minecraft.mpl.autocompletion.AutoCompletionAction;
+import de.adrodoc55.minecraft.mpl.ide.autocompletion.AutoCompletionAction;
 
 /**
  * @author Adrodoc55

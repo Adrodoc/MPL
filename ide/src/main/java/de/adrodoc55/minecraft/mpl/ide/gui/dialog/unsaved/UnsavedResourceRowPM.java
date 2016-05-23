@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.gui.dialog.unsaved;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.unsaved;
 
 import org.beanfabrics.model.AbstractPM;
 import org.beanfabrics.model.BooleanPM;
