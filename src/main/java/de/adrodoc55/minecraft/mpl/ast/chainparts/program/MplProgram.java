@@ -154,6 +154,10 @@ public class MplProgram implements MplNode, Named {
     visitor.visitProgram(this);
   }
 
+  public String getHash() {
+    return "MPL" + hashCode();
+  }
+
   public void setName(String name) {
     this.name = name;
   }

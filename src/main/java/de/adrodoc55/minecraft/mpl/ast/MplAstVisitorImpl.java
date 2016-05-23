@@ -133,7 +133,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     if (addBreakpointProcess) {
       addBreakpointProcess(program);
     }
-    container = new ChainContainer(orientation, max, install, uninstall, chains);
+    container = new ChainContainer(orientation, max, install, uninstall, chains, program.getHash());
   }
 
   private CommandChain visitUnInstall(MplProcess process) {
@@ -144,21 +144,44 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   }
 
   private void addBreakpointProcess(MplProgram program) {
+    String hash = program.getHash();
     MplProcess process = new MplProcess("breakpoint");
     List<ChainPart> commands = new ArrayList<>();
-    String start;
-    if (options.hasOption(TRANSMITTER)) {
-      start = "/execute @e[name=breakpoint_NOTIFY] ~ ~ ~ setblock ~ ~ ~ redstone_block";
-    } else {
-      start = "/execute @e[name=breakpoint_NOTIFY] ~ ~ ~ blockdata ~ ~ ~ {auto:1}";
+
+    // Pause
+    if (!options.hasOption(TRANSMITTER)) {
+      commands.add(new MplCommand("/execute @e[tag=" + hash + "] ~ ~ ~ clone ~ ~ ~ ~ ~ ~ ~ ~1 ~"));
+    }
+    commands.add(new MplCommand("/tp @e[tag=" + hash + "] ~ ~1 ~"));
+    if (!options.hasOption(TRANSMITTER)) {
+      commands
+          .add(new MplCommand("/execute @e[tag=" + hash + "] ~ ~ ~ blockdata ~ ~ ~ {Command:}"));
     }
 
+    String start;
+    if (options.hasOption(TRANSMITTER)) {
+      start = "/execute @e[name=breakpoint_CONTINUE] ~ ~ ~ setblock ~ ~ ~ redstone_block";
+    } else {
+      start = "/execute @e[name=breakpoint_CONTINUE] ~ ~ ~ blockdata ~ ~ ~ {auto:1}";
+    }
     commands.add(new MplCommand(
         "tellraw @a [{\"text\":\"[tp to breakpoint]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/tp @p @e[name=breakpoint_NOTIFY,c=-1]\"}},{\"text\":\" \"},{\"text\":\"[continue program]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\""
             + start + "\"}}]"));
 
-    commands.add(new MplWaitfor("breakpoint" + NOTIFY));
-    commands.add(new MplCommand("kill @e[name=breakpoint_NOTIFY]"));
+    commands.add(new MplWaitfor("breakpoint_CONTINUE"));
+    commands.add(new MplCommand("/kill @e[name=breakpoint_CONTINUE]"));
+
+    // Unpause
+    commands.add(
+        new MplCommand("/execute @e[tag=" + hash + "] ~ ~ ~ clone ~ ~ ~ ~ ~ ~ ~ ~-1 ~ force move"));
+    commands.add(new MplCommand("/tp @e[tag=" + hash + "] ~ ~-1 ~"));
+    if (!options.hasOption(TRANSMITTER)) {
+      commands.add(new MplCommand("/execute @e[tag=" + hash
+          + "] ~ ~ ~ blockdata ~ ~ ~ {Command:blockdata ~ ~ ~ {auto:0}}"));
+    }
+
+    commands.add(new MplNotify("breakpoint"));
+
     process.setChainParts(commands);
     program.addProcess(process);
     process.accept(this);

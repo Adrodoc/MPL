@@ -195,7 +195,7 @@ public class MplProgramPlacer extends MplChainPlacer {
   }
 
   private int getUnInstallLength() {
-    int installLength = 2 + 2 * container.getChains().size()//
+    int installLength = 3 + container.getChains().size()//
         + container.getInstall().getCommands().size()//
         + container.getUninstall().getCommands().size();
     return installLength;

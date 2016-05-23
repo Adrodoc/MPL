@@ -736,7 +736,7 @@ class MplCompilerSpec extends MplSpecBase {
     uninstallation.blocks[0].class == Transmitter
     uninstallation.blocks[1].getCommand().startsWith('setblock ')
     uninstallation.blocks[2].toCommand() == new Command('say uninstall')
-    uninstallation.blocks[3].toCommand() == new Command('kill @e[type=ArmorStand,name=main]')
+    uninstallation.blocks[3].getCommand().startsWith('kill @e[type=ArmorStand,tag=MPL')
     uninstallation.blocks[4].class == AirBlock
   }
 

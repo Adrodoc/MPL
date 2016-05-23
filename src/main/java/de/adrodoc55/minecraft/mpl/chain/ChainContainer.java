@@ -43,6 +43,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import lombok.Getter;
@@ -58,19 +60,21 @@ public class ChainContainer {
   /**
    * Allways positive (-1 stands for infinite)
    */
-  protected final Coordinate3D max;
-  protected final CommandChain install;
-  protected final CommandChain uninstall;
-  protected final List<CommandChain> chains;
+  protected final @Nonnull Coordinate3D max;
+  protected final @Nonnull CommandChain install;
+  protected final @Nonnull CommandChain uninstall;
+  protected final @Nonnull List<CommandChain> chains;
+  protected final String hashCode;
 
   @GenerateMplPojoBuilder
   public ChainContainer(Orientation3D orientation, Coordinate3D max, CommandChain install,
-      CommandChain uninstall, List<CommandChain> chains) {
+      CommandChain uninstall, List<CommandChain> chains, String hashCode) {
     this.orientation = checkNotNull(orientation, "orientation == null!");
     this.max = checkNotNull(max, "max == null!");
     this.install = checkNotNull(install, "install == null!");
     this.uninstall = checkNotNull(uninstall, "uninstall == null!");
     this.chains = checkNotNull(chains, "chains == null!");
+    this.hashCode = hashCode;
   }
 
 }

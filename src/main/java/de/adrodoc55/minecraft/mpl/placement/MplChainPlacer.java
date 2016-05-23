@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.placement;
 
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static de.kussm.direction.Direction.EAST;
 import static de.kussm.direction.Direction.NORTH;
@@ -240,12 +241,11 @@ public abstract class MplChainPlacer {
       }
       Coordinate3D chainStart = chain.getBlocks().get(0).getCoordinate();
       int index = options.hasOption(TRANSMITTER) ? 2 : 1;
-      // TODO: Alle ArmorStands taggen, damit nur ein uninstallation command notwendig
-      result
-          .add(index,
-              new Command("/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString()
-                  + ")} {CustomName:" + name
-                  + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
+      result.add(index,
+          new Command("/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString()
+              + ")} {CustomName:" + name + ",Tags:[" + container.getHashCode()
+              + "],NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b"
+              + (options.hasOption(DEBUG) ? ",CustomNameVisible:1" : "") + "}"));
     }
     return new CommandChain(getInstall().getName(), result);
   }
@@ -254,15 +254,7 @@ public abstract class MplChainPlacer {
     List<ChainLink> commands = getUninstall().getCommands();
     ArrayList<ChainLink> result = new ArrayList<>(commands.size() + chains.size());
     result.addAll(commands);
-    for (CommandBlockChain chain : chains) {
-      String name = chain.getName();
-      if (name == null || name == "install" || name == "uninstall") {
-        continue;
-      }
-      result.add(new Command("/kill @e[type=ArmorStand,name=" + name + "]"));
-      // result.add(0, new Command("/kill @e[type=ArmorStand,name=" + name + "_NOTIFY]"));
-      // result.add(0, new Command("/kill @e[type=ArmorStand,name=" + name + "_INTERCEPTED]"));
-    }
+    result.add(new Command("/kill @e[type=ArmorStand,tag=" + container.getHashCode() + "]"));
     return new CommandChain(getUninstall().getName(), result);
   }
 
