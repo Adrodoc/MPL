@@ -6,8 +6,8 @@ Author: Adrodoc55
 What is MPL?
 -----------
 MPL is a language that makes it easier to write applications for Minecraft 1.9 or higher.
-The final result of compiling an MPL-Application are commandblocks that can be imported into your world in various ways.
-MPL comes with it's own Editor that supports syntax- and error-highlighting and has a built in compiler.
+The final result of compiling an MPL application are command blocks that can be imported into your world in various ways.
+MPL comes with it's own editor that supports syntax- and error-highlighting and has a built in compiler.
 
 For an advanced example application written in MPL see [ApertureCraft Vanilla](https://github.com/Adrodoc55/ApertureCraftVanilla)
 
