@@ -46,14 +46,14 @@ import org.junit.Test
 
 import de.adrodoc55.minecraft.mpl.MplSpecBase
 
-public class MplMainSpec extends MplSpecBase {
+public class MplCompilerMainSpec extends MplSpecBase {
 
   String lastOutput
   String lastError
 
   void compile(String args) {
     File libsDir = new File('build/libs')
-    File src = libsDir.listFiles().find { it.name.matches(/MPL-Compiler.+-standalone\.jar/) }
+    File src = libsDir.listFiles().find { it.name.matches(/mpl-compiler.+-standalone\.jar/) }
     File target = new File(tempFolder.root, src.name)
     Files.copy(src.toPath(), target.toPath())
 
