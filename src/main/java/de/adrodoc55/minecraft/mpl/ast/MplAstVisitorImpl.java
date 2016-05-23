@@ -225,7 +225,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       off = new ReferencingCommand("/setblock " + REF + " stone");
       on = new ReferencingCommand("/setblock " + REF + " redstone_block", true);
     } else {
-      off = new ReferencingCommand("/blockdata " + REF + " {auto:0}");
+      off = new ReferencingCommand("/blockdata " + REF + " {auto:0b}");
       on = new ReferencingCommand("/blockdata " + REF + " {auto:1}", true);
     }
     off.setRelative(-commands.size());
