@@ -1,0 +1,47 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+// ----------------------------------------------------------------------------------------------------
+//    ____                                 _                     _
+//   |  _ \   ___  _ __    ___  _ __    __| |  ___  _ __    ___ (_)  ___  ___
+//   | | | | / _ \| '_ \  / _ \| '_ \  / _` | / _ \| '_ \  / __|| | / _ \/ __|
+//   | |_| ||  __/| |_) ||  __/| | | || (_| ||  __/| | | || (__ | ||  __/\__ \
+//   |____/  \___|| .__/  \___||_| |_| \__,_| \___||_| |_| \___||_| \___||___/
+//                |_|
+// ----------------------------------------------------------------------------------------------------
+
+dependencies {
+  compile project(':compiler')
+  compile libs.beanfabrics
+}
+
+// ----------------------------------------------------------------------------------------------------
+//        _
+//       | |  __ _  _ __
+//    _  | | / _` || '__|
+//   | |_| || (_| || |
+//    \___/  \__,_||_|
+//
+// ----------------------------------------------------------------------------------------------------
+
+jar {
+
+//  from sourceSets.antlr.output.classesDir
+//  (configurations.compile - configurations.annotationProccessing - sourceSets.antlr.output).each { File file ->
+//    if(file.isDirectory()) {
+//      from file
+//    } else if (file.isFile() && file.name.endsWith('.jar')) {
+//      from(file) { into '/lib' }
+//    }
+//  }
+  manifest {
+    attributes(
+        'Created-By':               'Adrodoc55 (adrodoc55@googlemail.com)',
+        'Specification-Title':      productName,
+        'Specification-Version':    version,
+        'Implementation-Title':     productName,
+        'Implementation-Version':   version,
+        'Main-Class':               'de.adrodoc55.minecraft.mpl.main.MplMainLauncher',
+        )
+  }
+}
