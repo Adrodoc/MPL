@@ -46,6 +46,7 @@ import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
+import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
@@ -172,19 +173,19 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     }
     boolean containsSkip = containsSkip(process);
     if (process.isRepeating()) {
-      if (containsSkip) {
-        addReceiver();
-      } else {
-        if (process.getChainParts().isEmpty()) {
-          process.add(new MplCommand(""));
-        }
-        ChainPart first = chainParts.get(0);
-        try {
+      if (process.getChainParts().isEmpty()) {
+        process.add(new MplCommand(""));
+      }
+      ChainPart first = chainParts.get(0);
+      try {
+        if (containsSkip) {
+          first.setMode(IMPULSE);
+        } else {
           first.setMode(REPEAT);
-          first.setNeedsRedstone(true);
-        } catch (IllegalModifierException ex) {
-          throw new IllegalStateException(ex.getMessage(), ex);
         }
+        first.setNeedsRedstone(true);
+      } catch (IllegalModifierException ex) {
+        throw new IllegalStateException(ex.getMessage(), ex);
       }
     } else {
       addReceiver();
@@ -192,7 +193,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     for (ChainPart chainPart : chainParts) {
       chainPart.accept(this);
     }
-    if (containsSkip) {
+    if (process.isRepeating() && containsSkip) {
       addBackref();
     }
     chains.add(new CommandChain(process.getName(), commands));
@@ -218,14 +219,19 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   }
 
   private void addBackref() {
-    ReferencingCommand ref;
+    ReferencingCommand off;
+    ReferencingCommand on;
     if (options.hasOption(TRANSMITTER)) {
-      ref = new ReferencingCommand("/setblock " + REF + " redstone_block");
+      off = new ReferencingCommand("/setblock " + REF + " stone");
+      on = new ReferencingCommand("/setblock " + REF + " redstone_block", true);
     } else {
-      ref = new ReferencingCommand("/blockdata " + REF + " {auto:1}");
+      off = new ReferencingCommand("/blockdata " + REF + " {auto:0}");
+      on = new ReferencingCommand("/blockdata " + REF + " {auto:1}", true);
     }
-    ref.setRelative(-commands.size());
-    commands.add(ref);
+    off.setRelative(-commands.size());
+    commands.add(off);
+    on.setRelative(-commands.size());
+    commands.add(on);
   }
 
   protected void visitPossibleInvert(ModifiableChainPart chainPart) {
