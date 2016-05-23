@@ -52,7 +52,6 @@ import java.util.Set;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
@@ -101,14 +100,9 @@ public class MplProgramPlacer extends MplChainPlacer {
 
   private void addChain(CommandChain chain) throws NotEnoughSpaceException {
     Coordinate3D start = findStart(chain);
-    LinkedHashMap<Position, ChainLinkType> placed =
-        place(chain, start, newTemplate(getSize().getX()));
-    String name = chain.getName();
-    List<MplBlock> blocks = toBlocks(chain.getCommands(), placed);
-    CommandBlockChain materialized = new CommandBlockChain(name, blocks);
-    materialized.move(start);
+    CommandBlockChain materialized = generateFlat(chain, start, newTemplate(getSize().getX()));
     occupyBlocks(materialized);
-    this.chains.add(materialized);
+    chains.add(materialized);
   }
 
   private void increaseSize() throws NotEnoughSpaceException {
@@ -169,6 +163,7 @@ public class MplProgramPlacer extends MplChainPlacer {
       for (CommandChain c : container.getChains()) {
         minB = Math.max(minB, getMinB(c, newTemplate(currentA)));
       }
+      minB = Math.max(maxB, getMinUnInstallB());
       if (minA < minB) {
         minA++;
         continue;
@@ -177,23 +172,33 @@ public class MplProgramPlacer extends MplChainPlacer {
     }
   }
 
+  private int getMinUnInstallB() {
+    return (int) Math.ceil(Math.sqrt(getUnInstallLength()));
+  }
+
   /**
    * Estimates the minimal a required to place all chains efficiently.
    *
    * @return
    */
   private int estimateMinA() {
-    int installLength = container.getInstall().getCommands().size()
-        + container.getUninstall().getCommands().size() + 2;
+    int unInstallLength = getUnInstallLength();
 
     int longestProcessLength = container.getChains().stream()//
         .map(chain -> chain.getCommands().size())//
         .max(naturalOrder()).orElse(0);
 
-    int longestChainLength = Math.max(installLength, longestProcessLength);
+    int longestChainLength = Math.max(unInstallLength, longestProcessLength);
 
     int sqrtLength = (int) Math.ceil(Math.sqrt(longestChainLength));
     return Math.max(sqrtLength, getLongestSuccessiveConditionalCount() + 3);
+  }
+
+  private int getUnInstallLength() {
+    int installLength = 2 + 2 * container.getChains().size()//
+        + container.getInstall().getCommands().size()//
+        + container.getUninstall().getCommands().size();
+    return installLength;
   }
 
   /**
@@ -299,26 +304,38 @@ public class MplProgramPlacer extends MplChainPlacer {
    * @see #generateFlat(CommandChain, Coordinate3D, Directions)
    */
   protected void generateUnInstall() throws NotEnoughSpaceException {
-    int sizeA = getSize().getX();
-    // Bei ungerader Größe hat install einen Block weniger, da install effektiv 2 Reihen mehr hat.
-    int installA = sizeA / 2;
-    int uninstallA = sizeA - installA;
-
     CommandChain uninstall = getPopulatedUninstall();
     if (!uninstall.getCommands().isEmpty()) {
       Coordinate3D start = getOrientation().getB().toCoordinate();
-      Directions template = newTemplate(installA);
-      CommandBlockChain materialised = generateFlat(uninstall, start, template);
-      chains.add(materialised);
+      Directions template = newUninstallTemplate();
+      CommandBlockChain generated = generateFlat(uninstall, start, template);
+      chains.add(generated);
     }
 
     CommandChain install = getPopulatedInstall();
     if (!install.getCommands().isEmpty()) {
       Coordinate3D start = new Coordinate3D();
-      Directions template = $(EAST.repeat(Math.abs(uninstallA)), newTemplate(uninstallA));
-      CommandBlockChain materialised = generateFlat(install, start, template);
-      chains.add(materialised);
+      Directions template = newInstallTemplate();
+      CommandBlockChain generated = generateFlat(install, start, template);
+      chains.add(generated);
     }
+  }
+
+  private Directions newInstallTemplate() throws NotEnoughSpaceException {
+    return $(EAST.repeat(Math.abs(getUninstallA())), newTemplate(getInstallA()));
+  }
+
+  private Directions newUninstallTemplate() throws NotEnoughSpaceException {
+    return newTemplate(getUninstallA());
+  }
+
+  private int getInstallA() throws NotEnoughSpaceException {
+    // Bei ungerader Größe hat install einen Block weniger, da install effektiv 2 Reihen mehr hat.
+    return getSize().getX() / 2;
+  }
+
+  private int getUninstallA() throws NotEnoughSpaceException {
+    return getSize().getX() - getInstallA();
   }
 
 }

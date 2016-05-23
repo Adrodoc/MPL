@@ -126,11 +126,10 @@ public abstract class MplChainPlacer {
   public CommandBlockChain generateFlat(CommandChain chain, Coordinate3D start, Directions template)
       throws NotEnoughSpaceException {
     LinkedHashMap<Position, ChainLinkType> placed = place(chain, start, template);
-    String name = chain.getName();
     List<MplBlock> blocks = toBlocks(chain.getCommands(), placed);
-    CommandBlockChain materialized = new CommandBlockChain(name, blocks);
-    materialized.move(start);
-    return materialized;
+    CommandBlockChain result = new CommandBlockChain(chain.getName(), blocks);
+    result.move(start);
+    return result;
   }
 
   /**

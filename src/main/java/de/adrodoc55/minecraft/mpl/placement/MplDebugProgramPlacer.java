@@ -70,9 +70,8 @@ public class MplDebugProgramPlacer extends MplChainPlacer {
 
   public void addChain(CommandChain chain) throws NotEnoughSpaceException {
     Directions template = newTemplate(chain.getCommands().size() + 1);
-
-    CommandBlockChain result = generateFlat(chain, start, template);
-    chains.add(result);
+    CommandBlockChain generated = generateFlat(chain, start, template);
+    chains.add(generated);
     start = start.plus(getOrientation().getC().toCoordinate().mult(2));
   }
 
