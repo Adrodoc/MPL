@@ -697,12 +697,12 @@ class MplCompilerSpec extends MplSpecBase {
     List<CommandBlockChain> chains = MplCompiler.place(container, new CompilerOptions(TRANSMITTER))
     then:
     CommandBlockChain installation = chains.find { it.name == 'install' }
+    installation.blocks.size() == 5
     installation.blocks[0].class == Transmitter
     installation.blocks[1].getCommand().startsWith('setblock ')
     installation.blocks[2].getCommand().startsWith('summon ArmorStand ')
     installation.blocks[3].toCommand() == new Command('say install')
     installation.blocks[4].class == AirBlock
-    installation.blocks.size() == 5
   }
 
   /**

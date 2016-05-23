@@ -230,27 +230,41 @@ public abstract class MplChainPlacer {
     }
   }
 
-  protected void populateUnInstall() {
+  protected CommandChain getPopulatedInstall() {
+    List<ChainLink> commands = getInstall().getCommands();
+    ArrayList<ChainLink> result = new ArrayList<>(commands.size() + chains.size());
+    result.addAll(commands);
     for (CommandBlockChain chain : chains) {
-      if (chain.getName() == null) {
+      String name = chain.getName();
+      if (name == null || name == "install" || name == "uninstall") {
         continue;
       }
       Coordinate3D chainStart = chain.getBlocks().get(0).getCoordinate();
-      // TODO: Alle ArmorStands taggen, damit nur ein uninstallation command notwendig
       int index = options.hasOption(TRANSMITTER) ? 2 : 1;
-
-      getInstall().getCommands()
+      // TODO: Alle ArmorStands taggen, damit nur ein uninstallation command notwendig
+      result
           .add(index,
               new Command("/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString()
-                  + ")} {CustomName:" + chain.getName()
+                  + ")} {CustomName:" + name
                   + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"));
-      getUninstall().getCommands()
-          .add(new Command("/kill @e[type=ArmorStand,name=" + chain.getName() + "]"));
-      // uninstallation
-      // .add(0,new Command("/kill @e[type=ArmorStand,name=" + name + "_NOTIFY]"));
-      // uninstallation
-      // .add(0,new Command("/kill @e[type=ArmorStand,name=" + name + "_INTERCEPTED]"));
     }
+    return new CommandChain(getInstall().getName(), result);
+  }
+
+  protected CommandChain getPopulatedUninstall() {
+    List<ChainLink> commands = getUninstall().getCommands();
+    ArrayList<ChainLink> result = new ArrayList<>(commands.size() + chains.size());
+    result.addAll(commands);
+    for (CommandBlockChain chain : chains) {
+      String name = chain.getName();
+      if (name == null || name == "install" || name == "uninstall") {
+        continue;
+      }
+      result.add(new Command("/kill @e[type=ArmorStand,name=" + name + "]"));
+      // result.add(0, new Command("/kill @e[type=ArmorStand,name=" + name + "_NOTIFY]"));
+      // result.add(0, new Command("/kill @e[type=ArmorStand,name=" + name + "_INTERCEPTED]"));
+    }
+    return new CommandChain(getUninstall().getName(), result);
   }
 
   protected List<MplBlock> toBlocks(List<ChainLink> commands,

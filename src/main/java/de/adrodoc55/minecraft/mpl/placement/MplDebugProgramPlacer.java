@@ -92,12 +92,11 @@ public class MplDebugProgramPlacer extends MplChainPlacer {
     for (CommandBlockChain chain : chains) {
       chain.move(getOrientation().getC().toCoordinate().mult(offset));
     }
-    populateUnInstall();
     generateUnInstall();
   }
 
   protected void generateUnInstall() throws NotEnoughSpaceException {
-    addChain(container.getInstall());
-    addChain(container.getUninstall());
+    addChain(getPopulatedInstall());
+    addChain(getPopulatedUninstall());
   }
 }

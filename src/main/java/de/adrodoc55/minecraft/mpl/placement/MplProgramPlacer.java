@@ -289,7 +289,6 @@ public class MplProgramPlacer extends MplChainPlacer {
         chain.move(getOrientation().getC().toCoordinate());
       }
     }
-    populateUnInstall();
     generateUnInstall();
   }
 
@@ -305,7 +304,7 @@ public class MplProgramPlacer extends MplChainPlacer {
     int installA = sizeA / 2;
     int uninstallA = sizeA - installA;
 
-    CommandChain uninstall = getUninstall();
+    CommandChain uninstall = getPopulatedUninstall();
     if (!uninstall.getCommands().isEmpty()) {
       Coordinate3D start = getOrientation().getB().toCoordinate();
       Directions template = newTemplate(installA);
@@ -313,7 +312,7 @@ public class MplProgramPlacer extends MplChainPlacer {
       chains.add(materialised);
     }
 
-    CommandChain install = getInstall();
+    CommandChain install = getPopulatedInstall();
     if (!install.getCommands().isEmpty()) {
       Coordinate3D start = new Coordinate3D();
       Directions template = $(EAST.repeat(Math.abs(uninstallA)), newTemplate(uninstallA));
