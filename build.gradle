@@ -42,6 +42,16 @@ allprojects { Project proj ->
     }
   }
 
+  pluginManager.withPlugin('java') {
+    task sourcesJar(type: Jar) {
+      sourceSets.all { from it.allSource }
+      includeEmptyDirs = false
+      duplicatesStrategy = 'exclude'
+      classifier 'sources'
+    }
+    assemble.dependsOn sourcesJar
+  }
+
   // ----------------------------------------------------------------------------------------------------
   //    _____       _  _
   //   | ____| ___ | |(_) _ __   ___   ___
