@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
 
-archivesBaseName = 'MPL-IDE'
+archivesBaseName = 'mpl-ide'
 
 // ----------------------------------------------------------------------------------------------------
 //    ____                                 _                     _

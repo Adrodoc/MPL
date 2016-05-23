@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
 
-archivesBaseName = 'MPL-Compiler'
+archivesBaseName = 'mpl-compiler'
 
 File antlrDefDir = file('src/antlr/def')
 File antlrGenDir = file('src/antlr/gen')
@@ -78,7 +78,7 @@ task generateAntlr4 {
     fileTree(dir: antlrDefDir, include:'**/*.g4').each { File file ->
       String relativePathToGrammar = antlrDefDir.toURI().relativize( file.getParentFile().toURI() ).toString()
       String packageName = relativePathToGrammar.replaceFirst('/$', '').replace('/', '.')
-      logger.quiet "  Generating grammar sources for ${file.name} in package ${packageName}"
+      logger.lifecycle "  Generating grammar sources for ${file.name} in package ${packageName}"
 
       File grammarDestDir = new File(antlrGenDir, relativePathToGrammar)
       mkdir grammarDestDir
