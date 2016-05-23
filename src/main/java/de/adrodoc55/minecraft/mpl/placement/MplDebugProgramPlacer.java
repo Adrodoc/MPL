@@ -83,10 +83,13 @@ public class MplDebugProgramPlacer extends MplChainPlacer {
     int offset = 0;
     if (!container.getChains().isEmpty()) {
       offset = 2;
-    } else if (!getInstall().getCommands().isEmpty()) {
-      offset++;
-    } else if (!getUninstall().getCommands().isEmpty()) {
-      offset++;
+    } else {
+      if (!getInstall().getCommands().isEmpty()) {
+        offset++;
+      }
+      if (!getUninstall().getCommands().isEmpty()) {
+        offset++;
+      }
     }
     for (CommandBlockChain chain : chains) {
       chain.move(getOrientation().getC().toCoordinate().mult(offset));
