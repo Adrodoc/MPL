@@ -61,6 +61,7 @@ import static de.adrodoc55.minecraft.mpl.commands.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -97,7 +98,7 @@ public class MplAstVisitorTest_MitTransmitter {
 
   @Before
   public void before() {
-    underTest = new MplAstVisitorImpl(new CompilerOptions(TRANSMITTER));
+    underTest = new MplAstVisitorImpl(new CompilerOptions(TRANSMITTER, DEBUG));
   }
 
   // @formatter:off

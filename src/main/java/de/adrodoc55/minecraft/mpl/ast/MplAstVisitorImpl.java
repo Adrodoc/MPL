@@ -170,28 +170,62 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     if (options.hasOption(TRANSMITTER)) {
       commands.add(new MplSkip());
     }
+    boolean containsSkip = containsSkip(process);
     if (process.isRepeating()) {
-      if (process.getChainParts().isEmpty()) {
-        process.add(new MplCommand(""));
-      }
-      ChainPart first = chainParts.get(0);
-      try {
-        first.setMode(REPEAT);
-        first.setNeedsRedstone(true);
-      } catch (IllegalModifierException ex) {
-        throw new IllegalStateException(ex.getMessage(), ex);
+      if (containsSkip) {
+        addReceiver();
+      } else {
+        if (process.getChainParts().isEmpty()) {
+          process.add(new MplCommand(""));
+        }
+        ChainPart first = chainParts.get(0);
+        try {
+          first.setMode(REPEAT);
+          first.setNeedsRedstone(true);
+        } catch (IllegalModifierException ex) {
+          throw new IllegalStateException(ex.getMessage(), ex);
+        }
       }
     } else {
-      if (options.hasOption(TRANSMITTER)) {
-        commands.add(new InternalCommand("/setblock ${this - 1} stone", Mode.IMPULSE, false));
-      } else {
-        commands.add(new InternalCommand("/blockdata ~ ~ ~ {auto:0}", Mode.IMPULSE, false));
-      }
+      addReceiver();
     }
     for (ChainPart chainPart : chainParts) {
       chainPart.accept(this);
     }
+    if (containsSkip) {
+      addBackref();
+    }
     chains.add(new CommandChain(process.getName(), commands));
+  }
+
+  private boolean containsSkip(MplProcess process) {
+    List<ChainPart> chainParts = process.getChainParts();
+    for (ChainPart chainPart : chainParts) {
+      if (chainPart instanceof MplSkip || chainPart instanceof MplWaitfor
+          || chainPart instanceof MplIntercept || chainPart instanceof MplBreakpoint) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private void addReceiver() {
+    if (options.hasOption(TRANSMITTER)) {
+      commands.add(new InternalCommand("/setblock ${this - 1} stone", Mode.IMPULSE, false));
+    } else {
+      commands.add(new InternalCommand("/blockdata ~ ~ ~ {auto:0}", Mode.IMPULSE, false));
+    }
+  }
+
+  private void addBackref() {
+    ReferencingCommand ref;
+    if (options.hasOption(TRANSMITTER)) {
+      ref = new ReferencingCommand("/setblock " + REF + " redstone_block");
+    } else {
+      ref = new ReferencingCommand("/blockdata " + REF + " {auto:1}");
+    }
+    ref.setRelative(-commands.size());
+    commands.add(ref);
   }
 
   protected void visitPossibleInvert(ModifiableChainPart chainPart) {
