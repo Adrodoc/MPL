@@ -1,4 +1,7 @@
-ext.productName = 'MPL'
+ext {
+  productName = 'MPL'
+  encoding = 'UTF-8'
+}
 allprojects {
   group = 'de.adrodoc55.mpl'
   version = '0.9'
@@ -22,6 +25,7 @@ ext {
 
 apply plugin: 'eclipse'
 
+
 task wrapper (type: Wrapper) { gradleVersion = 2.13 }
 
 allprojects { Project proj ->
@@ -30,7 +34,7 @@ allprojects { Project proj ->
     maven { url "http://basket.cindyscats.com/content/repositories/releases" }
   }
 
-  tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
+  tasks.withType(JavaCompile) { options.encoding = encoding }
 
   tasks.withType(Test) {
     beforeTest { TestDescriptor descriptor ->
@@ -54,11 +58,18 @@ allprojects { Project proj ->
     }
 
     pluginManager.withPlugin('java') {
+      eclipseJdt << {
+        logger.lifecycle "[eclipse] Using encoding '${encoding}' for project '${project.path}'"
+        File f = file('.settings/org.eclipse.core.resources.prefs')
+        f.write('eclipse.preferences.version=1\n')
+        f.append('encoding/<project>=' + encoding)
+      }
+
       eclipse {
         classpath {
           file {
             whenMerged { cp ->
-              project.logger.lifecycle "Excluding sourceSet outputs from eclipse dependencies for project '${project.name}'"
+              project.logger.lifecycle "[eclipse] Excluding sourceSet outputs from eclipse dependencies for project '${project.path}'"
               cp.entries.grep{ it.kind == 'lib' }.each { entry ->
                 rootProject.allprojects { Project project ->
                   String buildDirPath = project.buildDir.path.replace('\\', '/') + '/'
@@ -77,7 +88,7 @@ allprojects { Project proj ->
                         }
                       }
                       if (!projectContainsProjectDep) {
-                        throw new GradleException("The project '${proj.name}' has a dependency to the outputs of project '${project.name}', but not to the project itself. This is not allowed since it will cause compilation in eclipse to behave differently than in gradle.")
+                        throw new GradleException("The project '${proj.path}' has a dependency to the outputs of project '${project.path}', but not to the project itself. This is not allowed because it will cause compilation in eclipse to behave different than in gradle.")
                       }
                     }
                   }
