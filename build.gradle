@@ -82,7 +82,11 @@ allprojects { Project proj ->
         mavenDeployer {
           beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
-          repository(url: "file://localhost/Users/Adrian/.m2/repository")
+          // repository(url: "file://localhost/Users/Adrian/.m2/repository")
+          repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2") {
+            authentication(userName: project.'sonatype.username', password: project.'sonatype.password')
+          }
+
           pom.project {
             name "Minecraft Programming Language (MPL)"
             description "MPL is a language that makes it easier to write applications for Minecraft 1.9 or higher. The final result of compiling an MPL application are command blocks that can be imported into your world in various ways. MPL comes with it's own editor that supports syntax- and error-highlighting and has a built in compiler."
