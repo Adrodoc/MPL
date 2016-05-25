@@ -109,7 +109,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   public MplFrame() {
     super("Minecraft Programming Language - " + getVersion());
     setIconImage(Toolkit.getDefaultToolkit()
-        .getImage(MplFrame.class.getResource("/icons/commandblock_icon.png")));
+        .getImage(MplFrame.class.getResource("/icons/command_block_icon.png")));
     init();
     setSize(1000, 500);
     setLocationRelativeTo(null);
@@ -423,7 +423,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
       bnbtnCompileToCommand.setPath(new Path("this.compileToCommand"));
       bnbtnCompileToCommand.setModelProvider(getLocalModelProvider());
       bnbtnCompileToCommand
-          .setIcon(new ImageIcon(MplFrame.class.getResource("/icons/commandblock_icon_16.png")));
+          .setIcon(new ImageIcon(MplFrame.class.getResource("/icons/command_block_icon_16.png")));
     }
     return bnbtnCompileToCommand;
   }

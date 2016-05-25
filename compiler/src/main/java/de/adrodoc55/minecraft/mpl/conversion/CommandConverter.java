@@ -158,8 +158,8 @@ public class CommandConverter extends MplConverter {
   }
 
   /**
-   * A command must be escaped twice, because a OneCommand is nested twice: a commandblock in a
-   * commandblock minecraft in a commandblock.
+   * A command must be escaped twice, because a OneCommand is nested twice: a command block in a
+   * command block minecraft in a command block.
    *
    * @param command
    * @return
