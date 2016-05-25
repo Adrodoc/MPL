@@ -95,6 +95,7 @@ allprojects { Project proj ->
     //   |_|     \__,_||_.__/ |_||_||___/|_| |_|
     //
     // ----------------------------------------------------------------------------------------------------
+
     apply plugin: 'maven'
 
     uploadArchives {
@@ -123,10 +124,6 @@ allprojects { Project proj ->
               developer {
                 name "Adrodoc55"
                 email "adrodoc55@googlemail.com"
-              }
-              developer {
-                name "Michael Kuß"
-                email "michael@perfcon.de"
               }
             }
 
