@@ -1,4 +1,4 @@
-package de.kussm;
+package de.kussm.chain;
 
 import static de.kussm.chain.ChainLinkType.CONDITIONAL;
 import static de.kussm.chain.ChainLinkType.NORMAL;
@@ -10,7 +10,6 @@ import static de.kussm.direction.Direction.WEST;
 import static de.kussm.direction.Directions.$;
 
 import de.adrodoc55.minecraft.mpl.placement.NotEnoughSpaceException;
-import de.kussm.chain.Chain;
 import de.kussm.direction.Directions;
 
 /**
