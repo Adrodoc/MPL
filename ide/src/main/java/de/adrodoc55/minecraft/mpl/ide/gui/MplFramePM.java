@@ -92,8 +92,9 @@ import de.adrodoc55.minecraft.mpl.ide.gui.dialog.unsaved.UnsavedResourcesDialogP
  * @author Adrodoc55
  */
 public class MplFramePM extends AbstractPM {
-  private static final String COMPILE_TO_SCHEMATIC = "Compile to Schematic";
-  private static final String COMPILE_TO_FILTER = "Compile to MCEdit Filter";
+  public static final String COMPILE_TO_COMMAND = "Compile to Command";
+  public static final String COMPILE_TO_SCHEMATIC = "Compile to Schematic";
+  public static final String COMPILE_TO_FILTER = "Compile to MCEdit Filter";
 
   ListPM<MplEditorPM> editors = new ListPM<MplEditorPM>();
   OperationPM newFile = new OperationPM();
@@ -124,9 +125,11 @@ public class MplFramePM extends AbstractPM {
     newFile.setDescription("Create a new file");
     openFile.setDescription("Open a file");
     saveFile.setDescription("Save the current file");
-    compileToCommand.setDescription("Compile to Command");
+    compileToCommand.setDescription(COMPILE_TO_COMMAND);
     compileToSchematic.setDescription(COMPILE_TO_SCHEMATIC);
+    compileToSchematicUnder.setDescription(COMPILE_TO_SCHEMATIC);
     compileToFilter.setDescription(COMPILE_TO_FILTER);
+    compileToFilterUnder.setDescription(COMPILE_TO_FILTER);
     PMManager.setup(this);
   }
 

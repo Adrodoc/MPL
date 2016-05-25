@@ -39,6 +39,10 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui;
 
+import static de.adrodoc55.minecraft.mpl.ide.gui.MplFramePM.COMPILE_TO_COMMAND;
+import static de.adrodoc55.minecraft.mpl.ide.gui.MplFramePM.COMPILE_TO_FILTER;
+import static de.adrodoc55.minecraft.mpl.ide.gui.MplFramePM.COMPILE_TO_SCHEMATIC;
+
 import java.awt.BorderLayout;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
@@ -329,7 +333,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
       bnmntmCompileToCommand = new BnMenuItem();
       bnmntmCompileToCommand.setPath(new Path("this.compileToCommand"));
       bnmntmCompileToCommand.setModelProvider(getLocalModelProvider());
-      bnmntmCompileToCommand.setText("Compile to one Command");
+      bnmntmCompileToCommand.setText(COMPILE_TO_COMMAND);
     }
     return bnmntmCompileToCommand;
   }
@@ -339,7 +343,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
       bnmntmCompileToSchematic = new BnMenuItem();
       bnmntmCompileToSchematic.setPath(new Path("this.compileToSchematic"));
       bnmntmCompileToSchematic.setModelProvider(getLocalModelProvider());
-      bnmntmCompileToSchematic.setText("Compile to Schematic");
+      bnmntmCompileToSchematic.setText(COMPILE_TO_SCHEMATIC);
     }
     return bnmntmCompileToSchematic;
   }
@@ -349,7 +353,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
       bnmntmCompileToSchematicUnder = new BnMenuItem();
       bnmntmCompileToSchematicUnder.setPath(new Path("this.compileToSchematicUnder"));
       bnmntmCompileToSchematicUnder.setModelProvider(getLocalModelProvider());
-      bnmntmCompileToSchematicUnder.setText("Compile to Schematic under...");
+      bnmntmCompileToSchematicUnder.setText(COMPILE_TO_SCHEMATIC + " under...");
     }
     return bnmntmCompileToSchematicUnder;
   }
@@ -359,7 +363,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
       bnmntmCompileToFilter = new BnMenuItem();
       bnmntmCompileToFilter.setPath(new Path("this.compileToFilter"));
       bnmntmCompileToFilter.setModelProvider(getLocalModelProvider());
-      bnmntmCompileToFilter.setText("Compile to Filter");
+      bnmntmCompileToFilter.setText(COMPILE_TO_FILTER);
     }
     return bnmntmCompileToFilter;
   }
@@ -369,7 +373,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
       bnmntmCompileToFilterUnder = new BnMenuItem();
       bnmntmCompileToFilterUnder.setPath(new Path("this.compileToFilterUnder"));
       bnmntmCompileToFilterUnder.setModelProvider(getLocalModelProvider());
-      bnmntmCompileToFilterUnder.setText("Compile to Filter under ...");
+      bnmntmCompileToFilterUnder.setText(COMPILE_TO_FILTER + " under ...");
     }
     return bnmntmCompileToFilterUnder;
   }
