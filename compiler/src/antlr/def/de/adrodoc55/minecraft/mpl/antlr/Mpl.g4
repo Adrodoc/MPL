@@ -116,7 +116,7 @@
    (
      ifDeclaration
      | mplCommand
-     | skip
+     | skipDeclaration
    )+
  ;
 
@@ -225,9 +225,9 @@
    BREAKPOINT
  ;
 
- skip
+ skipDeclaration
  :
-   SKIP
+   SKIP_TOKEN
  ;
 
  COMMENT
@@ -348,7 +348,7 @@
    'breakpoint'
  ;
 
- SKIP
+ SKIP_TOKEN
  :
    'skip'
  ;

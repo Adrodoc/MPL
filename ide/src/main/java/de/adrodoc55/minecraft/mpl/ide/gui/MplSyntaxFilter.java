@@ -229,7 +229,7 @@ public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<Mp
         case MplLexer.NOTIFY:
         case MplLexer.INTERCEPT:
         case MplLexer.BREAKPOINT:
-        case MplLexer.SKIP:
+        case MplLexer.SKIP_TOKEN:
         case MplLexer.IF:
         case MplLexer.NOT:
         case MplLexer.THEN:

@@ -86,7 +86,7 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.OrientationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProcessContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProjectContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ScriptFileContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.SkipContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.SkipDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.StartContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.StopContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ThenContext;
@@ -638,9 +638,9 @@ public class MplInterpreter extends MplBaseListener {
   }
 
   @Override
-  public void enterSkip(SkipContext ctx) {
+  public void enterSkipDeclaration(SkipDeclarationContext ctx) {
     if (process != null && process.isRepeating() && chainBuffer.getChainParts().isEmpty()) {
-      Token token = ctx.SKIP().getSymbol();
+      Token token = ctx.SKIP_TOKEN().getSymbol();
       String line = lines.get(token.getLine());
       MplSource source = new MplSource(programFile, token, line);
       addException(
