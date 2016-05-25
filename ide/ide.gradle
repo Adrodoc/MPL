@@ -31,6 +31,7 @@ dependencies {
 // ----------------------------------------------------------------------------------------------------
 
 jar {
+  exclude 'de/adrodoc55/minecraft/mpl/ide/main/MplIdeMainLauncher.class'
   manifest {
     attributes(
         'Created-By':               'Adrodoc55 (adrodoc55@googlemail.com)',

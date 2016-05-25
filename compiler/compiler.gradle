@@ -105,6 +105,7 @@ eclipseClasspath.dependsOn generateAntlr4
 // ----------------------------------------------------------------------------------------------------
 
 jar {
+  exclude 'de/adrodoc55/minecraft/mpl/main/MplCompilerMainLauncher.class'
   manifest {
     attributes(
         'Created-By':               'Adrodoc55 (adrodoc55@googlemail.com)',
