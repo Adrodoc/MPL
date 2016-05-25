@@ -124,7 +124,7 @@ public class MplCompiler extends MplBaseListener {
       }
     } catch (NotEnoughSpaceException ex) {
       throw new CompilationFailedException(
-          "The maximum coordinate is to small to place the entire program", ex);
+          "The maximal coordinate is to small to place the entire program", ex);
     }
     for (CommandBlockChain chain : chains) {
       insertRelativeCoordinates(chain.getBlocks(), container.getOrientation());

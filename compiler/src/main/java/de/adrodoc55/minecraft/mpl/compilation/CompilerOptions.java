@@ -54,7 +54,11 @@ public class CompilerOptions {
   private final ImmutableSet<CompilerOption> options;
 
   public CompilerOptions(CompilerOption... options) {
-    this.options = Sets.immutableEnumSet(Arrays.asList(options));
+    this(Arrays.asList(options));
+  }
+
+  public CompilerOptions(Iterable<CompilerOption> options) {
+    this.options = Sets.immutableEnumSet(options);
   }
 
   public boolean hasOption(CompilerOption option) {

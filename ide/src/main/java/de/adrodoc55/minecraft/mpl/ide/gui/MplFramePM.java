@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui;
 
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.awt.KeyboardFocusManager;
@@ -59,6 +60,7 @@ import javax.swing.JOptionPane;
 import javax.swing.text.JTextComponent;
 
 import org.beanfabrics.model.AbstractPM;
+import org.beanfabrics.model.BooleanPM;
 import org.beanfabrics.model.ListPM;
 import org.beanfabrics.model.OperationPM;
 import org.beanfabrics.model.PMManager;
@@ -73,6 +75,7 @@ import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
 import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
@@ -106,6 +109,8 @@ public class MplFramePM extends AbstractPM {
   OperationPM compileToSchematicUnder = new OperationPM();
   OperationPM compileToFilter = new OperationPM();
   OperationPM compileToFilterUnder = new OperationPM();
+  BooleanPM debug = new BooleanPM();
+  BooleanPM transmitter = new BooleanPM();
 
   SearchAndReplaceDialogControler sarController =
       new SearchAndReplaceDialogControler(new SearchAndReplaceDialogPM.Context() {
@@ -320,7 +325,14 @@ public class MplFramePM extends AbstractPM {
       return null;
     }
     try {
-      MplCompilationResult result = MplCompiler.compile(file, new CompilerOptions(TRANSMITTER));
+      List<CompilerOption> options = new ArrayList<>(2);
+      if (debug.getBoolean())
+        options.add(DEBUG);
+      if (transmitter.getBoolean())
+        options.add(TRANSMITTER);
+
+      MplCompilationResult result = MplCompiler.compile(file, new CompilerOptions(options));
+
       for (MplEditorPM editorPm : editors) {
         editorPm.setCompilerExceptions(Collections.emptyList());
       }

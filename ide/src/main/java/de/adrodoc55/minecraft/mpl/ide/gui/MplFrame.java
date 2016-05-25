@@ -74,6 +74,7 @@ import org.beanfabrics.model.IListPM;
 import org.beanfabrics.model.ListPM;
 import org.beanfabrics.swing.BnButton;
 import org.beanfabrics.swing.BnMenuItem;
+import org.beanfabrics.swing.BnCheckBoxMenuItem;
 
 /**
  * The MplFrame is a {@link View} on a {@link MplFramePM}.
@@ -96,6 +97,11 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnMenuItem bnmntmCompileToCommand;
   private BnMenuItem bnmntmCompileToSchematic;
   private BnMenuItem bnmntmCompileToSchematicUnder;
+  private BnMenuItem bnmntmCompileToFilter;
+  private BnMenuItem bnmntmCompileToFilterUnder;
+  private JMenu mnOptions;
+  private BnCheckBoxMenuItem bnchckbxmntmDebug;
+  private BnCheckBoxMenuItem bnchckbxmntmTransmitter;
   private JToolBar toolBar;
   private BnButton bnbtnNew;
   private BnButton bnbtnOpen;
@@ -103,8 +109,6 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnButton bnbtnCompileToCommand;
   private BnButton bnbtnCompileToSchematic;
   private BnButton bnbtnCompileToFilter;
-  private BnMenuItem bnmntmCompileToFilter;
-  private BnMenuItem bnmntmCompileToFilterUnder;
   private JTabbedPane tabbedPane;
 
   /**
@@ -268,6 +272,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
     if (menuBar == null) {
       menuBar = new JMenuBar();
       menuBar.add(getMnFile());
+      menuBar.add(getMnOptions());
     }
     return menuBar;
   }
@@ -378,6 +383,35 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
     return bnmntmCompileToFilterUnder;
   }
 
+  private JMenu getMnOptions() {
+    if (mnOptions == null) {
+      mnOptions = new JMenu("Options");
+      mnOptions.add(getBnchckbxmntmDebug());
+      mnOptions.add(getBnchckbxmntmTransmitter());
+    }
+    return mnOptions;
+  }
+
+  private BnCheckBoxMenuItem getBnchckbxmntmDebug() {
+    if (bnchckbxmntmDebug == null) {
+      bnchckbxmntmDebug = new BnCheckBoxMenuItem();
+      bnchckbxmntmDebug.setPath(new Path("this.debug"));
+      bnchckbxmntmDebug.setModelProvider(getLocalModelProvider());
+      bnchckbxmntmDebug.setText("Debug");
+    }
+    return bnchckbxmntmDebug;
+  }
+
+  private BnCheckBoxMenuItem getBnchckbxmntmTransmitter() {
+    if (bnchckbxmntmTransmitter == null) {
+      bnchckbxmntmTransmitter = new BnCheckBoxMenuItem();
+      bnchckbxmntmTransmitter.setPath(new Path("this.transmitter"));
+      bnchckbxmntmTransmitter.setModelProvider(getLocalModelProvider());
+      bnchckbxmntmTransmitter.setText("Transmitter");
+    }
+    return bnchckbxmntmTransmitter;
+  }
+
   private JToolBar getToolBar() {
     if (toolBar == null) {
       toolBar = new JToolBar();
@@ -472,5 +506,4 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
     }
     return tabbedPane;
   }
-
 }
