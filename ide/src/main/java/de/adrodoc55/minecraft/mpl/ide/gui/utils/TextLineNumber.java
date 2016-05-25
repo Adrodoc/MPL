@@ -229,7 +229,7 @@ public class TextLineNumber extends JPanel
    * <li>TextLineNumber.RIGHT (default)
    * </ul>
    *
-   * @param currentLineForeground the Color used to render the current line
+   * @param digitAlignment the horizontal alignment of the digits within the component
    */
   public void setDigitAlignment(float digitAlignment) {
     this.digitAlignment =

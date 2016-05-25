@@ -93,10 +93,8 @@ public abstract class ModifiableChainPart implements Modifiable, ChainPart {
     return needsRedstone;
   }
 
-  /**
+  /*
    * see https://github.com/mkarneim/pojobuilder/issues/86
-   *
-   * @param previous
    */
   public void setPrevious(Dependable previous) {
     this.previous = previous;

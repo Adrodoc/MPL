@@ -52,14 +52,11 @@ public interface ChainPart extends MplNode, Named, Dependable {
   /**
    * Set the {@link Mode} of this {@link ChainPart} (optional operation).
    * <p>
-   * Setting the {@link Mode} of this {@link ChainPart} does not necessarily affect the output of
-   * {@link #getMode()}. That is because {@link #setMode(Mode)} primarily affects the first of the
-   * generated {@link ChainLink}s, while {@link #getMode()} returns the {@link Mode} of the last
-   * {@link ChainLink} and is used in conjunction with {@link #canBeDependedOn()}.
+   * Using {@link #setMode(Mode)} primarily affects the first of the generated {@link ChainLink}s.
    * <p>
    * Subclasses should override this method if they support multiple {@link Mode}s.
    *
-   * @param mode
+   * @param mode {@link Mode}
    * @throws IllegalModifierException if this {@link ChainPart} cannot possess the given
    *         {@link Mode}
    */
@@ -73,7 +70,7 @@ public interface ChainPart extends MplNode, Named, Dependable {
    * <p>
    * Subclasses should override this method if they support the need for a redstone signal.
    *
-   * @param needsRedstone
+   * @param needsRedstone boolean
    * @throws IllegalModifierException if this {@link ChainPart} cannot need a redstone signal
    */
   default void setNeedsRedstone(boolean needsRedstone) throws IllegalModifierException {

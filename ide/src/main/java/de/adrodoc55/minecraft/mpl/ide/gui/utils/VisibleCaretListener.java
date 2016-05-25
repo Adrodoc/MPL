@@ -71,7 +71,7 @@ public class VisibleCaretListener implements CaretListener {
   /**
    * Create a VisibleCaretListener.
    *
-   * @param pixels the number of visible pixels after the caret.
+   * @param visiblePixels the number of visible pixels after the caret.
    */
   public VisibleCaretListener(int visiblePixels) {
     setVisiblePixels(visiblePixels);
@@ -89,7 +89,7 @@ public class VisibleCaretListener implements CaretListener {
   /**
    * Control the number of pixels that should be visible in the viewport after the caret position.
    *
-   * @param pixels the number of visible pixels after the caret.
+   * @param visiblePixels the number of visible pixels after the caret.
    */
   public void setVisiblePixels(int visiblePixels) {
     this.visiblePixels = visiblePixels;

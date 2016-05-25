@@ -22,6 +22,9 @@ import de.kussm.direction.Direction;
 import de.kussm.direction.Directions;
 import de.kussm.position.Position;
 
+/**
+ * @author Michael Kuß
+ */
 public class ChainLayouter {
   private ChainLayouter(Chain chain, Directions dirs, Position startPosition,
       Predicate<Position> isReceiverAllowed, Predicate<Position> isTransmitterAllowed) {

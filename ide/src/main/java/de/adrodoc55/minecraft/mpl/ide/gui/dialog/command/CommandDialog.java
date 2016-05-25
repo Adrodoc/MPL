@@ -88,6 +88,9 @@ public class CommandDialog extends JDialog implements View<CommandDialogPM>, Mod
 
   /**
    * Constructs a new <code>OneCommandDialog</code>.
+   *
+   * @param parent the {@code Window} from which the dialog is displayed or {@code null} if this
+   *        dialog has no parent
    */
   public CommandDialog(Window parent) {
     super(parent, "Import Commands");

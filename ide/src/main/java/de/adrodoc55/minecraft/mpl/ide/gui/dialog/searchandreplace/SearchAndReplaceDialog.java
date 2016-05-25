@@ -110,6 +110,9 @@ public class SearchAndReplaceDialog extends JDialog
 
   /**
    * Constructs a new <code>SearchAndReplaceDialog</code>.
+   *
+   * @param parent the {@code Window} from which the dialog is displayed or {@code null} if this
+   *        dialog has no parent
    */
   public SearchAndReplaceDialog(Window parent) {
     super(parent, "Search and Replace");

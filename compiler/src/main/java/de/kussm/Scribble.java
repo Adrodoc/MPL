@@ -13,6 +13,9 @@ import de.adrodoc55.minecraft.mpl.placement.NotEnoughSpaceException;
 import de.kussm.chain.Chain;
 import de.kussm.direction.Directions;
 
+/**
+ * @author Michael Kuß
+ */
 public class Scribble {
   private static final Chain EXAMPLE_CHAIN1 = Chain.of(TRANSMITTER, RECEIVER, NORMAL, NORMAL,
       NORMAL, TRANSMITTER, RECEIVER, NORMAL, CONDITIONAL, CONDITIONAL, CONDITIONAL, CONDITIONAL,

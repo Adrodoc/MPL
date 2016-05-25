@@ -89,8 +89,9 @@ public class StringUnescaper {
    * important to cover if you're passing the result to Pattern.compile(), since it handles them for
    * you further downstream. Hm, what about \[IDIOT JAVA PREPROCESSOR]u?
    *
+   * @param oldstr param
+   * @return unescaped String
    */
-
   public final static String unescape_perl_string(String oldstr) {
 
     /*
@@ -357,6 +358,9 @@ public class StringUnescaper {
   /**
    * Return a string "U+XX.XXX.XXXX" etc, where each XX set is the xdigits of the logical Unicode
    * code point. No bloody brain-damaged UTF-16 surrogate crap, just true logical characters.
+   *
+   * @param s param
+   * @return result
    */
   public final static String uniplus(String s) {
     if (s.length() == 0) {

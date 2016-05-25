@@ -40,7 +40,6 @@
 package de.adrodoc55.minecraft.mpl.main;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -76,13 +75,10 @@ public class MplCompilerMain {
    *
    * file to compile
    *
-   * @param args
-   * @throws InvalidOptionException
-   * @throws CompilationFailedException
-   * @throws IOException
-   * @throws Exception
+   * @param args to be parsed by this compiler
+   * @throws IOException for the input and output file
    */
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) throws IOException {
     try {
       startCompiler(args);
     } catch (CompilationFailedException ex) {
@@ -92,8 +88,8 @@ public class MplCompilerMain {
     }
   }
 
-  private static void startCompiler(String[] args) throws InvalidOptionException,
-      FileNotFoundException, IOException, CompilationFailedException {
+  private static void startCompiler(String[] args)
+      throws InvalidOptionException, IOException, CompilationFailedException {
     String srcPath = null;
     OutputStream out = System.out;
     CompilationType type = CompilationType.SCHEMATIC;

@@ -25,18 +25,22 @@ import com.google.common.base.Preconditions;
 
 import lombok.EqualsAndHashCode;
 
+/*
+ * <li>a {@link ChainLinkType#TRANSMITTER} is not followed by a {@link ChainLinkType#RECEIVER} <li>A
+ * {@link ChainLinkType#RECEIVER} is not preceded by a {@link ChainLinkType#TRANSMITTER}
+ */
 /**
- * A chain of {@link ChainLinks}.</pos> A valid chain must obey the following rules:
+ * A {@link Chain} of {@link ChainLinkType}s. A valid chain must obey the following rules:
  * <ul>
  * <li>a valid chain must not be empty
- * <li>a {@link ChainLinkType#TRANSMITTER} is not followed by a {@link ChainLinkType#RECEIVER}
- * <li>A {@link ChainLinkType#RECEIVER} is not preceded by a {@link ChainLinkType#TRANSMITTER}
- * <li>The first or the last {@link chainLink} must not be a {@link ChainLinkType#CONDITIONAL}
+ * <li>The first or the last chain link must not be a {@link ChainLinkType#CONDITIONAL}
  * </ul>
  * <p>
- * Tests can be found in {@link ChainSpec}.
  *
  * @author Michael Kuß
+ */
+/*
+ * Tests can be found in {@link ChainSpec}.
  */
 @EqualsAndHashCode
 public class Chain implements Iterable<ChainLinkType> {
@@ -88,10 +92,15 @@ public class Chain implements Iterable<ChainLinkType> {
     System.arraycopy(chainLinks, 0, this.chainLinks, 0, chainLinks.length);
   }
 
+  /*
+   * <li>a {@link ChainLinkType#TRANSMITTER TRANSMITTER_RECEIVER} is not followed by a {@link
+   * ChainLinkType#RECEIVER RECEIVER} <li>A {@link ChainLinkType#RECEIVER RECEIVER} is not preceded
+   * by a {@link ChainLinkType#TRANSMITTER TRANSMITTER_RECEIVER}
+   */
   /**
    * Public factory method
    *
-   * @param chainLinks
+   * @param chainLinks - the {@link ChainLinkType}s to construct a new chain
    * @throws NullPointerException if
    *         <ul>
    *         <li>{@code chainLinks} is null
@@ -100,14 +109,11 @@ public class Chain implements Iterable<ChainLinkType> {
    * @throws IllegalArgumentException if
    *         <ul>
    *         <li>the array {@code chainLinks} is empty
-   *         <li>a {@link ChainLinkType#TRANSMITTER TRANSMITTER_RECEIVER} is not followed by a
-   *         {@link ChainLinkType#RECEIVER RECEIVER}
    *         <li>A {@link ChainLinkType#RECEIVER RECEIVER} is followed by a
-   *         {@link ChainLinkType#TRANSMITTER TRANSMITTER_RECEIVER}
-   *         <li>A {@link ChainLinkType#RECEIVER RECEIVER} is not preceded by a
-   *         {@link ChainLinkType#TRANSMITTER TRANSMITTER_RECEIVER}
+   *         {@link ChainLinkType#TRANSMITTER TRANSMITTER}
    *         <li>The first or the last chain link is a {@link ChainLinkType#CONDITIONAL CONDITIONAL}
    *         </ul>
+   * @return a new {@link Chain} of the given {@link ChainLinkType}s
    */
   public static Chain of(ChainLinkType... chainLinks) {
     return new Chain(chainLinks);
@@ -120,9 +126,9 @@ public class Chain implements Iterable<ChainLinkType> {
   }
 
   /**
-   * Returns the number of chain links of this chain.
+   * Returns the number of chain links in this chain.
    *
-   * @return
+   * @return the number of chain links in this chain
    */
   public int size() {
     return chainLinks.length;
@@ -130,20 +136,21 @@ public class Chain implements Iterable<ChainLinkType> {
 
 
   /**
-   * Gets the first chain link of this chain.
+   * Returns the first chain link of this chain.
    * <p>
    * Same as {@code get(0)}
    *
-   * @return
+   * @return the first chain link of this chain
    */
   public ChainLinkType getFirstChainLink() {
     return chainLinks[0];
   }
 
   /**
-   * Gets the chain link at the given index.
+   * Returns the chain link at the given index.
    *
-   * @return
+   * @param index of the element to return
+   * @return the chain link at the given index
    * @throws IndexOutOfBoundsException if {@code index} is out of bounds.
    */
   public ChainLinkType get(int index) {

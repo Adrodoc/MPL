@@ -90,6 +90,9 @@ public class AutoCompletionDialog extends JDialog
 
   /**
    * Constructs a new <code>AutoCompletionDialog</code>.
+   *
+   * @param parent the {@code Window} from which the dialog is displayed or {@code null} if this
+   *        dialog has no parent
    */
   public AutoCompletionDialog(Window parent) {
     super(parent);

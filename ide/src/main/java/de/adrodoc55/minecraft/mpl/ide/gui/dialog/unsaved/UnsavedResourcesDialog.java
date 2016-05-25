@@ -101,6 +101,9 @@ public class UnsavedResourcesDialog extends JDialog
 
   /**
    * Constructs a new <code>UnsavedFilesDialog</code>.
+   *
+   * @param parent the {@code Window} from which the dialog is displayed or {@code null} if this
+   *        dialog has no parent
    */
   public UnsavedResourcesDialog(Window parent) {
     super(parent, "Unsaved Resources");

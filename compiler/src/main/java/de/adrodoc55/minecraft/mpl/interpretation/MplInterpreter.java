@@ -165,7 +165,7 @@ public class MplInterpreter extends MplBaseListener {
    * indicates that this include is not required by a specific process, but by an explicit include
    * of a project.
    *
-   * @return
+   * @return the mapping of process names
    */
   public ListMultimap<String, Include> getIncludes() {
     return includes;

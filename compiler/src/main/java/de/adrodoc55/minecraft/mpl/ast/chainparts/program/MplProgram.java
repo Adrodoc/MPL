@@ -144,6 +144,9 @@ public class MplProgram implements MplNode, Named {
 
   /**
    * Read only!
+   *
+   * @return an unmodifiable {@link Collection} of the {@link MplProcess}s of this
+   *         {@link MplProgram}
    */
   public Collection<MplProcess> getProcesses() {
     return Collections.unmodifiableCollection(processMap.values());

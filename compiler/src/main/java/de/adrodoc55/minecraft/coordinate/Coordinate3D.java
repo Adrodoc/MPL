@@ -164,10 +164,10 @@ public class Coordinate3D {
   }
 
   /**
-   * Einfache Skalarmultiplikation. Nicht Überlaufsicher.
+   * Simple scalar multiplication. Not Overflow save.
    *
-   * @param skalar
-   * @return
+   * @param skalar to multiply this with
+   * @return a copy of this coordinate that is multiplied with the scalar
    */
   public Coordinate3D mult(int skalar) {
     int x = this.x * skalar;

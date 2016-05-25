@@ -101,6 +101,8 @@ public class MplProcess implements MplNode, Named {
 
   /**
    * Read only!
+   *
+   * @return an unmodifiable {@link List} of the {@link ChainPart}s of this {@link MplProcess}
    */
   public List<ChainPart> getChainParts() {
     return Collections.unmodifiableList(chainParts);

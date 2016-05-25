@@ -20,6 +20,9 @@ import com.google.common.collect.Iterables;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
+/**
+ * @author Michael Kuß
+ */
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class Directions implements DirectionIterable {
   private final Iterable<Direction> directions;

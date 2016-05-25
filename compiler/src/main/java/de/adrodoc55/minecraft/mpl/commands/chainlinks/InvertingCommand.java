@@ -50,7 +50,7 @@ public class InvertingCommand extends ReferencingTestforSuccessCommand {
    * Constructs a Command, wich's success is always the opposite of the given command, if the
    * constructed command is placed directly after the given command.
    *
-   * @param previous
+   * @param previous the {@link Command} to invert
    */
   public InvertingCommand(Command previous) {
     this(previous.getMode());
@@ -60,7 +60,7 @@ public class InvertingCommand extends ReferencingTestforSuccessCommand {
    * Constructs a Command, wich's success is always the opposite of the previous command, if the
    * previous command has the given mode.
    *
-   * @param previous
+   * @param previousMode the {@link Mode} to invert
    */
   public InvertingCommand(Mode previousMode) {
     super(-1, previousMode, false);

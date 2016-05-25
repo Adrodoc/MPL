@@ -64,9 +64,9 @@ public class CommandBlockChain {
   }
 
   /**
-   * Moves this Chain according to the vector
+   * Moves this Chain according to the given vector.
    *
-   * @param vector
+   * @param vector to move this chain
    */
   public void move(Coordinate3D vector) {
     for (MplBlock block : blocks) {

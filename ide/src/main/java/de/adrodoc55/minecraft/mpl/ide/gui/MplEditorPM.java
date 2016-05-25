@@ -227,8 +227,6 @@ public class MplEditorPM extends AbstractPM {
    * Saves the changes to this Editor's File, overwriting the content. The file and all it's parent
    * directories will be created if necassary. If the file is null a JFileChooser dialog will be
    * opened.<br>
-   *
-   * @throws IOException
    */
   public void save() {
     if (file == null) {
@@ -251,8 +249,6 @@ public class MplEditorPM extends AbstractPM {
 
   /**
    * Opens a JFileChooser dialog. When the user select's a file {@link #save()} will be called.<br>
-   *
-   * @throws IOException
    */
   public void saveUnder() {
     Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();

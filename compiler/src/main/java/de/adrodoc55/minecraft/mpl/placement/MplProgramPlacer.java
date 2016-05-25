@@ -127,8 +127,9 @@ public class MplProgramPlacer extends MplChainPlacer {
    * Returns the current size to place the program. This is an exclusive, zero based
    * {@link Position}, so (1, 1) refers to a 1 block size.
    *
-   * @return
-   * @throws NotEnoughSpaceException
+   * @return the current size to place the program
+   * @throws NotEnoughSpaceException if the maximum coordinate is to small to place the entire
+   *         program
    */
   protected Position getSize() throws NotEnoughSpaceException {
     if (size == null) {
@@ -177,9 +178,9 @@ public class MplProgramPlacer extends MplChainPlacer {
   }
 
   /**
-   * Estimates the minimal a required to place all chains efficiently.
+   * Estimates the minimal length in the a direction required to place all chains efficiently.
    *
-   * @return
+   * @return the minimal length in the a direction
    */
   private int estimateMinA() {
     int unInstallLength = getUnInstallLength();
@@ -202,13 +203,13 @@ public class MplProgramPlacer extends MplChainPlacer {
   }
 
   /**
-   * Finds the next starting coordinate for this chain. This method takes all chains that have been
-   * added to {@link #chains} into account. Therefor the starting coordinate is guaranteed to allow
-   * a valid placement of the chain without leaving the boundaries of {@link #getSize()}.
+   * Finds the next free starting coordinate for this chain. This method takes all chains that have
+   * been added to {@link #chains} into account. Therefore the starting coordinate is guaranteed to
+   * allow a valid placement of the chain without leaving the boundaries of {@link #getSize()}.
    *
-   * @param chain
-   * @return
-   * @throws NotEnoughSpaceException
+   * @param chain the {@link CommandChain} to search a start for
+   * @return a free coordinate to start the chain placement at
+   * @throws NotEnoughSpaceException if the current size is to small to place the chain
    */
   protected Coordinate3D findStart(CommandChain chain) throws NotEnoughSpaceException {
     Position size = getSize();
@@ -226,11 +227,11 @@ public class MplProgramPlacer extends MplChainPlacer {
   }
 
   /**
-   * Finds the next free starting position for a chain with the given height.
+   * Finds the next free starting coordinate for a chain with the given height in the b direction.
    *
-   * @param b
-   * @return
-   * @throws NotEnoughSpaceException
+   * @param b the height of the chain
+   * @return a free coordinate to start the chain placement at
+   * @throws NotEnoughSpaceException if the current size is to small to place the chain
    */
   protected Coordinate3D findStart(int b) throws NotEnoughSpaceException {
     Orientation3D orientation = getOrientation();
@@ -249,12 +250,12 @@ public class MplProgramPlacer extends MplChainPlacer {
   }
 
   /**
-   * Returns the b needed to place this chain with this template disregarding forbidden
-   * transmitter/receiver positions.
+   * Returns the minimal height in the b direction needed to place the chain along the template
+   * disregarding forbidden transmitter and receiver positions.
    *
-   * @param chain
-   * @param template
-   * @return
+   * @param chain the {@link CommandChain} to place
+   * @param template along which the chain will be placed
+   * @return the minimal height in the b direction
    * @throws NotEnoughSpaceException if the template is too small
    */
   protected int getMinB(CommandChain chain, Directions template) throws NotEnoughSpaceException {
@@ -267,7 +268,7 @@ public class MplProgramPlacer extends MplChainPlacer {
   /**
    * Returns the greatest y value of the given {@link Position}s.
    *
-   * @param positions
+   * @param positions {@link Collection} of {@link Position}s
    * @return the greatest y value
    */
   protected int getMaxY(Collection<Position> positions) {
@@ -301,6 +302,8 @@ public class MplProgramPlacer extends MplChainPlacer {
    * This method generates both installation uninstallation of the program at (0, 0, 0) and adds
    * them to {@link #chains}. The resulting chains are in the same flat plane.
    *
+   * @throws NotEnoughSpaceException if the current size is to small to generate install or
+   *         uninstall
    * @see #generateFlat(CommandChain, Coordinate3D, Directions)
    */
   protected void generateUnInstall() throws NotEnoughSpaceException {

@@ -101,6 +101,9 @@ public class ExceptionDialog extends JDialog implements View<ExceptionDialogPM>,
 
   /**
    * Constructs a new <code>ExceptionDialog</code>.
+   *
+   * @param parent the {@code Window} from which the dialog is displayed or {@code null} if this
+   *        dialog has no parent
    */
   public ExceptionDialog(Window parent) {
     super(parent);

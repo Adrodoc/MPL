@@ -78,6 +78,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.kussm.ChainLayouter;
 import de.kussm.chain.Chain;
 import de.kussm.chain.ChainLinkType;
@@ -118,11 +119,11 @@ public abstract class MplChainPlacer {
    * already been added to {@link #chains}. Also the chain will not have any illegally placed
    * conditional command blocks.
    *
-   * @param chain
+   * @param chain the {@link CommandChain} to be placed
    * @param start the starting coordinate of the chain
-   * @param template
-   * @return
-   * @throws NotEnoughSpaceException
+   * @param template along which the chain should be placed
+   * @return a valid placed {@link CommandBlockChain}
+   * @throws NotEnoughSpaceException if the template is to small to allow a valid placement
    */
   public CommandBlockChain generateFlat(CommandChain chain, Coordinate3D start, Directions template)
       throws NotEnoughSpaceException {
@@ -138,13 +139,14 @@ public abstract class MplChainPlacer {
    * regarding all chains that have already been added to {@link #chains}. Also the chain will not
    * have any illegally placed conditional command blocks.
    *
-   * @param chain
-   * @param start
-   * @param template
-   * @return
-   * @throws NotEnoughSpaceException
+   * @param chain the {@link CommandChain} to be placed
+   * @param start the starting coordinate of the chain
+   * @param template along which the chain should be placed
+   * @return a {@link LinkedHashMap} containing the {@link Position}s and {@link ChainLinkType}s of
+   *         the valid placed chain
+   * @throws NotEnoughSpaceException if the template is to small to allow a valid placement
    */
-  public LinkedHashMap<Position, ChainLinkType> place(CommandChain chain, Coordinate3D start,
+  protected LinkedHashMap<Position, ChainLinkType> place(CommandChain chain, Coordinate3D start,
       Directions template) throws NotEnoughSpaceException {
     Chain chainLinkChain = toChainLinkChain(chain.getCommands());
     Set<Position> forbiddenReceiver = new HashSet<>();
@@ -187,13 +189,14 @@ public abstract class MplChainPlacer {
   }
 
   /**
-   * Places the chain according to the template without regarding forbidden transmitter/receiver
+   * Places the chain according to the template WITHOUT regarding forbidden transmitter/receiver
    * positions. The chain will not have any illegally placed conditional command blocks.
    *
-   * @param chain
-   * @param template
-   * @return
-   * @throws NotEnoughSpaceException
+   * @param chain the {@link Chain} to place
+   * @param template along which the chain should be placed
+   * @return a {@link LinkedHashMap} containing the {@link Position}s and {@link ChainLinkType}s of
+   *         the placed chain
+   * @throws NotEnoughSpaceException if the template is to small to allow a placement
    */
   public LinkedHashMap<Position, ChainLinkType> place(Chain chain, Directions template)
       throws NotEnoughSpaceException {
@@ -201,16 +204,21 @@ public abstract class MplChainPlacer {
   }
 
   /**
-   * Places the given chain. The placement will not have any illegal transmitter or receiver
-   * regarding the parameters. Also the chain will not have any illegally placed conditional command
-   * blocks.
+   * Places the given chain. The chain will not have any illegally placed conditional command
+   * blocks.<br>
+   * If this placement runs with {@link CompilerOption#TRANSMITTER}, the result will not have any
+   * illegal transmitter or receiver regarding the parameters. Also there will be no receiver at x=0
+   * and no transmitter at x=1.
    *
-   * @param chain
-   * @param template
-   * @param forbiddenReceivers
-   * @param forbiddenTransmitters
-   * @return
-   * @throws NotEnoughSpaceException
+   * @param chain the {@link Chain} to be placed
+   * @param template along which the should will be placed
+   * @param forbiddenReceivers a {@link Set} containing all {@link Position}s that may not contain a
+   *        receiver
+   * @param forbiddenTransmitters a {@link Set} containing all {@link Position}s that may not
+   *        contain a transmitter
+   * @return a {@link LinkedHashMap} containing the {@link Position}s and {@link ChainLinkType}s of
+   *         the valid placed chain
+   * @throws NotEnoughSpaceException if the template is to small to allow a valid placement
    */
   protected LinkedHashMap<Position, ChainLinkType> place(Chain chain, Directions template,
       Set<Position> forbiddenReceivers, Set<Position> forbiddenTransmitters)
@@ -320,7 +328,13 @@ public abstract class MplChainPlacer {
   }
 
   /**
-   * x -> a, y -> b
+   * Converts the {@link Position} to a {@link Coordinate3D} using the {@link Orientation3D}. The
+   * conversion is done along the Axis x → a and y → b.<br>
+   * The resulting coordinate will have the value 0 for the c axis of the orientation.
+   *
+   * @param pos to convert
+   * @param orientation along which to perform the conversion
+   * @return a {@link Coordinate3D} representing the given {@link Position}
    */
   public static Coordinate3D toCoordinate(Position pos, Orientation3D orientation) {
     Coordinate3D xDir = orientation.getA().toCoordinate();
@@ -330,7 +344,12 @@ public abstract class MplChainPlacer {
   }
 
   /**
-   * a -> x, b -> y
+   * Converts the {@link Coordinate3D} to a {@link Position} using the {@link Orientation3D}. The
+   * conversion is done along the Axis a → x and b → y.<br>
+   *
+   * @param coord to convert
+   * @param orientation along which to perform the conversion
+   * @return a {@link Position} representing the given {@link Coordinate3D}
    */
   public static Position toPosition(Coordinate3D coord, Orientation3D orientation) {
     Direction3D a = orientation.getA();
@@ -341,13 +360,14 @@ public abstract class MplChainPlacer {
   }
 
   /**
-   *
    * @param cp current position
    * @param np next position
-   * @param orientation
-   * @return
+   * @param orientation along which to perform the conversion
+   * @return the direction from the current position to the next position
+   * @throws IllegalArgumentException if the two positions are not next to each other
    */
-  protected static Direction3D getDirection(Position cp, Position np, Orientation3D orientation) {
+  protected static Direction3D getDirection(Position cp, Position np, Orientation3D orientation)
+      throws IllegalArgumentException {
     // current coordinate
     Coordinate3D cc = toCoordinate(cp, orientation);
     // next coordinate
