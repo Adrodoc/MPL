@@ -1,10 +1,10 @@
 /*
- * MPL (Minecraft Programming Language): A language for easy development of commandblock
- * applications including and IDE.
+ * Minecraft Programming Language (MPL): A language for easy development of command block
+ * applications including an IDE.
  *
  * © Copyright (C) 2016 Adrodoc55
  *
- * This file is part of MPL (Minecraft Programming Language).
+ * This file is part of MPL.
  *
  * MPL is free software: you can redistribute it and/or modify it under the terms of the GNU General
  * Public License as published by the Free Software Foundation, either version 3 of the License, or
@@ -19,15 +19,15 @@
  *
  *
  *
- * MPL (Minecraft Programming Language): Eine Sprache für die einfache Entwicklung von Commandoblock
- * Anwendungen, beinhaltet eine IDE.
+ * Minecraft Programming Language (MPL): Eine Sprache für die einfache Entwicklung von Commandoblock
+ * Anwendungen, inklusive einer IDE.
  *
  * © Copyright (C) 2016 Adrodoc55
  *
- * Diese Datei ist Teil von MPL (Minecraft Programming Language).
+ * Diese Datei ist Teil von MPL.
  *
- * MPL ist Freie Software: Sie können es unter den Bedingungen der GNU General Public License, wie
- * von der Free Software Foundation, Version 3 der Lizenz oder (nach Ihrer Wahl) jeder späteren
+ * MPL ist freie Software: Sie können diese unter den Bedingungen der GNU General Public License,
+ * wie von der Free Software Foundation, Version 3 der Lizenz oder (nach Ihrer Wahl) jeder späteren
  * veröffentlichten Version, weiterverbreiten und/oder modifizieren.
  *
  * MPL wird in der Hoffnung, dass es nützlich sein wird, aber OHNE JEDE GEWÄHRLEISTUNG,
