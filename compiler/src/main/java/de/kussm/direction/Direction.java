@@ -1,15 +1,41 @@
 /*
- * Copyright 2015-2016 by the authors
+ * Minecraft Programming Language (MPL): A language for easy development of command block
+ * applications including an IDE.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
+ * © Copyright (C) 2016 Adrodoc55
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * This file is part of MPL.
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * MPL is free software: you can redistribute it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * MPL is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MPL. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ *
+ *
+ * Minecraft Programming Language (MPL): Eine Sprache für die einfache Entwicklung von Commandoblock
+ * Anwendungen, inklusive einer IDE.
+ *
+ * © Copyright (C) 2016 Adrodoc55
+ *
+ * Diese Datei ist Teil von MPL.
+ *
+ * MPL ist freie Software: Sie können diese unter den Bedingungen der GNU General Public License,
+ * wie von der Free Software Foundation, Version 3 der Lizenz oder (nach Ihrer Wahl) jeder späteren
+ * veröffentlichten Version, weiterverbreiten und/oder modifizieren.
+ *
+ * MPL wird in der Hoffnung, dass es nützlich sein wird, aber OHNE JEDE GEWÄHRLEISTUNG,
+ * bereitgestellt; sogar ohne die implizite Gewährleistung der MARKTFÄHIGKEIT oder EIGNUNG FÜR EINEN
+ * BESTIMMTEN ZWECK. Siehe die GNU General Public License für weitere Details.
+ *
+ * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
+ * nicht, siehe <http://www.gnu.org/licenses/>.
  */
 package de.kussm.direction;
 

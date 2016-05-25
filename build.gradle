@@ -117,11 +117,6 @@ allprojects { Project proj ->
                 name "GNU General Public License 3.0"
                 url "http://www.gnu.org/licenses/gpl.txt"
               }
-
-              license {
-                name "The Apache License, Version 2.0"
-                url "http://www.apache.org/licenses/LICENSE-2.0.txt"
-              }
             }
 
             developers {
