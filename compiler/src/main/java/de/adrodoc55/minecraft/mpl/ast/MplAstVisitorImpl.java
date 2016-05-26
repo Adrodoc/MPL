@@ -59,6 +59,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -75,6 +76,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
@@ -158,15 +160,9 @@ public class MplAstVisitorImpl implements MplAstVisitor {
           .add(new MplCommand("/execute @e[tag=" + hash + "] ~ ~ ~ blockdata ~ ~ ~ {Command:}"));
     }
 
-    String start;
-    if (options.hasOption(TRANSMITTER)) {
-      start = "/execute @e[name=breakpoint_CONTINUE] ~ ~ ~ setblock ~ ~ ~ redstone_block";
-    } else {
-      start = "/execute @e[name=breakpoint_CONTINUE] ~ ~ ~ blockdata ~ ~ ~ {auto:1}";
-    }
     commands.add(new MplCommand(
-        "tellraw @a [{\"text\":\"[tp to breakpoint]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/tp @p @e[name=breakpoint_NOTIFY,c=-1]\"}},{\"text\":\" \"},{\"text\":\"[continue program]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\""
-            + start + "\"}}]"));
+        "tellraw @a [{\"text\":\"[tp to breakpoint]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/tp @p @e[name=breakpoint_NOTIFY,c=-1]\"}},{\"text\":\" \"},{\"text\":\"[continue program]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"execute @e[name=breakpoint_CONTINUE] ~ ~ ~ "
+            + getStartCommand("~ ~ ~") + "\"}}]"));
 
     commands.add(new MplWaitfor("breakpoint_CONTINUE"));
     commands.add(new MplCommand("/kill @e[name=breakpoint_CONTINUE]"));
@@ -176,8 +172,8 @@ public class MplAstVisitorImpl implements MplAstVisitor {
         new MplCommand("/execute @e[tag=" + hash + "] ~ ~ ~ clone ~ ~ ~ ~ ~ ~ ~ ~-1 ~ force move"));
     commands.add(new MplCommand("/tp @e[tag=" + hash + "] ~ ~-1 ~"));
     if (!options.hasOption(TRANSMITTER)) {
-      commands.add(new MplCommand("/execute @e[tag=" + hash
-          + "] ~ ~ ~ blockdata ~ ~ ~ {Command:blockdata ~ ~ ~ {auto:0}}"));
+      commands.add(new MplCommand("/execute @e[tag=" + hash + "] ~ ~ ~ blockdata ~ ~ ~ {Command:"
+          + getStopCommand("~ ~ ~") + "}"));
     }
 
     commands.add(new MplNotify("breakpoint"));
@@ -217,7 +213,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       chainPart.accept(this);
     }
     if (process.isRepeating() && containsSkip) {
-      addBackref();
+      addRestartBackref(commands.get(0));
     }
     chains.add(new CommandChain(process.getName(), commands));
   }
@@ -235,26 +231,71 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   private void addReceiver() {
     if (options.hasOption(TRANSMITTER)) {
-      commands.add(new InternalCommand("/setblock ${this - 1} stone", Mode.IMPULSE, false));
+      commands.add(new InternalCommand(getStopCommand("${this - 1}"), Mode.IMPULSE, false));
     } else {
-      commands.add(new InternalCommand("/blockdata ~ ~ ~ {auto:0}", Mode.IMPULSE, false));
+      commands.add(new InternalCommand(getStopCommand("~ ~ ~"), Mode.IMPULSE, false));
     }
   }
 
-  private void addBackref() {
-    ReferencingCommand off;
-    ReferencingCommand on;
-    if (options.hasOption(TRANSMITTER)) {
-      off = new ReferencingCommand("/setblock " + REF + " stone");
-      on = new ReferencingCommand("/setblock " + REF + " redstone_block", true);
-    } else {
-      off = new ReferencingCommand("/blockdata " + REF + " {auto:0b}");
-      on = new ReferencingCommand("/blockdata " + REF + " {auto:1}", true);
-    }
-    off.setRelative(-commands.size());
+  private void addRestartBackref(ChainLink chainLink) {
+    addRestartBackref(chainLink, false);
+  }
+
+  private void addRestartBackref(ChainLink chainLink, boolean conditional) {
+    ReferencingCommand off = newReferencingStopCommand(getCountToRef(chainLink));
+    off.setConditional(conditional);
     commands.add(off);
-    on.setRelative(-commands.size());
+    ReferencingCommand on = newReferencingStartCommand(getCountToRef(chainLink));
+    on.setConditional(true);
     commands.add(on);
+  }
+
+  public String getStartCommand(String ref) {
+    if (options.hasOption(TRANSMITTER)) {
+      return "setblock " + ref + " redstone_block";
+    } else {
+      return "blockdata " + ref + " {auto:1b}";
+    }
+  }
+
+  public String getStopCommand(String ref) {
+    if (options.hasOption(TRANSMITTER)) {
+      return "setblock " + ref + " stone";
+    } else {
+      return "blockdata " + ref + " {auto:0b}";
+    }
+  }
+
+  public ReferencingCommand newReferencingStartCommand(int relative) {
+    ReferencingCommand result = new ReferencingCommand(getStartCommand(REF));
+    result.setRelative(relative);
+    return result;
+  }
+
+  public ReferencingCommand newReferencingStopCommand(int relative) {
+    ReferencingCommand result = new ReferencingCommand(getStopCommand(REF));
+    result.setRelative(relative);
+    return result;
+  }
+
+  /**
+   * Returns the relative count to the given {@link ChainLink}. If {@code ref} is null the returned
+   * count will reference the first link in {@link #commands}.
+   *
+   * @param ref the {@link ChainLink} to search for
+   * @return the count to ref
+   * @throws IllegalArgumentException if {@code ref} is not found
+   * @throws NullPointerException if {@code ref} is null
+   */
+  private int getCountToRef(@Nullable ChainLink ref)
+      throws IllegalArgumentException, NullPointerException {
+    checkNotNull(ref, "ref == null!");
+    for (int i = commands.size() - 1; i >= 0; i--) {
+      if (ref == commands.get(i)) {
+        return -commands.size() + i;
+      }
+    }
+    throw new IllegalArgumentException("The given ref was not found in commands.");
   }
 
   protected void visitPossibleInvert(ModifiableChainPart chainPart) {
@@ -279,12 +320,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     visitPossibleInvert(start);
 
     String process = start.getProcess();
-    String command;
-    if (options.hasOption(TRANSMITTER)) {
-      command = "execute @e[name=" + process + "] ~ ~ ~ setblock ~ ~ ~ redstone_block";
-    } else {
-      command = "execute @e[name=" + process + "] ~ ~ ~ blockdata ~ ~ ~ {auto:1}";
-    }
+    String command = "execute @e[name=" + process + "] ~ ~ ~ " + getStartCommand("~ ~ ~");
     commands.add(new Command(command, start));
   }
 
@@ -293,12 +329,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     visitPossibleInvert(stop);
 
     String process = stop.getProcess();
-    String command;
-    if (options.hasOption(TRANSMITTER)) {
-      command = "execute @e[name=" + process + "] ~ ~ ~ setblock ~ ~ ~ stone";
-    } else {
-      command = "execute @e[name=" + process + "] ~ ~ ~ blockdata ~ ~ ~ {auto:0}";
-    }
+    String command = "execute @e[name=" + process + "] ~ ~ ~ " + getStopCommand("~ ~ ~");
     commands.add(new Command(command, stop));
   }
 
@@ -312,12 +343,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       commands.add(summon);
     } else {
       summon.setConditional(true);
-      ReferencingCommand jump;
-      if (options.hasOption(TRANSMITTER)) {
-        jump = new ReferencingCommand("setblock " + REF + " redstone_block", true);
-      } else {
-        jump = new ReferencingCommand("blockdata " + REF + " {auto:1}", true);
-      }
+      ReferencingCommand jump = new ReferencingCommand(getStartCommand(REF), true);
       if (waitfor.getConditional() == CONDITIONAL) {
         summon.setRelative(3);
         jump.setRelative(1);
@@ -335,9 +361,9 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
     if (options.hasOption(TRANSMITTER)) {
       commands.add(new MplSkip());
-      commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
+      commands.add(new InternalCommand(getStopCommand("${this - 1}"), Mode.IMPULSE, false));
     } else {
-      commands.add(new InternalCommand("blockdata ~ ~ ~ {auto:0}", Mode.IMPULSE, false));
+      commands.add(new InternalCommand(getStopCommand("~ ~ ~"), Mode.IMPULSE, false));
     }
   }
 
@@ -347,14 +373,9 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
     String process = notify.getProcess();
     boolean conditional = notify.isConditional();
-    if (options.hasOption(TRANSMITTER)) {
-      commands.add(new InternalCommand(
-          "execute @e[name=" + process + NOTIFY + "] ~ ~ ~ setblock ~ ~ ~ redstone_block",
-          conditional));
-    } else {
-      commands.add(new InternalCommand(
-          "execute @e[name=" + process + NOTIFY + "] ~ ~ ~ blockdata ~ ~ ~ {auto:1}", conditional));
-    }
+    commands.add(new InternalCommand(
+        "execute @e[name=" + process + NOTIFY + "] ~ ~ ~ " + getStartCommand("~ ~ ~"),
+        conditional));
     commands.add(new Command("kill @e[name=" + process + NOTIFY + "]", conditional));
   }
 
@@ -375,12 +396,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       commands.add(entitydata);
       commands.add(summon);
     } else {
-      ReferencingCommand jump;
-      if (options.hasOption(TRANSMITTER)) {
-        jump = new ReferencingCommand("setblock " + REF + " redstone_block", true);
-      } else {
-        jump = new ReferencingCommand("blockdata " + REF + " {auto:1}", true);
-      }
+      ReferencingCommand jump = new ReferencingCommand(getStartCommand(REF), true);
       if (intercept.getConditional() == CONDITIONAL) {
         summon.setRelative(3);
         jump.setRelative(1);
@@ -400,9 +416,9 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
     if (options.hasOption(TRANSMITTER)) {
       commands.add(new MplSkip());
-      commands.add(new InternalCommand("setblock ${this - 1} stone", Mode.IMPULSE, false));
+      commands.add(new InternalCommand(getStopCommand("${this - 1}"), Mode.IMPULSE, false));
     } else {
-      commands.add(new InternalCommand("blockdata ~ ~ ~ {auto:0}", Mode.IMPULSE, false));
+      commands.add(new InternalCommand(getStopCommand("~ ~ ~"), Mode.IMPULSE, false));
     }
     commands.add(new InternalCommand("kill @e[name=" + event + ",r=2]"));
     commands.add(new InternalCommand(
@@ -525,17 +541,6 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     return new ReferencingTestforSuccessCommand(relative, ref.getMode(), !dependingOnFailure);
   }
 
-  private int getCountToRef(InternalCommand ref) {
-    int lastIndex = -1;
-    for (int i = commands.size() - 1; i >= 0; i--) {
-      if (ref == commands.get(i)) {
-        lastIndex = i;
-        break;
-      }
-    }
-    return -commands.size() + lastIndex;
-  }
-
   private void addAsConditional(ChainPart chainPart) {
     cast(chainPart).setConditional(CONDITIONAL);
     chainPart.accept(this);
@@ -597,6 +602,71 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     } else {
       return containsConditionReference(mplIf.getElseParts().iterator());
     }
+  }
+
+  @Override
+  public void visitWhile(MplWhile mplWhile) {
+    String condition = mplWhile.getCondition();
+    Deque<ChainPart> chainParts = mplWhile.getChainParts();
+
+    if (mplWhile.isTrailing()) {
+      commands.add(newReferencingStartCommand(1));
+    } else {
+      commands.add(new Command(condition));
+      if (!mplWhile.isNot()) {
+        commands.add(newReferencingStartCommand(3));
+        commands.add(new InvertingCommand(CHAIN));
+        commands.add(newReferencingStartCommand(chainParts.size() + 8));
+      } else {
+        commands.add(newReferencingStartCommand(chainParts.size() + 10));
+        commands.add(new InvertingCommand(CHAIN));
+        commands.add(newReferencingStartCommand(1));
+      }
+    }
+    MplSkip entryPoint = new MplSkip(true);
+    commands.add(entryPoint);
+    try {
+      ChainPart first = chainParts.peek();
+      first.setMode(IMPULSE);
+      first.setNeedsRedstone(true);
+    } catch (IllegalModifierException ex) {
+      throw new IllegalStateException("While cannot contain skip", ex);
+    }
+    for (ChainPart chainPart : chainParts) {
+      chainPart.accept(this);
+    }
+    commands.add(new Command(condition));
+
+    ReferencingCommand _continue = new ReferencingCommand(getStartCommand(REF));
+    _continue.setConditional(true);
+    InvertingCommand invert = new InvertingCommand(CHAIN);
+    ReferencingCommand stop = new ReferencingCommand(getStopCommand(REF));
+    stop.setConditional(true);
+
+    if (!mplWhile.isNot()) {
+      addRestartBackref(entryPoint, true);
+      commands.add(invert);
+
+      _continue.setRelative(2);
+      commands.add(_continue);
+
+      stop.setRelative(getCountToRef(entryPoint));
+      commands.add(stop);
+    } else {
+      _continue.setRelative(5);
+      commands.add(_continue);
+
+      stop.setRelative(getCountToRef(entryPoint));
+      commands.add(stop);
+
+      commands.add(invert);
+      addRestartBackref(entryPoint, true);
+    }
+    commands.add(new MplSkip(true));
+    ReferencingCommand after = newReferencingStopCommand(-1);
+    after.setMode(IMPULSE);
+    after.setNeedsRedstone(true);
+    commands.add(after);
   }
 
 }
