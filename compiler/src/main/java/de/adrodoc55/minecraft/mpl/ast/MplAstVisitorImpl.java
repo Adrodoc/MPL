@@ -194,7 +194,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     if (options.hasOption(TRANSMITTER)) {
       commands.add(new MplSkip());
     }
-    boolean containsSkip = containsSkip(process);
+    boolean containsSkip = containsHighlevelSkip(process);
     if (process.isRepeating()) {
       if (process.getChainParts().isEmpty()) {
         process.add(new MplCommand(""));
@@ -222,11 +222,11 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     chains.add(new CommandChain(process.getName(), commands));
   }
 
-  private boolean containsSkip(MplProcess process) {
+  private boolean containsHighlevelSkip(MplProcess process) {
     List<ChainPart> chainParts = process.getChainParts();
     for (ChainPart chainPart : chainParts) {
-      if (chainPart instanceof MplSkip || chainPart instanceof MplWaitfor
-          || chainPart instanceof MplIntercept || chainPart instanceof MplBreakpoint) {
+      if (chainPart instanceof MplWaitfor || chainPart instanceof MplIntercept
+          || chainPart instanceof MplBreakpoint) {
         return true;
       }
     }
