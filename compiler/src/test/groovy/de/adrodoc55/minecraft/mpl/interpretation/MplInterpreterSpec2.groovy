@@ -1562,28 +1562,6 @@ class MplInterpreterSpec2 extends MplSpecBase {
   // ----------------------------------------------------------------------------------------------------
 
   @Test
-  public void "while repeat with leading mode in repeat"() {
-    given:
-    String identifier = someIdentifier()
-    String programString = """
-    while: /say while
-    repeat (
-      impulse: /say repeat
-    )
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-    then:
-    MplProgram program = interpreter.program
-
-    program.exceptions[0].message == "The first repeating part cannot have a mode"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'impulse'
-    program.exceptions[0].source.token.line == 4
-    program.exceptions.size() == 1
-  }
-
-  @Test
   public void "while repeat with leading conditional in repeat"() {
     given:
     String identifier = someIdentifier()
@@ -1628,34 +1606,13 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
-  public void "repeat while with leading mode in repeat"() {
-    given:
-    String identifier = someIdentifier()
-    String programString = """
-    repeat (
-      impulse: /say repeat
-    ) while: /say while
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-    then:
-    MplProgram program = interpreter.program
-
-    program.exceptions[0].message == "The first repeating part cannot have a mode"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'impulse'
-    program.exceptions[0].source.token.line == 3
-    program.exceptions.size() == 1
-  }
-
-  @Test
   public void "repeat while with leading conditional in repeat"() {
     given:
     String identifier = someIdentifier()
     String programString = """
     repeat (
       conditional: /say repeat
-    ) while: /say while
+    ) do while: /say while
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1676,7 +1633,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String programString = """
     repeat (
       invert: /say repeat
-    ) while: /say while
+    ) do while: /say while
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1756,7 +1713,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     repeat (
       /say repeat1
       /say repeat2
-    ) while: /say while
+    ) do while: /say while
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1784,7 +1741,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     repeat (
       /say repeat1
       /say repeat2
-    ) while not: /say while
+    ) do while not: /say while
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1830,13 +1787,13 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplWhile(false, '/outer condition')
+    process.chainParts[0] == new MplWhile(false, false, '/outer condition')
     process.chainParts.size() == 1
 
     MplWhile outerWhile = process.chainParts[0]
     outerWhile.chainParts[0] == new MplCommand('/say outer repeat1')
-    outerWhile.chainParts[1] == new MplWhile(false, '/inner condition')
-    outerWhile.chainParts[2] == new MplCommand('/say outer repeat1')
+    outerWhile.chainParts[1] == new MplWhile(false, false, '/inner condition')
+    outerWhile.chainParts[2] == new MplCommand('/say outer repeat2')
     outerWhile.chainParts.size() == 3
 
     MplWhile innerWhile = outerWhile.chainParts[1]

@@ -92,6 +92,7 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.StopContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ThenContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.UninstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.WaitforContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.WhileDeclarationContext;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
@@ -102,6 +103,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
@@ -672,6 +674,23 @@ public class MplInterpreter extends MplBaseListener {
     MplIf mplIf = (MplIf) chainBuffer;
     chainBuffer = mplIf.exit();
     chainBuffer.add(mplIf);
+  }
+
+  @Override
+  public void enterWhileDeclaration(WhileDeclarationContext ctx) {
+    boolean not = ctx.NOT() != null;
+    boolean trailing = ctx.DO() != null;
+    TerminalNode command = ctx.COMMAND();
+    String condition = command != null ? command.getText() : null;
+
+    chainBuffer = new MplWhile(chainBuffer, not, trailing, condition);
+  }
+
+  @Override
+  public void exitWhileDeclaration(WhileDeclarationContext ctx) {
+    MplWhile mplWhile = (MplWhile) chainBuffer;
+    chainBuffer = mplWhile.exit();
+    chainBuffer.add(mplWhile);
   }
 
 }

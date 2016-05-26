@@ -1,42 +1,3 @@
-/*
- * Minecraft Programming Language (MPL): A language for easy development of command block
- * applications including an IDE.
- *
- * © Copyright (C) 2016 Adrodoc55
- *
- * This file is part of MPL.
- *
- * MPL is free software: you can redistribute it and/or modify it under the terms of the GNU General
- * Public License as published by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * MPL is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MPL. If not, see
- * <http://www.gnu.org/licenses/>.
- *
- *
- *
- * Minecraft Programming Language (MPL): Eine Sprache für die einfache Entwicklung von Commandoblock
- * Anwendungen, inklusive einer IDE.
- *
- * © Copyright (C) 2016 Adrodoc55
- *
- * Diese Datei ist Teil von MPL.
- *
- * MPL ist freie Software: Sie können diese unter den Bedingungen der GNU General Public License,
- * wie von der Free Software Foundation, Version 3 der Lizenz oder (nach Ihrer Wahl) jeder späteren
- * veröffentlichten Version, weiterverbreiten und/oder modifizieren.
- *
- * MPL wird in der Hoffnung, dass es nützlich sein wird, aber OHNE JEDE GEWÄHRLEISTUNG,
- * bereitgestellt; sogar ohne die implizite Gewährleistung der MARKTFÄHIGKEIT oder EIGNUNG FÜR EINEN
- * BESTIMMTEN ZWECK. Siehe die GNU General Public License für weitere Details.
- *
- * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
- * nicht, siehe <http://www.gnu.org/licenses/>.
- */
 package de.adrodoc55.minecraft.mpl.ast;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -59,7 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -118,6 +78,25 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   @Override
   public ChainContainer getResult() {
     return container;
+  }
+
+  /**
+   * Returns the relative count to the given {@link ChainLink}. If {@code ref} is null the returned
+   * count will reference the first link in {@link #commands}.
+   *
+   * @param ref the {@link ChainLink} to search for
+   * @return the count to ref
+   * @throws IllegalArgumentException if {@code ref} is not found
+   * @throws NullPointerException if {@code ref} is null
+   */
+  private int getCountToRef(ChainLink ref) throws IllegalArgumentException, NullPointerException {
+    checkNotNull(ref, "ref == null!");
+    for (int i = commands.size() - 1; i >= 0; i--) {
+      if (ref == commands.get(i)) {
+        return -commands.size() + i;
+      }
+    }
+    throw new IllegalArgumentException("The given ref was not found in commands.");
   }
 
   public String getStartCommand(String ref) {
@@ -265,26 +244,6 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       }
     }
     return false;
-  }
-
-  /**
-   * Returns the relative count to the given {@link ChainLink}. If {@code ref} is null the returned
-   * count will reference the first link in {@link #commands}.
-   *
-   * @param ref the {@link ChainLink} to search for
-   * @return the count to ref
-   * @throws IllegalArgumentException if {@code ref} is not found
-   * @throws NullPointerException if {@code ref} is null
-   */
-  private int getCountToRef(@Nullable ChainLink ref)
-      throws IllegalArgumentException, NullPointerException {
-    checkNotNull(ref, "ref == null!");
-    for (int i = commands.size() - 1; i >= 0; i--) {
-      if (ref == commands.get(i)) {
-        return -commands.size() + i;
-      }
-    }
-    throw new IllegalArgumentException("The given ref was not found in commands.");
   }
 
   protected void visitPossibleInvert(ModifiableChainPart chainPart) {
