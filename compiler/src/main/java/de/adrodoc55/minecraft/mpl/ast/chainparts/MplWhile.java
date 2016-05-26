@@ -39,8 +39,6 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
@@ -70,7 +68,7 @@ public class MplWhile extends ModifiableChainPart implements ChainPartBuffer {
   @Getter
   private final boolean trailing;
   @Getter
-  private final String condition;
+  private final @Nullable String condition;
 
   private final Deque<ChainPart> chainParts = new ArrayDeque<>();
 
@@ -80,12 +78,12 @@ public class MplWhile extends ModifiableChainPart implements ChainPartBuffer {
   }
 
   public MplWhile(@Nullable ChainPartBuffer parent, boolean not, boolean trailing,
-      String condition) {
+      @Nullable String condition) {
     super(new ModifierBuffer());
     this.parent = parent;
     this.not = not;
     this.trailing = trailing;
-    this.condition = checkNotNull(condition, "condition == null!");
+    this.condition = condition;
   }
 
   @Override

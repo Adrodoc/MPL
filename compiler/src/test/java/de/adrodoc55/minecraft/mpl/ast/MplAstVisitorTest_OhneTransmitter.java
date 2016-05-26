@@ -472,11 +472,11 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
         new Command(repeat2.getCommand(), repeat2.getMode(), repeat2.isConditional(),
             repeat2.getNeedsRedstone()), //
         new Command(mplWhile.getCondition()), //
-        new InternalCommand(getOffCommand("${this - 4}"), true), //
-        new InternalCommand(getOnCommand("${this - 5}"), true), //
+        new InternalCommand(getOffCommand("${this - 3}"), true), //
+        new InternalCommand(getOnCommand("${this - 4}"), true), //
         new InvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 2}"), true), //
-        new InternalCommand(getOffCommand("${this - 8}"), true), //
+        new InternalCommand(getOffCommand("${this - 7}"), true), //
         new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE)//
     );
   }
@@ -503,10 +503,10 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
             repeat2.getNeedsRedstone()), //
         new Command(mplWhile.getCondition()), //
         new InternalCommand(getOnCommand("${this + 5}"), true), //
-        new InternalCommand(getOffCommand("${this - 5}"), true), //
+        new InternalCommand(getOffCommand("${this - 4}"), true), //
         new InvertingCommand(CHAIN), //
-        new InternalCommand(getOffCommand("${this - 7}"), true), //
-        new InternalCommand(getOnCommand("${this - 8}"), true), //
+        new InternalCommand(getOffCommand("${this - 6}"), true), //
+        new InternalCommand(getOnCommand("${this - 7}"), true), //
         new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE)//
     );
   }
@@ -527,19 +527,19 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new Command(mplWhile.getCondition()), //
-        new InternalCommand(getOnCommand("${this + 3}")), //
+        new InternalCommand(getOnCommand("${this + 3}"), true), //
         new InvertingCommand(CHAIN), //
-        new InternalCommand(getOnCommand("${this + 9}")), //
+        new InternalCommand(getOnCommand("${this + 9}"), true), //
         new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
             repeat1.getNeedsRedstone()), //
         new Command(repeat2.getCommand(), repeat2.getMode(), repeat2.isConditional(),
             repeat2.getNeedsRedstone()), //
         new InternalCommand(mplWhile.getCondition()), //
-        new InternalCommand(getOffCommand("${this - 4}"), true), //
-        new InternalCommand(getOnCommand("${this - 5}"), true), //
+        new InternalCommand(getOffCommand("${this - 3}"), true), //
+        new InternalCommand(getOnCommand("${this - 4}"), true), //
         new InvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 2}"), true), //
-        new InternalCommand(getOffCommand("${this - 8}"), true), //
+        new InternalCommand(getOffCommand("${this - 7}"), true), //
         new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE)//
     );
   }
@@ -560,19 +560,19 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new Command(mplWhile.getCondition()), //
-        new InternalCommand(getOnCommand("${this + 11}")), //
+        new InternalCommand(getOnCommand("${this + 11}"), true), //
         new InvertingCommand(CHAIN), //
-        new InternalCommand(getOnCommand("${this + 1}")), //
+        new InternalCommand(getOnCommand("${this + 1}"), true), //
         new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
             repeat1.getNeedsRedstone()), //
         new Command(repeat2.getCommand(), repeat2.getMode(), repeat2.isConditional(),
             repeat2.getNeedsRedstone()), //
         new Command(mplWhile.getCondition()), //
         new InternalCommand(getOnCommand("${this + 5}"), true), //
-        new InternalCommand(getOffCommand("${this - 5}"), true), //
+        new InternalCommand(getOffCommand("${this - 4}"), true), //
         new InvertingCommand(CHAIN), //
-        new InternalCommand(getOffCommand("${this - 7}"), true), //
-        new InternalCommand(getOnCommand("${this - 8}"), true), //
+        new InternalCommand(getOffCommand("${this - 6}"), true), //
+        new InternalCommand(getOnCommand("${this - 7}"), true), //
         new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE)//
     );
   }

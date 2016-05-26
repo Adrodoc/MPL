@@ -73,6 +73,16 @@ public class ReferencingCommand extends InternalCommand {
     super(command, mode, conditional);
   }
 
+  public ReferencingCommand(String command, int relative) {
+    this(command);
+    this.relative = relative;
+  }
+
+  public ReferencingCommand(String command, boolean conditional, int relative) {
+    this(command, conditional);
+    this.relative = relative;
+  }
+
   @Override
   public String getCommand() {
     String operator = relative < 0 ? "-" : "+";

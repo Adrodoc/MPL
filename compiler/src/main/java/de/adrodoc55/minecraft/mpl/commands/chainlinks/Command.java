@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import javax.annotation.Nonnull;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
@@ -103,7 +105,8 @@ public class Command implements ChainLink, Modifiable {
   }
 
   public void setCommand(String command) {
-    if (command != null && command.startsWith("/")) {
+    checkNotNull(command, "command == null!");
+    if (command.startsWith("/")) {
       this.command = command.substring(1);
     } else {
       this.command = command;

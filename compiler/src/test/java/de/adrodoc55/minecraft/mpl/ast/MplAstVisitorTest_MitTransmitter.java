@@ -545,9 +545,9 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new Command(mplWhile.getCondition()), //
-        new InternalCommand(getOnCommand("${this + 3}")), //
+        new InternalCommand(getOnCommand("${this + 3}"), true), //
         new InvertingCommand(CHAIN), //
-        new InternalCommand(getOnCommand("${this + 10}")), //
+        new InternalCommand(getOnCommand("${this + 10}"), true), //
         new MplSkip(true), //
         new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
             repeat1.getNeedsRedstone()), //
@@ -580,9 +580,9 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new Command(mplWhile.getCondition()), //
-        new InternalCommand(getOnCommand("${this + 12}")), //
+        new InternalCommand(getOnCommand("${this + 12}"), true), //
         new InvertingCommand(CHAIN), //
-        new InternalCommand(getOnCommand("${this + 1}")), //
+        new InternalCommand(getOnCommand("${this + 1}"), true), //
         new MplSkip(true), //
         new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
             repeat1.getNeedsRedstone()), //
