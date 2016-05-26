@@ -60,6 +60,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWhile
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram
 import de.adrodoc55.minecraft.mpl.commands.Conditional
@@ -1549,6 +1550,298 @@ class MplInterpreterSpec2 extends MplSpecBase {
     innerElseIf.thenParts.size() == 1
     innerElseIf.elseParts[0] == new MplCommand('/say inner else else')
     innerElseIf.elseParts.size() == 1
+  }
+
+  // ----------------------------------------------------------------------------------------------------
+  //   __        __ _      _  _
+  //   \ \      / /| |__  (_)| |  ___
+  //    \ \ /\ / / | '_ \ | || | / _ \
+  //     \ V  V /  | | | || || ||  __/
+  //      \_/\_/   |_| |_||_||_| \___|
+  //
+  // ----------------------------------------------------------------------------------------------------
+
+  @Test
+  public void "while repeat with leading mode in repeat"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    while: /say while
+    repeat (
+      impulse: /say repeat
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "The first repeating part cannot have a mode"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'impulse'
+    program.exceptions[0].source.token.line == 4
+    program.exceptions.size() == 1
+  }
+
+  @Test
+  public void "while repeat with leading conditional in repeat"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    while: /say while
+    repeat (
+      conditional: /say repeat
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "The first part of a chain must be unconditional"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'conditional'
+    program.exceptions[0].source.token.line == 4
+    program.exceptions.size() == 1
+  }
+
+  @Test
+  public void "while repeat with leading invert in repeat"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    while: /say while
+    repeat (
+      invert: /say repeat
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "The first part of a chain must be unconditional"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'invert'
+    program.exceptions[0].source.token.line == 4
+    program.exceptions.size() == 1
+  }
+
+  @Test
+  public void "repeat while with leading mode in repeat"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    repeat (
+      impulse: /say repeat
+    ) while: /say while
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "The first repeating part cannot have a mode"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'impulse'
+    program.exceptions[0].source.token.line == 3
+    program.exceptions.size() == 1
+  }
+
+  @Test
+  public void "repeat while with leading conditional in repeat"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    repeat (
+      conditional: /say repeat
+    ) while: /say while
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "The first part of a chain must be unconditional"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'conditional'
+    program.exceptions[0].source.token.line == 3
+    program.exceptions.size() == 1
+  }
+
+  @Test
+  public void "repeat while with leading invert in repeat"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    repeat (
+      invert: /say repeat
+    ) while: /say while
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "The first part of a chain must be unconditional"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'invert'
+    program.exceptions[0].source.token.line == 3
+    program.exceptions.size() == 1
+  }
+
+  @Test
+  public void "while repeat"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    while: /say while
+    repeat (
+      /say repeat1
+      /say repeat2
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    process.chainParts[0] == new MplWhile(false, false, '/say while')
+    process.chainParts.size() == 1
+
+    MplWhile mplWhile = process.chainParts[0]
+    mplWhile.chainParts[0] == new MplCommand('/say repeat1')
+    mplWhile.chainParts[1] == new MplCommand('/say repeat2')
+    mplWhile.chainParts.size() == 2
+  }
+
+  @Test
+  public void "while not repeat"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    while not: /say while
+    repeat (
+      /say repeat1
+      /say repeat2
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    process.chainParts[0] == new MplWhile(true, false, '/say while')
+    process.chainParts.size() == 1
+
+    MplWhile mplWhile = process.chainParts[0]
+    mplWhile.chainParts[0] == new MplCommand('/say repeat1')
+    mplWhile.chainParts[1] == new MplCommand('/say repeat2')
+    mplWhile.chainParts.size() == 2
+  }
+
+  @Test
+  public void "repeat while"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    repeat (
+      /say repeat1
+      /say repeat2
+    ) while: /say while
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    process.chainParts[0] == new MplWhile(false, true, '/say while')
+    process.chainParts.size() == 1
+
+    MplWhile mplWhile = process.chainParts[0]
+    mplWhile.chainParts[0] == new MplCommand('/say repeat1')
+    mplWhile.chainParts[1] == new MplCommand('/say repeat2')
+    mplWhile.chainParts.size() == 2
+  }
+
+  @Test
+  public void "repeat while not"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    repeat (
+      /say repeat1
+      /say repeat2
+    ) while not: /say while
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    process.chainParts[0] == new MplWhile(true, true, '/say while')
+    process.chainParts.size() == 1
+
+    MplWhile mplWhile = process.chainParts[0]
+    mplWhile.chainParts[0] == new MplCommand('/say repeat1')
+    mplWhile.chainParts[1] == new MplCommand('/say repeat2')
+    mplWhile.chainParts.size() == 2
+  }
+
+  @Test
+  public void "nested while"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    while: /outer condition
+    repeat (
+      /say outer repeat1
+
+      while: /inner condition
+      repeat (
+        /say inner repeat
+      )
+
+      /say outer repeat2
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    process.chainParts[0] == new MplWhile(false, '/outer condition')
+    process.chainParts.size() == 1
+
+    MplWhile outerWhile = process.chainParts[0]
+    outerWhile.chainParts[0] == new MplCommand('/say outer repeat1')
+    outerWhile.chainParts[1] == new MplWhile(false, '/inner condition')
+    outerWhile.chainParts[2] == new MplCommand('/say outer repeat1')
+    outerWhile.chainParts.size() == 3
+
+    MplWhile innerWhile = outerWhile.chainParts[1]
+    innerWhile.chainParts[0] == new MplCommand('/say inner repeat')
+    innerWhile.chainParts.size() == 1
   }
 
 }

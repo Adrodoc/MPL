@@ -60,6 +60,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotifyBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStartBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStopBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitforBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWhileBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcessBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgramBuilder;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainerBuilder;
@@ -182,6 +183,14 @@ public class MplTestBase extends TestBase {
   public static MplIfBuilder $MplIf() {
     return new MplIfBuilder()//
         .withNot($boolean())//
+        .withCondition($CommandString())//
+        ;
+  }
+
+  public static MplWhileBuilder $MplWhile() {
+    return new MplWhileBuilder()//
+        .withNot($boolean())//
+        .withTrailing($boolean())//
         .withCondition($CommandString())//
         ;
   }

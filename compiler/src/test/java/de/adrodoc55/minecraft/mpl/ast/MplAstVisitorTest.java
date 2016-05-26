@@ -51,6 +51,7 @@ import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplProgram;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplSkip;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStart;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStop;
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWhile;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.INVERT;
@@ -71,6 +72,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -1048,6 +1050,36 @@ public abstract class MplAstVisitorTest {
         new InternalCommand("/testforblock ${this - 8} chain_command_block -1 {SuccessCount:1}"), //
         new InternalCommand(outer3.getCommand(), outer3.getMode(), true, outer3.getNeedsRedstone())//
     );
+  }
+
+  // @formatter:off
+  // ----------------------------------------------------------------------------------------------------
+  //   __        __ _      _  _
+  //   \ \      / /| |__  (_)| |  ___
+  //    \ \ /\ / / | '_ \ | || | / _ \
+  //     \ V  V /  | | | || || ||  __/
+  //      \_/\_/   |_| |_||_||_| \___|
+  //
+  // ----------------------------------------------------------------------------------------------------
+  // @formatter:on
+
+  @Test
+  public void test_while_mit_skip_wirft_exception() {
+    // given:
+    MplWhile mplIf = some($MplWhile()//
+        .withChainParts(listOf(some($MplSkip()))));
+
+    // when:
+    Exception act = null;
+    try {
+      mplIf.accept(underTest);
+    } catch (IllegalStateException ex) {
+      act = ex;
+    }
+
+    // then:
+    assertThat(act).isNotNull();
+    assertThat(act.getMessage()).isEqualTo("While cannot contain skip");
   }
 
 }
