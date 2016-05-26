@@ -21,7 +21,7 @@ You can find a full tutorial for MPL [here](https://github.com/Adrodoc55/MPL/wik
 There are multiple ways to compile `.mpl` files:
 * Open the file in the IDE and compile it by hand. You can find a detailed explanation in the tutorial.
 * Run the standalone compiler [from the command line](https://github.com/Adrodoc55/MPL/wiki/Using-MPL-from-the-command-line).
-* Compile MPL ingame using the Bukkit plugin [MplManager](https://gitlab.crazyblock-network.net/BrainStone/MplManager).
+* Compile MPL ingame using the Bukkit plugin [MplManager](https://gitlab.crazyblock-network.net/BrainStone/MplManager) by BrainStone.
 
 Download
 --------
