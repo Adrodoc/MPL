@@ -44,7 +44,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -61,7 +60,6 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @Setter
 public class MplBreakpoint extends ModifiableChainPart {
   private final String message;
-  private @Nullable Mode mode;
 
   public MplBreakpoint(String message) {
     this(message, new ModifierBuffer());

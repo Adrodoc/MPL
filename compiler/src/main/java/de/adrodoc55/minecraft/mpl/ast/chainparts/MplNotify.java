@@ -63,7 +63,6 @@ public class MplNotify extends ModifiableChainPart {
   public static final String NOTIFY = "_NOTIFY";
 
   private final String process;
-  private @Nullable Mode mode;
 
   public MplNotify(String process) {
     this(process, new ModifierBuffer());
