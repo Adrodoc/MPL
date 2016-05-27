@@ -44,8 +44,10 @@ import static de.adrodoc55.TestBase.$boolean;
 import static de.adrodoc55.TestBase.$oneOf;
 import static de.adrodoc55.TestBase.listOf;
 import static de.adrodoc55.TestBase.some;
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplBreak;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplBreakpoint;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplCommand;
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplContinue;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplIf;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplNotify;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplProcess;
@@ -60,8 +62,12 @@ import static de.adrodoc55.minecraft.mpl.commands.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
+import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
 
 import org.assertj.core.api.Condition;
 import org.junit.Before;
@@ -70,8 +76,10 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreak;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart;
@@ -80,9 +88,11 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NormalizingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
 
@@ -1371,6 +1381,224 @@ public abstract class MplAstVisitorTest {
     int jumpIndex = 3;
     ReferencingCommand jump = (ReferencingCommand) underTest.commands.get(jumpIndex);
     assertThat(jumpIndex + jump.getRelative()).isEqualTo(ref);
+  }
+
+  // @formatter:off
+  // ----------------------------------------------------------------------------------------------------
+  //    ____                     _
+  //   | __ )  _ __  ___   __ _ | | __
+  //   |  _ \ | '__|/ _ \ / _` || |/ /
+  //   | |_) || |  |  __/| (_| ||   <
+  //   |____/ |_|   \___| \__,_||_|\_\
+  //
+  // ----------------------------------------------------------------------------------------------------
+  // @formatter:on
+
+  private int findFirstReciever(List<ChainLink> chainLinks) {
+    for (int i = 0; i < chainLinks.size(); i++) {
+      ChainLink chainLink = chainLinks.get(i);
+      if (isReciever(chainLink)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  private int findLastReciever(List<ChainLink> chainLinks) {
+    for (int i = chainLinks.size() - 1; i >= 0; i--) {
+      ChainLink chainLink = chainLinks.get(i);
+      if (isReciever(chainLink)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  private boolean isReciever(ChainLink chainLink) {
+    if (underTest.options.hasOption(TRANSMITTER)) {
+      if (chainLink instanceof MplSkip) {
+        return true;
+      }
+    } else {
+      if (chainLink instanceof Command && ((Command) chainLink).getMode() == IMPULSE) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Test
+  public void test_unconditional_Break() {
+    // given:
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplWhile mplWhile = some($MplWhile());
+    MplBreak mplBreak = some($MplBreak()//
+        .withLoop(mplWhile)//
+        .withConditional(UNCONDITIONAL));
+    mplWhile.setChainParts(listOf(command, mplBreak));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    List<ChainLink> commands = underTest.commands;
+    int entry = findFirstReciever(commands);
+    int exit = findLastReciever(commands);
+    int beforeBreak = commands.indexOf(new Command(command.getCommand(), command));
+    commands = commands.subList(beforeBreak + 1, commands.size() - 1);
+
+    assertThat(commands).startsWith(//
+        new ReferencingCommand(getOnCommand(REF), false, exit - (beforeBreak + 1)), //
+        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeBreak + 2))//
+    );
+  }
+
+  @Test
+  public void test_conditional_Break() {
+    // given:
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplWhile mplWhile = some($MplWhile());
+    MplBreak mplBreak = some($MplBreak()//
+        .withLoop(mplWhile)//
+        .withConditional(CONDITIONAL));
+    mplWhile.setChainParts(listOf(command, mplBreak));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    List<ChainLink> commands = underTest.commands;
+    int entry = findFirstReciever(commands);
+    int exit = findLastReciever(commands);
+    int beforeBreak = commands.indexOf(new Command(command.getCommand(), command));
+    commands = commands.subList(beforeBreak + 1, commands.size() - 1);
+
+    assertThat(commands).startsWith(//
+        new ReferencingCommand(getOnCommand(REF), true, exit - (beforeBreak + 1)), //
+        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeBreak + 2)), //
+        new InvertingCommand(CHAIN), //
+        new ReferencingCommand(getOnCommand(REF), true, 1)//
+    );
+  }
+
+  @Test
+  public void test_invert_Break() {
+    // given:
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplWhile mplWhile = some($MplWhile());
+    MplBreak mplBreak = some($MplBreak()//
+        .withLoop(mplWhile)//
+        .withConditional(INVERT)//
+        .withPrevious(command));
+    mplWhile.setChainParts(listOf(command, mplBreak));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    List<ChainLink> commands = underTest.commands;
+    int entry = findFirstReciever(commands);
+    int exit = findLastReciever(commands);
+    int beforeBreak = commands.indexOf(new Command(command.getCommand(), command));
+    commands = commands.subList(beforeBreak + 1, commands.size() - 1);
+
+    assertThat(commands).startsWith(//
+        new ReferencingCommand(getOnCommand(REF), true, 4), //
+        new InvertingCommand(CHAIN), //
+        new ReferencingCommand(getOnCommand(REF), true, exit - (beforeBreak + 3)), //
+        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeBreak + 4)) //
+    );
+  }
+
+  // @formatter:off
+  // ----------------------------------------------------------------------------------------------------
+  //     ____               _    _
+  //    / ___| ___   _ __  | |_ (_) _ __   _   _   ___
+  //   | |    / _ \ | '_ \ | __|| || '_ \ | | | | / _ \
+  //   | |___| (_) || | | || |_ | || | | || |_| ||  __/
+  //    \____|\___/ |_| |_| \__||_||_| |_| \__,_| \___|
+  //
+  // ----------------------------------------------------------------------------------------------------
+  // @formatter:on
+
+  @Test
+  public void test_unconditional_Continue() {
+    // given:
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplWhile mplWhile = some($MplWhile());
+    MplContinue mplContinue = some($MplContinue()//
+        .withLoop(mplWhile)//
+        .withConditional(UNCONDITIONAL));
+    mplWhile.setChainParts(listOf(command, mplContinue));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    List<ChainLink> commands = underTest.commands;
+    int entry = findFirstReciever(commands);
+    int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
+    commands = commands.subList(beforeContinue + 1, commands.size() - 1);
+
+    assertThat(commands).startsWith(//
+        new ReferencingCommand(getOffCommand(REF), false, entry - (beforeContinue + 1)), //
+        new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 2))//
+    );
+  }
+
+  @Test
+  public void test_conditional_Continue() {
+    // given:
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplWhile mplWhile = some($MplWhile());
+    MplContinue mplContinue = some($MplContinue()//
+        .withLoop(mplWhile)//
+        .withConditional(CONDITIONAL));
+    mplWhile.setChainParts(listOf(command, mplContinue));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    List<ChainLink> commands = underTest.commands;
+    int entry = findFirstReciever(commands);
+    int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
+    commands = commands.subList(beforeContinue + 1, commands.size() - 1);
+
+    assertThat(commands).startsWith(//
+        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 1)), //
+        new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 2)), //
+        new InvertingCommand(CHAIN), //
+        new ReferencingCommand(getOnCommand(REF), true, 1)//
+    );
+  }
+
+  @Test
+  public void test_invert_Continue() {
+    // given:
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplWhile mplWhile = some($MplWhile());
+    MplContinue mplContinue = some($MplContinue()//
+        .withLoop(mplWhile)//
+        .withConditional(INVERT)//
+        .withPrevious(command));
+    mplWhile.setChainParts(listOf(command, mplContinue));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    List<ChainLink> commands = underTest.commands;
+    int entry = findFirstReciever(commands);
+    int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
+    commands = commands.subList(beforeContinue + 1, commands.size() - 1);
+
+    assertThat(commands).startsWith(//
+        new ReferencingCommand(getOnCommand(REF), true, 4), //
+        new InvertingCommand(CHAIN), //
+        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 3)), //
+        new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 4)) //
+    );
   }
 
 }

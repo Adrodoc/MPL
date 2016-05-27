@@ -39,8 +39,10 @@
  */
 package de.adrodoc55.minecraft.mpl.ast;
 
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreak;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify;
@@ -82,4 +84,8 @@ public interface MplAstVisitor {
   ChainContainer getResult();
 
   void visitWhile(MplWhile mplWhile);
+
+  void visitBreak(MplBreak mplBreak);
+
+  void visitContinue(MplContinue mplContinue);
 }

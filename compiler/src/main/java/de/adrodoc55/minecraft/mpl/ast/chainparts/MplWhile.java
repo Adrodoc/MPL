@@ -105,7 +105,7 @@ public class MplWhile extends ModifiableChainPart implements ChainPartBuffer {
   }
 
   @VisibleForTesting
-  void setChainParts(Collection<ChainPart> chainParts) {
+  public void setChainParts(Collection<ChainPart> chainParts) {
     this.chainParts.clear();
     this.chainParts.addAll(chainParts);
   }

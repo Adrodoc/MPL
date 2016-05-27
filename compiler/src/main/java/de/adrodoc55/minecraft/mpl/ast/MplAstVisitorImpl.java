@@ -28,8 +28,10 @@ import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreak;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify;
@@ -82,8 +84,8 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   }
 
   /**
-   * Returns the relative count to the given {@link ChainLink}. If {@code ref} is null the returned
-   * count will reference the first link in {@link #commands}.
+   * Returns the relative count to the given {@link ChainLink} as a negative integer. If {@code ref}
+   * is null the returned count will reference the first link in {@link #commands}.
    *
    * @param ref the {@link ChainLink} to search for
    * @return the count to ref
@@ -615,34 +617,130 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       addRestartBackref(entryPoint, false);
     } else {
       commands.add(new Command(condition));
-      ReferencingCommand continueAfterLoop = new ReferencingCommand(getStartCommand(REF), true);
-      ReferencingCommand stopLoop = new ReferencingCommand(getStopCommand(REF), true);
       if (!mplWhile.isNot()) {
-        addRestartBackref(entryPoint, true);
+        addContinue(mplWhile, true);
         commands.add(new InvertingCommand(CHAIN));
-        commands.add(continueAfterLoop);
-
-        stopLoop.setRelative(getCountToRef(entryPoint));
-        commands.add(stopLoop);
+        addBreak(mplWhile, true);
       } else {
-        commands.add(continueAfterLoop);
-
-        stopLoop.setRelative(getCountToRef(entryPoint));
-        commands.add(stopLoop);
-
+        addBreak(mplWhile, true);
         commands.add(new InvertingCommand(CHAIN));
-        addRestartBackref(entryPoint, true);
+        addContinue(mplWhile, true);
       }
-
-      // From here the next command will be the exit point for the loop
-      continueAfterLoop.setRelative(-getCountToRef(continueAfterLoop));
     }
+    // From here the next command will be the exit point of the loop
+    int exitIndex = commands.size();
     try {
       skip.setRelative(-getCountToRef(skip));
     } catch (IllegalArgumentException ex) {
       // If skip was not added the reference does not have to be set
     }
     addTransmitterReceiverCombo(true);
+    ChainLink exitPoint = commands.get(exitIndex);
+
+    for (Iterator<LoopRef> it = loopRefs.iterator(); it.hasNext();) {
+      LoopRef loopRef = it.next();
+      if (loopRef.getLoop() == mplWhile) {
+        loopRef.setEntryPoint(entryPoint);
+        loopRef.setExitPoint(exitPoint);
+        it.remove();
+      }
+    }
+  }
+
+  private List<LoopRef> loopRefs = new ArrayList<>();
+
+  private interface LoopRef {
+    MplWhile getLoop();
+
+    void setEntryPoint(ChainLink entryPoint);
+
+    void setExitPoint(ChainLink exitPoint);
+  }
+
+  public void setRef(ReferencingCommand command, ChainLink reference) {
+    command.setRelative(getCountToRef(reference) - getCountToRef(command));
+  }
+
+  public void addBreak(MplWhile loop, boolean conditional) {
+    ReferencingCommand continueAfterLoop =
+        new ReferencingCommand(getStartCommand(REF), conditional);
+    ReferencingCommand stopLoop = new ReferencingCommand(getStopCommand(REF), true);
+    commands.add(continueAfterLoop);
+    commands.add(stopLoop);
+    loopRefs.add(new LoopRef() {
+      @Override
+      public void setExitPoint(ChainLink exitPoint) {
+        setRef(continueAfterLoop, exitPoint);
+      }
+
+      @Override
+      public void setEntryPoint(ChainLink entryPoint) {
+        setRef(stopLoop, entryPoint);
+      }
+
+      @Override
+      public MplWhile getLoop() {
+        return loop;
+      }
+    });
+  }
+
+  @Override
+  public void visitBreak(MplBreak mplBreak) {
+    MplWhile loop = mplBreak.getLoop();
+    // FIXME: ein command von break MUSS nicht internal sein (bei unconditional)
+    ReferencingCommand dontBreak = new ReferencingCommand(getStartCommand(REF), true);
+    if (mplBreak.getConditional() == CONDITIONAL) {
+      addBreak(loop, true);
+      commands.add(new InvertingCommand(CHAIN));
+      commands.add(dontBreak);
+    } else {
+      commands.add(dontBreak);
+      commands.add(new InvertingCommand(CHAIN));
+      addBreak(loop, true);
+    }
+    dontBreak.setRelative(-getCountToRef(dontBreak));
+    addTransmitterReceiverCombo(false);
+  }
+
+  private void addContinue(MplWhile loop, boolean conditional) {
+    ReferencingCommand stopLoop = new ReferencingCommand(getStopCommand(REF), conditional);
+    ReferencingCommand startLoop = new ReferencingCommand(getStartCommand(REF), true);
+    commands.add(stopLoop);
+    commands.add(startLoop);
+    loopRefs.add(new LoopRef() {
+      @Override
+      public void setExitPoint(ChainLink exitPoint) {}
+
+      @Override
+      public void setEntryPoint(ChainLink entryPoint) {
+        setRef(stopLoop, entryPoint);
+        setRef(startLoop, entryPoint);
+      }
+
+      @Override
+      public MplWhile getLoop() {
+        return loop;
+      }
+    });
+  }
+
+  @Override
+  public void visitContinue(MplContinue mplContinue) {
+    MplWhile loop = mplContinue.getLoop();
+    // FIXME: ein command von continue MUSS nicht internal sein (bei unconditional)
+    ReferencingCommand dontContinue = new ReferencingCommand(getStartCommand(REF), true);
+    if (mplContinue.getConditional() == CONDITIONAL) {
+      addContinue(loop, true);
+      commands.add(new InvertingCommand(CHAIN));
+      commands.add(dontContinue);
+    } else {
+      commands.add(dontContinue);
+      commands.add(new InvertingCommand(CHAIN));
+      addContinue(loop, true);
+    }
+    dontContinue.setRelative(-getCountToRef(dontContinue));
+    addTransmitterReceiverCombo(false);
   }
 
 }

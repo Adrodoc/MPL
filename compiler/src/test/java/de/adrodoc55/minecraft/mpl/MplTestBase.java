@@ -52,8 +52,10 @@ import de.adrodoc55.TestBase;
 import de.adrodoc55.minecraft.coordinate.Coordinate3DBuilder;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3DBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpointBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommandBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplContinueBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIfBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplInterceptBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotifyBuilder;
@@ -192,6 +194,20 @@ public class MplTestBase extends TestBase {
         .withNot($boolean())//
         .withTrailing($boolean())//
         .withCondition($CommandString())//
+        ;
+  }
+
+  public static MplBreakBuilder $MplBreak() {
+    return new MplBreakBuilder()//
+        .withModifier($ModifierBuffer())//
+        .withLabel($String())//
+        ;
+  }
+
+  public static MplContinueBuilder $MplContinue() {
+    return new MplContinueBuilder()//
+        .withModifier($ModifierBuffer())//
+        .withLabel($String())//
         ;
   }
 
