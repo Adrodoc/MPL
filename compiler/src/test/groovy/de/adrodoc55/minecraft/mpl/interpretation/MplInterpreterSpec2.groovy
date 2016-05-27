@@ -52,8 +52,10 @@ import com.google.common.collect.ListMultimap
 
 import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreak
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplContinue
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify
@@ -1827,6 +1829,244 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplWhile innerWhile = outerWhile.chainParts[1]
     innerWhile.chainParts[0] == new MplCommand('/say inner repeat')
     innerWhile.chainParts.size() == 1
+  }
+
+  // ----------------------------------------------------------------------------------------------------
+  //    ____                     _
+  //   | __ )  _ __  ___   __ _ | | __
+  //   |  _ \ | '__|/ _ \ / _` || |/ /
+  //   | |_) || |  |  __/| (_| ||   <
+  //   |____/ |_|   \___| \__,_||_|\_\
+  //
+  // ----------------------------------------------------------------------------------------------------
+
+  @Test
+  @Unroll("#modifier break with identifier")
+  public void "break with identifier"(String modifier, Conditional conditional) {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    ${identifier}: repeat (
+      /say hi
+      ${modifier} break ${identifier}
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    ModifierBuffer modifierBuffer = new ModifierBuffer()
+    modifierBuffer.setConditional(conditional);
+
+    process.chainParts[0] == new MplWhile(false, false, null)
+    process.chainParts.size() == 1
+
+    MplWhile mplWhile = process.chainParts[0]
+
+    ChainPart previous = null
+    if (conditional != UNCONDITIONAL) {
+      previous = mplWhile.chainParts[0]
+    }
+
+    mplWhile.chainParts[0] == new MplCommand('/say hi')
+    mplWhile.chainParts[1] == new MplBreak(identifier, modifierBuffer, previous)
+    mplWhile.chainParts.size() == 2
+    where:
+    modifier        | conditional
+    ''              | UNCONDITIONAL
+    'unconditional:'| UNCONDITIONAL
+    'conditional:'  | CONDITIONAL
+    'invert:'       | INVERT
+  }
+
+  @Test
+  @Unroll("#modifier break without identifier")
+  public void "break without identifier"(String modifier, Conditional conditional) {
+    given:
+    String programString = """
+    repeat (
+      /say hi
+      ${modifier} break
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    ModifierBuffer modifierBuffer = new ModifierBuffer()
+    modifierBuffer.setConditional(conditional);
+
+    process.chainParts[0] == new MplWhile(false, false, null)
+    process.chainParts.size() == 1
+
+    MplWhile mplWhile = process.chainParts[0]
+
+    ChainPart previous = null
+    if (conditional != UNCONDITIONAL) {
+      previous = mplWhile.chainParts[0]
+    }
+
+    mplWhile.chainParts[0] == new MplCommand('/say hi')
+    mplWhile.chainParts[1] == new MplBreak(null, modifierBuffer, previous)
+    mplWhile.chainParts.size() == 2
+    where:
+    modifier        | conditional
+    ''              | UNCONDITIONAL
+    'unconditional:'| UNCONDITIONAL
+    'conditional:'  | CONDITIONAL
+    'invert:'       | INVERT
+  }
+
+  @Test
+  @Unroll("break with illegal modifier: '#modifier'")
+  public void "break with illegal modifier"(String modifier) {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    ${modifier}: break ${identifier}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "Illegal modifier for break; only unconditional, conditional and invert are permitted"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == modifier
+    program.exceptions[0].source.token.line == 2
+    program.exceptions.size() == 1
+
+    where:
+    modifier << commandOnlyModifier
+  }
+
+  // ----------------------------------------------------------------------------------------------------
+  //     ____               _    _
+  //    / ___| ___   _ __  | |_ (_) _ __   _   _   ___
+  //   | |    / _ \ | '_ \ | __|| || '_ \ | | | | / _ \
+  //   | |___| (_) || | | || |_ | || | | || |_| ||  __/
+  //    \____|\___/ |_| |_| \__||_||_| |_| \__,_| \___|
+  //
+  // ----------------------------------------------------------------------------------------------------
+
+  @Test
+  @Unroll("#modifier continue with identifier")
+  public void "continue with identifier"(String modifier, Conditional conditional) {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    ${identifier}: repeat (
+      /say hi
+      ${modifier} continue ${identifier}
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    ModifierBuffer modifierBuffer = new ModifierBuffer()
+    modifierBuffer.setConditional(conditional);
+
+    process.chainParts[0] == new MplWhile(false, false, null)
+    process.chainParts.size() == 1
+
+    MplWhile mplWhile = process.chainParts[0]
+
+    ChainPart previous = null
+    if (conditional != UNCONDITIONAL) {
+      previous = mplWhile.chainParts[0]
+    }
+
+    mplWhile.chainParts[0] == new MplCommand('/say hi')
+    mplWhile.chainParts[1] == new MplContinue(identifier, modifierBuffer, previous)
+    mplWhile.chainParts.size() == 2
+    where:
+    modifier        | conditional
+    ''              | UNCONDITIONAL
+    'unconditional:'| UNCONDITIONAL
+    'conditional:'  | CONDITIONAL
+    'invert:'       | INVERT
+  }
+
+  @Test
+  @Unroll("#modifier continue without identifier")
+  public void "continue without identifier"(String modifier, Conditional conditional) {
+    given:
+    String programString = """
+    repeat (
+      /say hi
+      ${modifier} continue
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    ModifierBuffer modifierBuffer = new ModifierBuffer()
+    modifierBuffer.setConditional(conditional);
+
+    process.chainParts[0] == new MplWhile(false, false, null)
+    process.chainParts.size() == 1
+
+    MplWhile mplWhile = process.chainParts[0]
+
+    ChainPart previous = null
+    if (conditional != UNCONDITIONAL) {
+      previous = mplWhile.chainParts[0]
+    }
+
+    mplWhile.chainParts[0] == new MplCommand('/say hi')
+    mplWhile.chainParts[1] == new MplContinue(null, modifierBuffer, previous)
+    mplWhile.chainParts.size() == 2
+    where:
+    modifier        | conditional
+    ''              | UNCONDITIONAL
+    'unconditional:'| UNCONDITIONAL
+    'conditional:'  | CONDITIONAL
+    'invert:'       | INVERT
+  }
+
+  @Test
+  @Unroll("continue with illegal modifier: '#modifier'")
+  public void "continue with illegal modifier"(String modifier) {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    ${modifier}: continue ${identifier}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "Illegal modifier for continue; only unconditional, conditional and invert are permitted"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == modifier
+    program.exceptions[0].source.token.line == 2
+    program.exceptions.size() == 1
+
+    where:
+    modifier << commandOnlyModifier
   }
 
 }
