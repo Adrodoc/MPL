@@ -94,6 +94,13 @@ public abstract class ModifiableChainPart implements Modifiable, ChainPart {
   }
 
   /*
+   * Kann sonst nicht aus javadoc referenziert werden
+   */
+  public Dependable getPrevious() {
+    return previous;
+  }
+
+  /*
    * see https://github.com/mkarneim/pojobuilder/issues/86
    */
   public void setPrevious(Dependable previous) {

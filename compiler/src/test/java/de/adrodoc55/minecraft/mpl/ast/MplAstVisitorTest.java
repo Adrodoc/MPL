@@ -40,6 +40,8 @@
 package de.adrodoc55.minecraft.mpl.ast;
 
 import static de.adrodoc55.TestBase.$Enum;
+import static de.adrodoc55.TestBase.$boolean;
+import static de.adrodoc55.TestBase.$oneOf;
 import static de.adrodoc55.TestBase.listOf;
 import static de.adrodoc55.TestBase.some;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplBreakpoint;
@@ -66,6 +68,7 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.Modifiable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
@@ -76,6 +79,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NormalizingCommand;
@@ -368,6 +372,55 @@ public abstract class MplAstVisitorTest {
   //
   // ----------------------------------------------------------------------------------------------------
   // @formatter:on
+
+  @Test
+  public void test_If_modifier_gelten_fuer_condition() {
+    // given:
+    MplIf mplIf = some($MplIf()//
+        .withMode($Enum(Mode.class))//
+        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL))//
+        .withNeedsRedstone($boolean()));
+
+    // when:
+    mplIf.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new InternalCommand(mplIf.getCondition(), mplIf.getMode(), mplIf.isConditional(),
+            mplIf.getNeedsRedstone()) //
+    );
+  }
+
+  @Test
+  public void test_If_modifier_mit_invert_gelten_fuer_condition() {
+    // given:
+    Mode mode = some($Enum(Mode.class));
+
+    MplIf mplIf = some($MplIf()//
+        .withMode($Enum(Mode.class))//
+        .withConditional(INVERT)//
+        .withNeedsRedstone($boolean())//
+        .withPrevious(new Dependable() {
+          @Override
+          public boolean canBeDependedOn() {
+            return true;
+          }
+
+          @Override
+          public Mode getModeForInverting() throws UnsupportedOperationException {
+            return mode;
+          }
+        }));
+
+    // when:
+    mplIf.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new InvertingCommand(mode),
+        new InternalCommand(mplIf.getCondition(), mplIf.getMode(), true, mplIf.getNeedsRedstone()) //
+    );
+  }
 
   @Test
   public void test_If_then_mit_skip_wirft_exception() {
@@ -1064,7 +1117,63 @@ public abstract class MplAstVisitorTest {
   // @formatter:on
 
   @Test
-  public void test_while_mit_skip_wirft_exception() {
+  public void test_While_modifier_gelten_fuer_ersten_command() {
+    // given:
+    MplWhile mplWhile = some($MplWhile()//
+        .withMode($Enum(Mode.class))//
+        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL))//
+        .withNeedsRedstone($boolean()));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands.size()).isGreaterThanOrEqualTo(1);
+    ChainLink cp = underTest.commands.get(0);
+    assertThat(cp).isInstanceOf(Modifiable.class);
+    Modifiable first = (Modifiable) cp;
+    assertThat(first.getMode()).isEqualTo(mplWhile.getMode());
+    assertThat(first.isConditional()).isEqualTo(mplWhile.isConditional());
+    assertThat(first.getNeedsRedstone()).isEqualTo(mplWhile.getNeedsRedstone());
+  }
+
+  @Test
+  public void test_While_modifier_mit_invert_gelten_fuer_ersten_command() {
+    // given:
+    Mode mode = some($Enum(Mode.class));
+
+    MplWhile mplWhile = some($MplWhile()//
+        .withMode($Enum(Mode.class))//
+        .withConditional(INVERT)//
+        .withNeedsRedstone($boolean())//
+        .withPrevious(new Dependable() {
+          @Override
+          public boolean canBeDependedOn() {
+            return true;
+          }
+
+          @Override
+          public Mode getModeForInverting() throws UnsupportedOperationException {
+            return mode;
+          }
+        }));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands.size()).isGreaterThanOrEqualTo(2);
+    assertThat(underTest.commands.get(0)).isEqualTo(new InvertingCommand(mode));
+    ChainLink cp = underTest.commands.get(1);
+    assertThat(cp).isInstanceOf(Modifiable.class);
+    Modifiable first = (Modifiable) cp;
+    assertThat(first.getMode()).isEqualTo(mplWhile.getMode());
+    assertThat(first.isConditional()).isEqualTo(mplWhile.isConditional());
+    assertThat(first.getNeedsRedstone()).isEqualTo(mplWhile.getNeedsRedstone());
+  }
+
+  @Test
+  public void test_While_mit_skip_wirft_exception() {
     // given:
     MplWhile mplIf = some($MplWhile()//
         .withChainParts(listOf(some($MplSkip()))));

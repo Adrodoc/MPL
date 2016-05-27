@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import de.adrodoc55.minecraft.mpl.ast.chainparts.Modifiable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import lombok.Getter;
 import lombok.Setter;
@@ -80,6 +81,11 @@ public class ReferencingCommand extends InternalCommand {
 
   public ReferencingCommand(String command, boolean conditional, int relative) {
     this(command, conditional);
+    this.relative = relative;
+  }
+
+  public ReferencingCommand(String command, Modifiable modifier, int relative) {
+    super(command, modifier);
     this.relative = relative;
   }
 

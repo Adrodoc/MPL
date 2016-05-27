@@ -246,7 +246,16 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     return false;
   }
 
-  protected void visitPossibleInvert(ModifiableChainPart chainPart) {
+  /**
+   * Checks if the given {@link ChainPart} has the {@link Conditional#INVERT INVERT} modifier. If it
+   * does, an {@link InvertingCommand} is added to {@link #commands}. If {@code chainPart} does not
+   * have predecessor an {@link IllegalStateException} is thrown.
+   *
+   * @param chainPart if {@code chainPart} does not have predecessor
+   * @throws IllegalStateException
+   * @see ModifiableChainPart#getPrevious()
+   */
+  protected void visitPossibleInvert(ModifiableChainPart chainPart) throws IllegalStateException {
     if (chainPart.getConditional() == Conditional.INVERT) {
       Dependable previous = chainPart.getPrevious();
       checkState(previous != null,
@@ -397,6 +406,8 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitIf(MplIf mplIf) {
+    visitPossibleInvert(mplIf);
+
     String condition = mplIf.getCondition();
     InternalCommand ref = new InternalCommand(condition, mplIf);
     commands.add(ref);
@@ -543,6 +554,8 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitWhile(MplWhile mplWhile) {
+    visitPossibleInvert(mplWhile);
+
     String condition = mplWhile.getCondition();
     // TODO: mit null condition umgehen können (repeat ohne condition)
 
@@ -552,9 +565,10 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     }
 
     if (mplWhile.isTrailing()) {
-      commands.add(newReferencingStartCommand(false, 1));
+      // FIXME: do while muss bei conditional überspringen können
+      commands.add(new ReferencingCommand(getStartCommand(REF), mplWhile, 1));
     } else {
-      commands.add(new Command(condition));
+      commands.add(new Command(condition, mplWhile));
       int offset = options.hasOption(TRANSMITTER) ? 1 : 0;
       if (!mplWhile.isNot()) {
         commands.add(newReferencingStartCommand(true, 3));
