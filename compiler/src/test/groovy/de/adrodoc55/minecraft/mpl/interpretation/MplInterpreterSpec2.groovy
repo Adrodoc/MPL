@@ -1648,6 +1648,34 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
+  public void "repeat"() {
+    given:
+    String identifier = someIdentifier()
+    String programString = """
+    repeat (
+      /say repeat1
+      /say repeat2
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    process.chainParts[0] == new MplWhile(false, false, null)
+    process.chainParts.size() == 1
+
+    MplWhile mplWhile = process.chainParts[0]
+    mplWhile.chainParts[0] == new MplCommand('/say repeat1')
+    mplWhile.chainParts[1] == new MplCommand('/say repeat2')
+    mplWhile.chainParts.size() == 2
+  }
+
+  @Test
   public void "while repeat"() {
     given:
     String identifier = someIdentifier()

@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.ast;
 
 import static de.adrodoc55.TestBase.$Enum;
+import static de.adrodoc55.TestBase.$boolean;
 import static de.adrodoc55.TestBase.$oneOf;
 import static de.adrodoc55.TestBase.listOf;
 import static de.adrodoc55.TestBase.some;
@@ -464,6 +465,35 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
   //
   // ----------------------------------------------------------------------------------------------------
   // @formatter:on
+
+  @Test
+  public void test_repeat_mit_zwei_repeat() {
+    // given:
+    MplCommand repeat1 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand repeat2 = some($MplCommand().withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
+    MplWhile mplWhile = some($MplWhile()//
+        .withCondition((String) null)//
+        .withNot($boolean())//
+        .withTrailing($boolean())//
+        .withChainParts(listOf(repeat1, repeat2)));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new InternalCommand(getOnCommand("${this + 1}")), //
+        new MplSkip(true), //
+        new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
+            repeat1.getNeedsRedstone()), //
+        new Command(repeat2.getCommand(), repeat2.getMode(), repeat2.isConditional(),
+            repeat2.getNeedsRedstone()), //
+        new InternalCommand(getOffCommand("${this - 3}")), //
+        new InternalCommand(getOnCommand("${this - 4}"), true), //
+        new MplSkip(true), //
+        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE)//
+    );
+  }
 
   @Test
   public void test_repeat_while_mit_zwei_repeat() {

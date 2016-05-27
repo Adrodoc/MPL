@@ -555,12 +555,11 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitWhile(MplWhile mplWhile) {
-    if (!mplWhile.isTrailing()) {
+    String condition = mplWhile.getCondition();
+    boolean hasInitialCondition = condition != null && !mplWhile.isTrailing();
+    if (hasInitialCondition) {
       visitPossibleInvert(mplWhile);
     }
-
-    String condition = mplWhile.getCondition();
-    // TODO: mit null condition umgehen können (repeat ohne condition)
 
     Deque<ChainPart> chainParts = mplWhile.getChainParts();
     if (chainParts.isEmpty()) {
@@ -568,24 +567,20 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     }
 
     int firstIndex = commands.size();
-    if (!mplWhile.isTrailing()) {
+    if (hasInitialCondition) {
       commands.add(new Command(condition));
     }
 
     ReferencingCommand init = new ReferencingCommand(getStartCommand(REF));
-    ReferencingCommand skip = new ReferencingCommand(getStartCommand(REF));
-    skip.setConditional(true);
+    ReferencingCommand skip = new ReferencingCommand(getStartCommand(REF), true);
 
-    if (mplWhile.isTrailing() && !mplWhile.isConditional()) {
+    if (!hasInitialCondition && !mplWhile.isConditional()) {
       commands.add(init);
     } else {
       init.setConditional(true);
 
-      boolean isNormal = !mplWhile.isTrailing() && !mplWhile.isNot();
-      boolean isTrailingAndConditional =
-          mplWhile.isTrailing() && mplWhile.getConditional() == CONDITIONAL;
-
-      if (isNormal || isTrailingAndConditional) {
+      boolean isNormal = hasInitialCondition && !mplWhile.isNot();
+      if (isNormal || !hasInitialCondition && mplWhile.getConditional() == CONDITIONAL) {
         commands.add(init);
         commands.add(new InvertingCommand(CHAIN));
         commands.add(skip);
@@ -616,34 +611,37 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     }
     ChainLink entryPoint = commands.get(entryIndex);
 
-    commands.add(new Command(condition));
-
-    ReferencingCommand _continue = new ReferencingCommand(getStartCommand(REF), true);
-    ReferencingCommand stop = new ReferencingCommand(getStopCommand(REF), true);
-
-    if (!mplWhile.isNot()) {
-      addRestartBackref(entryPoint, true);
-      commands.add(new InvertingCommand(CHAIN));
-      commands.add(_continue);
-
-      stop.setRelative(getCountToRef(entryPoint));
-      commands.add(stop);
+    if (condition == null) {
+      addRestartBackref(entryPoint, false);
     } else {
-      commands.add(_continue);
+      commands.add(new Command(condition));
+      ReferencingCommand continueAfterLoop = new ReferencingCommand(getStartCommand(REF), true);
+      ReferencingCommand stopLoop = new ReferencingCommand(getStopCommand(REF), true);
+      if (!mplWhile.isNot()) {
+        addRestartBackref(entryPoint, true);
+        commands.add(new InvertingCommand(CHAIN));
+        commands.add(continueAfterLoop);
 
-      stop.setRelative(getCountToRef(entryPoint));
-      commands.add(stop);
+        stopLoop.setRelative(getCountToRef(entryPoint));
+        commands.add(stopLoop);
+      } else {
+        commands.add(continueAfterLoop);
 
-      commands.add(new InvertingCommand(CHAIN));
-      addRestartBackref(entryPoint, true);
+        stopLoop.setRelative(getCountToRef(entryPoint));
+        commands.add(stopLoop);
+
+        commands.add(new InvertingCommand(CHAIN));
+        addRestartBackref(entryPoint, true);
+      }
+
+      // From here the next command will be the exit point for the loop
+      continueAfterLoop.setRelative(-getCountToRef(continueAfterLoop));
     }
-    // From here the next command will be the exit point for the loop
     try {
       skip.setRelative(-getCountToRef(skip));
     } catch (IllegalArgumentException ex) {
       // If skip was not added the reference does not have to be set
     }
-    _continue.setRelative(-getCountToRef(_continue));
     addTransmitterReceiverCombo(true);
   }
 

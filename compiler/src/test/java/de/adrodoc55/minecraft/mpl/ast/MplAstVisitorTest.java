@@ -1267,6 +1267,91 @@ public abstract class MplAstVisitorTest {
   }
 
   @Test
+  public void test_repeat_unconditional_modifier_gelten_fuer_init_command() {
+    // given:
+    MplWhile mplWhile = some($MplWhile()//
+        .withCondition((String) null)//
+        .withNot($boolean())//
+        .withTrailing($boolean())//
+        .withMode($Enum(Mode.class))//
+        .withConditional($oneOf(UNCONDITIONAL))//
+        .withNeedsRedstone($boolean()));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).startsWith(//
+        new InternalCommand(getOnCommand("${this + 1}"), mplWhile)//
+    );
+  }
+
+  @Test
+  public void test_repeat_conditional_modifier_erzeugt_conditional_jump() {
+    // given:
+    MplWhile mplWhile = some($MplWhile()//
+        .withCondition((String) null)//
+        .withNot($boolean())//
+        .withTrailing($boolean())//
+        .withMode($Enum(Mode.class))//
+        .withConditional($oneOf(CONDITIONAL))//
+        .withNeedsRedstone($boolean()));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    int ref = underTest.commands.size() - 3;
+    if (underTest.options.hasOption(TRANSMITTER)) {
+      ref--;
+    }
+    assertThat(underTest.commands).startsWith(//
+        new InternalCommand(getOnCommand("${this + 3}"), mplWhile), //
+        new InvertingCommand(CHAIN), //
+        new InternalCommand(getOnCommand("${this + " + ref + "}"), true)//
+    );
+  }
+
+  @Test
+  public void test_repeat_invert_modifier_erzeugt_invert_jump() {
+    // given:
+    Mode mode = some($Enum(Mode.class));
+
+    MplWhile mplWhile = some($MplWhile()//
+        .withCondition((String) null)//
+        .withNot($boolean())//
+        .withTrailing($boolean())//
+        .withMode($Enum(Mode.class))//
+        .withConditional(INVERT)//
+        .withNeedsRedstone($boolean())//
+        .withPrevious(new Dependable() {
+          @Override
+          public boolean canBeDependedOn() {
+            return true;
+          }
+
+          @Override
+          public Mode getModeForInverting() {
+            return mode;
+          }
+        }));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    int ref = underTest.commands.size() - 1;
+    if (underTest.options.hasOption(TRANSMITTER)) {
+      ref--;
+    }
+    assertThat(underTest.commands).startsWith(//
+        new InternalCommand(getOnCommand("${this + " + ref + "}"), mplWhile), //
+        new InvertingCommand(CHAIN), //
+        new InternalCommand(getOnCommand("${this + 1}"), true)//
+    );
+  }
+
+  @Test
   public void test_While_mit_Waitfor_hat_korrekte_Referenzen_zum_Ende() {
     // given:
     MplWhile mplWhile = some($MplWhile()//
