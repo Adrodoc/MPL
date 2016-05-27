@@ -551,7 +551,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   public static boolean needsNormalizer(MplIf mplIf) {
     if (!mplIf.isNot()) {
-      return containsConditionReference(mplIf.getThenParts());
+      return containsConditionReferenceIgnoringFirstNonIf(mplIf.getThenParts());
     } else {
       if (!mplIf.getThenParts().isEmpty()) {
         if (!mplIf.getElseParts().isEmpty())
@@ -559,15 +559,22 @@ public class MplAstVisitorImpl implements MplAstVisitor {
         else
           return false;
       }
-      return containsConditionReference(mplIf.getElseParts());
+      return containsConditionReferenceIgnoringFirstNonIf(mplIf.getElseParts());
     }
   }
 
-  private static boolean containsConditionReference(Iterable<ChainPart> iterable) {
+  private static boolean containsConditionReferenceIgnoringFirstNonIf(Iterable<ChainPart> iterable) {
     Iterator<ChainPart> it = iterable.iterator();
     if (it.hasNext()) {
-      it.next(); // Ignore the first element.
+      ChainPart first = it.next(); // Ignore the first element.
+      if (first instanceof MplIf) {
+        it = iterable.iterator(); // Only if it is not a nested if
+      }
     }
+    return containsConditionReference(it);
+  }
+
+  private static boolean containsConditionReference(Iterator<ChainPart> it) {
     while (it.hasNext()) {
       ChainPart chainPart = it.next();
       if (chainPart instanceof MplIf) {
@@ -586,9 +593,9 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   private static boolean needsParentNormalizer(MplIf mplIf) {
     if (mplIf.isNot()) {
-      return containsConditionReference(mplIf.getThenParts());
+      return containsConditionReference(mplIf.getThenParts().iterator());
     } else {
-      return containsConditionReference(mplIf.getElseParts());
+      return containsConditionReference(mplIf.getElseParts().iterator());
     }
   }
 

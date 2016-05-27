@@ -953,6 +953,52 @@ public abstract class MplAstVisitorTest {
    * <pre>
    * if: /mplIf
    * then (
+   *   if: /outer
+   *   then (
+   *     /innerThen
+   *   ) else (
+   *     /innerElse
+   *   )
+   * )
+   * </pre>
+   */
+  @Test
+  public void test_If_mit_kleinem_nested_then() {
+    // given:
+
+    MplCommand innerThen = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand innerElse = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplIf outer = some($MplIf()//
+        .withNot(false)//
+        .withThenParts(listOf(innerThen))//
+        .withElseParts(listOf(innerElse)));
+
+    MplIf mplIf = some($MplIf()//
+        .withNot(false)//
+        .withThenParts(listOf(outer)));
+
+    // when:
+    mplIf.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new InternalCommand(mplIf.getCondition()), //
+        new NormalizingCommand(), //
+        new InternalCommand(outer.getCondition(), true), //
+        new InternalCommand(innerThen.getCommand(), innerThen.getMode(), true,
+            innerThen.getNeedsRedstone()), //
+        new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}"), //
+        new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}",
+            true), //
+        new InternalCommand(innerElse.getCommand(), innerElse.getMode(), true,
+            innerElse.getNeedsRedstone())//
+    );
+  }
+
+  /**
+   * <pre>
+   * if: /mplIf
+   * then (
    *   /outerThen1
    *   if: /outerThen2
    *   then (
