@@ -138,8 +138,13 @@ elseDeclaration
 
 whileDeclaration
 :
-  WHILE NOT? ':' COMMAND REPEAT '(' chain ')'
-  | REPEAT '(' chain ')'
+  (
+    IDENTIFIER ':'
+  )? WHILE NOT? ':' COMMAND REPEAT '(' chain ')'
+  |
+  (
+    IDENTIFIER ':'
+  )? REPEAT '(' chain ')'
   (
     DO WHILE NOT? ':' COMMAND
   )?
@@ -156,6 +161,8 @@ mplCommand
     | notifyDeclaration
     | intercept
     | breakpoint
+    | breakDeclaration
+    | continueDeclaration
   )
 ;
 
@@ -233,6 +240,16 @@ intercept
 breakpoint
 :
   BREAKPOINT
+;
+
+breakDeclaration
+:
+  BREAK IDENTIFIER?
+;
+
+continueDeclaration
+:
+  CONTINUE IDENTIFIER?
 ;
 
 skipDeclaration
@@ -391,6 +408,16 @@ DO
 WHILE
 :
   'while'
+;
+
+BREAK
+:
+  'break'
+;
+
+CONTINUE
+:
+  'continue'
 ;
 
 UNSIGNED_INT

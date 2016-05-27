@@ -1154,7 +1154,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "Notify can only be used in a process"
+    program.exceptions[0].message == "notify can only be used in a process"
     program.exceptions[0].source.file == lastTempFile
     program.exceptions[0].source.token.text == 'notify'
     program.exceptions[0].source.token.line == 2
@@ -1652,7 +1652,6 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "repeat"() {
     given:
-    String identifier = someIdentifier()
     String programString = """
     repeat (
       /say repeat1
@@ -1678,9 +1677,36 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
-  public void "while repeat"() {
+  public void "repeat with label"() {
     given:
     String identifier = someIdentifier()
+    String programString = """
+    ${identifier}: repeat (
+      /say repeat1
+      /say repeat2
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    process.chainParts[0] == new MplWhile(identifier, false, false, null)
+    process.chainParts.size() == 1
+
+    MplWhile mplWhile = process.chainParts[0]
+    mplWhile.chainParts[0] == new MplCommand('/say repeat1')
+    mplWhile.chainParts[1] == new MplCommand('/say repeat2')
+    mplWhile.chainParts.size() == 2
+  }
+
+  @Test
+  public void "while repeat"() {
+    given:
     String programString = """
     while: /say while
     repeat (
@@ -1707,9 +1733,37 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
-  public void "while not repeat"() {
+  public void "while repeat with label"() {
     given:
     String identifier = someIdentifier()
+    String programString = """
+    ${identifier}: while: /say while
+    repeat (
+      /say repeat1
+      /say repeat2
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    process.chainParts[0] == new MplWhile(identifier, false, false, '/say while')
+    process.chainParts.size() == 1
+
+    MplWhile mplWhile = process.chainParts[0]
+    mplWhile.chainParts[0] == new MplCommand('/say repeat1')
+    mplWhile.chainParts[1] == new MplCommand('/say repeat2')
+    mplWhile.chainParts.size() == 2
+  }
+
+  @Test
+  public void "while not repeat"() {
+    given:
     String programString = """
     while not: /say while
     repeat (
@@ -1738,7 +1792,6 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "repeat while"() {
     given:
-    String identifier = someIdentifier()
     String programString = """
     repeat (
       /say repeat1
@@ -1764,9 +1817,36 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
-  public void "repeat while not"() {
+  public void "repeat while with label"() {
     given:
     String identifier = someIdentifier()
+    String programString = """
+    ${identifier}: repeat (
+      /say repeat1
+      /say repeat2
+    ) do while: /say while
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    process.chainParts[0] == new MplWhile(identifier, false, true, '/say while')
+    process.chainParts.size() == 1
+
+    MplWhile mplWhile = process.chainParts[0]
+    mplWhile.chainParts[0] == new MplCommand('/say repeat1')
+    mplWhile.chainParts[1] == new MplCommand('/say repeat2')
+    mplWhile.chainParts.size() == 2
+  }
+
+  @Test
+  public void "repeat while not"() {
+    given:
     String programString = """
     repeat (
       /say repeat1
@@ -1874,7 +1954,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     }
 
     mplWhile.chainParts[0] == new MplCommand('/say hi')
-    mplWhile.chainParts[1] == new MplBreak(identifier, modifierBuffer, previous)
+    mplWhile.chainParts[1] == new MplBreak(identifier, mplWhile, modifierBuffer, previous)
     mplWhile.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -1917,7 +1997,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     }
 
     mplWhile.chainParts[0] == new MplCommand('/say hi')
-    mplWhile.chainParts[1] == new MplBreak(null, modifierBuffer, previous)
+    mplWhile.chainParts[1] == new MplBreak(null, mplWhile, modifierBuffer, previous)
     mplWhile.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -1928,12 +2008,52 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
+  public void "break outside of loop"() {
+    given:
+    String testString = """
+    break
+    """
+    when:
+    MplInterpreter interpreter = interpret(testString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "break can only be used in a loop"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'break'
+    program.exceptions[0].source.token.line == 2
+    program.exceptions.size() == 1
+  }
+
+  @Test
+  public void "break with missing label"() {
+    given:
+    String identifier = someIdentifier()
+    String testString = """
+    repeat (
+      break ${identifier}
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(testString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "Missing label ${identifier}"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == identifier
+    program.exceptions[0].source.token.line == 3
+    program.exceptions.size() == 1
+  }
+
+  @Test
   @Unroll("break with illegal modifier: '#modifier'")
   public void "break with illegal modifier"(String modifier) {
     given:
-    String identifier = someIdentifier()
     String programString = """
-    ${modifier}: break ${identifier}
+    repeat (
+      ${modifier}: break
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1943,7 +2063,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.exceptions[0].message == "Illegal modifier for break; only unconditional, conditional and invert are permitted"
     program.exceptions[0].source.file == lastTempFile
     program.exceptions[0].source.token.text == modifier
-    program.exceptions[0].source.token.line == 2
+    program.exceptions[0].source.token.line == 3
     program.exceptions.size() == 1
 
     where:
@@ -1993,7 +2113,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     }
 
     mplWhile.chainParts[0] == new MplCommand('/say hi')
-    mplWhile.chainParts[1] == new MplContinue(identifier, modifierBuffer, previous)
+    mplWhile.chainParts[1] == new MplContinue(identifier, mplWhile, modifierBuffer, previous)
     mplWhile.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -2036,7 +2156,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     }
 
     mplWhile.chainParts[0] == new MplCommand('/say hi')
-    mplWhile.chainParts[1] == new MplContinue(null, modifierBuffer, previous)
+    mplWhile.chainParts[1] == new MplContinue(null, mplWhile, modifierBuffer, previous)
     mplWhile.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -2047,12 +2167,52 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
+  public void "continue outside of loop"() {
+    given:
+    String testString = """
+    continue
+    """
+    when:
+    MplInterpreter interpreter = interpret(testString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "continue can only be used in a loop"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'continue'
+    program.exceptions[0].source.token.line == 2
+    program.exceptions.size() == 1
+  }
+
+  @Test
+  public void "continue with missing label"() {
+    given:
+    String identifier = someIdentifier()
+    String testString = """
+    repeat (
+      continue ${identifier}
+    )
+    """
+    when:
+    MplInterpreter interpreter = interpret(testString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "Missing label ${identifier}"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == identifier
+    program.exceptions[0].source.token.line == 3
+    program.exceptions.size() == 1
+  }
+
+  @Test
   @Unroll("continue with illegal modifier: '#modifier'")
   public void "continue with illegal modifier"(String modifier) {
     given:
-    String identifier = someIdentifier()
     String programString = """
-    ${modifier}: continue ${identifier}
+    repeat (
+      ${modifier}: continue
+    )
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -2062,7 +2222,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.exceptions[0].message == "Illegal modifier for continue; only unconditional, conditional and invert are permitted"
     program.exceptions[0].source.file == lastTempFile
     program.exceptions[0].source.token.text == modifier
-    program.exceptions[0].source.token.line == 2
+    program.exceptions[0].source.token.line == 3
     program.exceptions.size() == 1
 
     where:

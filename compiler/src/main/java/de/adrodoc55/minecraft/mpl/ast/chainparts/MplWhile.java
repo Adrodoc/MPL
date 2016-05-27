@@ -64,6 +64,8 @@ public class MplWhile extends ModifiableChainPart implements ChainPartBuffer {
   private final @Nullable ChainPartBuffer parent;
 
   @Getter
+  private final @Nullable String label;
+  @Getter
   private final boolean not;
   @Getter
   private final boolean trailing;
@@ -72,15 +74,21 @@ public class MplWhile extends ModifiableChainPart implements ChainPartBuffer {
 
   private final Deque<ChainPart> chainParts = new ArrayDeque<>();
 
-  @GenerateMplPojoBuilder
-  public MplWhile(boolean not, boolean trailing, String condition) {
+  public MplWhile(boolean not, boolean trailing, @Nullable String condition) {
     this(null, not, trailing, condition);
   }
 
-  public MplWhile(@Nullable ChainPartBuffer parent, boolean not, boolean trailing,
+  @GenerateMplPojoBuilder
+  public MplWhile(@Nullable String label, boolean not, boolean trailing,
       @Nullable String condition) {
+    this(null, label, not, trailing, condition);
+  }
+
+  public MplWhile(@Nullable ChainPartBuffer parent, @Nullable String label, boolean not,
+      boolean trailing, @Nullable String condition) {
     super(new ModifierBuffer());
     this.parent = parent;
+    this.label = label;
     this.not = not;
     this.trailing = trailing;
     this.condition = condition;
