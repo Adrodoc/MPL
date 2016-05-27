@@ -52,17 +52,17 @@ import com.google.common.collect.ListMultimap
 
 import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreak
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplContinue
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWhile
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreak;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram
 import de.adrodoc55.minecraft.mpl.commands.Conditional

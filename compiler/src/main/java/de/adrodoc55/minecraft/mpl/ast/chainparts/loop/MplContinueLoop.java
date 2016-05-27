@@ -37,55 +37,53 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast;
+package de.adrodoc55.minecraft.mpl.ast.chainparts.loop;
 
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreak;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static de.adrodoc55.minecraft.mpl.commands.Conditional.CONDITIONAL;
+
+import javax.annotation.Nonnull;
+
+import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.ast.MplAstVisitorImpl;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
+import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
-public interface MplAstVisitor {
-  void visitProgram(MplProgram program);
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true, includeFieldNames = true)
+@Getter
+@Setter
+public class MplContinueLoop extends ModifiableChainPart {
+  private final @Nonnull MplWhile loop;
 
-  void visitProcess(MplProcess process);
+  public MplContinueLoop(MplWhile loop) {
+    this(loop, false);
+  }
 
-  void visitCommand(MplCommand command);
+  public MplContinueLoop(MplWhile loop, boolean conditional) {
+    super(new ModifierBuffer());
+    this.loop = checkNotNull(loop, "loop == null!");
+    if (conditional) {
+      setConditional(CONDITIONAL);
+    }
+  }
 
-  void visitStart(MplStart start);
+  @Override
+  public String getName() {
+    return "breakcontinue";
+  }
 
-  void visitStop(MplStop stop);
-
-  void visitWaitfor(MplWaitfor waitfor);
-
-  void visitNotify(MplNotify notify);
-
-  void visitIntercept(MplIntercept intercept);
-
-  void visitBreakpoint(MplBreakpoint breakpoint);
-
-  void visitSkip(MplSkip skip);
-
-  void visitIf(MplIf mplIf);
-
-  ChainContainer getResult();
-
-  void visitWhile(MplWhile mplWhile);
-
-  void visitBreak(MplBreak mplBreak);
-
-  void visitContinue(MplContinue mplContinue);
+  @Override
+  public void accept(MplAstVisitor visitor) {
+    if (visitor instanceof MplAstVisitorImpl) {
+      ((MplAstVisitorImpl) visitor).visitContinueLoop(this);
+    }
+  }
 }

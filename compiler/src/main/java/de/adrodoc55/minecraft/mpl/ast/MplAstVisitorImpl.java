@@ -1,3 +1,42 @@
+/*
+ * Minecraft Programming Language (MPL): A language for easy development of command block
+ * applications including an IDE.
+ *
+ * © Copyright (C) 2016 Adrodoc55
+ *
+ * This file is part of MPL.
+ *
+ * MPL is free software: you can redistribute it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * MPL is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MPL. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ *
+ *
+ * Minecraft Programming Language (MPL): Eine Sprache für die einfache Entwicklung von Commandoblock
+ * Anwendungen, inklusive einer IDE.
+ *
+ * © Copyright (C) 2016 Adrodoc55
+ *
+ * Diese Datei ist Teil von MPL.
+ *
+ * MPL ist freie Software: Sie können diese unter den Bedingungen der GNU General Public License,
+ * wie von der Free Software Foundation, Version 3 der Lizenz oder (nach Ihrer Wahl) jeder späteren
+ * veröffentlichten Version, weiterverbreiten und/oder modifizieren.
+ *
+ * MPL wird in der Hoffnung, dass es nützlich sein wird, aber OHNE JEDE GEWÄHRLEISTUNG,
+ * bereitgestellt; sogar ohne die implizite Gewährleistung der MARKTFÄHIGKEIT oder EIGNUNG FÜR EINEN
+ * BESTIMMTEN ZWECK. Siehe die GNU General Public License für weitere Details.
+ *
+ * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
+ * nicht, siehe <http://www.gnu.org/licenses/>.
+ */
 package de.adrodoc55.minecraft.mpl.ast;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -5,6 +44,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept.INTERCEPTED;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.CONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.commands.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
@@ -28,17 +68,19 @@ import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreak;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWhile;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreak;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreakLoop;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinueLoop;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
@@ -401,7 +443,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   @Setter
   private static class IfNestingLayer {
     private final boolean not;
-    private final @Nonnull InternalCommand ref;
+    private final @Nonnull Command ref;
     private boolean inElse;
   }
 
@@ -412,8 +454,13 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     visitPossibleInvert(mplIf);
 
     String condition = mplIf.getCondition();
-    InternalCommand ref = new InternalCommand(condition, mplIf);
-    commands.add(ref);
+    Command ref;
+    if (condition != null) {
+      ref = new InternalCommand(condition, mplIf);
+      commands.add(ref);
+    } else {
+      ref = (Command) commands.get(commands.size() - 1);
+    }
     if (needsNormalizer(mplIf)) {
       ref = new NormalizingCommand();
       commands.add(ref);
@@ -485,7 +532,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   }
 
   private ReferencingTestforSuccessCommand getConditionReference(IfNestingLayer layer) {
-    InternalCommand ref = layer.getRef();
+    Command ref = layer.getRef();
     int relative = getCountToRef(ref);
     boolean dependingOnFailure = layer.isNot() ^ layer.isInElse();
     return new ReferencingTestforSuccessCommand(relative, ref.getMode(), !dependingOnFailure);
@@ -618,13 +665,13 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     } else {
       commands.add(new Command(condition));
       if (!mplWhile.isNot()) {
-        addContinue(mplWhile, true);
+        addContinueLoop(mplWhile, true);
         commands.add(new InvertingCommand(CHAIN));
-        addBreak(mplWhile, true);
+        addBreakLoop(mplWhile, true);
       } else {
-        addBreak(mplWhile, true);
+        addBreakLoop(mplWhile, true);
         commands.add(new InvertingCommand(CHAIN));
-        addContinue(mplWhile, true);
+        addContinueLoop(mplWhile, true);
       }
     }
     // From here the next command will be the exit point of the loop
@@ -661,7 +708,11 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     command.setRelative(getCountToRef(reference) - getCountToRef(command));
   }
 
-  public void addBreak(MplWhile loop, boolean conditional) {
+  public void visitBreakLoop(MplBreakLoop mplBreakLoop) {
+    addBreakLoop(mplBreakLoop.getLoop(), mplBreakLoop.isConditional());
+  }
+
+  private void addBreakLoop(MplWhile loop, boolean conditional) {
     ReferencingCommand continueAfterLoop =
         new ReferencingCommand(getStartCommand(REF), conditional);
     ReferencingCommand stopLoop = new ReferencingCommand(getStopCommand(REF), true);
@@ -691,19 +742,23 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     // FIXME: ein command von break MUSS nicht internal sein (bei unconditional)
     ReferencingCommand dontBreak = new ReferencingCommand(getStartCommand(REF), true);
     if (mplBreak.getConditional() == CONDITIONAL) {
-      addBreak(loop, true);
+      addBreakLoop(loop, true);
       commands.add(new InvertingCommand(CHAIN));
       commands.add(dontBreak);
     } else {
       commands.add(dontBreak);
       commands.add(new InvertingCommand(CHAIN));
-      addBreak(loop, true);
+      addBreakLoop(loop, true);
     }
     dontBreak.setRelative(-getCountToRef(dontBreak));
     addTransmitterReceiverCombo(false);
   }
 
-  private void addContinue(MplWhile loop, boolean conditional) {
+  public void visitContinueLoop(MplContinueLoop mplContinueLoop) {
+    addContinueLoop(mplContinueLoop.getLoop(), mplContinueLoop.isConditional());
+  }
+
+  private void addContinueLoop(MplWhile loop, boolean conditional) {
     ReferencingCommand stopLoop = new ReferencingCommand(getStopCommand(REF), conditional);
     ReferencingCommand startLoop = new ReferencingCommand(getStartCommand(REF), true);
     commands.add(stopLoop);
@@ -729,17 +784,39 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   public void visitContinue(MplContinue mplContinue) {
     MplWhile loop = mplContinue.getLoop();
     // FIXME: ein command von continue MUSS nicht internal sein (bei unconditional)
-    ReferencingCommand dontContinue = new ReferencingCommand(getStartCommand(REF), true);
-    if (mplContinue.getConditional() == CONDITIONAL) {
-      addContinue(loop, true);
-      commands.add(new InvertingCommand(CHAIN));
-      commands.add(dontContinue);
+
+    MplIf outerIf = new MplIf(false, null);
+    outerIf.setConditional(mplContinue.isConditional() ? CONDITIONAL : UNCONDITIONAL);
+    outerIf.setPrevious(mplContinue.getPrevious());
+    outerIf.enterThen();
+    if (loop.getCondition() != null) {
+      MplIf innerIf = new MplIf(false, loop.getCondition());
+      innerIf.enterThen();
+      innerIf.add(new MplContinueLoop(loop));
+      innerIf.enterElse();
+      innerIf.add(new MplBreakLoop(loop));
+      outerIf.add(innerIf);
     } else {
-      commands.add(dontContinue);
-      commands.add(new InvertingCommand(CHAIN));
-      addContinue(loop, true);
+      outerIf.add(new MplContinueLoop(loop));
     }
-    dontContinue.setRelative(-getCountToRef(dontContinue));
+    outerIf.enterElse();
+    // Mark this command to find it later no user can create such a command
+    outerIf.add(new MplCommand("//"));
+
+    if (mplContinue.getConditional() == INVERT) {
+      outerIf.switchThenAndElse();
+    }
+    outerIf.accept(this);
+
+    for (int i = commands.size() - 1; i >= 0; i--) {
+      ChainLink chainLink = commands.get(i);
+      if (chainLink instanceof Command) {
+        if ("/".equals(((Command) chainLink).getCommand())) {
+          commands.set(i, new ReferencingCommand(getStartCommand(REF), true, commands.size() - i));
+          break;
+        }
+      }
+    }
     addTransmitterReceiverCombo(false);
   }
 

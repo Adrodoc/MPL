@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -105,5 +107,12 @@ public abstract class ModifiableChainPart implements Modifiable, ChainPart {
    */
   public void setPrevious(Dependable previous) {
     this.previous = previous;
+  }
+
+  /*
+   * see https://github.com/mkarneim/pojobuilder/issues/86
+   */
+  public void setConditional(Conditional conditional) {
+    this.conditional = checkNotNull(conditional, "conditional == null!");
   }
 }

@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.chainparts;
+package de.adrodoc55.minecraft.mpl.ast.chainparts.loop;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -48,6 +48,8 @@ import javax.annotation.Nullable;
 import com.google.common.annotations.VisibleForTesting;
 
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
@@ -58,95 +60,69 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode(callSuper = true, of = {"not", "condition"})
-@ToString(includeFieldNames = true, of = {"not", "condition"})
-public class MplIf extends ModifiableChainPart implements ChainPartBuffer {
+@EqualsAndHashCode(callSuper = true, of = {"trailing", "condition"})
+@ToString(includeFieldNames = true, of = {"trailing", "condition"})
+public class MplWhile extends ModifiableChainPart implements ChainPartBuffer {
   private final @Nullable ChainPartBuffer parent;
 
   @Getter
+  private final @Nullable String label;
+  @Getter
   private final boolean not;
+  @Getter
+  private final boolean trailing;
   @Getter
   private final @Nullable String condition;
 
-  private Deque<ChainPart> thenParts = new ArrayDeque<>();
-  private Deque<ChainPart> elseParts = new ArrayDeque<>();
-  private boolean inElse;
+  private final Deque<ChainPart> chainParts = new ArrayDeque<>();
 
-  @GenerateMplPojoBuilder
-  public MplIf(boolean not, String condition) {
-    this(null, not, condition);
+  public MplWhile(boolean not, boolean trailing, @Nullable String condition) {
+    this(null, not, trailing, condition);
   }
 
-  public MplIf(@Nullable ChainPartBuffer parent, boolean not, @Nullable String condition) {
+  @GenerateMplPojoBuilder
+  public MplWhile(@Nullable String label, boolean not, boolean trailing,
+      @Nullable String condition) {
+    this(null, label, not, trailing, condition);
+  }
+
+  public MplWhile(@Nullable ChainPartBuffer parent, @Nullable String label, boolean not,
+      boolean trailing, @Nullable String condition) {
     super(new ModifierBuffer());
     this.parent = parent;
+    this.label = label;
     this.not = not;
+    this.trailing = trailing;
     this.condition = condition;
   }
 
   @Override
   public void add(ChainPart cp) {
-    if (!inElse) {
-      thenParts.add(cp);
-    } else {
-      elseParts.add(cp);
-    }
+    chainParts.add(cp);
   }
 
   @Override
   public Deque<ChainPart> getChainParts() {
-    if (!inElse) {
-      return thenParts;
-    } else {
-      return elseParts;
-    }
+    return new ArrayDeque<>(chainParts);
   }
 
-  public void enterThen() {
-    inElse = false;
-  }
-
-  public void enterElse() {
-    inElse = true;
+  @VisibleForTesting
+  public void setChainParts(Collection<ChainPart> chainParts) {
+    this.chainParts.clear();
+    this.chainParts.addAll(chainParts);
   }
 
   public @Nullable ChainPartBuffer exit() {
     return parent;
   }
 
-  public Deque<ChainPart> getThenParts() {
-    return new ArrayDeque<>(thenParts);
-  }
-
-  @VisibleForTesting
-  void setThenParts(Collection<ChainPart> thenParts) {
-    this.thenParts.clear();
-    this.thenParts.addAll(thenParts);
-  }
-
-  public Deque<ChainPart> getElseParts() {
-    return new ArrayDeque<>(elseParts);
-  }
-
-  @VisibleForTesting
-  void setElseParts(Collection<ChainPart> elseParts) {
-    this.elseParts.clear();
-    this.elseParts.addAll(elseParts);
-  }
-
   @Override
   public String getName() {
-    return "if";
+    return "while";
   }
 
   @Override
   public void accept(MplAstVisitor visitor) {
-    visitor.visitIf(this);
-  }
-
-  public void switchThenAndElse() {
-    Deque<ChainPart> oldThen = this.thenParts;
-    thenParts = elseParts;
-    elseParts = oldThen;
+    visitor.visitWhile(this);
   }
 }

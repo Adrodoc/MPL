@@ -37,20 +37,21 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.chainparts;
+package de.adrodoc55.minecraft.mpl.ast.chainparts.loop;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static de.adrodoc55.minecraft.mpl.commands.Conditional.CONDITIONAL;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.ast.MplAstVisitorImpl;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
@@ -59,35 +60,30 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @ToString(callSuper = true, includeFieldNames = true)
 @Getter
 @Setter
-public class MplBreak extends ModifiableChainPart {
-  private final @Nullable String label;
+public class MplBreakLoop extends ModifiableChainPart {
   private final @Nonnull MplWhile loop;
 
-  public MplBreak(@Nullable String label, MplWhile loop) {
-    this(label, loop, new ModifierBuffer());
+  public MplBreakLoop(MplWhile loop) {
+    this(loop, false);
   }
 
-  public MplBreak(@Nullable String label, MplWhile loop, ModifierBuffer modifier) {
-    super(modifier);
-    this.label = label;
+  public MplBreakLoop(MplWhile loop, boolean conditional) {
+    super(new ModifierBuffer());
     this.loop = checkNotNull(loop, "loop == null!");
-  }
-
-  @GenerateMplPojoBuilder
-  public MplBreak(@Nullable String label, MplWhile loop, ModifierBuffer modifier,
-      @Nullable Dependable previous) {
-    super(modifier, previous);
-    this.label = label;
-    this.loop = checkNotNull(loop, "loop == null!");
+    if (conditional) {
+      setConditional(CONDITIONAL);
+    }
   }
 
   @Override
   public String getName() {
-    return "break";
+    return "breakloop";
   }
 
   @Override
   public void accept(MplAstVisitor visitor) {
-    visitor.visitBreak(this);
+    if (visitor instanceof MplAstVisitorImpl) {
+      ((MplAstVisitorImpl) visitor).visitBreakLoop(this);
+    }
   }
 }

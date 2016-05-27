@@ -76,15 +76,15 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreak;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWhile;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreak;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -95,6 +95,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NormalizingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingTestforSuccessCommand;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class MplAstVisitorTest {
@@ -1404,6 +1405,17 @@ public abstract class MplAstVisitorTest {
     return -1;
   }
 
+  private int findSecondReciever(List<ChainLink> chainLinks) {
+    int startIndex = findFirstReciever(chainLinks) + 1;
+    for (int i = startIndex; i < chainLinks.size(); i++) {
+      ChainLink chainLink = chainLinks.get(i);
+      if (isReciever(chainLink)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   private int findLastReciever(List<ChainLink> chainLinks) {
     for (int i = chainLinks.size() - 1; i >= 0; i--) {
       ChainLink chainLink = chainLinks.get(i);
@@ -1547,7 +1559,36 @@ public abstract class MplAstVisitorTest {
   }
 
   @Test
-  public void test_conditional_Continue() {
+  public void test_conditional_Continue_without_condition() {
+    // given:
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplWhile mplWhile = some($MplWhile()//
+        .withCondition((String) null));
+    MplContinue mplContinue = some($MplContinue()//
+        .withLoop(mplWhile)//
+        .withConditional(CONDITIONAL));
+    mplWhile.setChainParts(listOf(command, mplContinue));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    List<ChainLink> commands = underTest.commands;
+    int entry = findFirstReciever(commands);
+    int doNothing = findSecondReciever(commands);
+    int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
+    commands = commands.subList(beforeContinue + 1, commands.size() - 1);
+
+    assertThat(commands).startsWith(//
+        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 1)), //
+        new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 2)), //
+        new ReferencingTestforSuccessCommand(-3, IMPULSE, false), //
+        new ReferencingCommand(getOnCommand(REF), true, doNothing - (beforeContinue + 4))//
+    );
+  }
+
+  @Test
+  public void test_conditional_Continue_with_condition() {
     // given:
     MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
     MplWhile mplWhile = some($MplWhile());
@@ -1562,19 +1603,57 @@ public abstract class MplAstVisitorTest {
     // then:
     List<ChainLink> commands = underTest.commands;
     int entry = findFirstReciever(commands);
+    int exit = findLastReciever(commands);
+    int doNothing = findSecondReciever(commands);
     int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
     commands = commands.subList(beforeContinue + 1, commands.size() - 1);
 
     assertThat(commands).startsWith(//
-        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 1)), //
-        new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 2)), //
-        new InvertingCommand(CHAIN), //
-        new ReferencingCommand(getOnCommand(REF), true, 1)//
+        new NormalizingCommand(), //
+        new Command(mplWhile.getCondition(), true), //
+        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 3)), //
+        new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 4)), //
+        new ReferencingTestforSuccessCommand(-4, CHAIN, true), //
+        new ReferencingTestforSuccessCommand(-4, CHAIN, false, true), //
+        new ReferencingCommand(getOnCommand(REF), true, exit - (beforeContinue + 7)), //
+        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 8)), //
+        new ReferencingTestforSuccessCommand(-8, CHAIN, false), //
+        new ReferencingCommand(getOnCommand(REF), true, doNothing - (beforeContinue + 10))//
     );
   }
 
   @Test
-  public void test_invert_Continue() {
+  public void test_invert_Continue_without_condition() {
+    // given:
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplWhile mplWhile = some($MplWhile()//
+        .withCondition((String) null));
+    MplContinue mplContinue = some($MplContinue()//
+        .withLoop(mplWhile)//
+        .withConditional(INVERT)//
+        .withPrevious(command));
+    mplWhile.setChainParts(listOf(command, mplContinue));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    List<ChainLink> commands = underTest.commands;
+    int entry = findFirstReciever(commands);
+    int doNothing = findSecondReciever(commands);
+    int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
+    commands = commands.subList(beforeContinue + 1, commands.size() - 1);
+
+    assertThat(commands).startsWith(//
+        new ReferencingCommand(getOnCommand(REF), true, doNothing - (beforeContinue + 1)), //
+        new ReferencingTestforSuccessCommand(-2, IMPULSE, false), //
+        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 3)), //
+        new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 4)) //
+    );
+  }
+
+  @Test
+  public void test_invert_Continue_with_condition() {
     // given:
     MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
     MplWhile mplWhile = some($MplWhile());
@@ -1590,14 +1669,21 @@ public abstract class MplAstVisitorTest {
     // then:
     List<ChainLink> commands = underTest.commands;
     int entry = findFirstReciever(commands);
+    int exit = findLastReciever(commands);
+    int doNothing = findSecondReciever(commands);
     int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
     commands = commands.subList(beforeContinue + 1, commands.size() - 1);
 
     assertThat(commands).startsWith(//
-        new ReferencingCommand(getOnCommand(REF), true, 4), //
-        new InvertingCommand(CHAIN), //
-        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 3)), //
-        new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 4)) //
+        new ReferencingCommand(getOnCommand(REF), true, doNothing - (beforeContinue + 1)), //
+        new ReferencingTestforSuccessCommand(-2, IMPULSE, false), //
+        new Command(mplWhile.getCondition(), true), //
+        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 4)), //
+        new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 5)), //
+        new ReferencingTestforSuccessCommand(-6, IMPULSE, false), //
+        new ReferencingTestforSuccessCommand(-4, CHAIN, false, true), //
+        new ReferencingCommand(getOnCommand(REF), true, exit - (beforeContinue + 8)), //
+        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 9)) //
     );
   }
 

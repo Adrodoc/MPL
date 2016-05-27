@@ -69,7 +69,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWhile;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
