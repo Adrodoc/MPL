@@ -53,12 +53,14 @@ import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplProgram;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplSkip;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStart;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStop;
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWaitfor;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWhile;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.assertj.core.api.Condition;
@@ -68,7 +70,6 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.Modifiable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
@@ -79,10 +80,11 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NormalizingCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class MplAstVisitorTest {
@@ -160,7 +162,7 @@ public abstract class MplAstVisitorTest {
           }
 
           @Override
-          public Mode getModeForInverting() throws UnsupportedOperationException {
+          public Mode getModeForInverting() {
             return modeForInverting;
           }
         }));
@@ -238,7 +240,7 @@ public abstract class MplAstVisitorTest {
           }
 
           @Override
-          public Mode getModeForInverting() throws UnsupportedOperationException {
+          public Mode getModeForInverting() {
             return modeForInvering;
           }
         }));
@@ -312,7 +314,7 @@ public abstract class MplAstVisitorTest {
           }
 
           @Override
-          public Mode getModeForInverting() throws UnsupportedOperationException {
+          public Mode getModeForInverting() {
             return mode;
           }
         }));
@@ -407,7 +409,7 @@ public abstract class MplAstVisitorTest {
           }
 
           @Override
-          public Mode getModeForInverting() throws UnsupportedOperationException {
+          public Mode getModeForInverting() {
             return mode;
           }
         }));
@@ -1117,62 +1119,6 @@ public abstract class MplAstVisitorTest {
   // @formatter:on
 
   @Test
-  public void test_While_modifier_gelten_fuer_ersten_command() {
-    // given:
-    MplWhile mplWhile = some($MplWhile()//
-        .withMode($Enum(Mode.class))//
-        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL))//
-        .withNeedsRedstone($boolean()));
-
-    // when:
-    mplWhile.accept(underTest);
-
-    // then:
-    assertThat(underTest.commands.size()).isGreaterThanOrEqualTo(1);
-    ChainLink cp = underTest.commands.get(0);
-    assertThat(cp).isInstanceOf(Modifiable.class);
-    Modifiable first = (Modifiable) cp;
-    assertThat(first.getMode()).isEqualTo(mplWhile.getMode());
-    assertThat(first.isConditional()).isEqualTo(mplWhile.isConditional());
-    assertThat(first.getNeedsRedstone()).isEqualTo(mplWhile.getNeedsRedstone());
-  }
-
-  @Test
-  public void test_While_modifier_mit_invert_gelten_fuer_ersten_command() {
-    // given:
-    Mode mode = some($Enum(Mode.class));
-
-    MplWhile mplWhile = some($MplWhile()//
-        .withMode($Enum(Mode.class))//
-        .withConditional(INVERT)//
-        .withNeedsRedstone($boolean())//
-        .withPrevious(new Dependable() {
-          @Override
-          public boolean canBeDependedOn() {
-            return true;
-          }
-
-          @Override
-          public Mode getModeForInverting() throws UnsupportedOperationException {
-            return mode;
-          }
-        }));
-
-    // when:
-    mplWhile.accept(underTest);
-
-    // then:
-    assertThat(underTest.commands.size()).isGreaterThanOrEqualTo(2);
-    assertThat(underTest.commands.get(0)).isEqualTo(new InvertingCommand(mode));
-    ChainLink cp = underTest.commands.get(1);
-    assertThat(cp).isInstanceOf(Modifiable.class);
-    Modifiable first = (Modifiable) cp;
-    assertThat(first.getMode()).isEqualTo(mplWhile.getMode());
-    assertThat(first.isConditional()).isEqualTo(mplWhile.isConditional());
-    assertThat(first.getNeedsRedstone()).isEqualTo(mplWhile.getNeedsRedstone());
-  }
-
-  @Test
   public void test_While_mit_skip_wirft_exception() {
     // given:
     MplWhile mplIf = some($MplWhile()//
@@ -1189,6 +1135,157 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(act).isNotNull();
     assertThat(act.getMessage()).isEqualTo("While cannot contain skip");
+  }
+
+  @Test
+  public void test_While_repeat_modifier_gelten_fuer_condition() {
+    // given:
+    MplWhile mplWhile = some($MplWhile()//
+        .withTrailing(false)//
+        .withMode($Enum(Mode.class))//
+        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL))//
+        .withNeedsRedstone($boolean()));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).startsWith(//
+        new Command(mplWhile.getCondition(), mplWhile)//
+    );
+  }
+
+  @Test
+  public void test_While_repeat_modifier_mit_invert_gelten_fuer_condition() {
+    // given:
+    Mode mode = some($Enum(Mode.class));
+
+    MplWhile mplWhile = some($MplWhile()//
+        .withTrailing(false)//
+        .withMode($Enum(Mode.class))//
+        .withConditional(INVERT)//
+        .withNeedsRedstone($boolean())//
+        .withPrevious(new Dependable() {
+          @Override
+          public boolean canBeDependedOn() {
+            return true;
+          }
+
+          @Override
+          public Mode getModeForInverting() {
+            return mode;
+          }
+        }));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).startsWith(//
+        new InvertingCommand(mode), //
+        new Command(mplWhile.getCondition(), mplWhile)//
+    );
+  }
+
+  @Test
+  public void test_repeat_While_unconditional_modifier_gelten_fuer_init_command() {
+    // given:
+    MplWhile mplWhile = some($MplWhile()//
+        .withTrailing(true)//
+        .withMode($Enum(Mode.class))//
+        .withConditional($oneOf(UNCONDITIONAL))//
+        .withNeedsRedstone($boolean()));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).startsWith(//
+        new InternalCommand(getOnCommand("${this + 1}"), mplWhile)//
+    );
+  }
+
+  @Test
+  public void test_repeat_While_conditional_modifier_erzeugt_conditional_jump() {
+    // given:
+    MplWhile mplWhile = some($MplWhile()//
+        .withTrailing(true)//
+        .withMode($Enum(Mode.class))//
+        .withConditional($oneOf(CONDITIONAL))//
+        .withNeedsRedstone($boolean()));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    int ref = underTest.commands.size() - 3;
+    if (underTest.options.hasOption(TRANSMITTER)) {
+      ref--;
+    }
+    assertThat(underTest.commands).startsWith(//
+        new InternalCommand(getOnCommand("${this + 3}"), mplWhile), //
+        new InvertingCommand(CHAIN), //
+        new InternalCommand(getOnCommand("${this + " + ref + "}"), true)//
+    );
+  }
+
+  @Test
+  public void test_repeat_While_invert_modifier_erzeugt_invert_jump() {
+    // given:
+    Mode mode = some($Enum(Mode.class));
+
+    MplWhile mplWhile = some($MplWhile()//
+        .withTrailing(true)//
+        .withMode($Enum(Mode.class))//
+        .withConditional(INVERT)//
+        .withNeedsRedstone($boolean())//
+        .withPrevious(new Dependable() {
+          @Override
+          public boolean canBeDependedOn() {
+            return true;
+          }
+
+          @Override
+          public Mode getModeForInverting() {
+            return mode;
+          }
+        }));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    int ref = underTest.commands.size() - 1;
+    if (underTest.options.hasOption(TRANSMITTER)) {
+      ref--;
+    }
+    assertThat(underTest.commands).startsWith(//
+        new InternalCommand(getOnCommand("${this + " + ref + "}"), mplWhile), //
+        new InvertingCommand(CHAIN), //
+        new InternalCommand(getOnCommand("${this + 1}"), true)//
+    );
+  }
+
+  @Test
+  public void test_While_mit_Waitfor_hat_korrekte_Referenzen_zum_Ende() {
+    // given:
+    MplWhile mplWhile = some($MplWhile()//
+        .withNot(false)//
+        .withTrailing(false)//
+        .withConditional(UNCONDITIONAL)//
+        .withChainParts(listOf(some($MplWaitfor()))));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    int ref = underTest.commands.size() - 1;
+    if (underTest.options.hasOption(TRANSMITTER)) {
+      ref--;
+    }
+    int jumpIndex = 3;
+    ReferencingCommand jump = (ReferencingCommand) underTest.commands.get(jumpIndex);
+    assertThat(jumpIndex + jump.getRelative()).isEqualTo(ref);
   }
 
 }
