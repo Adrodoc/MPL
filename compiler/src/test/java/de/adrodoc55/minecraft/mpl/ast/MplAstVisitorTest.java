@@ -1526,6 +1526,44 @@ public abstract class MplAstVisitorTest {
     );
   }
 
+  @Test
+  public void test_nested_Break_stops_all_inner_loops() {
+    // given:
+    MplCommand command = some($MplCommand()//
+        .withCommand("command")//
+        .withConditional(UNCONDITIONAL));
+    MplWhile innerWhile = some($MplWhile()//
+        .withCondition((String) null));
+
+    MplWhile outerWhile = some($MplWhile()//
+        .withCondition((String) null)//
+        .withChainParts(listOf(innerWhile)));
+
+    MplBreak mplBreak = some($MplBreak()//
+        .withLoop(outerWhile)//
+        .withConditional(UNCONDITIONAL)//
+        .withPrevious(command));
+    innerWhile.setChainParts(listOf(command, mplBreak));
+
+    // when:
+    outerWhile.accept(underTest);
+
+    // then:
+    List<ChainLink> commands = underTest.commands;
+    int outerEntry = findFirstReciever(commands);
+    int innerEntry = findSecondReciever(commands);
+    int outerExit = findLastReciever(commands);
+    int beforeBreak = commands.indexOf(new Command(command.getCommand(), command));
+    commands = commands.subList(beforeBreak + 1, commands.size());
+
+    assertThat(commands).startsWith(//
+        new ReferencingCommand(getOnCommand(REF), mplBreak.getMode(), false,
+            mplBreak.getNeedsRedstone(), outerExit - (beforeBreak + 1)), //
+        new ReferencingCommand(getOffCommand(REF), true, innerEntry - (beforeBreak + 2)), //
+        new ReferencingCommand(getOffCommand(REF), true, outerEntry - (beforeBreak + 3))//
+    );
+  }
+
   // @formatter:off
   // ----------------------------------------------------------------------------------------------------
   //     ____               _    _
@@ -1722,6 +1760,43 @@ public abstract class MplAstVisitorTest {
         new ReferencingTestforSuccessCommand(-4, CHAIN, false, true), //
         new ReferencingCommand(getOnCommand(REF), true, exit - (beforeContinue + 8)), //
         new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 9))//
+    );
+  }
+
+  @Test
+  public void test_nested_Continue_stops_all_inner_loops() {
+    // given:
+    MplCommand command = some($MplCommand()//
+        .withCommand("command")//
+        .withConditional(UNCONDITIONAL));
+    MplWhile innerWhile = some($MplWhile()//
+        .withCondition((String) null));
+
+    MplWhile outerWhile = some($MplWhile()//
+        .withCondition((String) null)//
+        .withChainParts(listOf(innerWhile)));
+
+    MplContinue mplContinue = some($MplContinue()//
+        .withLoop(outerWhile)//
+        .withConditional(UNCONDITIONAL)//
+        .withPrevious(command));
+    innerWhile.setChainParts(listOf(command, mplContinue));
+
+    // when:
+    outerWhile.accept(underTest);
+
+    // then:
+    List<ChainLink> commands = underTest.commands;
+    int outerEntry = findFirstReciever(commands);
+    int innerEntry = findSecondReciever(commands);
+    int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
+    commands = commands.subList(beforeContinue + 1, commands.size());
+
+    assertThat(commands).startsWith(//
+        new ReferencingCommand(getOffCommand(REF), mplContinue.getMode(), false,
+            mplContinue.getNeedsRedstone(), innerEntry - (beforeContinue + 1)), //
+        new ReferencingCommand(getOffCommand(REF), true, outerEntry - (beforeContinue + 2)), //
+        new ReferencingCommand(getOnCommand(REF), true, outerEntry - (beforeContinue + 3))//
     );
   }
 
