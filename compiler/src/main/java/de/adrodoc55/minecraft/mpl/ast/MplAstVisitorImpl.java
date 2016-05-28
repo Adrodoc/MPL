@@ -283,8 +283,13 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   private boolean containsHighlevelSkip(MplProcess process) {
     List<ChainPart> chainParts = process.getChainParts();
     for (ChainPart chainPart : chainParts) {
-      if (chainPart instanceof MplWaitfor || chainPart instanceof MplIntercept
-          || chainPart instanceof MplBreakpoint) {
+      if (chainPart instanceof MplWaitfor//
+          || chainPart instanceof MplIntercept//
+          || chainPart instanceof MplBreakpoint//
+          || chainPart instanceof MplWhile//
+          || chainPart instanceof MplBreak//
+          || chainPart instanceof MplContinue//
+      ) {
         return true;
       }
     }
