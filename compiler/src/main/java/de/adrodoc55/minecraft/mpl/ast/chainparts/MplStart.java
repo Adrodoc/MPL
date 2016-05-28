@@ -61,7 +61,6 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @Setter
 public class MplStart extends ModifiableChainPart {
   private final String process;
-  private @Nullable Mode mode;
 
   public MplStart(String process) {
     this(process, new ModifierBuffer());

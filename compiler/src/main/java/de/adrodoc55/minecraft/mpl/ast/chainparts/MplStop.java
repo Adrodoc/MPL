@@ -61,7 +61,6 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @Setter
 public class MplStop extends ModifiableChainPart {
   private final String process;
-  private @Nullable Mode mode;
 
   public MplStop(String process) {
     this(process, new ModifierBuffer());

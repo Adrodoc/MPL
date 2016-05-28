@@ -37,17 +37,53 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+package de.adrodoc55.minecraft.mpl.ast.chainparts.loop;
 
-import de.adrodoc55.minecraft.mpl.commands.Mode;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static de.adrodoc55.minecraft.mpl.commands.Conditional.CONDITIONAL;
+
+import javax.annotation.Nonnull;
+
+import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.ast.MplAstVisitorImpl;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
+import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
-public class NoOperationCommand extends InternalCommand {
-  public NoOperationCommand() {}
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true, includeFieldNames = true)
+@Getter
+@Setter
+public class MplContinueLoop extends ModifiableChainPart {
+  private final @Nonnull MplWhile loop;
 
-  public NoOperationCommand(Mode mode) {
-    super("", mode);
+  public MplContinueLoop(MplWhile loop) {
+    this(loop, false);
+  }
+
+  public MplContinueLoop(MplWhile loop, boolean conditional) {
+    super(new ModifierBuffer());
+    this.loop = checkNotNull(loop, "loop == null!");
+    if (conditional) {
+      setConditional(CONDITIONAL);
+    }
+  }
+
+  @Override
+  public String getName() {
+    return "breakcontinue";
+  }
+
+  @Override
+  public void accept(MplAstVisitor visitor) {
+    if (visitor instanceof MplAstVisitorImpl) {
+      ((MplAstVisitorImpl) visitor).visitContinueLoop(this);
+    }
   }
 }

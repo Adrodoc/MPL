@@ -66,8 +66,8 @@ import org.beanfabrics.View;
 import org.beanfabrics.event.BnPropertyChangeEvent;
 
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
-import de.adrodoc55.minecraft.mpl.ide.gui.utils.TabToSpaceDocumentFilter;
 import de.adrodoc55.minecraft.mpl.ide.gui.MplSyntaxFilterPM.CompilerExceptionWrapper;
+import de.adrodoc55.minecraft.mpl.ide.gui.utils.TabToSpaceDocumentFilter;
 
 /**
  * The MplSyntaxFilter is a {@link View} on a
@@ -210,30 +210,30 @@ public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<Mp
       switch (token.getType()) {
         case MplLexer.EOF:
           break loop;
-        case MplLexer.UNCONDITIONAL:
         case MplLexer.ALWAYS_ACTIVE:
+        case MplLexer.UNCONDITIONAL:
           styleToken(token, getLowFocusKeywordStyle());
           break;
-        case MplLexer.ORIENTATION:
-        case MplLexer.INCLUDE:
-        case MplLexer.IMPORT:
-        case MplLexer.INSTALL:
-        case MplLexer.UNINSTALL:
-        case MplLexer.PROJECT:
-        case MplLexer.PROCESS:
+        case MplLexer.BREAKPOINT:
         case MplLexer.CONDITIONAL:
+        case MplLexer.ELSE:
+        case MplLexer.IF:
+        case MplLexer.IMPORT:
+        case MplLexer.INCLUDE:
+        case MplLexer.INSTALL:
+        case MplLexer.INTERCEPT:
         case MplLexer.INVERT:
+        case MplLexer.NOT:
+        case MplLexer.NOTIFY:
+        case MplLexer.ORIENTATION:
+        case MplLexer.PROCESS:
+        case MplLexer.PROJECT:
+        case MplLexer.SKIP_TOKEN:
         case MplLexer.START:
         case MplLexer.STOP:
-        case MplLexer.WAITFOR:
-        case MplLexer.NOTIFY:
-        case MplLexer.INTERCEPT:
-        case MplLexer.BREAKPOINT:
-        case MplLexer.SKIP_TOKEN:
-        case MplLexer.IF:
-        case MplLexer.NOT:
         case MplLexer.THEN:
-        case MplLexer.ELSE:
+        case MplLexer.UNINSTALL:
+        case MplLexer.WAITFOR:
           styleToken(token, getHighFocusKeywordStyle());
           break;
         case MplLexer.IMPULSE:
@@ -242,7 +242,11 @@ public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<Mp
         case MplLexer.CHAIN:
           styleToken(token, getChainStyle());
           break;
+        case MplLexer.BREAK:
+        case MplLexer.CONTINUE:
+        case MplLexer.DO:
         case MplLexer.REPEAT:
+        case MplLexer.WHILE:
           styleToken(token, getRepeatStyle());
           break;
         case MplLexer.NEEDS_REDSTONE:

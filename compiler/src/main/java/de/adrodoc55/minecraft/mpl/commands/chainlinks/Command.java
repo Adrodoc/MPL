@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import javax.annotation.Nonnull;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
@@ -89,9 +91,7 @@ public class Command implements ChainLink, Modifiable {
   @GenerateMplPojoBuilder
   public Command(String command, Mode mode, boolean conditional, boolean needsRedstone) {
     setCommand(command);
-    this.mode = (mode != null) ? mode : Mode.CHAIN;
-    this.conditional = conditional;
-    this.needsRedstone = needsRedstone;
+    setModifier(mode, conditional, needsRedstone);
   }
 
   public Command(Command command) {
@@ -99,11 +99,23 @@ public class Command implements ChainLink, Modifiable {
   }
 
   public Command(String command, Modifiable modifier) {
-    this(command, modifier.getMode(), modifier.isConditional(), modifier.getNeedsRedstone());
+    this(command);
+    setModifier(modifier);
+  }
+
+  public void setModifier(Modifiable modifier) {
+    setModifier(modifier.getMode(), modifier.isConditional(), modifier.getNeedsRedstone());
+  }
+
+  public void setModifier(Mode mode, boolean conditional, boolean needsRedstone) {
+    this.mode = (mode != null) ? mode : Mode.CHAIN;
+    this.conditional = conditional;
+    this.needsRedstone = needsRedstone;
   }
 
   public void setCommand(String command) {
-    if (command != null && command.startsWith("/")) {
+    checkNotNull(command, "command == null!");
+    if (command.startsWith("/")) {
       this.command = command.substring(1);
     } else {
       this.command = command;

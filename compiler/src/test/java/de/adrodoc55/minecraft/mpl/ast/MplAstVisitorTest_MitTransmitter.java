@@ -40,6 +40,8 @@
 package de.adrodoc55.minecraft.mpl.ast;
 
 import static de.adrodoc55.TestBase.$Enum;
+import static de.adrodoc55.TestBase.$boolean;
+import static de.adrodoc55.TestBase.$oneOf;
 import static de.adrodoc55.TestBase.listOf;
 import static de.adrodoc55.TestBase.some;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplBreakpoint;
@@ -48,6 +50,7 @@ import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplIf;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplIntercept;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplProcess;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWaitfor;
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWhile;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept.INTERCEPTED;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.INVERT;
@@ -67,12 +70,14 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
 public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
@@ -448,6 +453,206 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         new InternalCommand(
             "/testforblock ${this - 1} repeating_command_block -1 {SuccessCount:0}"), //
         new InternalCommand(first.getCommand(), first.getMode(), true, first.getNeedsRedstone())//
+    );
+  }
+
+  // @formatter:off
+  // ----------------------------------------------------------------------------------------------------
+  //   __        __ _      _  _
+  //   \ \      / /| |__  (_)| |  ___
+  //    \ \ /\ / / | '_ \ | || | / _ \
+  //     \ V  V /  | | | || || ||  __/
+  //      \_/\_/   |_| |_||_||_| \___|
+  //
+  // ----------------------------------------------------------------------------------------------------
+  // @formatter:on
+
+  @Test
+  public void test_repeat_mit_zwei_repeat() {
+    // given:
+    MplCommand repeat1 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand repeat2 = some($MplCommand().withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
+    MplWhile mplWhile = some($MplWhile()//
+        .withCondition((String) null)//
+        .withNot($boolean())//
+        .withTrailing($boolean())//
+        .withChainParts(listOf(repeat1, repeat2)));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new InternalCommand(getOnCommand("${this + 1}")), //
+        new MplSkip(true), //
+        new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
+            repeat1.getNeedsRedstone()), //
+        new Command(repeat2.getCommand(), repeat2.getMode(), repeat2.isConditional(),
+            repeat2.getNeedsRedstone()), //
+        new InternalCommand(getOffCommand("${this - 3}")), //
+        new InternalCommand(getOnCommand("${this - 4}"), true), //
+        new MplSkip(true), //
+        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE)//
+    );
+  }
+
+  @Test
+  public void test_repeat_while_mit_zwei_repeat() {
+    // given:
+    MplCommand repeat1 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand repeat2 = some($MplCommand().withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
+    MplWhile mplWhile = some($MplWhile()//
+        .withNot(false)//
+        .withTrailing(true)//
+        .withChainParts(listOf(repeat1, repeat2)));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new InternalCommand(getOnCommand("${this + 1}")), //
+        new MplSkip(true), //
+        new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
+            repeat1.getNeedsRedstone()), //
+        new Command(repeat2.getCommand(), repeat2.getMode(), repeat2.isConditional(),
+            repeat2.getNeedsRedstone()), //
+        new Command(mplWhile.getCondition()), //
+        new InternalCommand(getOffCommand("${this - 4}"), true), //
+        new InternalCommand(getOnCommand("${this - 5}"), true), //
+        new InvertingCommand(CHAIN), //
+        new InternalCommand(getOnCommand("${this + 2}"), true), //
+        new InternalCommand(getOffCommand("${this - 8}"), true), //
+        new MplSkip(true), //
+        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE)//
+    );
+  }
+
+  @Test
+  public void test_repeat_while_not_mit_zwei_repeat() {
+    // given:
+    MplCommand repeat1 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand repeat2 = some($MplCommand().withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
+    MplWhile mplWhile = some($MplWhile()//
+        .withNot(true)//
+        .withTrailing(true)//
+        .withChainParts(listOf(repeat1, repeat2)));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new InternalCommand(getOnCommand("${this + 1}")), //
+        new MplSkip(true), //
+        new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
+            repeat1.getNeedsRedstone()), //
+        new Command(repeat2.getCommand(), repeat2.getMode(), repeat2.isConditional(),
+            repeat2.getNeedsRedstone()), //
+        new Command(mplWhile.getCondition()), //
+        new InternalCommand(getOnCommand("${this + 5}"), true), //
+        new InternalCommand(getOffCommand("${this - 5}"), true), //
+        new InvertingCommand(CHAIN), //
+        new InternalCommand(getOffCommand("${this - 7}"), true), //
+        new InternalCommand(getOnCommand("${this - 8}"), true), //
+        new MplSkip(true), //
+        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE)//
+    );
+  }
+
+  @Test
+  public void test_while_repeat_mit_zwei_repeat() {
+    // given:
+    MplCommand repeat1 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand repeat2 = some($MplCommand().withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
+    MplWhile mplWhile = some($MplWhile()//
+        .withNot(false)//
+        .withTrailing(false)//
+        .withChainParts(listOf(repeat1, repeat2)));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new Command(mplWhile.getCondition()), //
+        new InternalCommand(getOnCommand("${this + 3}"), true), //
+        new InvertingCommand(CHAIN), //
+        new InternalCommand(getOnCommand("${this + 10}"), true), //
+        new MplSkip(true), //
+        new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
+            repeat1.getNeedsRedstone()), //
+        new Command(repeat2.getCommand(), repeat2.getMode(), repeat2.isConditional(),
+            repeat2.getNeedsRedstone()), //
+        new InternalCommand(mplWhile.getCondition()), //
+        new InternalCommand(getOffCommand("${this - 4}"), true), //
+        new InternalCommand(getOnCommand("${this - 5}"), true), //
+        new InvertingCommand(CHAIN), //
+        new InternalCommand(getOnCommand("${this + 2}"), true), //
+        new InternalCommand(getOffCommand("${this - 8}"), true), //
+        new MplSkip(true), //
+        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE)//
+    );
+  }
+
+  @Test
+  public void test_while_not_repeat_mit_zwei_repeat() {
+    // given:
+    MplCommand repeat1 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand repeat2 = some($MplCommand().withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
+    MplWhile mplWhile = some($MplWhile()//
+        .withNot(true)//
+        .withTrailing(false)//
+        .withChainParts(listOf(repeat1, repeat2)));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new Command(mplWhile.getCondition()), //
+        new InternalCommand(getOnCommand("${this + 12}"), true), //
+        new InvertingCommand(CHAIN), //
+        new InternalCommand(getOnCommand("${this + 1}"), true), //
+        new MplSkip(true), //
+        new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
+            repeat1.getNeedsRedstone()), //
+        new Command(repeat2.getCommand(), repeat2.getMode(), repeat2.isConditional(),
+            repeat2.getNeedsRedstone()), //
+        new Command(mplWhile.getCondition()), //
+        new InternalCommand(getOnCommand("${this + 5}"), true), //
+        new InternalCommand(getOffCommand("${this - 5}"), true), //
+        new InvertingCommand(CHAIN), //
+        new InternalCommand(getOffCommand("${this - 7}"), true), //
+        new InternalCommand(getOnCommand("${this - 8}"), true), //
+        new MplSkip(true), //
+        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE)//
+    );
+  }
+
+  @Test
+  public void test_nested_repeat_requires_nop() {
+    // given:
+    MplWhile mplWhile = some($MplWhile()//
+        .withCondition((String) null)//
+        .withNot($boolean())//
+        .withTrailing($boolean())//
+        .withChainParts(listOf(some($MplWhile()//
+            .withCondition((String) null)//
+            .withNot($boolean())//
+            .withTrailing($boolean())//
+    ))));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).startsWith(//
+        new InternalCommand(getOnCommand("${this + 1}")), //
+        new MplSkip(true), //
+        new NoOperationCommand(IMPULSE), //
+        new InternalCommand(getOnCommand("${this + 1}")), //
+        new MplSkip(true)//
     );
   }
 

@@ -37,116 +37,59 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.chainparts;
+package de.adrodoc55.minecraft.mpl.ast.chainparts.loop;
 
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Deque;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode(callSuper = true, of = {"not", "condition"})
-@ToString(includeFieldNames = true, of = {"not", "condition"})
-public class MplIf extends ModifiableChainPart implements ChainPartBuffer {
-  private final @Nullable ChainPartBuffer parent;
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true, includeFieldNames = true)
+@Getter
+@Setter
+public class MplBreak extends ModifiableChainPart {
+  private final @Nullable String label;
+  private final @Nonnull MplWhile loop;
 
-  @Getter
-  private final boolean not;
-  @Getter
-  private final @Nullable String condition;
+  public MplBreak(@Nullable String label, MplWhile loop) {
+    this(label, loop, new ModifierBuffer());
+  }
 
-  private Deque<ChainPart> thenParts = new ArrayDeque<>();
-  private Deque<ChainPart> elseParts = new ArrayDeque<>();
-  private boolean inElse;
+  public MplBreak(@Nullable String label, MplWhile loop, ModifierBuffer modifier) {
+    super(modifier);
+    this.label = label;
+    this.loop = checkNotNull(loop, "loop == null!");
+  }
 
   @GenerateMplPojoBuilder
-  public MplIf(boolean not, String condition) {
-    this(null, not, condition);
-  }
-
-  public MplIf(@Nullable ChainPartBuffer parent, boolean not, @Nullable String condition) {
-    super(new ModifierBuffer());
-    this.parent = parent;
-    this.not = not;
-    this.condition = condition;
-  }
-
-  @Override
-  public void add(ChainPart cp) {
-    if (!inElse) {
-      thenParts.add(cp);
-    } else {
-      elseParts.add(cp);
-    }
-  }
-
-  @Override
-  public Deque<ChainPart> getChainParts() {
-    if (!inElse) {
-      return thenParts;
-    } else {
-      return elseParts;
-    }
-  }
-
-  public void enterThen() {
-    inElse = false;
-  }
-
-  public void enterElse() {
-    inElse = true;
-  }
-
-  public @Nullable ChainPartBuffer exit() {
-    return parent;
-  }
-
-  public Deque<ChainPart> getThenParts() {
-    return new ArrayDeque<>(thenParts);
-  }
-
-  @VisibleForTesting
-  void setThenParts(Collection<ChainPart> thenParts) {
-    this.thenParts.clear();
-    this.thenParts.addAll(thenParts);
-  }
-
-  public Deque<ChainPart> getElseParts() {
-    return new ArrayDeque<>(elseParts);
-  }
-
-  @VisibleForTesting
-  void setElseParts(Collection<ChainPart> elseParts) {
-    this.elseParts.clear();
-    this.elseParts.addAll(elseParts);
+  public MplBreak(@Nullable String label, MplWhile loop, ModifierBuffer modifier,
+      @Nullable Dependable previous) {
+    super(modifier, previous);
+    this.label = label;
+    this.loop = checkNotNull(loop, "loop == null!");
   }
 
   @Override
   public String getName() {
-    return "if";
+    return "break";
   }
 
   @Override
   public void accept(MplAstVisitor visitor) {
-    visitor.visitIf(this);
-  }
-
-  public void switchThenAndElse() {
-    Deque<ChainPart> oldThen = this.thenParts;
-    thenParts = elseParts;
-    elseParts = oldThen;
+    visitor.visitBreak(this);
   }
 }
