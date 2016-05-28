@@ -77,6 +77,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
 public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
@@ -626,6 +627,32 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         new InternalCommand(getOnCommand("${this - 8}"), true), //
         new MplSkip(true), //
         new InternalCommand(getOffCommand("${this - 1}"), IMPULSE)//
+    );
+  }
+
+  @Test
+  public void test_nested_repeat_requires_nop() {
+    // given:
+    MplWhile mplWhile = some($MplWhile()//
+        .withCondition((String) null)//
+        .withNot($boolean())//
+        .withTrailing($boolean())//
+        .withChainParts(listOf(some($MplWhile()//
+            .withCondition((String) null)//
+            .withNot($boolean())//
+            .withTrailing($boolean())//
+    ))));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).startsWith(//
+        new InternalCommand(getOnCommand("${this + 1}")), //
+        new MplSkip(true), //
+        new NoOperationCommand(IMPULSE), //
+        new InternalCommand(getOnCommand("${this + 1}")), //
+        new MplSkip(true)//
     );
   }
 

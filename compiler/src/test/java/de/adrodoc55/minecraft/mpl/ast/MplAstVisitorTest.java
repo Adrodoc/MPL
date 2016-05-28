@@ -1145,7 +1145,7 @@ public abstract class MplAstVisitorTest {
 
     // then:
     assertThat(act).isNotNull();
-    assertThat(act.getMessage()).isEqualTo("While cannot contain skip");
+    assertThat(act.getMessage()).isEqualTo("while cannot contain skip");
   }
 
   @Test
@@ -1457,12 +1457,14 @@ public abstract class MplAstVisitorTest {
     int entry = findFirstReciever(commands);
     int exit = findLastReciever(commands);
     int beforeBreak = commands.indexOf(new Command(command.getCommand(), command));
-    commands = commands.subList(beforeBreak + 1, commands.size() - 1);
+    commands = commands.subList(beforeBreak + 1, commands.size());
 
     assertThat(commands).startsWith(//
-        new ReferencingCommand(getOnCommand(REF), false, exit - (beforeBreak + 1)), //
+        new ReferencingCommand(getOnCommand(REF), mplBreak.getMode(), false,
+            mplBreak.getNeedsRedstone(), exit - (beforeBreak + 1)), //
         new ReferencingCommand(getOffCommand(REF), true, entry - (beforeBreak + 2))//
     );
+    assertThat(commands.size()).isBetween(3, 4);
   }
 
   @Test
@@ -1483,10 +1485,11 @@ public abstract class MplAstVisitorTest {
     int entry = findFirstReciever(commands);
     int exit = findLastReciever(commands);
     int beforeBreak = commands.indexOf(new Command(command.getCommand(), command));
-    commands = commands.subList(beforeBreak + 1, commands.size() - 1);
+    commands = commands.subList(beforeBreak + 1, commands.size());
 
     assertThat(commands).startsWith(//
-        new ReferencingCommand(getOnCommand(REF), true, exit - (beforeBreak + 1)), //
+        new ReferencingCommand(getOnCommand(REF), mplBreak.getMode(), true,
+            mplBreak.getNeedsRedstone(), exit - (beforeBreak + 1)), //
         new ReferencingCommand(getOffCommand(REF), true, entry - (beforeBreak + 2)), //
         new InvertingCommand(CHAIN), //
         new ReferencingCommand(getOnCommand(REF), true, 1)//
@@ -1512,13 +1515,14 @@ public abstract class MplAstVisitorTest {
     int entry = findFirstReciever(commands);
     int exit = findLastReciever(commands);
     int beforeBreak = commands.indexOf(new Command(command.getCommand(), command));
-    commands = commands.subList(beforeBreak + 1, commands.size() - 1);
+    commands = commands.subList(beforeBreak + 1, commands.size());
 
     assertThat(commands).startsWith(//
-        new ReferencingCommand(getOnCommand(REF), true, 4), //
+        new ReferencingCommand(getOnCommand(REF), mplBreak.getMode(), true,
+            mplBreak.getNeedsRedstone(), 4), //
         new InvertingCommand(CHAIN), //
         new ReferencingCommand(getOnCommand(REF), true, exit - (beforeBreak + 3)), //
-        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeBreak + 4)) //
+        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeBreak + 4))//
     );
   }
 
@@ -1534,7 +1538,35 @@ public abstract class MplAstVisitorTest {
   // @formatter:on
 
   @Test
-  public void test_unconditional_Continue() {
+  public void test_unconditional_Continue_without_condition() {
+    // given:
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplWhile mplWhile = some($MplWhile()//
+        .withCondition((String) null));
+    MplContinue mplContinue = some($MplContinue()//
+        .withLoop(mplWhile)//
+        .withConditional(UNCONDITIONAL));
+    mplWhile.setChainParts(listOf(command, mplContinue));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    List<ChainLink> commands = underTest.commands;
+    int entry = findFirstReciever(commands);
+    int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
+    commands = commands.subList(beforeContinue + 1, commands.size());
+
+    assertThat(commands).startsWith(//
+        new ReferencingCommand(getOffCommand(REF), mplContinue.getMode(), false,
+            mplContinue.getNeedsRedstone(), entry - (beforeContinue + 1)), //
+        new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 2))//
+    );
+    assertThat(commands.size()).isBetween(3, 4);
+  }
+
+  @Test
+  public void test_unconditional_Continue_with_condition() {
     // given:
     MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
     MplWhile mplWhile = some($MplWhile());
@@ -1549,13 +1581,19 @@ public abstract class MplAstVisitorTest {
     // then:
     List<ChainLink> commands = underTest.commands;
     int entry = findFirstReciever(commands);
+    int exit = findLastReciever(commands);
     int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
-    commands = commands.subList(beforeContinue + 1, commands.size() - 1);
+    commands = commands.subList(beforeContinue + 1, commands.size());
 
     assertThat(commands).startsWith(//
-        new ReferencingCommand(getOffCommand(REF), false, entry - (beforeContinue + 1)), //
-        new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 2))//
+        new Command(mplWhile.getCondition(), mplContinue), //
+        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 2)), //
+        new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 3)), //
+        new InvertingCommand(CHAIN), //
+        new ReferencingCommand(getOnCommand(REF), true, exit - (beforeContinue + 5)), //
+        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 6))//
     );
+    assertThat(commands.size()).isBetween(7, 8);
   }
 
   @Test
@@ -1577,7 +1615,7 @@ public abstract class MplAstVisitorTest {
     int entry = findFirstReciever(commands);
     int doNothing = findSecondReciever(commands);
     int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
-    commands = commands.subList(beforeContinue + 1, commands.size() - 1);
+    commands = commands.subList(beforeContinue + 1, commands.size());
 
     assertThat(commands).startsWith(//
         new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 1)), //
@@ -1606,7 +1644,7 @@ public abstract class MplAstVisitorTest {
     int exit = findLastReciever(commands);
     int doNothing = findSecondReciever(commands);
     int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
-    commands = commands.subList(beforeContinue + 1, commands.size() - 1);
+    commands = commands.subList(beforeContinue + 1, commands.size());
 
     assertThat(commands).startsWith(//
         new NormalizingCommand(), //
@@ -1642,13 +1680,13 @@ public abstract class MplAstVisitorTest {
     int entry = findFirstReciever(commands);
     int doNothing = findSecondReciever(commands);
     int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
-    commands = commands.subList(beforeContinue + 1, commands.size() - 1);
+    commands = commands.subList(beforeContinue + 1, commands.size());
 
     assertThat(commands).startsWith(//
         new ReferencingCommand(getOnCommand(REF), true, doNothing - (beforeContinue + 1)), //
         new ReferencingTestforSuccessCommand(-2, IMPULSE, false), //
         new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 3)), //
-        new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 4)) //
+        new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 4))//
     );
   }
 
@@ -1672,7 +1710,7 @@ public abstract class MplAstVisitorTest {
     int exit = findLastReciever(commands);
     int doNothing = findSecondReciever(commands);
     int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
-    commands = commands.subList(beforeContinue + 1, commands.size() - 1);
+    commands = commands.subList(beforeContinue + 1, commands.size());
 
     assertThat(commands).startsWith(//
         new ReferencingCommand(getOnCommand(REF), true, doNothing - (beforeContinue + 1)), //
@@ -1683,7 +1721,7 @@ public abstract class MplAstVisitorTest {
         new ReferencingTestforSuccessCommand(-6, IMPULSE, false), //
         new ReferencingTestforSuccessCommand(-4, CHAIN, false, true), //
         new ReferencingCommand(getOnCommand(REF), true, exit - (beforeContinue + 8)), //
-        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 9)) //
+        new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 9))//
     );
   }
 

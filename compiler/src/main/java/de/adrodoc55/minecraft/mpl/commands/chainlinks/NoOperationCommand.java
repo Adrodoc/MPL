@@ -39,9 +39,15 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import de.adrodoc55.minecraft.mpl.commands.Mode;
+
 /**
  * @author Adrodoc55
  */
 public class NoOperationCommand extends InternalCommand {
+  public NoOperationCommand() {}
 
+  public NoOperationCommand(Mode mode) {
+    super("", mode);
+  }
 }

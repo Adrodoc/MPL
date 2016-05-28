@@ -260,6 +260,24 @@ process test_repeat_while_with_5_iterations (
 
   // then:
   /scoreboard players test MplTest MplTest 6 6
+  conditional: start test_repeat_with_unconditional_break
+  invert: /say TEST FAILED
+)
+
+process test_repeat_with_unconditional_break (
+  /say starting test_repeat_with_unconditional_break
+
+  // given:
+  /scoreboard players set MplTest MplTest 1
+
+  // when:
+  repeat (
+    /scoreboard players add MplTest MplTest 1
+    break
+  )
+
+  // then:
+  /scoreboard players test MplTest MplTest 2 2
   conditional: start test_repeat_with_conditional_break_after_5_iterations
   invert: /say TEST FAILED
 )
@@ -298,6 +316,26 @@ process test_repeat_with_invert_break_after_5_iterations (
 
   // then:
   /scoreboard players test MplTest MplTest 6 6
+  conditional: start test_nested_break_with_label
+  invert: /say TEST FAILED
+)
+
+process test_nested_break_with_label (
+  /say starting test_break_with_label
+
+  // given:
+  /scoreboard players set MplTest MplTest 1
+
+  // when:
+  outer: repeat (
+    repeat (
+      break outer
+    )
+    /scoreboard players add MplTest MplTest 1
+  )
+
+  // then:
+  /scoreboard players test MplTest MplTest 1 1
   conditional: start test_conditional_continue_checks_the_condition
   invert: /say TEST FAILED
 )
@@ -376,6 +414,28 @@ process test_repeat_with_invert_continue_for_5_iterations (
 
   // then:
   /scoreboard players test MplTest MplTest 6 6
+  conditional: start test_nested_continue_with_label
+  invert: /say TEST FAILED
+)
+
+process test_nested_continue_with_label (
+  /say starting test_nested_continue_with_label
+
+  // given:
+  /scoreboard players set MplTest MplTest 1
+
+  // when:
+  outer: while: /scoreboard players test MplTest MplTest * 1
+  repeat (
+    /scoreboard players add MplTest MplTest 1
+    repeat (
+      continue outer
+    )
+    /scoreboard players add MplTest MplTest 10
+  )
+
+  // then:
+  /scoreboard players test MplTest MplTest 2 2
   conditional: start finish
   invert: /say TEST FAILED
 )

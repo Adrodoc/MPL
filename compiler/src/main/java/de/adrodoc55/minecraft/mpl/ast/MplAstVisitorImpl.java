@@ -650,28 +650,43 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     }
     try {
       ChainPart first = chainParts.peek();
+      if (options.hasOption(TRANSMITTER) && first instanceof MplWhile) {
+        if (((MplWhile) first).getCondition() == null) {
+          first = new MplCommand("");
+          chainParts.push(first);
+        }
+      }
       first.setMode(IMPULSE);
       first.setNeedsRedstone(true);
     } catch (IllegalModifierException ex) {
-      throw new IllegalStateException("While cannot contain skip", ex);
+      throw new IllegalStateException("while cannot contain skip", ex);
     }
+    boolean dontRestart = false;
     for (ChainPart chainPart : chainParts) {
       chainPart.accept(this);
+      if (chainPart instanceof MplBreak || chainPart instanceof MplContinue) {
+        if (!((ModifiableChainPart) chainPart).isConditional()) {
+          dontRestart = true;
+          break;
+        }
+      }
     }
     ChainLink entryPoint = commands.get(entryIndex);
 
-    if (condition == null) {
-      addRestartBackref(entryPoint, false);
-    } else {
-      commands.add(new Command(condition));
-      if (!mplWhile.isNot()) {
-        addContinueLoop(mplWhile, true);
-        commands.add(new InvertingCommand(CHAIN));
-        addBreakLoop(mplWhile, true);
+    if (!dontRestart) {
+      if (condition == null) {
+        addRestartBackref(entryPoint, false);
       } else {
-        addBreakLoop(mplWhile, true);
-        commands.add(new InvertingCommand(CHAIN));
-        addContinueLoop(mplWhile, true);
+        commands.add(new Command(condition));
+        if (!mplWhile.isNot()) {
+          addContinueLoop(mplWhile).setConditional(true);
+          commands.add(new InvertingCommand(CHAIN));
+          addBreakLoop(mplWhile).setConditional(true);
+        } else {
+          addBreakLoop(mplWhile).setConditional(true);
+          commands.add(new InvertingCommand(CHAIN));
+          addContinueLoop(mplWhile).setConditional(true);
+        }
       }
     }
     // From here the next command will be the exit point of the loop
@@ -709,12 +724,11 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   }
 
   public void visitBreakLoop(MplBreakLoop mplBreakLoop) {
-    addBreakLoop(mplBreakLoop.getLoop(), mplBreakLoop.isConditional());
+    addBreakLoop(mplBreakLoop.getLoop()).setModifier(mplBreakLoop);
   }
 
-  private void addBreakLoop(MplWhile loop, boolean conditional) {
-    ReferencingCommand continueAfterLoop =
-        new ReferencingCommand(getStartCommand(REF), conditional);
+  private ReferencingCommand addBreakLoop(MplWhile loop) {
+    ReferencingCommand continueAfterLoop = new ReferencingCommand(getStartCommand(REF));
     ReferencingCommand stopLoop = new ReferencingCommand(getStopCommand(REF), true);
     commands.add(continueAfterLoop);
     commands.add(stopLoop);
@@ -734,32 +748,40 @@ public class MplAstVisitorImpl implements MplAstVisitor {
         return loop;
       }
     });
+    return continueAfterLoop;
   }
 
   @Override
   public void visitBreak(MplBreak mplBreak) {
     MplWhile loop = mplBreak.getLoop();
     // FIXME: ein command von break MUSS nicht internal sein (bei unconditional)
+    Conditional conditional = mplBreak.getConditional();
+    if (conditional == UNCONDITIONAL) {
+      addBreakLoop(loop).setModifier(mplBreak);
+      return;
+    }
     ReferencingCommand dontBreak = new ReferencingCommand(getStartCommand(REF), true);
-    if (mplBreak.getConditional() == CONDITIONAL) {
-      addBreakLoop(loop, true);
+    if (conditional == CONDITIONAL) {
+      addBreakLoop(loop).setModifier(mplBreak);
       commands.add(new InvertingCommand(CHAIN));
       commands.add(dontBreak);
     } else {
+      dontBreak.setModifier(mplBreak);
       commands.add(dontBreak);
       commands.add(new InvertingCommand(CHAIN));
-      addBreakLoop(loop, true);
+      addBreakLoop(loop).setConditional(true);
     }
     dontBreak.setRelative(-getCountToRef(dontBreak));
     addTransmitterReceiverCombo(false);
+
   }
 
   public void visitContinueLoop(MplContinueLoop mplContinueLoop) {
-    addContinueLoop(mplContinueLoop.getLoop(), mplContinueLoop.isConditional());
+    addContinueLoop(mplContinueLoop.getLoop()).setModifier(mplContinueLoop);
   }
 
-  private void addContinueLoop(MplWhile loop, boolean conditional) {
-    ReferencingCommand stopLoop = new ReferencingCommand(getStopCommand(REF), conditional);
+  private ReferencingCommand addContinueLoop(MplWhile loop) {
+    ReferencingCommand stopLoop = new ReferencingCommand(getStopCommand(REF));
     ReferencingCommand startLoop = new ReferencingCommand(getStartCommand(REF), true);
     commands.add(stopLoop);
     commands.add(startLoop);
@@ -778,19 +800,32 @@ public class MplAstVisitorImpl implements MplAstVisitor {
         return loop;
       }
     });
+    return stopLoop;
   }
 
   @Override
   public void visitContinue(MplContinue mplContinue) {
     MplWhile loop = mplContinue.getLoop();
     // FIXME: ein command von continue MUSS nicht internal sein (bei unconditional)
-
+    Conditional conditional = mplContinue.getConditional();
+    String condition = loop.getCondition();
+    if (conditional == UNCONDITIONAL) {
+      if (condition != null) {
+        commands.add(new InternalCommand(condition, mplContinue));
+        addContinueLoop(loop).setConditional(true);
+        commands.add(new InvertingCommand(CHAIN));
+        addBreakLoop(loop).setConditional(true);
+      } else {
+        addContinueLoop(loop).setModifier(mplContinue);
+      }
+      return;
+    }
     MplIf outerIf = new MplIf(false, null);
     outerIf.setConditional(mplContinue.isConditional() ? CONDITIONAL : UNCONDITIONAL);
     outerIf.setPrevious(mplContinue.getPrevious());
     outerIf.enterThen();
-    if (loop.getCondition() != null) {
-      MplIf innerIf = new MplIf(false, loop.getCondition());
+    if (condition != null) {
+      MplIf innerIf = new MplIf(false, condition);
       innerIf.enterThen();
       innerIf.add(new MplContinueLoop(loop));
       innerIf.enterElse();
@@ -803,7 +838,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     // Mark this command to find it later no user can create such a command
     outerIf.add(new MplCommand("//"));
 
-    if (mplContinue.getConditional() == INVERT) {
+    if (conditional == INVERT) {
       outerIf.switchThenAndElse();
     }
     outerIf.accept(this);

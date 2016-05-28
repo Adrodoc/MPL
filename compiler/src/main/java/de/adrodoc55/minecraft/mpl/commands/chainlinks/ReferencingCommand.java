@@ -84,6 +84,12 @@ public class ReferencingCommand extends InternalCommand {
     this.relative = relative;
   }
 
+  public ReferencingCommand(String command, Mode mode, boolean conditional, boolean needsRedstone,
+      int relative) {
+    this(command, mode, conditional, needsRedstone);
+    this.relative = relative;
+  }
+
   public ReferencingCommand(String command, Modifiable modifier, int relative) {
     super(command, modifier);
     this.relative = relative;

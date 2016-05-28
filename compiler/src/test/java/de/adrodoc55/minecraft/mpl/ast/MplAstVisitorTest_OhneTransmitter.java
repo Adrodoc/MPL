@@ -605,4 +605,27 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     );
   }
 
+  @Test
+  public void test_nested_repeat_does_not_require_nop() {
+    // given:
+    MplWhile mplWhile = some($MplWhile()//
+        .withCondition((String) null)//
+        .withNot($boolean())//
+        .withTrailing($boolean())//
+        .withChainParts(listOf(some($MplWhile()//
+            .withCondition((String) null)//
+            .withNot($boolean())//
+            .withTrailing($boolean())//
+    ))));
+
+    // when:
+    mplWhile.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).startsWith(//
+        new InternalCommand(getOnCommand("${this + 1}")), //
+        new InternalCommand(getOnCommand("${this + 1}"), IMPULSE)//
+    );
+  }
+
 }
