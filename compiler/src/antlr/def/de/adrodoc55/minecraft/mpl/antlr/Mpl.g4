@@ -76,11 +76,11 @@ importDeclaration
 project
 :
 // TODO: Prefix, Orientation, max
-  PROJECT IDENTIFIER '('
+  PROJECT IDENTIFIER '{'
   (
     orientation
     | include
-  )* ')'
+  )* '}'
 ;
 
 orientation
@@ -95,12 +95,12 @@ include
 
 install
 :
-  INSTALL '(' chain ')'
+  INSTALL '{' chain '}'
 ;
 
 uninstall
 :
-  UNINSTALL '(' chain ')'
+  UNINSTALL '{' chain '}'
 ;
 
 process
@@ -108,7 +108,7 @@ process
   (
     IMPULSE
     | REPEAT
-  )? PROCESS IDENTIFIER '(' chain ')'
+  )? PROCESS IDENTIFIER '{' chain '}'
 ;
 
 chain
@@ -128,23 +128,23 @@ ifDeclaration
 
 then
 :
-  THEN '(' chain ')'
+  THEN '{' chain '}'
 ;
 
 elseDeclaration
 :
-  ELSE '(' chain ')'
+  ELSE '{' chain '}'
 ;
 
 whileDeclaration
 :
   (
     IDENTIFIER ':'
-  )? WHILE NOT? ':' COMMAND REPEAT '(' chain ')'
+  )? WHILE NOT? ':' COMMAND REPEAT '{' chain '}'
   |
   (
     IDENTIFIER ':'
-  )? REPEAT '(' chain ')'
+  )? REPEAT '{' chain '}'
   (
     DO WHILE NOT? ':' COMMAND
   )?

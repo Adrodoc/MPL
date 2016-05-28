@@ -1,18 +1,18 @@
-install (
+install {
   /setblock ${origin + (-2 0 0)} command_block 0 replace {Command:execute @e[name=mpl_tests] ~ ~ ~ setblock ~ ~ ~ redstone_block}
   /scoreboard objectives add MplTest dummy
-)
+}
 
-uninstall (
+uninstall {
   /scoreboard objectives remove MplTest
-)
+}
 
-process mpl_tests (
+process mpl_tests {
   /say starting mpl test
   start test_invert_with_true
-)
+}
 
-process test_invert_with_true (
+process test_invert_with_true {
   /say starting test_invert_with_true
 
   // given:
@@ -26,9 +26,9 @@ process test_invert_with_true (
   /scoreboard players test test_invert_with_true MplTest 0 0
   conditional: start test_invert_with_false
   invert: /say TEST FAILED
-)
+}
 
-process test_invert_with_false (
+process test_invert_with_false {
   /say starting test_invert_with_false
 
   // given:
@@ -42,9 +42,9 @@ process test_invert_with_false (
   /scoreboard players test test_invert_with_true MplTest 0 0
   conditional: start test_waitfor_impulse
   invert: /say TEST FAILED
-)
+}
 
-process test_waitfor_impulse (
+process test_waitfor_impulse {
   /say starting test_waitfor_impulse
 
   // given:
@@ -58,9 +58,9 @@ process test_waitfor_impulse (
   /scoreboard players test MplTest MplTest 4 4
   conditional: start test_waitfor_repeat
   invert: /say TEST FAILED
-)
+}
 
-process test_waitfor_repeat (
+process test_waitfor_repeat {
   /say starting test_waitfor_repeat
 
   // given:
@@ -74,9 +74,9 @@ process test_waitfor_repeat (
   /scoreboard players test MplTest MplTest 3 3
   conditional: start test_conditional_waitfor_with_true
   invert: /say TEST FAILED
-)
+}
 
-process test_conditional_waitfor_with_true (
+process test_conditional_waitfor_with_true {
   /say starting test_conditional_waitfor_with_true
 
   // given:
@@ -91,9 +91,9 @@ process test_conditional_waitfor_with_true (
   /scoreboard players test MplTest MplTest 1 1
   conditional: start test_conditional_waitfor_with_false
   invert: /say TEST FAILED
-)
+}
 
-process test_conditional_waitfor_with_false (
+process test_conditional_waitfor_with_false {
   /say starting test_conditional_waitfor_with_false
 
   // given:
@@ -108,9 +108,9 @@ process test_conditional_waitfor_with_false (
   /scoreboard players test MplTest MplTest 0 0
   conditional: start test_intercept
   invert: /say TEST FAILED
-)
+}
 
-process test_intercept (
+process test_intercept {
   /say starting test_intercept
 
   // given:
@@ -124,9 +124,9 @@ process test_intercept (
   /scoreboard players test MplTest MplTest 5 5
   conditional: start test_conditional_intercept_with_true
   invert: /say TEST FAILED
-)
+}
 
-process test_conditional_intercept_with_true (
+process test_conditional_intercept_with_true {
   /say starting test_conditional_intercept_with_true
 
   // given:
@@ -141,9 +141,9 @@ process test_conditional_intercept_with_true (
   /scoreboard players test MplTest MplTest 5 5
   conditional: start test_conditional_intercept_with_false
   invert: /say TEST FAILED
-)
+}
 
-process test_conditional_intercept_with_false (
+process test_conditional_intercept_with_false {
   /say starting test_conditional_intercept_with_false
 
   // given:
@@ -158,9 +158,9 @@ process test_conditional_intercept_with_false (
   /scoreboard players test MplTest MplTest 0 0
   conditional: start test_invert_intercept_with_true
   invert: /say TEST FAILED
-)
+}
 
-process test_invert_intercept_with_true (
+process test_invert_intercept_with_true {
   /say starting test_invert_intercept_with_true
 
   // given:
@@ -175,9 +175,9 @@ process test_invert_intercept_with_true (
   /scoreboard players test MplTest MplTest 0 0
   conditional: start test_invert_intercept_with_false
   invert: /say TEST FAILED
-)
+}
 
-process test_invert_intercept_with_false (
+process test_invert_intercept_with_false {
   /say starting test_invert_intercept_with_false
 
   // given:
@@ -192,9 +192,9 @@ process test_invert_intercept_with_false (
   /scoreboard players test MplTest MplTest 5 5
   conditional: start test_while_repeat_with_false
   invert: /say TEST FAILED
-)
+}
 
-process test_while_repeat_with_false (
+process test_while_repeat_with_false {
   /say starting test_while_repeat_with_false
 
   // given:
@@ -202,17 +202,17 @@ process test_while_repeat_with_false (
 
   // when:
   while: /this is false
-  repeat (
+  repeat {
     /scoreboard players add MplTest MplTest 1
-  )
+  }
 
   // then:
   /scoreboard players test MplTest MplTest 1 1
   conditional: start test_while_repeat_with_5_iterations
   invert: /say TEST FAILED
-)
+}
 
-process test_while_repeat_with_5_iterations (
+process test_while_repeat_with_5_iterations {
   /say starting test_while_repeat_with_5_iterations
 
   // given:
@@ -220,205 +220,205 @@ process test_while_repeat_with_5_iterations (
 
   // when:
   while: /scoreboard players test MplTest MplTest 1 5
-  repeat (
+  repeat {
     /scoreboard players add MplTest MplTest 1
-  )
+  }
 
   // then:
   /scoreboard players test MplTest MplTest 6 6
   conditional: start test_repeat_while_with_false
   invert: /say TEST FAILED
-)
+}
 
-process test_repeat_while_with_false (
+process test_repeat_while_with_false {
   /say starting test_repeat_while_with_false
 
   // given:
   /scoreboard players set MplTest MplTest 1
 
   // when:
-  repeat (
+  repeat {
     /scoreboard players add MplTest MplTest 1
-  ) do while: /this is false
+  } do while: /this is false
 
   // then:
   /scoreboard players test MplTest MplTest 2 2
   conditional: start test_repeat_while_with_5_iterations
   invert: /say TEST FAILED
-)
+}
 
-process test_repeat_while_with_5_iterations (
+process test_repeat_while_with_5_iterations {
   /say starting test_repeat_while_with_5_iterations
 
   // given:
   /scoreboard players set MplTest MplTest 1
 
   // when:
-  repeat (
+  repeat {
     /scoreboard players add MplTest MplTest 1
-  ) do while: /scoreboard players test MplTest MplTest 1 5
+  } do while: /scoreboard players test MplTest MplTest 1 5
 
   // then:
   /scoreboard players test MplTest MplTest 6 6
   conditional: start test_repeat_with_unconditional_break
   invert: /say TEST FAILED
-)
+}
 
-process test_repeat_with_unconditional_break (
+process test_repeat_with_unconditional_break {
   /say starting test_repeat_with_unconditional_break
 
   // given:
   /scoreboard players set MplTest MplTest 1
 
   // when:
-  repeat (
+  repeat {
     /scoreboard players add MplTest MplTest 1
     break
-  )
+  }
 
   // then:
   /scoreboard players test MplTest MplTest 2 2
   conditional: start test_repeat_with_conditional_break_after_5_iterations
   invert: /say TEST FAILED
-)
+}
 
-process test_repeat_with_conditional_break_after_5_iterations (
+process test_repeat_with_conditional_break_after_5_iterations {
   /say starting test_repeat_with_conditional_break_after_5_iterations
 
   // given:
   /scoreboard players set MplTest MplTest 1
 
   // when:
-  repeat (
+  repeat {
     /scoreboard players add MplTest MplTest 1
     /scoreboard players test MplTest MplTest 6 *
     conditional: break
-  )
+  }
 
   // then:
   /scoreboard players test MplTest MplTest 6 6
   conditional: start test_repeat_with_invert_break_after_5_iterations
   invert: /say TEST FAILED
-)
+}
 
-process test_repeat_with_invert_break_after_5_iterations (
+process test_repeat_with_invert_break_after_5_iterations {
   /say starting test_repeat_with_invert_break_after_5_iterations
 
   // given:
   /scoreboard players set MplTest MplTest 1
 
   // when:
-  repeat (
+  repeat {
     /scoreboard players add MplTest MplTest 1
     /scoreboard players test MplTest MplTest 1 5
     invert: break
-  )
+  }
 
   // then:
   /scoreboard players test MplTest MplTest 6 6
   conditional: start test_nested_break_with_label
   invert: /say TEST FAILED
-)
+}
 
-process test_nested_break_with_label (
+process test_nested_break_with_label {
   /say starting test_break_with_label
 
   // given:
   /scoreboard players set MplTest MplTest 1
 
   // when:
-  outer: repeat (
-    repeat (
+  outer: repeat {
+    repeat {
       break outer
-    )
+    }
     /scoreboard players add MplTest MplTest 1
-  )
+  }
 
   // then:
   /scoreboard players test MplTest MplTest 1 1
   conditional: start test_conditional_continue_checks_the_condition
   invert: /say TEST FAILED
-)
+}
 
-process test_conditional_continue_checks_the_condition (
+process test_conditional_continue_checks_the_condition {
   /say starting test_conditional_continue_checks_the_condition
 
   // given:
   /scoreboard players set MplTest MplTest 1
 
   // when:
-  repeat (
+  repeat {
     /scoreboard players add MplTest MplTest 1
     /scoreboard players test MplTest MplTest 1 5
     conditional: continue
-  ) do while: /this is false
+  } do while: /this is false
 
   // then:
   /scoreboard players test MplTest MplTest 2 2
   conditional: start test_invert_continue_checks_the_condition
   invert: /say TEST FAILED
-)
+}
 
-process test_invert_continue_checks_the_condition (
+process test_invert_continue_checks_the_condition {
   /say starting test_invert_continue_checks_the_condition
 
   // given:
   /scoreboard players set MplTest MplTest 1
 
   // when:
-  repeat (
+  repeat {
     /scoreboard players add MplTest MplTest 1
     /scoreboard players test MplTest MplTest 6 *
     invert: continue
-  ) do while: /this is false
+  } do while: /this is false
 
   // then:
   /scoreboard players test MplTest MplTest 2 2
   conditional: start test_repeat_with_conditional_continue_for_5_iterations
   invert: /say TEST FAILED
-)
+}
 
-process test_repeat_with_conditional_continue_for_5_iterations (
+process test_repeat_with_conditional_continue_for_5_iterations {
   /say starting test_repeat_with_conditional_continue_for_5_iterations
 
   // given:
   /scoreboard players set MplTest MplTest 1
 
   // when:
-  repeat (
+  repeat {
     /scoreboard players add MplTest MplTest 1
     /scoreboard players test MplTest MplTest 1 5
     conditional: continue
     break
-  ) 
+  }
 
   // then:
   /scoreboard players test MplTest MplTest 6 6
   conditional: start test_repeat_with_invert_continue_for_5_iterations
   invert: /say TEST FAILED
-)
+}
 
-process test_repeat_with_invert_continue_for_5_iterations (
+process test_repeat_with_invert_continue_for_5_iterations {
   /say starting test_repeat_with_invert_continue_for_5_iterations
 
   // given:
   /scoreboard players set MplTest MplTest 1
 
   // when:
-  repeat (
+  repeat {
     /scoreboard players add MplTest MplTest 1
     /scoreboard players test MplTest MplTest 6 *
     invert: continue
     break
-  )
+  }
 
   // then:
   /scoreboard players test MplTest MplTest 6 6
   conditional: start test_nested_continue_with_label
   invert: /say TEST FAILED
-)
+}
 
-process test_nested_continue_with_label (
+process test_nested_continue_with_label {
   /say starting test_nested_continue_with_label
 
   // given:
@@ -426,27 +426,27 @@ process test_nested_continue_with_label (
 
   // when:
   outer: while: /scoreboard players test MplTest MplTest * 1
-  repeat (
+  repeat {
     /scoreboard players add MplTest MplTest 1
-    repeat (
+    repeat {
       continue outer
-    )
+    }
     /scoreboard players add MplTest MplTest 10
-  )
+  }
 
   // then:
   /scoreboard players test MplTest MplTest 2 2
   conditional: start finish
   invert: /say TEST FAILED
-)
+}
 
-process finish (
+process finish {
   /say ALL TESTS SUCCESSFUL!!!
-)
+}
 
 # Utility Prozesse
 
-process setting_MplTest_to_5_and_calling_add_one_to_MplTest (
+process setting_MplTest_to_5_and_calling_add_one_to_MplTest {
   # 1 tick delay
   /setblock ${this+1} redstone_block
   skip
@@ -454,9 +454,9 @@ process setting_MplTest_to_5_and_calling_add_one_to_MplTest (
   # 1 tick delay end
   /scoreboard players set MplTest MplTest 5
   start add_one_to_MplTest
-)
+}
 
-process add_one_to_MplTest (
+process add_one_to_MplTest {
   # 1 tick delay
   /setblock ${this+1} redstone_block
   skip
@@ -464,17 +464,17 @@ process add_one_to_MplTest (
   # 1 tick delay end
   /scoreboard players add MplTest MplTest 1
   notify
-)
+}
 
-impulse process impulse_process (
+impulse process impulse_process {
   /say impulse process
   /scoreboard players set MplTest MplTest 4
   notify
-)
+}
 
-repeat process repeat_process (
+repeat process repeat_process {
   /say repeat process
   /scoreboard players set MplTest MplTest 3
   notify
   stop
-)
+}

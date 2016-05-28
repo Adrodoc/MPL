@@ -77,8 +77,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String id1 = someIdentifier()
     String id2 = someIdentifier()
     String programString = """
-    project ${id1} ()
-    project ${id2} ()
+    project ${id1} {}
+    project ${id2} {}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -102,8 +102,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String id1 = someIdentifier()
     String id2 = someIdentifier()
     String programString = """
-    project ${id1} ()
-    process ${id2} ()
+    project ${id1} {}
+    process ${id2} {}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -117,10 +117,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String id1 = someIdentifier()
     String programString = """
-    project ${id1} (
+    project ${id1} {
       orientation "zxy"
       orientation "z-xy"
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -165,13 +165,13 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String id = someIdentifier()
     String programString = """
-    process ${id} (
+    process ${id} {
     /say I am a process
-    )
+    }
 
-    process ${id} (
+    process ${id} {
     /say I am the same process
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -195,15 +195,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String id2 = someIdentifier()
     String id3 = someIdentifier()
     String programString = """
-    process ${id1} (
+    process ${id1} {
     /say I am a default process
-    )
-    impulse process ${id2} (
+    }
+    impulse process ${id2} {
     /say I am an impulse process, wich is actually equivalent to the default
-    )
-    repeat process ${id3} (
+    }
+    repeat process ${id3} {
     /say I am a repeating process. I am completely different :)
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -238,21 +238,21 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String id1 = someIdentifier()
     String programString = """
-    install (
+    install {
       /say hi
-    )
+    }
 
-    install (
+    install {
       /say hi2
-    )
+    }
 
-    uninstall (
+    uninstall {
       /say hi3
-    )
+    }
 
-    uninstall (
+    uninstall {
       /say hi4
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -350,10 +350,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
   public void "the same file cannot be included twice"() {
     given:
     String programString = """
-    project main (
+    project main {
       include "newFolder/newFile.txt"
       include "newFolder/newFile.txt"
-    )
+    }
     """
     File newFolder = new File(tempFolder.root, "newFolder")
     newFolder.mkdirs()
@@ -378,10 +378,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String id1 = someIdentifier()
     String programString = """
-    project ${id1} (
+    project ${id1} {
       include "datei1.mpl"
       include "ordner2"
-    )
+    }
     """
     File folder = tempFolder.root
     new File(folder, 'datei1.mpl').createNewFile()
@@ -416,9 +416,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String id1 = someIdentifier()
     String id2 = someIdentifier()
     String programString = """
-    process ${id1} (
+    process ${id1} {
       start ${id2}
-    )
+    }
     """
 
     when:
@@ -460,9 +460,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String programString = """
     import "newFolder/newFile"
 
-    process ${id1} (
+    process ${id1} {
       start ${id2}
-    )
+    }
     """
     File file = newTempFile()
     File newFile = new File(file.parentFile, "newFolder/newFile")
@@ -492,9 +492,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String programString = """
     import "newFolder"
 
-    process ${id1} (
+    process ${id1} {
       start ${id2}
-    )
+    }
     """
     File file = newTempFile()
     File newFolder = new File(file.parentFile, "newFolder")
@@ -529,13 +529,13 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String id1 = someIdentifier()
     String id2 = someIdentifier()
     String programString = """
-    process ${id1} (
+    process ${id1} {
       start ${id2}
-    )
+    }
 
-    process ${id2} (
+    process ${id2} {
       /say I am the second process
-    )
+    }
     """
 
     when:
@@ -565,13 +565,13 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String id1 = someIdentifier()
     String id2 = someIdentifier()
     String programString = """
-    process ${id1} (
+    process ${id1} {
       /say I am a process
-    )
+    }
 
-    process ${id2} (
+    process ${id2} {
       start ${id1}
-    )
+    }
     """
 
     when:
@@ -628,9 +628,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = someIdentifier()
     String programString = """
-    process main (
+    process main {
       ${conditional}: ${command} ${identifier}
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -674,9 +674,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
   public void "leading conditional/invert without identifier in process"(String conditional, String command) {
     given:
     String programString = """
-    process main (
+    process main {
       ${conditional}: ${command}
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -697,9 +697,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
   public void "leading skip in repeating process"() {
     given:
     String testString = """
-    repeat process main (
+    repeat process main {
       skip
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(testString)
@@ -907,9 +907,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = someIdentifier()
     String programString = """
-    repeat process ${identifier} (
+    repeat process ${identifier} {
       stop
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -927,9 +927,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
   public void "stop without identifier in impulse process"() {
     given:
     String programString = """
-    impulse process main (
+    impulse process main {
       stop
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -949,9 +949,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = someIdentifier()
     String programString = """
-    process main (
+    process main {
       ${modifier}: stop ${identifier}
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1111,10 +1111,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = someIdentifier()
     String programString = """
-    process ${identifier} (
+    process ${identifier} {
       /say hi
       ${modifier} notify
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1167,9 +1167,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = someIdentifier()
     String programString = """
-    process ${identifier} (
+    process ${identifier} {
       ${modifier}: notify
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1335,9 +1335,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String identifier = someIdentifier()
     String programString = """
     if: /say if
-    then (
+    then {
       conditional: /say then
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1357,9 +1357,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String identifier = someIdentifier()
     String programString = """
     if: /say if
-    then (
+    then {
       invert: /say then
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1379,10 +1379,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String identifier = someIdentifier()
     String programString = """
     if: /say if
-    then (
-    ) else (
+    then {
+    } else {
       conditional: /say else
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1402,10 +1402,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String identifier = someIdentifier()
     String programString = """
     if: /say if
-    then (
-    ) else (
+    then {
+    } else {
       invert: /say else
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1425,13 +1425,13 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String identifier = someIdentifier()
     String programString = """
     if: /say if
-    then (
+    then {
       /say then1
       /say then2
-    ) else (
+    } else {
       /say else1
       /say else2
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1460,13 +1460,13 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String identifier = someIdentifier()
     String programString = """
     if not: /say if
-    then (
+    then {
       /say then1
       /say then2
-    ) else (
+    } else {
       /say else1
       /say else2
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1495,29 +1495,29 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String identifier = someIdentifier()
     String programString = """
     if: /outer condition
-    then (
+    then {
       /say outer then1
 
       if: /inner then condition
-      then (
+      then {
         /say inner then then
-      ) else (
+      } else {
         /say inner then else
-      )
+      }
 
       /say outer then2
-    ) else (
+    } else {
       /say outer else1
 
       if: /inner else condition
-      then (
+      then {
         /say inner else then
-      ) else (
+      } else {
         /say inner else else
-      )
+      }
 
       /say outer else2
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1569,9 +1569,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String identifier = someIdentifier()
     String programString = """
     while: /say while
-    repeat (
+    repeat {
       conditional: /say repeat
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1591,9 +1591,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String identifier = someIdentifier()
     String programString = """
     while: /say while
-    repeat (
+    repeat {
       invert: /say repeat
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1612,9 +1612,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = someIdentifier()
     String programString = """
-    repeat (
+    repeat {
       conditional: /say repeat
-    ) do while: /say while
+    } do while: /say while
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1633,9 +1633,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = someIdentifier()
     String programString = """
-    repeat (
+    repeat {
       invert: /say repeat
-    ) do while: /say while
+    } do while: /say while
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1653,10 +1653,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
   public void "repeat"() {
     given:
     String programString = """
-    repeat (
+    repeat {
       /say repeat1
       /say repeat2
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1681,10 +1681,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = someIdentifier()
     String programString = """
-    ${identifier}: repeat (
+    ${identifier}: repeat {
       /say repeat1
       /say repeat2
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1709,10 +1709,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String programString = """
     while: /say while
-    repeat (
+    repeat {
       /say repeat1
       /say repeat2
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1738,10 +1738,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String identifier = someIdentifier()
     String programString = """
     ${identifier}: while: /say while
-    repeat (
+    repeat {
       /say repeat1
       /say repeat2
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1766,10 +1766,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String programString = """
     while not: /say while
-    repeat (
+    repeat {
       /say repeat1
       /say repeat2
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1793,10 +1793,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
   public void "repeat while"() {
     given:
     String programString = """
-    repeat (
+    repeat {
       /say repeat1
       /say repeat2
-    ) do while: /say while
+    } do while: /say while
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1821,10 +1821,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = someIdentifier()
     String programString = """
-    ${identifier}: repeat (
+    ${identifier}: repeat {
       /say repeat1
       /say repeat2
-    ) do while: /say while
+    } do while: /say while
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1848,10 +1848,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
   public void "repeat while not"() {
     given:
     String programString = """
-    repeat (
+    repeat {
       /say repeat1
       /say repeat2
-    ) do while not: /say while
+    } do while not: /say while
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1877,16 +1877,16 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String identifier = someIdentifier()
     String programString = """
     while: /outer condition
-    repeat (
+    repeat {
       /say outer repeat1
 
       while: /inner condition
-      repeat (
+      repeat {
         /say inner repeat
-      )
+      }
 
       /say outer repeat2
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1926,10 +1926,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = someIdentifier()
     String programString = """
-    ${identifier}: repeat (
+    ${identifier}: repeat {
       /say hi
       ${modifier} break ${identifier}
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1969,10 +1969,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
   public void "break without identifier"(String modifier, Conditional conditional) {
     given:
     String programString = """
-    repeat (
+    repeat {
       /say hi
       ${modifier} break
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -2030,9 +2030,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = someIdentifier()
     String testString = """
-    repeat (
+    repeat {
       break ${identifier}
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(testString)
@@ -2051,9 +2051,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
   public void "break with illegal modifier"(String modifier) {
     given:
     String programString = """
-    repeat (
+    repeat {
       ${modifier}: break
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -2085,10 +2085,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = someIdentifier()
     String programString = """
-    ${identifier}: repeat (
+    ${identifier}: repeat {
       /say hi
       ${modifier} continue ${identifier}
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -2128,10 +2128,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
   public void "continue without identifier"(String modifier, Conditional conditional) {
     given:
     String programString = """
-    repeat (
+    repeat {
       /say hi
       ${modifier} continue
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -2189,9 +2189,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = someIdentifier()
     String testString = """
-    repeat (
+    repeat {
       continue ${identifier}
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(testString)
@@ -2210,9 +2210,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
   public void "continue with illegal modifier"(String modifier) {
     given:
     String programString = """
-    repeat (
+    repeat {
       ${modifier}: continue
-    )
+    }
     """
     when:
     MplInterpreter interpreter = interpret(programString)

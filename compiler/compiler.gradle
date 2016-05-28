@@ -119,7 +119,7 @@ jar {
 
 task standaloneJar(type: Jar) {
   from sourceSets.main.output
-  (configurations.runtime).each { File file ->
+  configurations.runtime.each { File file ->
     if(file.isDirectory()) {
       from file
     } else if (file.isFile() && file.name.endsWith('.jar')) {

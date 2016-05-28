@@ -63,13 +63,13 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    process main (
+    process main {
     /this is the main process
-    )
+    }
 
-    process other (
+    process other {
     /this is the other process
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -87,14 +87,14 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    process main (
+    process main {
     /this is the main process
-    )
+    }
     """
     new File(folder, 'second.mpl').text = """
-    process other (
+    process other {
     /this is the other process
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -109,15 +109,15 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    process main (
+    process main {
     /this is the main process
     start other
-    )
+    }
     """
     new File(folder, 'second.mpl').text = """
-    process other (
+    process other {
     /this is the other process
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -136,15 +136,15 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder/newFile.mpl"
-    process main (
+    process main {
     /this is the main process
-    )
+    }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process other (
+    process other {
     /this is the other process
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -160,16 +160,16 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder/newFile.mpl"
-    process main (
+    process main {
     /this is the main process
     start other
-    )
+    }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process other (
+    process other {
     /this is the other process
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -188,15 +188,15 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder"
-    process main (
+    process main {
     /this is the main process
-    )
+    }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process other (
+    process other {
     /this is the other process
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -212,16 +212,16 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder"
-    process main (
+    process main {
     /this is the main process
     start other
-    )
+    }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process other (
+    process other {
     /this is the other process
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -239,14 +239,14 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    process main (
+    process main {
     /this is the main process
     start other
-    )
+    }
 
-    process other (
+    process other {
     /this is the other process
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -264,19 +264,19 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    process main (
+    process main {
     /this is the main process
     start other
-    )
+    }
 
-    process other (
+    process other {
     /this is the other process in the same file
-    )
+    }
     """
     new File(folder, 'other.mpl').text = """
-    process other (
+    process other {
     /this is the other process from the other file
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -294,19 +294,19 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    process p1 (
+    process p1 {
     /this is the p1 process
     start p3
-    )
+    }
 
-    process p2 (
+    process p2 {
     /this is the p2 process
     start p3
-    )
+    }
 
-    process p3 (
+    process p3 {
     /this is the p3 process
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -328,20 +328,20 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'p1.mpl').text = """
-    process p1 (
+    process p1 {
     /this is the p1 process
     start p2
-    )
+    }
 
-    process p3 (
+    process p3 {
     /this is the p3 process
-    )
+    }
     """
     new File(folder, 'p2.mpl').text = """
-    process p2 (
+    process p2 {
     /this is the p2 process
     start p3
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'p1.mpl'))
@@ -366,22 +366,22 @@ class MplCompilerSpec extends MplSpecBase {
     String id3 = someIdentifier()
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project ${id1} (
+    project ${id1} {
     include "newFolder/newFile.mpl"
     include "newFolder2"
-    )
+    }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process ${id2} (
+    process ${id2} {
     /this is the ${id2} process
-    )
+    }
     """
     new File(folder, 'newFolder2').mkdirs()
     new File(folder, 'newFolder2/newFile2.mpl').text = """
-    process ${id3} (
+    process ${id3} {
     /this is the ${id3} process
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -402,20 +402,20 @@ class MplCompilerSpec extends MplSpecBase {
     String id2 = someIdentifier()
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project ${id1} (
+    project ${id1} {
     include "other1.mpl"
     include "other2.mpl"
-    )
+    }
     """
     new File(folder, 'other1.mpl').text = """
-    process ${id2} (
+    process ${id2} {
     /this is the ${id2} process
-    )
+    }
     """
     new File(folder, 'other2.mpl').text = """
-    process ${id2} (
+    process ${id2} {
     /this is the second ${id2} process
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -441,9 +441,9 @@ class MplCompilerSpec extends MplSpecBase {
     String id3 = someIdentifier()
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project ${id1} (
+    project ${id1} {
     include "newFolder/scriptFile.mpl"
-    )
+    }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/scriptFile.mpl').text = """
@@ -468,9 +468,9 @@ class MplCompilerSpec extends MplSpecBase {
     String id1 = someIdentifier()
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project ${id1} (
+    project ${id1} {
     orientation "zyx"
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -483,14 +483,14 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project ${someIdentifier()} (
+    project ${someIdentifier()} {
     include "other.mpl"
-    )
+    }
     """
     new File(folder, 'other.mpl').text = """
-    project ${someIdentifier()} (
+    project ${someIdentifier()} {
     orientation "z-yx"
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -504,20 +504,20 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder"
-    process main (
+    process main {
     /this is the main process
-    )
+    }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process other (
+    process other {
     /this is the other process
-    )
+    }
     """
     new File(folder, 'newFolder/newFile2.mpl').text = """
-    process other (
+    process other {
     /this is the second other process
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -533,23 +533,23 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder"
-    process main (
+    process main {
     /this is the main process
     start other
-    )
+    }
     """
     new File(folder, 'newFolder').mkdirs()
     File newFile = new File(folder, 'newFolder/newFile.mpl')
     newFile.text = """
-    process other (
+    process other {
     /this is the other process
-    )
+    }
     """
     File newFile2 = new File(folder, 'newFolder/newFile2.mpl')
     newFile2.text = """
-    process other (
+    process other {
     /this is the second other process
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -565,18 +565,18 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project main (
+    project main {
     include "newFolder/newFile.mpl"
-    )
+    }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process main (
+    process main {
     /this is the main process
-    )
-    process other (
+    }
+    process other {
     /this is the other process
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -647,9 +647,9 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    install (
+    install {
       /say install
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -665,9 +665,9 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    uninstall (
+    uninstall {
       /say uninstall
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -683,13 +683,13 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    install (
+    install {
       /say install
-    )
+    }
 
-    process main ( # If there is no process, there are no generated commands
+    process main { # If there is no process, there are no generated commands
       /say hi
-    )
+    }
     """
     when:
     MplProgram program = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -718,13 +718,13 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    uninstall (
+    uninstall {
     /say uninstall
-    )
+    }
 
-    process main ( # If there is no process, there are no generated commands
+    process main { # If there is no process, there are no generated commands
       /say hi
-    )
+    }
     """
     when:
     MplProgram program = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
@@ -745,26 +745,26 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project main (
+    project main {
       include "install1.mpl"
       include "install2.mpl"
-    )
+    }
 
-    install (
+    install {
       /say main install
-    )
+    }
     """
     new File(folder, 'install1.mpl').text = """
-    project p()
-    install (
+    project p {}
+    install {
       /say install 1
-    )
+    }
     """
     new File(folder, 'install2.mpl').text = """
-    project p()
-    install (
+    project p {}
+    install {
       /say install 2
-    )
+    }
     """
     when:
     MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
