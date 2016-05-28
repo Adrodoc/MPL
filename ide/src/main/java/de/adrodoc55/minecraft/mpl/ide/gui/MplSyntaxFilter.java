@@ -242,6 +242,8 @@ public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<Mp
         case MplLexer.CHAIN:
           styleToken(token, getChainStyle());
           break;
+        case MplLexer.BREAK:
+        case MplLexer.CONTINUE:
         case MplLexer.DO:
         case MplLexer.REPEAT:
         case MplLexer.WHILE:
