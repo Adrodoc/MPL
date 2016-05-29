@@ -832,12 +832,15 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   private ReferencingCommand addContinueLoop(MplWhile loop) {
     Iterator<MplWhile> it = loops.iterator();
-    ReferencingCommand result = addStopLoop(it.next());
-    while (it.hasNext()) {
-      MplWhile innerLoop = it.next();
-      addStopLoop(innerLoop).setConditional(true);
-      if (innerLoop == loop) {
-        break;
+    MplWhile innerestLoop = it.next();
+    ReferencingCommand result = addStopLoop(innerestLoop);
+    if (innerestLoop != loop) {
+      while (it.hasNext()) {
+        MplWhile innerLoop = it.next();
+        addStopLoop(innerLoop).setConditional(true);
+        if (innerLoop == loop) {
+          break;
+        }
       }
     }
     addStartLoop(loop).setConditional(true);
