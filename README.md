@@ -23,6 +23,14 @@ There are multiple ways to compile `.mpl` files:
 * Run the standalone compiler [from the command line](https://github.com/Adrodoc55/MPL/wiki/Using-MPL-from-the-command-line).
 * Compile MPL ingame using the Bukkit plugin [MplManager](https://gitlab.crazyblock-network.net/BrainStone/MplManager) by BrainStone.
 
+License
+-------
+MPL is licensed under [GNU General Public License]. Any application compiled by the MPL compiler is free from this license even if the compiler inserted standard MPL code templates.
+
+It would still be nice if you give credit to MPL, for example by using the following command in the installation of your application:
+
+`/tellraw @a {"text":"","extra":[{"text":"This project was created using the\n ","color":"yellow"},{"text":"Minecraft Programming Language ","color":"gold"},{"text":"[MPL]","color":"aqua","hoverEvent":{"action":"show_text","value":{"text":"Click to open GitHub","color":"red"}},"clickEvent":{"action":"open_url","value":"https://github.com/Adrodoc55/MPL"}}]}`
+
 Download
 --------
 For manual use you can download the standalone compiler and IDE from [GitHub](https://github.com/Adrodoc55/MPL/releases).
@@ -51,3 +59,4 @@ dependencies {
 ```
 [Sonatype OSS Maven Repository]: https://oss.sonatype.org/content/repositories/releases/de/adrodoc55/mpl
 [Maven Central]: http://search.maven.org/#search|ga|1|g%3Ade.adrodoc55.mpl
+[GNU General Public License]: http://www.gnu.org/licenses/
