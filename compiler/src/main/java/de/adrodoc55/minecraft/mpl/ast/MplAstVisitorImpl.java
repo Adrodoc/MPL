@@ -250,26 +250,30 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     List<ChainPart> chainParts = process.getChainParts();
     commands = new ArrayList<>(chainParts.size());
     boolean containsSkip = containsHighlevelSkip(process);
-    if (process.isRepeating()) {
-      if (options.hasOption(TRANSMITTER)) {
-        commands.add(new MplSkip());
-      }
-      if (process.getChainParts().isEmpty()) {
-        process.add(new MplCommand(""));
-      }
-      ChainPart first = chainParts.get(0);
-      try {
-        if (containsSkip) {
-          first.setMode(IMPULSE);
-        } else {
-          first.setMode(REPEAT);
+    if (process.getName() != null) {
+      if (process.isRepeating()) {
+        if (options.hasOption(TRANSMITTER)) {
+          commands.add(new MplSkip());
         }
-        first.setNeedsRedstone(true);
-      } catch (IllegalModifierException ex) {
-        throw new IllegalStateException(ex.getMessage(), ex);
+        if (process.getChainParts().isEmpty()) {
+          process.add(new MplCommand(""));
+        }
+        ChainPart first = chainParts.get(0);
+        try {
+          if (containsSkip) {
+            first.setMode(IMPULSE);
+          } else {
+            first.setMode(REPEAT);
+          }
+          first.setNeedsRedstone(true);
+        } catch (IllegalModifierException ex) {
+          throw new IllegalStateException(ex.getMessage(), ex);
+        }
+      } else {
+        addTransmitterReceiverCombo(false);
       }
-    } else {
-      addTransmitterReceiverCombo(false);
+    } else if (options.hasOption(TRANSMITTER)) {
+      commands.add(new MplSkip());
     }
     for (ChainPart chainPart : chainParts) {
       chainPart.accept(this);

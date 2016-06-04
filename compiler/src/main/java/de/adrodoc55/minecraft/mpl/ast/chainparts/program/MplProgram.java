@@ -105,13 +105,6 @@ public class MplProgram implements MplNode, Named {
     }
   }
 
-  public void setMax(Coordinate3D max) {
-    if (max.getX() < 0 || max.getY() < 0 || max.getZ() < 0) {
-      throw new IllegalArgumentException("The max coordinate of a program must be positive!");
-    }
-    this.max = max;
-  }
-
   public void addProcess(MplProcess process) {
     Preconditions.checkNotNull(process, "process == null!");
     String name = process.getName();
@@ -168,4 +161,9 @@ public class MplProgram implements MplNode, Named {
   public void setScript(boolean script) {
     this.script = script;
   }
+
+  public void setMax(Coordinate3D max) {
+    this.max = max;
+  }
+
 }

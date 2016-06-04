@@ -156,6 +156,59 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
 
   // @formatter:off
   // ----------------------------------------------------------------------------------------------------
+  //    ____
+  //   |  _ \  _ __  ___    ___  ___  ___  ___
+  //   | |_) || '__|/ _ \  / __|/ _ \/ __|/ __|
+  //   |  __/ | |  | (_) || (__|  __/\__ \\__ \
+  //   |_|    |_|   \___/  \___|\___||___/|___/
+  //
+  // ----------------------------------------------------------------------------------------------------
+  // @formatter:on
+
+  @Test
+  public void test_a_repeat_process_uses_a_repeat_command_block() {
+    // given:
+    MplCommand first = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand second = some($MplCommand()//
+        .withPrevious(first)//
+        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
+    MplProcess mplProcess = some($MplProcess()//
+        .withRepeating(true)//
+        .withChainParts(listOf(first, second)));
+
+    // when:
+    mplProcess.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new Command(first.getCommand(), REPEAT), //
+        new Command(second.getCommand(), second)//
+    );
+  }
+
+  @Test
+  public void test_a_nameless_process_doesnt_have_startup_commands() {
+    // given:
+    MplCommand first = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand second = some($MplCommand()//
+        .withPrevious(first)//
+        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
+    MplProcess mplProcess = some($MplProcess()//
+        .withName((String) null)//
+        .withChainParts(listOf(first, second)));
+
+    // when:
+    mplProcess.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsExactly(//
+        new Command(first.getCommand(), first), //
+        new Command(second.getCommand(), second)//
+    );
+  }
+
+  // @formatter:off
+  // ----------------------------------------------------------------------------------------------------
   //   __        __      _  _     __
   //   \ \      / /__ _ (_)| |_  / _|  ___   _ __
   //    \ \ /\ / // _` || || __|| |_  / _ \ | '__|
