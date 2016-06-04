@@ -33,7 +33,7 @@ To get MPL using Maven add the following to your `pom`:
 <dependency>
     <groupId>de.adrodoc55.mpl</groupId>
     <artifactId>mpl-compiler</artifactId>
-    <version>0.10.0</version>
+    <version>0.11.0</version>
     <scope>compile</scope>
 </dependency>
 ```
@@ -46,7 +46,7 @@ repositories {
 }
 
 dependencies {
-  compile 'de.adrodoc55.mpl:mpl-compiler:0.10.0'
+  compile 'de.adrodoc55.mpl:mpl-compiler:0.11.0'
 }
 ```
 [Sonatype OSS Maven Repository]: https://oss.sonatype.org/content/repositories/releases/de/adrodoc55/mpl
