@@ -40,17 +40,25 @@ class MplLexer(RegexLexer):
         'else'
     )
 
+    repeatKeywords = (
+        'repeat',
+        'while',
+        'do',
+        'break',
+        'continue'
+    )
+
     tokens = {
         'root': [
             (r'[ \t\r\n]+', Whitespace),
-            (r'[():,]+', Punctuation),
+            (r'[{}():,]+', Punctuation),
             (r'(#|//).*?$', Comment),
             ('/', Name.Command, 'command'),
             (r'\b(%s)\b' % '|'.join(highFocusKeywords), Keyword.HighFocus),
             (r'\b(%s)\b' % '|'.join(lowFocusKeywords), Keyword.LowFocus),
             (r'\bimpulse\b', Keyword.Impulse),
             (r'\bchain\b', Keyword.Chain),
-            (r'\brepeat\b', Keyword.Repeat),
+            (r'\b(%s)\b' % '|'.join(repeatKeywords), Keyword.Repeat),
             (r'\bneeds redstone\b', Keyword.NeedsRedstone),
             (r'".*?"', String),
             (r'\b[a-zA-Z0-9_]+\b', Name.Identifier),
