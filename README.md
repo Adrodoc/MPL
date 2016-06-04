@@ -45,7 +45,7 @@ To get MPL using Maven add the following to your `pom`:
     <scope>compile</scope>
 </dependency>
 ```
-In Gradle you can use the following example `build.gradle`:
+In [Gradle] you can use the following example `build.gradle`:
 ```gradle
 apply plugin: 'java'
 
@@ -57,6 +57,21 @@ dependencies {
   compile 'de.adrodoc55.mpl:mpl-compiler:0.11.0'
 }
 ```
+
+Building
+--------
+MPL is built using [Gradle]. You don't have to install Gradle, because the project contains a [Gradle Wrapper] along with the source files. To fully configure the project for [Eclipse], all you have to do is:
+
+1. Open a command line in the root project directory
+2. Run the command `gradlew eclipse` on Windows
+   or `./gradlew eclipse` on Unix systems
+
+To to build custom jar files execute `gradlew build` on Windows
+   or `./gradlew build` on Unix systems. The jar files will be created in the directories `MPL/ide/build/libs` and `MPL/compiler/build/libs`.
+
 [Sonatype OSS Maven Repository]: https://oss.sonatype.org/content/repositories/releases/de/adrodoc55/mpl
 [Maven Central]: http://search.maven.org/#search|ga|1|g%3Ade.adrodoc55.mpl
 [GNU General Public License]: http://www.gnu.org/licenses/
+[Gradle]: http://gradle.org/
+[Gradle Wrapper]: https://docs.gradle.org/current/userguide/gradle_wrapper.html
+[Eclipse]: https://eclipse.org/
