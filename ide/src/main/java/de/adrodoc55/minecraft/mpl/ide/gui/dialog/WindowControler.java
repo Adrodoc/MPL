@@ -37,76 +37,59 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
+import java.awt.Point;
+import java.awt.Window;
 
-import org.antlr.v4.runtime.Token;
-import org.beanfabrics.model.AbstractPM;
-import org.beanfabrics.model.PMManager;
-
-import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
-import lombok.Getter;
+import org.beanfabrics.model.PresentationModel;
 
 /**
  * @author Adrodoc55
+ * @param <V> the {@link WindowView} managed by this controller.
+ * @param <PM> the {@link PresentationModel} managed by this controller.
  */
-public class MplSyntaxFilterPM extends AbstractPM {
+public abstract class WindowControler<V extends WindowView<PM>, PM extends PresentationModel> {
+  private V view;
+  private PM pm;
 
-  private List<CompilerExceptionWrapper> exceptions;
-
-  public MplSyntaxFilterPM() {
-    PMManager.setup(this);
+  public V getView() {
+    if (view == null) {
+      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+      view = createView(activeWindow);
+      view.setPresentationModel(getPresentationModel());
+    }
+    return view;
   }
 
-  List<CompilerExceptionWrapper> getExceptions() {
-    return exceptions;
+  protected abstract V createView(Window activeWindow);
+
+  public PM getPresentationModel() {
+    if (pm == null) {
+      pm = createPM();
+    }
+    return pm;
   }
 
-  public void setExceptions(List<CompilerException> newExceptions) {
-    List<CompilerExceptionWrapper> oldExceptions = exceptions;
-    exceptions = new LinkedList<CompilerExceptionWrapper>();
-    for (CompilerException ex : newExceptions) {
-      exceptions.add(new CompilerExceptionWrapper(ex));
-    }
-    getPropertyChangeSupport().firePropertyChange("exceptions", oldExceptions, newExceptions);
-  }
+  protected abstract PM createPM();
 
-  /**
-   * @author Adrodoc55
-   */
-  static class CompilerExceptionWrapper {
-    private Token token;
-
-    private int startOffset;
-    private int stopOffset;
-
-    @Getter
-    private final String message;
-
-    public CompilerExceptionWrapper(CompilerException ex) {
-      this.token = ex.getSource().token;
-      this.startOffset = 0;
-      this.stopOffset = 0;
-      this.message = ex.getLocalizedMessage();
-    }
-
-    public int getStartIndex() {
-      return token.getStartIndex() + startOffset;
-    }
-
-    public int getStopIndex() {
-      return token.getStopIndex() + 1 + stopOffset;
-    }
-
-    public void addStartOffset(int offset) {
-      this.startOffset += offset;
-    }
-
-    public void addStopOffset(int offset) {
-      this.stopOffset += offset;
+  public void dispose() {
+    if (hasView()) {
+      getView().dispose();
     }
   }
 
+  public boolean hasView() {
+    return view != null;
+  }
+
+  public void setLocation(Component source, Point location) {
+    int fontSize = source.getFont().getSize();
+    location.translate(1, fontSize + 5);
+    Point screenPos = source.getLocationOnScreen();
+    location.translate(screenPos.x, screenPos.y);
+    getView().setLocation(location);
+  }
 }

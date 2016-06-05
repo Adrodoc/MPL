@@ -47,10 +47,9 @@ import org.beanfabrics.model.TextPM;
  * @author Adrodoc55
  */
 public class ExceptionDialogPM extends AbstractPM {
-
-  TextPM title = new TextPM();
-  TextPM description = new TextPM();
-  TextPM details = new TextPM();
+  final TextPM title = new TextPM();
+  final TextPM description = new TextPM();
+  final TextPM details = new TextPM();
 
   public ExceptionDialogPM() {
     details.setEditable(false);

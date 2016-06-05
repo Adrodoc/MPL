@@ -39,43 +39,26 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui.dialog.command;
 
-import java.awt.KeyboardFocusManager;
 import java.awt.Window;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowControler;
 
 /**
  * @author Adrodoc55
  */
-public class CommandDialogControler {
-  private CommandDialogPM pm;
-  private CommandDialog view;
-
-  public CommandDialogPM getPresentationModel() {
-    if (pm == null) {
-      pm = new CommandDialogPM(new CommandDialogPM.Context() {
-        @Override
-        public void close() {
-          getView().dispose();
-        }
-      });
-    }
-    return pm;
+public class CommandDialogControler extends WindowControler<CommandDialog, CommandDialogPM> {
+  @Override
+  protected CommandDialogPM createPM() {
+    return new CommandDialogPM(new CommandDialogPM.Context() {
+      @Override
+      public void close() {
+        getView().dispose();
+      }
+    });
   }
 
-  public CommandDialog getView() {
-    if (view == null) {
-      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-      view = new CommandDialog(activeWindow);
-      view.setPresentationModel(getPresentationModel());
-      view.addWindowListener(new WindowAdapter() {
-        @Override
-        public void windowClosed(WindowEvent e) {
-          view = null;
-          pm = null;
-        }
-      });
-    }
-    return view;
+  @Override
+  protected CommandDialog createView(Window activeWindow) {
+    return new CommandDialog(activeWindow);
   }
 }

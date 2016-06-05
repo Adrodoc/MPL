@@ -61,11 +61,11 @@ public class CommandPM extends AbstractPM {
 
   private final Context context;
 
-  TextPM title = new TextPM();
-  TextPM oneCommand = new TextPM();
-  OperationPM copyToClipboard = new OperationPM();
-  OperationPM copyAndClose = new OperationPM();
-  OperationPM close = new OperationPM();
+  final TextPM title = new TextPM();
+  final TextPM oneCommand = new TextPM();
+  final OperationPM copyToClipboard = new OperationPM();
+  final OperationPM copyAndClose = new OperationPM();
+  final OperationPM close = new OperationPM();
 
   public CommandPM(int number, String command, Context context) {
     this.context = checkNotNull(context, "context == null!");

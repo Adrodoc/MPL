@@ -69,6 +69,8 @@ import org.beanfabrics.event.ElementsSelectedEvent;
 import org.beanfabrics.event.ListListener;
 import org.beanfabrics.model.IListPM;
 
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowView;
+
 /**
  * The OneCommandDialog is a {@link View} on a {@link CommandDialogPM}.
  *
@@ -76,15 +78,11 @@ import org.beanfabrics.model.IListPM;
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
 @SuppressWarnings("serial")
-public class CommandDialog extends JDialog implements View<CommandDialogPM>, ModelSubscriber {
+public class CommandDialog extends JDialog implements WindowView<CommandDialogPM>, ModelSubscriber {
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
   private JScrollPane scrollPane;
   private JPanel commandPanel;
-
-  public CommandDialog() {
-    this(null);
-  }
 
   /**
    * Constructs a new <code>OneCommandDialog</code>.

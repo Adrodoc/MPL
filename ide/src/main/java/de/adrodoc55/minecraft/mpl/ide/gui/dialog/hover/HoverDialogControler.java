@@ -37,76 +37,28 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.hover;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.awt.Window;
 
-import org.antlr.v4.runtime.Token;
-import org.beanfabrics.model.AbstractPM;
-import org.beanfabrics.model.PMManager;
-
-import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
-import lombok.Getter;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowControler;
 
 /**
  * @author Adrodoc55
  */
-public class MplSyntaxFilterPM extends AbstractPM {
-
-  private List<CompilerExceptionWrapper> exceptions;
-
-  public MplSyntaxFilterPM() {
-    PMManager.setup(this);
+public class HoverDialogControler extends WindowControler<HoverDialog, HoverDialogPM> {
+  @Override
+  protected HoverDialogPM createPM() {
+    return new HoverDialogPM();
   }
 
-  List<CompilerExceptionWrapper> getExceptions() {
-    return exceptions;
+  @Override
+  protected HoverDialog createView(Window activeWindow) {
+    return new HoverDialog(activeWindow);
   }
 
-  public void setExceptions(List<CompilerException> newExceptions) {
-    List<CompilerExceptionWrapper> oldExceptions = exceptions;
-    exceptions = new LinkedList<CompilerExceptionWrapper>();
-    for (CompilerException ex : newExceptions) {
-      exceptions.add(new CompilerExceptionWrapper(ex));
-    }
-    getPropertyChangeSupport().firePropertyChange("exceptions", oldExceptions, newExceptions);
+  public void setMessage(String message) {
+    getPresentationModel().setMessage(message);
+    getView().pack();
   }
-
-  /**
-   * @author Adrodoc55
-   */
-  static class CompilerExceptionWrapper {
-    private Token token;
-
-    private int startOffset;
-    private int stopOffset;
-
-    @Getter
-    private final String message;
-
-    public CompilerExceptionWrapper(CompilerException ex) {
-      this.token = ex.getSource().token;
-      this.startOffset = 0;
-      this.stopOffset = 0;
-      this.message = ex.getLocalizedMessage();
-    }
-
-    public int getStartIndex() {
-      return token.getStartIndex() + startOffset;
-    }
-
-    public int getStopIndex() {
-      return token.getStopIndex() + 1 + stopOffset;
-    }
-
-    public void addStartOffset(int offset) {
-      this.startOffset += offset;
-    }
-
-    public void addStopOffset(int offset) {
-      this.stopOffset += offset;
-    }
-  }
-
 }

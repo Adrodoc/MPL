@@ -43,6 +43,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
@@ -51,7 +52,9 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -82,9 +85,13 @@ import de.adrodoc55.commons.AncestorAdapter;
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.ide.autocompletion.AutoCompletion;
 import de.adrodoc55.minecraft.mpl.ide.autocompletion.AutoCompletionAction;
+import de.adrodoc55.minecraft.mpl.ide.gui.MplSyntaxFilterPM.CompilerExceptionWrapper;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowControler;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowView;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialog;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialogControler;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialogPM.Context;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.hover.HoverDialogControler;
 import de.adrodoc55.minecraft.mpl.ide.gui.utils.BnJaggedEditorKit;
 import de.adrodoc55.minecraft.mpl.ide.gui.utils.NoWrapBnTextPane;
 import de.adrodoc55.minecraft.mpl.ide.gui.utils.RawUndoManager;
@@ -145,13 +152,14 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
   private RawUndoManager rawUndoManager;
   private TextLineNumber textLineNumber;
 
-  private AutoCompletionDialogControler autoController =
-      new AutoCompletionDialogControler(new Context() {
-        @Override
-        public void choose(AutoCompletionAction action) {
-          action.performOn(getTextPane());
-        }
-      });
+  private List<WindowControler<?, ?>> ctrl = new ArrayList<>();
+  private HoverDialogControler hoverCtrl = new HoverDialogControler();
+  private AutoCompletionDialogControler autoCtrl = new AutoCompletionDialogControler(new Context() {
+    @Override
+    public void choose(AutoCompletionAction action) {
+      action.performOn(getTextPane());
+    }
+  });
 
   /**
    * Constructs a new <code>MplEditor</code>.
@@ -160,35 +168,36 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
     setLayout(new BorderLayout());
     add(getScrollPane(), BorderLayout.CENTER);
 
-    // Add listeners to dispose the AutoCompletionDialog
-    addAncestorListener(new AncestorAdapter() {
-      @Override
-      public void ancestorMoved(AncestorEvent event) {
-        if (!autoController.hasView())
-          return;
-        autoController.getView().dispose();
-      }
-    });
-    getTextPane().addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        if (!autoController.hasView())
-          return;
-        autoController.getView().dispose();
-      }
-    });
-    getTextPane().addFocusListener(new FocusAdapter() {
-      @Override
-      public void focusLost(FocusEvent e) {
-        if (!autoController.hasView())
-          return;
-        AutoCompletionDialog view = autoController.getView();
-        Component opposite = e.getOppositeComponent();
-        if (opposite == null || !view.equals(SwingUtilities.getWindowAncestor(opposite))) {
-          view.dispose();
+    // Add listeners to dispose the temporary dialogs
+    ctrl.add(autoCtrl);
+    ctrl.add(hoverCtrl);
+    for (WindowControler<?, ?> controler : ctrl) {
+      addAncestorListener(new AncestorAdapter() {
+        @Override
+        public void ancestorMoved(AncestorEvent event) {
+          controler.dispose();
         }
-      }
-    });
+      });
+      getTextPane().addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          controler.dispose();
+        }
+      });
+      getTextPane().addFocusListener(new FocusAdapter() {
+        @Override
+        public void focusLost(FocusEvent e) {
+          if (!controler.hasView())
+            return;
+          WindowView<?> view = controler.getView();
+          Component opposite = e.getOppositeComponent();
+          if (opposite == null || (!view.equals(opposite)
+              && !view.equals(SwingUtilities.getWindowAncestor(opposite)))) {
+            controler.dispose();
+          }
+        }
+      });
+    }
   }
 
   /**
@@ -394,16 +403,9 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
           if (caretPos == null) {
             return;
           }
-          autoController.setOptions(getAutoCompletionOptions());
-          AutoCompletionDialog dlg = autoController.getView();
-          Point loc = caretPos.getLocation();
-          int fontSize = textPane.getFont().getSize();
-          loc.translate(1, fontSize + 1);
-          Point screenPos = textPane.getLocationOnScreen();
-          loc.translate(screenPos.x, screenPos.y);
-          dlg.setLocation(loc);
-
-          dlg.setVisible(true);
+          autoCtrl.setOptions(getAutoCompletionOptions());
+          autoCtrl.setLocation(textPane, caretPos.getLocation());
+          autoCtrl.getView().setVisible(true);
           textPane.requestFocus();
         }
       });
@@ -411,7 +413,7 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
       textPane.addKeyListener(new KeyAdapter() {
         @Override
         public void keyPressed(KeyEvent evt) {
-          AutoCompletionDialog view = autoController.getView();
+          AutoCompletionDialog view = autoCtrl.getView();
           if (view.isVisible() && evt.getModifiers() == 0) {
             switch (evt.getKeyCode()) {
               case KeyEvent.VK_ESCAPE:
@@ -422,10 +424,42 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
                 evt.consume();
                 break;
               default:
-                SwingUtilities
-                    .invokeLater(() -> autoController.setOptions(getAutoCompletionOptions()));
+                SwingUtilities.invokeLater(() -> autoCtrl.setOptions(getAutoCompletionOptions()));
             }
           }
+        }
+      });
+
+      textPane.addMouseMotionListener(new MouseMotionAdapter() {
+        @Override
+        public void mouseMoved(MouseEvent e) {
+          int offset = getTextPane().viewToModel(e.getPoint());
+          MplSyntaxFilterPM pModel = getMplSyntaxFilter().getPresentationModel();
+          if (pModel == null) {
+            return;
+          }
+          List<CompilerExceptionWrapper> exs = pModel.getExceptions();
+          if (exs == null) {
+            return;
+          }
+          for (CompilerExceptionWrapper ex : exs) {
+            if (ex.getStartIndex() <= offset && offset < ex.getStopIndex()) {
+              hoverCtrl.setMessage(ex.getMessage());
+              Rectangle pos;
+              try {
+                pos = getTextPane().modelToView(ex.getStartIndex());
+              } catch (BadLocationException blex) {
+                throw new UndeclaredThrowableException(blex);
+              }
+              Point location = new Point(pos.x, pos.y);
+              hoverCtrl.setLocation(textPane, location);
+              hoverCtrl.getView().setVisible(true);
+              // textPane.requestFocus();
+              SwingUtilities.invokeLater(() -> textPane.requestFocus());
+              return;
+            }
+          }
+          hoverCtrl.dispose();
         }
       });
     }

@@ -39,8 +39,6 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion;
 
-import java.util.Collections;
-
 import org.beanfabrics.model.AbstractPM;
 import org.beanfabrics.model.ListPM;
 import org.beanfabrics.model.PMManager;
@@ -61,12 +59,7 @@ public class AutoCompletionDialogPM extends AbstractPM {
   final ListPM<AutoCompletionPM> options = new ListPM<>();
 
   public AutoCompletionDialogPM(Context context) {
-    this(Collections.emptyList(), context);
-  }
-
-  public AutoCompletionDialogPM(Iterable<AutoCompletionAction> options, Context context) {
     this.context = context;
-    setOptions(options);
     PMManager.setup(this);
   }
 

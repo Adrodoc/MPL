@@ -37,14 +37,12 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.hover;
 
 import java.awt.BorderLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -52,10 +50,9 @@ import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
-import javax.swing.UIManager;
 import javax.swing.WindowConstants;
+import javax.swing.border.EmptyBorder;
 
 import org.beanfabrics.IModelProvider;
 import org.beanfabrics.Link;
@@ -63,33 +60,41 @@ import org.beanfabrics.ModelProvider;
 import org.beanfabrics.ModelSubscriber;
 import org.beanfabrics.Path;
 import org.beanfabrics.View;
-import org.beanfabrics.swing.list.BnList;
-import org.beanfabrics.swing.list.CellConfig;
+import org.beanfabrics.swing.BnLabel;
 
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowView;
+import java.awt.Color;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.LineBorder;
 
 /**
- * The AutoCompletionDialog is a {@link View} on a {@link AutoCompletionDialogPM}.
+ * The HoverDialog is a {@link View} on a {@link HoverDialogPM}.
  *
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
 @SuppressWarnings("serial")
-public class AutoCompletionDialog extends JDialog
-    implements WindowView<AutoCompletionDialogPM>, ModelSubscriber {
+public class HoverDialog extends JDialog implements WindowView<HoverDialogPM>, ModelSubscriber {
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
-  private BnList bnList;
-  private JScrollPane scrollPane;
+
   private JPanel panel;
+  private BnLabel bnlblMessage;
 
   /**
-   * Constructs a new <code>AutoCompletionDialog</code>.
+   * Constructs a new <code>HoverDialog</code>.
+   */
+  public HoverDialog() {
+    this(null);
+  }
+
+  /**
+   * Constructs a new <code>HoverDialog</code>.
    *
    * @param parent the {@code Window} from which the dialog is displayed or {@code null} if this
    *        dialog has no parent
    */
-  public AutoCompletionDialog(Window parent) {
+  public HoverDialog(Window parent) {
     super(parent);
     init();
     setUndecorated(true);
@@ -107,13 +112,7 @@ public class AutoCompletionDialog extends JDialog
       @Override
       public void actionPerformed(ActionEvent e) {
         dispose();
-      }
-    });
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "auto complete");
-    actionMap.put("auto complete", new AbstractAction() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        chooseSelection();
+        System.out.println("closing hover");
       }
     });
   }
@@ -121,48 +120,21 @@ public class AutoCompletionDialog extends JDialog
   private JPanel getPanel() {
     if (panel == null) {
       panel = new JPanel();
-      panel.setBackground(UIManager.getColor("window"));
+      panel.setBackground(new Color(250, 250, 210));
+      panel.setBorder(new CompoundBorder(new LineBorder(new Color(0, 0, 0)), new EmptyBorder(5, 5, 5, 5)));
       panel.setLayout(new BorderLayout(0, 0));
-      panel.add(getScrollPane());
+      panel.add(getBnlblMessage());
     }
     return panel;
   }
 
-  private JScrollPane getScrollPane() {
-    if (scrollPane == null) {
-      scrollPane = new JScrollPane();
-      scrollPane.setViewportView(getBnList());
+  private BnLabel getBnlblMessage() {
+    if (bnlblMessage == null) {
+      bnlblMessage = new BnLabel();
+      bnlblMessage.setPath(new Path("this.message"));
+      bnlblMessage.setModelProvider(getLocalModelProvider());
     }
-    return scrollPane;
-  }
-
-  public BnList getBnList() {
-    if (bnList == null) {
-      bnList = new BnList();
-      bnList.setVisibleRowCount(5);
-      bnList.setPath(new Path("this.options"));
-      bnList.setCellConfig(new CellConfig(new Path("this.displayName")));
-      bnList.setModelProvider(getLocalModelProvider());
-
-      bnList.addMouseListener(new MouseAdapter() {
-        public void mouseClicked(MouseEvent mouseEvent) {
-          if (!bnList.equals(mouseEvent.getSource()))
-            return;
-          if (mouseEvent.getClickCount() != 2)
-            return;
-          chooseSelection();
-        }
-      });
-    }
-    return bnList;
-  }
-
-  private void chooseSelection() {
-    AutoCompletionDialogPM pm = getPresentationModel();
-    if (pm == null)
-      return;
-    pm.chooseSelection();
-    dispose();
+    return bnlblMessage;
   }
 
   /**
@@ -174,18 +146,18 @@ public class AutoCompletionDialog extends JDialog
   protected ModelProvider getLocalModelProvider() {
     if (localModelProvider == null) {
       localModelProvider = new ModelProvider(); // @wb:location=10,430
-      localModelProvider.setPresentationModelType(AutoCompletionDialogPM.class);
+      localModelProvider.setPresentationModelType(HoverDialogPM.class);
     }
     return localModelProvider;
   }
 
   /** {@inheritDoc} */
-  public AutoCompletionDialogPM getPresentationModel() {
+  public HoverDialogPM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
-  public void setPresentationModel(AutoCompletionDialogPM pModel) {
+  public void setPresentationModel(HoverDialogPM pModel) {
     getLocalModelProvider().setPresentationModel(pModel);
   }
 
@@ -208,5 +180,4 @@ public class AutoCompletionDialog extends JDialog
   public void setPath(Path path) {
     this.link.setPath(path);
   }
-
 }

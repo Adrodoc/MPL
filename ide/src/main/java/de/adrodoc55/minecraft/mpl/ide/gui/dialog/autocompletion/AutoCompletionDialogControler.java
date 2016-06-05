@@ -40,73 +40,45 @@
 package de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion;
 
 import java.awt.Dimension;
-import java.awt.KeyboardFocusManager;
 import java.awt.Window;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.Collection;
-import java.util.Collections;
 
 import com.google.common.base.Preconditions;
 
 import de.adrodoc55.minecraft.mpl.ide.autocompletion.AutoCompletionAction;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowControler;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialogPM.Context;
 
 /**
  * @author Adrodoc55
  */
-public class AutoCompletionDialogControler {
-
+public class AutoCompletionDialogControler
+    extends WindowControler<AutoCompletionDialog, AutoCompletionDialogPM> {
   private final Context context;
-  private Collection<AutoCompletionAction> options;
-  private AutoCompletionDialogPM pm;
-  private AutoCompletionDialog view;
 
   public AutoCompletionDialogControler(Context context) {
-    this(Collections.emptyList(), context);
-  }
-
-  public AutoCompletionDialogControler(Collection<AutoCompletionAction> options, Context context) {
-    this.options = Preconditions.checkNotNull(options, "options == null!");
     this.context = Preconditions.checkNotNull(context, "context == null!");
   }
 
   public void setOptions(Collection<AutoCompletionAction> options) {
-    this.options = Preconditions.checkNotNull(options, "options == null!");
     getPresentationModel().setOptions(options);
     recalculateViewSize();
   }
 
-  public AutoCompletionDialogPM getPresentationModel() {
-    if (pm == null) {
-      pm = new AutoCompletionDialogPM(options, context);
-    }
-    return pm;
+  @Override
+  protected AutoCompletionDialogPM createPM() {
+    return new AutoCompletionDialogPM(context);
   }
 
-  public boolean hasView() {
-    return view != null;
-  }
-
-  public AutoCompletionDialog getView() {
-    if (view == null) {
-      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-      view = new AutoCompletionDialog(activeWindow);
-      view.setPresentationModel(getPresentationModel());
-      recalculateViewSize();
-      view.addWindowListener(new WindowAdapter() {
-        @Override
-        public void windowClosed(WindowEvent e) {
-          view = null;
-        }
-      });
-    }
-    return view;
+  @Override
+  protected AutoCompletionDialog createView(Window activeWindow) {
+    return new AutoCompletionDialog(activeWindow);
   }
 
   private void recalculateViewSize() {
     AutoCompletionDialog view = getView();
-    view.getBnList().setVisibleRowCount(Math.max(1, Math.min(options.size(), 10)));
+    AutoCompletionDialogPM pm = getPresentationModel();
+    view.getBnList().setVisibleRowCount(Math.max(1, Math.min(pm.options.size(), 10)));
     Dimension preferredSize = view.getPreferredSize();
     preferredSize.width += 5;
     view.setSize(preferredSize);

@@ -37,76 +37,23 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.hover;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import org.antlr.v4.runtime.Token;
 import org.beanfabrics.model.AbstractPM;
 import org.beanfabrics.model.PMManager;
-
-import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
-import lombok.Getter;
+import org.beanfabrics.model.TextPM;
 
 /**
  * @author Adrodoc55
  */
-public class MplSyntaxFilterPM extends AbstractPM {
+public class HoverDialogPM extends AbstractPM {
+  final TextPM message = new TextPM();
 
-  private List<CompilerExceptionWrapper> exceptions;
-
-  public MplSyntaxFilterPM() {
+  public HoverDialogPM() {
     PMManager.setup(this);
   }
 
-  List<CompilerExceptionWrapper> getExceptions() {
-    return exceptions;
+  public void setMessage(String message) {
+    this.message.setText(message);
   }
-
-  public void setExceptions(List<CompilerException> newExceptions) {
-    List<CompilerExceptionWrapper> oldExceptions = exceptions;
-    exceptions = new LinkedList<CompilerExceptionWrapper>();
-    for (CompilerException ex : newExceptions) {
-      exceptions.add(new CompilerExceptionWrapper(ex));
-    }
-    getPropertyChangeSupport().firePropertyChange("exceptions", oldExceptions, newExceptions);
-  }
-
-  /**
-   * @author Adrodoc55
-   */
-  static class CompilerExceptionWrapper {
-    private Token token;
-
-    private int startOffset;
-    private int stopOffset;
-
-    @Getter
-    private final String message;
-
-    public CompilerExceptionWrapper(CompilerException ex) {
-      this.token = ex.getSource().token;
-      this.startOffset = 0;
-      this.stopOffset = 0;
-      this.message = ex.getLocalizedMessage();
-    }
-
-    public int getStartIndex() {
-      return token.getStartIndex() + startOffset;
-    }
-
-    public int getStopIndex() {
-      return token.getStopIndex() + 1 + stopOffset;
-    }
-
-    public void addStartOffset(int offset) {
-      this.startOffset += offset;
-    }
-
-    public void addStopOffset(int offset) {
-      this.stopOffset += offset;
-    }
-  }
-
 }

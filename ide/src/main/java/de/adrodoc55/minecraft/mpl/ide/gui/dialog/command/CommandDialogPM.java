@@ -55,7 +55,7 @@ public class CommandDialogPM extends AbstractPM {
     void close();
   }
 
-  ListPM<CommandPM> commands = new ListPM<>();
+  final ListPM<CommandPM> commands = new ListPM<>();
   private final Context context;
 
   public CommandDialogPM(Context context) {
