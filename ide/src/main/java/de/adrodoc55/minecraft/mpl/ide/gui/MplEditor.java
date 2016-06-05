@@ -64,6 +64,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.event.AncestorEvent;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -431,35 +432,62 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
       });
 
       textPane.addMouseMotionListener(new MouseMotionAdapter() {
+        CompilerExceptionWrapper lastEx;
+
         @Override
         public void mouseMoved(MouseEvent e) {
-          int offset = getTextPane().viewToModel(e.getPoint());
+          Point point = e.getPoint();
+          CompilerExceptionWrapper ex = getEx(point);
+          if (lastEx == ex) {
+            return;
+          } else if (lastEx != null) {
+            lastEx = null;
+            hoverCtrl.dispose();
+          }
+          if (ex == null) {
+            return;
+          }
+          Timer t = new Timer(1000, a -> {
+            Point secondPoint = textPane.getMousePosition();
+            if (secondPoint != null && secondPoint.equals(point)) {
+              lastEx = ex;
+              showHoverDialog();
+            }
+          });
+          t.setRepeats(false);
+          t.start();
+        }
+
+        private CompilerExceptionWrapper getEx(Point point) {
+          int offset = getTextPane().viewToModel(point);
           MplSyntaxFilterPM pModel = getMplSyntaxFilter().getPresentationModel();
           if (pModel == null) {
-            return;
+            return null;
           }
           List<CompilerExceptionWrapper> exs = pModel.getExceptions();
           if (exs == null) {
-            return;
+            return null;
           }
           for (CompilerExceptionWrapper ex : exs) {
             if (ex.getStartIndex() <= offset && offset < ex.getStopIndex()) {
-              hoverCtrl.setMessage(ex.getMessage());
-              Rectangle pos;
-              try {
-                pos = getTextPane().modelToView(ex.getStartIndex());
-              } catch (BadLocationException blex) {
-                throw new UndeclaredThrowableException(blex);
-              }
-              Point location = new Point(pos.x, pos.y);
-              hoverCtrl.setLocation(textPane, location);
-              hoverCtrl.getView().setVisible(true);
-              // textPane.requestFocus();
-              SwingUtilities.invokeLater(() -> textPane.requestFocus());
-              return;
+              return ex;
             }
           }
-          hoverCtrl.dispose();
+          return null;
+        }
+
+        private void showHoverDialog() {
+          hoverCtrl.setMessage(lastEx.getMessage());
+          Rectangle pos;
+          try {
+            pos = getTextPane().modelToView(lastEx.getStartIndex());
+          } catch (BadLocationException blex) {
+            throw new UndeclaredThrowableException(blex);
+          }
+          Point location = new Point(pos.x, pos.y);
+          hoverCtrl.setLocation(textPane, location);
+          hoverCtrl.getView().setVisible(true);
+          textPane.requestFocus();
         }
       });
     }

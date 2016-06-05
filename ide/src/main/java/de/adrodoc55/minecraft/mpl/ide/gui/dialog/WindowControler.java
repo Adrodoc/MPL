@@ -87,7 +87,7 @@ public abstract class WindowControler<V extends WindowView<PM>, PM extends Prese
 
   public void setLocation(Component source, Point location) {
     int fontSize = source.getFont().getSize();
-    location.translate(1, fontSize + 5);
+    location.translate(1, fontSize + 3);
     Point screenPos = source.getLocationOnScreen();
     location.translate(screenPos.x, screenPos.y);
     getView().setLocation(location);
