@@ -51,7 +51,6 @@ import de.adrodoc55.minecraft.mpl.placement.NotEnoughSpaceException;
  * @author Adrodoc55
  */
 public class CompilationFailedException extends Exception {
-
   private static final long serialVersionUID = 1L;
 
   private final ListMultimap<File, CompilerException> exceptions;
@@ -78,7 +77,7 @@ public class CompilationFailedException extends Exception {
     }
     for (Entry<File, CompilerException> it : exceptions.entries()) {
       sb.append(it.getValue().toString());
-      sb.append('\n');
+      sb.append("\n\n");
     }
     return sb.toString();
   }

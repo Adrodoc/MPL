@@ -56,10 +56,12 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenStream;
-import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -126,20 +128,31 @@ import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer.ChainPartBuffer
 public class MplInterpreter extends MplBaseListener {
 
   public static MplInterpreter interpret(File programFile) throws IOException {
-    FileContext ctx = parse(programFile);
     MplInterpreter interpreter = new MplInterpreter(programFile);
-    new ParseTreeWalker().walk(interpreter, ctx);
+    FileContext ctx = interpreter.parse(programFile);
+    if (interpreter.getProgram().getExceptions().isEmpty()) {
+      new ParseTreeWalker().walk(interpreter, ctx);
+    }
     return interpreter;
   }
 
-  private static FileContext parse(File programFile) throws IOException {
+  private FileContext parse(File programFile) throws IOException {
     byte[] bytes = Files.readAllBytes(programFile.toPath());
     ANTLRInputStream input = new ANTLRInputStream(FileUtils.toUnixLineEnding(new String(bytes)));
     MplLexer lexer = new MplLexer(input);
     TokenStream tokens = new CommonTokenStream(lexer);
     MplParser parser = new MplParser(tokens);
+    parser.removeErrorListeners();
+    parser.addErrorListener(new BaseErrorListener() {
+      @Override
+      public void syntaxError(Recognizer<?, ?> recognizer, Object token, int line,
+          int charPositionInLine, String message, RecognitionException cause) {
+        MplSource source = toSource((Token) token);
+        addException(new CompilerException(source, message));
+      }
+    });
     FileContext context = parser.file();
-    // context.inspect(parser);
+    // Trees.inspect(context, parser);
     return context;
   }
 
@@ -185,12 +198,6 @@ public class MplInterpreter extends MplBaseListener {
   public MplSource toSource(@Nullable Token token) {
     String line = token != null ? lines.get(token.getLine() - 1) : null;
     return new MplSource(programFile, token, line);
-  }
-
-  @Override
-  public void visitErrorNode(ErrorNode node) {
-    MplSource source = toSource(node.getSymbol());
-    addException(new CompilerException(source, "Mismatched input"));
   }
 
   @Override
