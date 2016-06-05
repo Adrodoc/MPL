@@ -68,7 +68,7 @@ public class NewIfAction implements AutoCompletionAction {
 
     int offset = token.getStopIndex() + 1;
     String beforeCaret = "if: ".substring(token.getText().length());
-    String afterCaret = "\n" + indent + "then (\n" + indent + "  \n" + indent + ")";
+    String afterCaret = "\n" + indent + "then {\n" + indent + "  \n" + indent + "}";
     String replacement = beforeCaret + afterCaret;
     try {
       component.getDocument().insertString(offset, replacement, null);

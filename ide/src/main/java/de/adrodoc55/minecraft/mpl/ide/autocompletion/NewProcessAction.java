@@ -63,8 +63,8 @@ public class NewProcessAction implements AutoCompletionAction {
   public void performOn(JTextComponent component) {
     int offset = token.getStartIndex();
     int length = token.getStopIndex() + 1 - offset;
-    String beforeCaret = "process " + token.getText() + " (\n  ";
-    String afterCaret = "\n)";
+    String beforeCaret = "process " + token.getText() + " {\n  ";
+    String afterCaret = "\n}";
     String replacement = beforeCaret + afterCaret;
     try {
       DocumentUtils.replace(component.getDocument(), offset, length, replacement);

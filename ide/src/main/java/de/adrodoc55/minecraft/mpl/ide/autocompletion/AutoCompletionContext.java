@@ -41,30 +41,17 @@ package de.adrodoc55.minecraft.mpl.ide.autocompletion;
 
 import org.antlr.v4.runtime.Token;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * @author Adrodoc55
  */
+@Getter
+@Setter
 public class AutoCompletionContext {
-  private final Token token;
-  private final boolean inProject;
-  private final boolean inProcess;
-
-  public AutoCompletionContext(Token token, boolean inProject, boolean inProcess) {
-    this.token = token;
-    this.inProject = inProject;
-    this.inProcess = inProcess;
-  }
-
-  public Token getToken() {
-    return token;
-  }
-
-  public boolean isInProject() {
-    return inProject;
-  }
-
-  public boolean isInProcess() {
-    return inProcess;
-  }
-
+  private Token token;
+  private boolean project;
+  private boolean inProject;
+  private boolean inProcess;
 }

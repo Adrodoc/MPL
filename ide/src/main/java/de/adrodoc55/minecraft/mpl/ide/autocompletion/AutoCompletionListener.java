@@ -47,38 +47,48 @@ import de.adrodoc55.minecraft.mpl.antlr.MplBaseListener;
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProcessContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProjectContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProjectFileContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.ScriptFileContext;
 
 /**
  * @author Adrodoc55
  */
 public class AutoCompletionListener extends MplBaseListener {
   private final int index;
-
-  private boolean inProject;
-  private boolean inProcess;
+  private final AutoCompletionContext result = new AutoCompletionContext();
 
   public AutoCompletionListener(int index) {
     this.index = index;
   }
 
   @Override
+  public void enterProjectFile(ProjectFileContext ctx) {
+    result.setProject(true);
+  }
+
+  @Override
+  public void enterScriptFile(ScriptFileContext ctx) {
+    result.setProject(false);
+  }
+
+  @Override
   public void enterProject(ProjectContext ctx) {
-    inProject = true;
+    result.setInProject(true);
   }
 
   @Override
   public void exitProject(ProjectContext ctx) {
-    inProject = false;
+    result.setInProject(false);
   }
 
   @Override
   public void enterProcess(ProcessContext ctx) {
-    inProcess = true;
+    result.setInProcess(true);
   }
 
   @Override
   public void exitProcess(ProcessContext ctx) {
-    inProcess = false;
+    result.setInProcess(false);
   }
 
   @Override
@@ -98,7 +108,7 @@ public class AutoCompletionListener extends MplBaseListener {
     if (index < token.getStartIndex() || token.getType() == MplLexer.EOF) {
       token = null;
     }
-    AutoCompletionContext result = new AutoCompletionContext(token, inProject, inProcess);
+    result.setToken(token);
     throw new ResultException(result);
   }
 }

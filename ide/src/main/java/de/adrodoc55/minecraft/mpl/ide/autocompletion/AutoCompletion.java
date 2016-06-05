@@ -84,7 +84,6 @@ public class AutoCompletion {
     if (context == null) {
       return options;
     }
-
     Token token = context.getToken();
     if (token != null) {
       if (context.isInProject()) {
@@ -92,7 +91,7 @@ public class AutoCompletion {
           options.add(new NewIncludeAction(token));
         }
       }
-      if (!context.isInProject()) {
+      if (!context.isInProject() && (!context.isProject() || context.isInProcess())) {
         if ("if:".startsWith(token.getText())) {
           options.add(new NewIfAction(token));
           options.add(new NewIfElseAction(token));
@@ -103,7 +102,6 @@ public class AutoCompletion {
         options.add(new NewProcessAction(token));
       }
     }
-
     return options;
   }
 
