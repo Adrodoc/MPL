@@ -77,7 +77,6 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
-import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
 import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
 import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
 import de.adrodoc55.minecraft.mpl.conversion.SchematicConverter;
@@ -99,18 +98,18 @@ public class MplFramePM extends AbstractPM {
   public static final String COMPILE_TO_SCHEMATIC = "Compile to Schematic";
   public static final String COMPILE_TO_FILTER = "Compile to MCEdit Filter";
 
-  ListPM<MplEditorPM> editors = new ListPM<MplEditorPM>();
-  OperationPM newFile = new OperationPM();
-  OperationPM openFile = new OperationPM();
-  OperationPM saveFile = new OperationPM();
-  OperationPM saveFileUnder = new OperationPM();
-  OperationPM compileToCommand = new OperationPM();
-  OperationPM compileToSchematic = new OperationPM();
-  OperationPM compileToSchematicUnder = new OperationPM();
-  OperationPM compileToFilter = new OperationPM();
-  OperationPM compileToFilterUnder = new OperationPM();
-  BooleanPM debug = new BooleanPM();
-  BooleanPM transmitter = new BooleanPM();
+  final ListPM<MplEditorPM> editors = new ListPM<MplEditorPM>();
+  final OperationPM newFile = new OperationPM();
+  final OperationPM openFile = new OperationPM();
+  final OperationPM saveFile = new OperationPM();
+  final OperationPM saveFileUnder = new OperationPM();
+  final OperationPM compileToCommand = new OperationPM();
+  final OperationPM compileToSchematic = new OperationPM();
+  final OperationPM compileToSchematicUnder = new OperationPM();
+  final OperationPM compileToFilter = new OperationPM();
+  final OperationPM compileToFilterUnder = new OperationPM();
+  final BooleanPM debug = new BooleanPM();
+  final BooleanPM transmitter = new BooleanPM();
 
   SearchAndReplaceDialogControler sarController =
       new SearchAndReplaceDialogControler(new SearchAndReplaceDialogPM.Context() {
@@ -140,7 +139,7 @@ public class MplFramePM extends AbstractPM {
 
   @Operation
   public void newFile() {
-    MplEditorPM editorPm = new MplEditorPM(createDefaultContext());
+    MplEditorPM editorPm = new MplEditorPM(createEditorContext());
     addMplEditorPm(editorPm);
   }
 
@@ -180,7 +179,7 @@ public class MplFramePM extends AbstractPM {
       }
     }
     try {
-      MplEditorPM editorPm = new MplEditorPM(createDefaultContext());
+      MplEditorPM editorPm = new MplEditorPM(createEditorContext());
       editorPm.setFile(file);
       editorPm.load();
       addMplEditorPm(editorPm);
@@ -316,46 +315,41 @@ public class MplFramePM extends AbstractPM {
     if (selected == null) {
       return null;
     }
-    File file = selected.getFile();
-    if (file == null || !file.exists()) {
-      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-      JOptionPane.showMessageDialog(activeWindow,
-          "You need to save this File before it can be compiled!", "Compilation Failed!",
-          JOptionPane.ERROR_MESSAGE);
-      return null;
-    }
     try {
-      List<CompilerOption> options = new ArrayList<>(2);
-      if (debug.getBoolean())
-        options.add(DEBUG);
-      if (transmitter.getBoolean())
-        options.add(TRANSMITTER);
-
-      MplCompilationResult result = MplCompiler.compile(file, new CompilerOptions(options));
-
-      for (MplEditorPM editorPm : editors) {
-        editorPm.setCompilerExceptions(Collections.emptyList());
-      }
-      return result;
+      return compile(selected);
     } catch (CompilationFailedException ex) {
       ExceptionDialog dialog = ExceptionDialog.create("Compilation Failed!",
           "The Compiler encountered Errors!", ex.toString());
       dialog.setVisible(true);
-      ListMultimap<File, CompilerException> exceptions = ex.getExceptions();
-      for (File programFile : exceptions.keySet()) {
-        for (MplEditorPM editorPm : editors) {
-          if (programFile.equals(editorPm.getFile())) {
-            editorPm.setCompilerExceptions(exceptions.get(programFile));
-          }
+      return null;
+    }
+  }
+
+  private MplCompilationResult compile(MplEditorPM selected) throws CompilationFailedException {
+    List<CompilerOption> options = new ArrayList<>(2);
+    if (debug.getBoolean())
+      options.add(DEBUG);
+    if (transmitter.getBoolean())
+      options.add(TRANSMITTER);
+    for (MplEditorPM editorPm : editors) {
+      editorPm.setCompilerExceptions(Collections.emptyList());
+    }
+    try {
+      return selected.compile(new CompilerOptions(options));
+    } catch (CompilationFailedException ex) {
+      setCompilerExceptions(ex.getExceptions());
+      throw ex;
+    }
+  }
+
+  public void setCompilerExceptions(ListMultimap<File, CompilerException> exceptions) {
+    for (File programFile : exceptions.keySet()) {
+      for (MplEditorPM editorPm : editors) {
+        if (programFile.equals(editorPm.getFile())) {
+          editorPm.setCompilerExceptions(exceptions.get(programFile));
         }
       }
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-      JOptionPane.showMessageDialog(activeWindow, ex.getMessage(), ex.getClass().getSimpleName(),
-          JOptionPane.ERROR_MESSAGE);
     }
-    return null;
   }
 
   private File compilationDir;
@@ -415,7 +409,7 @@ public class MplFramePM extends AbstractPM {
     }
   }
 
-  private MplEditorPM.Context createDefaultContext() {
+  private MplEditorPM.Context createEditorContext() {
     return new MplEditorPM.Context() {
       @Override
       public void close(MplEditorPM editorPm) {
@@ -434,10 +428,25 @@ public class MplFramePM extends AbstractPM {
       public SearchAndReplaceDialog getSearchAndReplaceDialog() {
         return sarController.getView();
       }
+
+      @Override
+      public void compile(MplEditorPM mplEditorPM) {
+        try {
+          MplFramePM.this.compile(mplEditorPM);
+        } catch (CompilationFailedException e) {
+          // Ignore
+        }
+      }
     };
   }
 
-  private boolean isRelevant(MplEditorPM editorPm) {
+  /**
+   * An editor is relevant if it is not empty or has a file.
+   *
+   * @param editorPm the editor
+   * @return whether this editor is relevant
+   */
+  private static boolean isRelevant(MplEditorPM editorPm) {
     return !editorPm.code.isEmpty() || editorPm.getFile() != null;
   }
 

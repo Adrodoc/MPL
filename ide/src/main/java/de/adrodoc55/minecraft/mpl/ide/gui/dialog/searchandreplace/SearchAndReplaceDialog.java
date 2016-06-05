@@ -72,6 +72,8 @@ import org.beanfabrics.swing.BnButton;
 import org.beanfabrics.swing.BnCheckBox;
 import org.beanfabrics.swing.BnComboBox;
 
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowView;
+
 /**
  * The SearchAndReplaceDialog is a {@link View} on a {@link SearchAndReplaceDialogPM}.
  *
@@ -80,7 +82,7 @@ import org.beanfabrics.swing.BnComboBox;
  */
 @SuppressWarnings("serial")
 public class SearchAndReplaceDialog extends JDialog
-    implements View<SearchAndReplaceDialogPM>, ModelSubscriber {
+    implements WindowView<SearchAndReplaceDialogPM>, ModelSubscriber {
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
   private JPanel contentPanel;
@@ -103,10 +105,6 @@ public class SearchAndReplaceDialog extends JDialog
   private BnButton bnbtnReplaceAll;
   private JPanel pnlClose;
   private JButton btnClose;
-
-  public SearchAndReplaceDialog() {
-    this(null);
-  }
 
   /**
    * Constructs a new <code>SearchAndReplaceDialog</code>.

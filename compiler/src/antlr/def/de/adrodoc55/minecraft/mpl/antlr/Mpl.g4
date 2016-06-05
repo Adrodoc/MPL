@@ -37,410 +37,410 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-grammar Mpl;
-
-file
-:
-  (
-    scriptFile
-    | projectFile
-  ) EOF
-;
-
-scriptFile
-:
-  (
-    orientation
-    | install
-    | uninstall
-    | chain
-  )*
-;
-
-projectFile
-:
-  importDeclaration*
-  (
-    project
-    | install
-    | uninstall
-    | process
-  )*
-;
-
-importDeclaration
-:
-  IMPORT STRING
-;
-
-project
-:
-// TODO: Prefix, Orientation, max
-  PROJECT IDENTIFIER '{'
-  (
-    orientation
-    | include
-  )* '}'
-;
-
-orientation
-:
-  ORIENTATION STRING
-;
-
-include
-:
-  INCLUDE STRING
-;
-
-install
-:
-  INSTALL '{' chain '}'
-;
-
-uninstall
-:
-  UNINSTALL '{' chain '}'
-;
-
-process
-:
-  (
-    IMPULSE
-    | REPEAT
-  )? PROCESS IDENTIFIER '{' chain '}'
-;
-
-chain
-:
-  (
-    ifDeclaration
-    | whileDeclaration
-    | mplCommand
-    | skipDeclaration
-  )+
-;
-
-ifDeclaration
-:
-  IF NOT? ':' COMMAND then? elseDeclaration?
-;
-
-then
-:
-  THEN '{' chain '}'
-;
-
-elseDeclaration
-:
-  ELSE '{' chain '}'
-;
-
-whileDeclaration
-:
-  (
-    IDENTIFIER ':'
-  )? WHILE NOT? ':' COMMAND REPEAT '{' chain '}'
-  |
-  (
-    IDENTIFIER ':'
-  )? REPEAT '{' chain '}'
-  (
-    DO WHILE NOT? ':' COMMAND
-  )?
-;
-
-mplCommand
-:
-  modifierList?
-  (
-    command
-    | start
-    | stop
-    | waitfor
-    | notifyDeclaration
-    | intercept
-    | breakpoint
-    | breakDeclaration
-    | continueDeclaration
-  )
-;
-
-modifierList
-:
-  (
-    modus
-    (
-      ',' conditional
-    )?
-    (
-      ',' auto
-    )?
-    | conditional
-    (
-      ',' auto
-    )?
-    | auto
-  ) ':'
-;
-
-modus
-:
-  IMPULSE
-  | CHAIN
-  | REPEAT
-;
-
-conditional
-:
-  UNCONDITIONAL
-  | CONDITIONAL
-  | INVERT
-;
-
-auto
-:
-  NEEDS_REDSTONE
-  | ALWAYS_ACTIVE
-;
-
-command
-:
-  COMMAND
-;
-
-start
-:
-  START IDENTIFIER
-;
-
-stop
-:
-  STOP IDENTIFIER?
-;
-
-waitfor
-:
-  WAITFOR
-  (
-    NOTIFY? IDENTIFIER
-  )?
-;
-
-notifyDeclaration
-:
-  NOTIFY
-;
-
-intercept
-:
-  INTERCEPT IDENTIFIER
-;
-
-breakpoint
-:
-  BREAKPOINT
-;
-
-breakDeclaration
-:
-  BREAK IDENTIFIER?
-;
-
-continueDeclaration
-:
-  CONTINUE IDENTIFIER?
-;
-
-skipDeclaration
-:
-  SKIP_TOKEN
-;
-
-COMMENT
-:
-  (
-    '//'
-    | '#'
-  ) ~( '\r' | '\n' )* -> channel ( HIDDEN )
-;
-
-COMMAND
-:
-  '/' ~( '\r' | '\n' )*
-;
-
-IMPORT
-:
-  'import'
-;
-
-PROJECT
-:
-  'project'
-;
-
-INCLUDE
-:
-  'include'
-;
-
-ORIENTATION
-:
-  'orientation'
-;
-
-INSTALL
-:
-  'install'
-;
-
-UNINSTALL
-:
-  'uninstall'
-;
-
-PROCESS
-:
-  'process'
-;
-
-IMPULSE
-:
-  'impulse'
-;
-
-CHAIN
-:
-  'chain'
-;
-
-REPEAT
-:
-  'repeat'
-;
-
-UNCONDITIONAL
-:
-  'unconditional'
-;
-
-CONDITIONAL
-:
-  'conditional'
-;
-
-INVERT
-:
-  'invert'
-;
-
-ALWAYS_ACTIVE
-:
-  'always active'
-;
-
-NEEDS_REDSTONE
-:
-  'needs redstone'
-;
-
-START
-:
-  'start'
-;
-
-STOP
-:
-  'stop'
-;
-
-WAITFOR
-:
-  'waitfor'
-;
-
-NOTIFY
-:
-  'notify'
-;
-
-INTERCEPT
-:
-  'intercept'
-;
-
-BREAKPOINT
-:
-  'breakpoint'
-;
-
-SKIP_TOKEN
-:
-  'skip'
-;
-
-IF
-:
-  'if'
-;
-
-NOT
-:
-  'not'
-;
-
-THEN
-:
-  'then'
-;
-
-ELSE
-:
-  'else'
-;
-
-DO
-:
-  'do'
-;
-
-WHILE
-:
-  'while'
-;
-
-BREAK
-:
-  'break'
-;
-
-CONTINUE
-:
-  'continue'
-;
-
-UNSIGNED_INT
-:
-  [0-9]+
-;
-
-WS
-:
-  [ \t\r\n]+ -> skip
-;
-
-STRING
-:
-  '"' .*? '"'
-;
-
-IDENTIFIER
-:
-  [a-zA-Z0-9_]+
-;
-
-UNRECOGNIZED
-:
-  .
-;
+ grammar Mpl;
+
+ file
+ :
+   (
+     scriptFile
+     | projectFile
+   ) EOF
+ ;
+
+ scriptFile
+ :
+   (
+     orientation
+     | install
+     | uninstall
+     | chain
+   )*
+ ;
+
+ projectFile
+ :
+   importDeclaration*
+   (
+     project
+     | install
+     | uninstall
+     | process
+   )*
+ ;
+
+ importDeclaration
+ :
+   IMPORT STRING
+ ;
+
+ project
+ :
+ // TODO: Prefix, Orientation, max
+   PROJECT IDENTIFIER '{'
+   (
+     orientation
+     | include
+   )* '}'
+ ;
+
+ orientation
+ :
+   ORIENTATION STRING
+ ;
+
+ include
+ :
+   INCLUDE STRING
+ ;
+
+ install
+ :
+   INSTALL '{' chain? '}'
+ ;
+
+ uninstall
+ :
+   UNINSTALL '{' chain? '}'
+ ;
+
+ process
+ :
+   (
+     IMPULSE
+     | REPEAT
+   )? PROCESS IDENTIFIER '{' chain? '}'
+ ;
+
+ chain
+ :
+   (
+     ifDeclaration
+     | whileDeclaration
+     | mplCommand
+     | skipDeclaration
+   )+
+ ;
+
+ ifDeclaration
+ :
+   IF NOT? ':' COMMAND then? elseDeclaration?
+ ;
+
+ then
+ :
+   THEN '{' chain? '}'
+ ;
+
+ elseDeclaration
+ :
+   ELSE '{' chain? '}'
+ ;
+
+ whileDeclaration
+ :
+   (
+     IDENTIFIER ':'
+   )? WHILE NOT? ':' COMMAND REPEAT '{' chain? '}'
+   |
+   (
+     IDENTIFIER ':'
+   )? REPEAT '{' chain? '}'
+   (
+     DO WHILE NOT? ':' COMMAND
+   )?
+ ;
+
+ mplCommand
+ :
+   modifierList?
+   (
+     command
+     | start
+     | stop
+     | waitfor
+     | notifyDeclaration
+     | intercept
+     | breakpoint
+     | breakDeclaration
+     | continueDeclaration
+   )
+ ;
+
+ modifierList
+ :
+   (
+     modus
+     (
+       ',' conditional
+     )?
+     (
+       ',' auto
+     )?
+     | conditional
+     (
+       ',' auto
+     )?
+     | auto
+   ) ':'
+ ;
+
+ modus
+ :
+   IMPULSE
+   | CHAIN
+   | REPEAT
+ ;
+
+ conditional
+ :
+   UNCONDITIONAL
+   | CONDITIONAL
+   | INVERT
+ ;
+
+ auto
+ :
+   NEEDS_REDSTONE
+   | ALWAYS_ACTIVE
+ ;
+
+ command
+ :
+   COMMAND
+ ;
+
+ start
+ :
+   START IDENTIFIER
+ ;
+
+ stop
+ :
+   STOP IDENTIFIER?
+ ;
+
+ waitfor
+ :
+   WAITFOR
+   (
+     NOTIFY? IDENTIFIER
+   )?
+ ;
+
+ notifyDeclaration
+ :
+   NOTIFY
+ ;
+
+ intercept
+ :
+   INTERCEPT IDENTIFIER
+ ;
+
+ breakpoint
+ :
+   BREAKPOINT
+ ;
+
+ breakDeclaration
+ :
+   BREAK IDENTIFIER?
+ ;
+
+ continueDeclaration
+ :
+   CONTINUE IDENTIFIER?
+ ;
+
+ skipDeclaration
+ :
+   SKIP_TOKEN
+ ;
+
+ COMMENT
+ :
+   (
+     '//'
+     | '#'
+   ) ~( '\r' | '\n' )* -> channel ( HIDDEN )
+ ;
+
+ COMMAND
+ :
+   '/' ~( '\r' | '\n' )*
+ ;
+
+ IMPORT
+ :
+   'import'
+ ;
+
+ PROJECT
+ :
+   'project'
+ ;
+
+ INCLUDE
+ :
+   'include'
+ ;
+
+ ORIENTATION
+ :
+   'orientation'
+ ;
+
+ INSTALL
+ :
+   'install'
+ ;
+
+ UNINSTALL
+ :
+   'uninstall'
+ ;
+
+ PROCESS
+ :
+   'process'
+ ;
+
+ IMPULSE
+ :
+   'impulse'
+ ;
+
+ CHAIN
+ :
+   'chain'
+ ;
+
+ REPEAT
+ :
+   'repeat'
+ ;
+
+ UNCONDITIONAL
+ :
+   'unconditional'
+ ;
+
+ CONDITIONAL
+ :
+   'conditional'
+ ;
+
+ INVERT
+ :
+   'invert'
+ ;
+
+ ALWAYS_ACTIVE
+ :
+   'always active'
+ ;
+
+ NEEDS_REDSTONE
+ :
+   'needs redstone'
+ ;
+
+ START
+ :
+   'start'
+ ;
+
+ STOP
+ :
+   'stop'
+ ;
+
+ WAITFOR
+ :
+   'waitfor'
+ ;
+
+ NOTIFY
+ :
+   'notify'
+ ;
+
+ INTERCEPT
+ :
+   'intercept'
+ ;
+
+ BREAKPOINT
+ :
+   'breakpoint'
+ ;
+
+ SKIP_TOKEN
+ :
+   'skip'
+ ;
+
+ IF
+ :
+   'if'
+ ;
+
+ NOT
+ :
+   'not'
+ ;
+
+ THEN
+ :
+   'then'
+ ;
+
+ ELSE
+ :
+   'else'
+ ;
+
+ DO
+ :
+   'do'
+ ;
+
+ WHILE
+ :
+   'while'
+ ;
+
+ BREAK
+ :
+   'break'
+ ;
+
+ CONTINUE
+ :
+   'continue'
+ ;
+
+ UNSIGNED_INT
+ :
+   [0-9]+
+ ;
+
+ WS
+ :
+   [ \t\r\n]+ -> skip
+ ;
+
+ STRING
+ :
+   '"' .*? '"'
+ ;
+
+ IDENTIFIER
+ :
+   [a-zA-Z0-9_]+
+ ;
+
+ UNRECOGNIZED
+ :
+   .
+ ;

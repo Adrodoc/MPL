@@ -447,7 +447,7 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
           if (ex == null) {
             return;
           }
-          Timer t = new Timer(1000, a -> {
+          Timer t = new Timer(200, a -> {
             Point secondPoint = textPane.getMousePosition();
             if (secondPoint != null && secondPoint.equals(point)) {
               lastEx = ex;

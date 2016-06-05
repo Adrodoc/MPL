@@ -62,7 +62,11 @@ import org.beanfabrics.model.TextPM;
 import org.beanfabrics.support.Operation;
 
 import de.adrodoc55.commons.FileUtils;
+import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialog;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogPM;
 
@@ -118,6 +122,8 @@ public class MplEditorPM extends AbstractPM {
     void close(MplEditorPM editorPm);
 
     SearchAndReplaceDialog getSearchAndReplaceDialog();
+
+    void compile(MplEditorPM mplEditorPM);
   }
 
   private final Context context;
@@ -237,6 +243,7 @@ public class MplEditorPM extends AbstractPM {
         byte[] bytes = code.getText().getBytes();
         Files.write(file.toPath(), bytes);
         setUnsavedChanges(false);
+        context.compile(this);
       } catch (IOException ex) {
         Window activeWindow =
             KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
@@ -273,6 +280,26 @@ public class MplEditorPM extends AbstractPM {
     }
     setFile(file);
     save();
+  }
+
+  public MplCompilationResult compile(CompilerOptions options) throws CompilationFailedException {
+    File file = getFile();
+    if (file == null || !file.exists()) {
+      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+      JOptionPane.showMessageDialog(activeWindow,
+          "You need to save this File before it can be compiled!", "Compilation Failed!",
+          JOptionPane.ERROR_MESSAGE);
+      return null;
+    }
+    try {
+      return MplCompiler.compile(file, options);
+    } catch (IOException ex) {
+      ex.printStackTrace();
+      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+      JOptionPane.showMessageDialog(activeWindow, ex.getMessage(), ex.getClass().getSimpleName(),
+          JOptionPane.ERROR_MESSAGE);
+    }
+    return null;
   }
 
   public void searchAndReplace() {
