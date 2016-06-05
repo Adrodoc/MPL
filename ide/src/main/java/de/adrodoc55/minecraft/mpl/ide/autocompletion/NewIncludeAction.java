@@ -39,35 +39,19 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.autocompletion;
 
-import java.lang.reflect.UndeclaredThrowableException;
-
-import javax.swing.text.BadLocationException;
-import javax.swing.text.JTextComponent;
+import java.net.URL;
 
 import org.antlr.v4.runtime.Token;
+
+import com.google.common.io.Resources;
 
 /**
  * @author Adrodoc55
  */
-public class NewIncludeAction implements AutoCompletionAction {
-  private final Token token;
+public class NewIncludeAction extends AutoCompletionAction {
 
   public NewIncludeAction(Token token) {
-    this.token = token;
-  }
-
-  @Override
-  public void performOn(JTextComponent component) {
-    int offset = token.getStopIndex() + 1;
-    String beforeCaret = "include \"".substring(token.getText().length());
-    String afterCaret = "\"";
-    String replacement = beforeCaret + afterCaret;
-    try {
-      component.getDocument().insertString(offset, replacement, null);
-      component.getCaret().setDot(offset + beforeCaret.length());
-    } catch (BadLocationException ex) {
-      throw new UndeclaredThrowableException(ex);
-    }
+    super(token.getStartIndex(), token);
   }
 
   @Override
@@ -75,4 +59,8 @@ public class NewIncludeAction implements AutoCompletionAction {
     return "include \"\"";
   }
 
+  @Override
+  protected URL getTemplate() {
+    return Resources.getResource("autocompletion/include.template");
+  }
 }

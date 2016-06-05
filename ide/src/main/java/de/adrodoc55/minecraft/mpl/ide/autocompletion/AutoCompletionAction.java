@@ -39,13 +39,84 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.autocompletion;
 
+import java.io.IOException;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.net.URL;
+import java.nio.charset.Charset;
+
+import javax.annotation.Nullable;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Element;
 import javax.swing.text.JTextComponent;
+
+import org.antlr.v4.runtime.Token;
+
+import com.google.common.io.Resources;
+
+import de.adrodoc55.commons.DocumentUtils;
+import de.adrodoc55.commons.FileUtils;
 
 /**
  * @author Adrodoc55
  */
-public interface AutoCompletionAction {
-  void performOn(JTextComponent component);
+public abstract class AutoCompletionAction {
+  private static final String CURSOR = "\\$\\{cursor\\}";
+  private static final String TOKEN = "${token}";
 
-  String getDisplayName();
+  private int startIndex;
+  protected final @Nullable Token token;
+
+  public AutoCompletionAction(int startIndex, @Nullable Token token) {
+    this.startIndex = startIndex;
+    this.token = token;
+  }
+
+  public void performOn(JTextComponent component) {
+    Element root = component.getDocument().getDefaultRootElement();
+
+    Element line = root.getElement(root.getElementIndex(startIndex));
+    int indentCount = startIndex - line.getStartOffset();
+    String indent = new String(new char[indentCount]).replace('\0', ' ');
+
+    String template = FileUtils.toUnixLineEnding(getTemplateString());
+    template = template.replace("\n", "\n" + indent);
+    template = template.replace(TOKEN, getTokenString());
+    String[] split = template.split(CURSOR, 2);
+    String beforeCaret = split[0];
+    String afterCaret = split.length == 2 ? split[1] : "";
+    String replacement = beforeCaret + afterCaret;
+
+    try {
+      DocumentUtils.replace(component.getDocument(), startIndex, getLength(), replacement);
+      component.getCaret().setDot(startIndex + beforeCaret.length());
+    } catch (BadLocationException ex) {
+      throw new UndeclaredThrowableException(ex);
+    }
+  }
+
+  private String getTokenString() {
+    if (token != null)
+      return token.getText();
+    else
+      return "";
+  }
+
+  private int getLength() {
+    if (token != null)
+      return token.getStopIndex() - startIndex + 1;
+    else
+      return 0;
+  }
+
+  protected String getTemplateString() {
+    try {
+      return Resources.toString(getTemplate(), Charset.forName("UTF-8"));
+    } catch (IOException ex) {
+      throw new UndeclaredThrowableException(ex);
+    }
+  }
+
+  protected abstract URL getTemplate();
+
+  public abstract String getDisplayName();
 }

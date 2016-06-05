@@ -39,43 +39,28 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.autocompletion;
 
-import java.lang.reflect.UndeclaredThrowableException;
-
-import javax.swing.text.BadLocationException;
-import javax.swing.text.JTextComponent;
+import java.net.URL;
 
 import org.antlr.v4.runtime.Token;
 
-import de.adrodoc55.commons.DocumentUtils;
+import com.google.common.io.Resources;
 
 /**
  * @author Adrodoc55
  */
-public class NewProcessAction implements AutoCompletionAction {
-  private final Token token;
+public class NewProcessAction extends AutoCompletionAction {
 
   public NewProcessAction(Token token) {
-    super();
-    this.token = token;
-  }
-
-  @Override
-  public void performOn(JTextComponent component) {
-    int offset = token.getStartIndex();
-    int length = token.getStopIndex() + 1 - offset;
-    String beforeCaret = "process " + token.getText() + " {\n  ";
-    String afterCaret = "\n}";
-    String replacement = beforeCaret + afterCaret;
-    try {
-      DocumentUtils.replace(component.getDocument(), offset, length, replacement);
-      component.getCaret().setDot(offset + beforeCaret.length());
-    } catch (BadLocationException ex) {
-      throw new UndeclaredThrowableException(ex);
-    }
+    super(token.getStartIndex(), token);
   }
 
   @Override
   public String getDisplayName() {
     return "process " + token.getText();
+  }
+
+  @Override
+  protected URL getTemplate() {
+    return Resources.getResource("autocompletion/process.template");
   }
 }

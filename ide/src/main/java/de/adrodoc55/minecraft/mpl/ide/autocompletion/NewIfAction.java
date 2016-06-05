@@ -39,43 +39,19 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.autocompletion;
 
-import java.lang.reflect.UndeclaredThrowableException;
+import static com.google.common.io.Resources.getResource;
 
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Element;
-import javax.swing.text.JTextComponent;
+import java.net.URL;
 
 import org.antlr.v4.runtime.Token;
 
 /**
  * @author Adrodoc55
  */
-public class NewIfAction implements AutoCompletionAction {
-  private final Token token;
+public class NewIfAction extends AutoCompletionAction {
 
   public NewIfAction(Token token) {
-    this.token = token;
-  }
-
-  @Override
-  public void performOn(JTextComponent component) {
-    Element root = component.getDocument().getDefaultRootElement();
-
-    int startIndex = token.getStartIndex();
-    Element line = root.getElement(root.getElementIndex(startIndex));
-    int indentCount = startIndex - line.getStartOffset();
-    String indent = new String(new char[indentCount]).replace('\0', ' ');
-
-    int offset = token.getStopIndex() + 1;
-    String beforeCaret = "if: ".substring(token.getText().length());
-    String afterCaret = "\n" + indent + "then {\n" + indent + "  \n" + indent + "}";
-    String replacement = beforeCaret + afterCaret;
-    try {
-      component.getDocument().insertString(offset, replacement, null);
-      component.getCaret().setDot(offset + beforeCaret.length());
-    } catch (BadLocationException ex) {
-      throw new UndeclaredThrowableException(ex);
-    }
+    super(token.getStartIndex(), token);
   }
 
   @Override
@@ -83,4 +59,8 @@ public class NewIfAction implements AutoCompletionAction {
     return "if ... then";
   }
 
+  @Override
+  protected URL getTemplate() {
+    return getResource("autocompletion/if.template");
+  }
 }
