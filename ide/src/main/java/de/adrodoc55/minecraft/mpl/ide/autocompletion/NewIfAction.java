@@ -40,8 +40,7 @@
 package de.adrodoc55.minecraft.mpl.ide.autocompletion;
 
 import static com.google.common.io.Resources.getResource;
-
-import java.net.URL;
+import static de.adrodoc55.commons.FileUtils.getUtf8String;
 
 import org.antlr.v4.runtime.Token;
 
@@ -60,8 +59,8 @@ public class NewIfAction extends AutoCompletionAction {
   }
 
   @Override
-  protected URL getTemplate() {
-    return getResource("autocompletion/if.template");
+  protected String getTemplate() {
+    return getUtf8String(getResource("autocompletion/if.template"));
   }
 
   @Override

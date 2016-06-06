@@ -41,6 +41,11 @@ package de.adrodoc55.commons;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.net.URL;
+import java.nio.charset.Charset;
+
+import com.google.common.io.Resources;
 
 /**
  * @author Adrodoc55
@@ -70,6 +75,14 @@ public class FileUtils {
       return file.getCanonicalPath();
     } catch (IOException ex) {
       return file.getAbsolutePath();
+    }
+  }
+
+  public static String getUtf8String(URL url) {
+    try {
+      return Resources.toString(url, Charset.forName("UTF-8"));
+    } catch (IOException ex) {
+      throw new UndeclaredThrowableException(ex);
     }
   }
 

@@ -39,10 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.autocompletion;
 
-import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,8 +50,6 @@ import javax.swing.text.JTextComponent;
 
 import org.antlr.v4.runtime.Token;
 
-import com.google.common.io.Resources;
-
 import de.adrodoc55.commons.DocumentUtils;
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.commons.Filter;
@@ -63,7 +58,7 @@ import de.adrodoc55.commons.Filter;
  * @author Adrodoc55
  */
 public abstract class AutoCompletionAction {
-  private static final Pattern INSERT = Pattern.compile("(?<!\\$)(?:\\$\\$)*(?:\\$\\{([^}]*))\\}");
+  private static final Pattern INSERT = Pattern.compile("(?<!\\$)(?:\\$\\$)*(\\$\\{([^}]*)\\})");
 
   private static final String CURSOR = "cursor";
   private static final Filter<String> CURSOR_INSERTS = insert -> CURSOR.equals(insert);
@@ -84,11 +79,11 @@ public abstract class AutoCompletionAction {
     int indentCount = startIndex - line.getStartOffset();
     String indent = new String(new char[indentCount]).replace('\0', ' ');
 
-    String template = FileUtils.toUnixLineEnding(getTemplateString());
+    String template = FileUtils.toUnixLineEnding(getTemplate());
     template = template.replace("\n", "\n" + indent);
-    template = replaceInserts(template, NON_CURSOR_INSERTS);
+    template = replaceVariables(template, NON_CURSOR_INSERTS);
     int cursorIndex = getCursorIndex(template);
-    template = replaceInserts(template, CURSOR_INSERTS);
+    template = replaceVariables(template, CURSOR_INSERTS);
 
     try {
       int length = getLength();
@@ -102,19 +97,19 @@ public abstract class AutoCompletionAction {
   private int getCursorIndex(String template) {
     Matcher matcher = INSERT.matcher(template);
     while (matcher.find()) {
-      String match = matcher.group(1);
+      String match = matcher.group(2);
       if (CURSOR.equals(match)) {
-        return matcher.start();
+        return matcher.start(1);
       }
     }
     return template.length();
   }
 
-  private String replaceInserts(String template, Filter<String> filter) {
+  private String replaceVariables(String template, Filter<String> filter) {
     Matcher matcher = INSERT.matcher(template);
     StringBuffer sb = new StringBuffer(template.length());
     while (matcher.find()) {
-      String match = matcher.group(1);
+      String match = matcher.group(2);
       if (filter.matches(match)) {
         String replacement = getReplacement(match);
         matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
@@ -124,14 +119,14 @@ public abstract class AutoCompletionAction {
     return sb.toString();
   }
 
-  private String getReplacement(String insert) {
-    switch (insert) {
+  private String getReplacement(String variable) {
+    switch (variable) {
       case CURSOR:
         return "";
       case "token":
         return getTokenString();
       default:
-        throw new IllegalArgumentException("Unknown insert '" + insert + "'");
+        throw new IllegalArgumentException("Unknown variable '" + variable + "'");
     }
   }
 
@@ -149,15 +144,7 @@ public abstract class AutoCompletionAction {
       return 0;
   }
 
-  protected String getTemplateString() {
-    try {
-      return Resources.toString(getTemplate(), Charset.forName("UTF-8"));
-    } catch (IOException ex) {
-      throw new UndeclaredThrowableException(ex);
-    }
-  }
-
-  protected abstract URL getTemplate();
+  protected abstract String getTemplate();
 
   public abstract String getDisplayName();
 

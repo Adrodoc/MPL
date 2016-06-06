@@ -39,11 +39,10 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.autocompletion;
 
-import java.net.URL;
+import static com.google.common.io.Resources.getResource;
+import static de.adrodoc55.commons.FileUtils.getUtf8String;
 
 import org.antlr.v4.runtime.Token;
-
-import com.google.common.io.Resources;
 
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 
@@ -62,8 +61,8 @@ public class NewProcessAction extends AutoCompletionAction {
   }
 
   @Override
-  protected URL getTemplate() {
-    return Resources.getResource("autocompletion/process.template");
+  protected String getTemplate() {
+    return getUtf8String(getResource("autocompletion/process.template"));
   }
 
   @Override
