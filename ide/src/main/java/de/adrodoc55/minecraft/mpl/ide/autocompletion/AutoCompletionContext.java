@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.autocompletion;
 
+import javax.annotation.Nullable;
+
 import org.antlr.v4.runtime.Token;
 
 import lombok.Getter;
@@ -50,7 +52,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AutoCompletionContext {
-  private Token token;
+  private @Nullable Token token;
   private boolean project;
   private boolean inProject;
   private boolean inProcess;

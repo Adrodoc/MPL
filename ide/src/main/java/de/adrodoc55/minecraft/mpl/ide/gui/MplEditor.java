@@ -415,7 +415,7 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
         @Override
         public void keyPressed(KeyEvent evt) {
           AutoCompletionDialog view = autoCtrl.getView();
-          if (view.isVisible() && evt.getModifiers() == 0) {
+          if (view.isVisible()) {
             switch (evt.getKeyCode()) {
               case KeyEvent.VK_ESCAPE:
               case KeyEvent.VK_DOWN:

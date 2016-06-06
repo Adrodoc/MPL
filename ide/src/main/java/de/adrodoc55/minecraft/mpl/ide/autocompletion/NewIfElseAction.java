@@ -50,8 +50,8 @@ import com.google.common.io.Resources;
  */
 public class NewIfElseAction extends AutoCompletionAction {
 
-  public NewIfElseAction(Token token) {
-    super(token.getStartIndex(), token);
+  public NewIfElseAction(int startIndex, Token token) {
+    super(startIndex, token);
   }
 
   @Override
@@ -62,5 +62,16 @@ public class NewIfElseAction extends AutoCompletionAction {
   @Override
   protected URL getTemplate() {
     return Resources.getResource("autocompletion/if-else.template");
+  }
+
+  @Override
+  public boolean shouldBeProposed(AutoCompletionContext context) {
+    if (token == null) {
+      return false;
+    }
+    if (context.isProject() && !context.isInProcess()) {
+      return false;
+    }
+    return "if".startsWith(token.getText());
   }
 }

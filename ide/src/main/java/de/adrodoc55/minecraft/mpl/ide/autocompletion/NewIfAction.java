@@ -50,8 +50,8 @@ import org.antlr.v4.runtime.Token;
  */
 public class NewIfAction extends AutoCompletionAction {
 
-  public NewIfAction(Token token) {
-    super(token.getStartIndex(), token);
+  public NewIfAction(int startIndex, Token token) {
+    super(startIndex, token);
   }
 
   @Override
@@ -62,5 +62,16 @@ public class NewIfAction extends AutoCompletionAction {
   @Override
   protected URL getTemplate() {
     return getResource("autocompletion/if.template");
+  }
+
+  @Override
+  public boolean shouldBeProposed(AutoCompletionContext context) {
+    if (token == null) {
+      return false;
+    }
+    if (context.isProject() && !context.isInProcess()) {
+      return false;
+    }
+    return "if".startsWith(token.getText());
   }
 }

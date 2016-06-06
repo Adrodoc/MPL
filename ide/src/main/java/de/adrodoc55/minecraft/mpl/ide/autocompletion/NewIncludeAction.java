@@ -50,8 +50,8 @@ import com.google.common.io.Resources;
  */
 public class NewIncludeAction extends AutoCompletionAction {
 
-  public NewIncludeAction(Token token) {
-    super(token.getStartIndex(), token);
+  public NewIncludeAction(int startIndex, Token token) {
+    super(startIndex, token);
   }
 
   @Override
@@ -62,5 +62,16 @@ public class NewIncludeAction extends AutoCompletionAction {
   @Override
   protected URL getTemplate() {
     return Resources.getResource("autocompletion/include.template");
+  }
+
+  @Override
+  public boolean shouldBeProposed(AutoCompletionContext context) {
+    if (token == null) {
+      return false;
+    }
+    if (!context.isInProject()) {
+      return false;
+    }
+    return "include".startsWith(token.getText());
   }
 }

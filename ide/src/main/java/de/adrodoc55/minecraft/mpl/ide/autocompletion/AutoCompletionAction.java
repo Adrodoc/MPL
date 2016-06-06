@@ -43,6 +43,8 @@ import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 import javax.swing.text.BadLocationException;
@@ -55,19 +57,23 @@ import com.google.common.io.Resources;
 
 import de.adrodoc55.commons.DocumentUtils;
 import de.adrodoc55.commons.FileUtils;
+import de.adrodoc55.commons.Filter;
 
 /**
  * @author Adrodoc55
  */
 public abstract class AutoCompletionAction {
-  private static final String CURSOR = "\\$\\{cursor\\}";
-  private static final String TOKEN = "${token}";
+  private static final Pattern INSERT = Pattern.compile("(?<!\\$)(?:\\$\\$)*(?:\\$\\{([^}]*))\\}");
 
-  private int startIndex;
+  private static final String CURSOR = "cursor";
+  private static final Filter<String> CURSOR_INSERTS = insert -> CURSOR.equals(insert);
+  private static final Filter<String> NON_CURSOR_INSERTS = insert -> !CURSOR.equals(insert);
+
+  private final int startIndex;
   protected final @Nullable Token token;
 
   public AutoCompletionAction(int startIndex, @Nullable Token token) {
-    this.startIndex = startIndex;
+    this.startIndex = token != null ? token.getStartIndex() : startIndex;
     this.token = token;
   }
 
@@ -80,17 +86,52 @@ public abstract class AutoCompletionAction {
 
     String template = FileUtils.toUnixLineEnding(getTemplateString());
     template = template.replace("\n", "\n" + indent);
-    template = template.replace(TOKEN, getTokenString());
-    String[] split = template.split(CURSOR, 2);
-    String beforeCaret = split[0];
-    String afterCaret = split.length == 2 ? split[1] : "";
-    String replacement = beforeCaret + afterCaret;
+    template = replaceInserts(template, NON_CURSOR_INSERTS);
+    int cursorIndex = getCursorIndex(template);
+    template = replaceInserts(template, CURSOR_INSERTS);
 
     try {
-      DocumentUtils.replace(component.getDocument(), startIndex, getLength(), replacement);
-      component.getCaret().setDot(startIndex + beforeCaret.length());
+      int length = getLength();
+      DocumentUtils.replace(component.getDocument(), startIndex, length, template);
+      component.getCaret().setDot(startIndex + cursorIndex);
     } catch (BadLocationException ex) {
       throw new UndeclaredThrowableException(ex);
+    }
+  }
+
+  private int getCursorIndex(String template) {
+    Matcher matcher = INSERT.matcher(template);
+    while (matcher.find()) {
+      String match = matcher.group(1);
+      if (CURSOR.equals(match)) {
+        return matcher.start();
+      }
+    }
+    return template.length();
+  }
+
+  private String replaceInserts(String template, Filter<String> filter) {
+    Matcher matcher = INSERT.matcher(template);
+    StringBuffer sb = new StringBuffer(template.length());
+    while (matcher.find()) {
+      String match = matcher.group(1);
+      if (filter.matches(match)) {
+        String replacement = getReplacement(match);
+        matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+      }
+    }
+    matcher.appendTail(sb);
+    return sb.toString();
+  }
+
+  private String getReplacement(String insert) {
+    switch (insert) {
+      case CURSOR:
+        return "";
+      case "token":
+        return getTokenString();
+      default:
+        throw new IllegalArgumentException("Unknown insert '" + insert + "'");
     }
   }
 
@@ -119,4 +160,6 @@ public abstract class AutoCompletionAction {
   protected abstract URL getTemplate();
 
   public abstract String getDisplayName();
+
+  public abstract boolean shouldBeProposed(AutoCompletionContext context);
 }

@@ -64,8 +64,10 @@ public class AutoCompletion {
   public static AutoCompletionContext getContext(int index, String text) {
     ANTLRInputStream input = new ANTLRInputStream(text);
     MplLexer lexer = new MplLexer(input);
+    lexer.removeErrorListeners();
     TokenStream tokens = new CommonTokenStream(lexer);
     MplParser parser = new MplParser(tokens);
+    parser.removeErrorListeners();
     FileContext ctx = parser.file();
 
     AutoCompletionListener listener = new AutoCompletionListener(index);
@@ -80,29 +82,25 @@ public class AutoCompletion {
   public static List<AutoCompletionAction> getOptions(int index, String text) {
     AutoCompletionContext context = getContext(index, text);
     ArrayList<AutoCompletionAction> options = new ArrayList<>();
-
     if (context == null) {
       return options;
     }
     Token token = context.getToken();
-    if (token != null) {
-      if (context.isInProject()) {
-        if ("include".startsWith(token.getText())) {
-          options.add(new NewIncludeAction(token));
-        }
-      }
-      if (!context.isInProject() && (!context.isProject() || context.isInProcess())) {
-        if ("if:".startsWith(token.getText())) {
-          options.add(new NewIfAction(token));
-          options.add(new NewIfElseAction(token));
-        }
-      }
-      if (!context.isInProcess() && !context.isInProject()
-          && token.getType() == MplLexer.IDENTIFIER) {
-        options.add(new NewProcessAction(token));
+    for (AutoCompletionAction action : getAllActions(index, token)) {
+      if (action.shouldBeProposed(context)) {
+        options.add(action);
       }
     }
     return options;
+  }
+
+  private static List<AutoCompletionAction> getAllActions(int index, Token token) {
+    List<AutoCompletionAction> actions = new ArrayList<>();
+    actions.add(new NewIncludeAction(index, token));
+    actions.add(new NewIfAction(index, token));
+    actions.add(new NewIfElseAction(index, token));
+    actions.add(new NewProcessAction(index, token));
+    return actions;
   }
 
 }

@@ -45,13 +45,15 @@ import org.antlr.v4.runtime.Token;
 
 import com.google.common.io.Resources;
 
+import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
+
 /**
  * @author Adrodoc55
  */
 public class NewProcessAction extends AutoCompletionAction {
 
-  public NewProcessAction(Token token) {
-    super(token.getStartIndex(), token);
+  public NewProcessAction(int startIndex, Token token) {
+    super(startIndex, token);
   }
 
   @Override
@@ -62,5 +64,22 @@ public class NewProcessAction extends AutoCompletionAction {
   @Override
   protected URL getTemplate() {
     return Resources.getResource("autocompletion/process.template");
+  }
+
+  @Override
+  public boolean shouldBeProposed(AutoCompletionContext context) {
+    if (token == null) {
+      return false;
+    }
+    if (token.getType() != MplLexer.IDENTIFIER) {
+      return false;
+    }
+    if (context.isInProject()) {
+      return false;
+    }
+    if (context.isInProcess()) {
+      return false;
+    }
+    return true;
   }
 }
