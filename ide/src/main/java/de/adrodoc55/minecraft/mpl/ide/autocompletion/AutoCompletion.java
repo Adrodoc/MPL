@@ -99,6 +99,8 @@ public class AutoCompletion {
     actions.add(new NewIncludeAction(index, token));
     actions.add(new NewIfAction(index, token));
     actions.add(new NewIfElseAction(index, token));
+    actions.add(new NewWhileAction(index, token));
+    actions.add(new NewDoWhileAction(index, token));
     actions.add(new NewProcessAction(index, token));
     return actions;
   }
