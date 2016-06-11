@@ -46,7 +46,6 @@ import javax.swing.text.StyledEditorKit;
  * @author Adrodoc55
  */
 public class BnStyledEditorKit extends StyledEditorKit {
-
   private static final long serialVersionUID = 1L;
 
   @Override

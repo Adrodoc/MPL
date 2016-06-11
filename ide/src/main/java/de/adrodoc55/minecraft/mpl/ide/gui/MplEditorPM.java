@@ -69,12 +69,12 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialog;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogPM;
+import de.adrodoc55.minecraft.mpl.ide.gui.editor.EditorPM;
 
 /**
  * @author Adrodoc55
  */
-public class MplEditorPM extends AbstractPM {
-
+public class MplEditorPM extends AbstractPM implements EditorPM {
   private static JFileChooser chooser;
   private static FileFilter filter;
 
@@ -110,11 +110,11 @@ public class MplEditorPM extends AbstractPM {
     return filter;
   }
 
-  TextPM title = new TextPM();
-  OperationPM close = new OperationPM();
-  BooleanPM unsavedChanges = new BooleanPM();
-  TextPM code = new TextPM();
-  MplSyntaxFilterPM syntaxFilter = new MplSyntaxFilterPM();
+  final TextPM title = new TextPM();
+  final OperationPM close = new OperationPM();
+  final BooleanPM unsavedChanges = new BooleanPM();
+  final MplSyntaxFilterPM syntaxFilter = new MplSyntaxFilterPM();
+  final TextPM code = new TextPM();
 
   private File file;
 
@@ -234,6 +234,7 @@ public class MplEditorPM extends AbstractPM {
    * directories will be created if necassary. If the file is null a JFileChooser dialog will be
    * opened.<br>
    */
+  @Override
   public void save() {
     if (file == null) {
       saveUnder();

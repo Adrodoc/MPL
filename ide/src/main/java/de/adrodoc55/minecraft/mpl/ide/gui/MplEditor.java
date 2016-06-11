@@ -41,7 +41,6 @@ package de.adrodoc55.minecraft.mpl.ide.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Font;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -71,7 +70,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
 import javax.swing.text.Element;
-import javax.swing.undo.UndoManager;
 
 import org.beanfabrics.IModelProvider;
 import org.beanfabrics.Link;
@@ -93,12 +91,9 @@ import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDi
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialogControler;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialogPM.Context;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.hover.HoverDialogControler;
-import de.adrodoc55.minecraft.mpl.ide.gui.utils.BnJaggedEditorKit;
-import de.adrodoc55.minecraft.mpl.ide.gui.utils.NoWrapBnTextPane;
-import de.adrodoc55.minecraft.mpl.ide.gui.utils.RawUndoManager;
-import de.adrodoc55.minecraft.mpl.ide.gui.utils.RedoAction;
+import de.adrodoc55.minecraft.mpl.ide.gui.editor.BnEditorTextPane;
+import de.adrodoc55.minecraft.mpl.ide.gui.editor.EditorPM;
 import de.adrodoc55.minecraft.mpl.ide.gui.utils.TextLineNumber;
-import de.adrodoc55.minecraft.mpl.ide.gui.utils.UndoAction;
 
 /**
  * The MplEditor is a {@link View} on a {@link MplEditorPM}.
@@ -148,9 +143,8 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
   private JScrollPane scrollPane;
-  private BnTextPane textPane;
+  private BnEditorTextPane textPane;
   private MplSyntaxFilter mplSyntaxFilter;
-  private RawUndoManager rawUndoManager;
   private TextLineNumber textLineNumber;
 
   private List<WindowControler<?, ?>> ctrl = new ArrayList<>();
@@ -245,6 +239,10 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
     this.link.setPath(path);
   }
 
+  public boolean isConnected() {
+    return getPresentationModel() != null;
+  }
+
   private JScrollPane getScrollPane() {
     if (scrollPane == null) {
       scrollPane = new JScrollPane();
@@ -264,64 +262,21 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
     return textLineNumber;
   }
 
-  BnTextPane getTextPane() {
+  BnEditorTextPane getTextPane() {
     if (textPane == null) {
-      textPane = new NoWrapBnTextPane();
-      textPane.setFont(new Font("Consolas", Font.PLAIN, 13));
+      textPane = new BnEditorTextPane(new BnEditorTextPane.Context() {
+        @Override
+        public EditorPM getPresentationModel() {
+          return MplEditor.this.getPresentationModel();
+        }
+      });
       textPane.setPath(new Path("this.code"));
       textPane.setModelProvider(getLocalModelProvider());
-      textPane.setEditorKit(new BnJaggedEditorKit());
       BnStyledDocument doc = textPane.getStyledDocument();
       doc.setDocumentFilter(getMplSyntaxFilter());
-
-      UndoManager undoManager = getUndoManager();
-      textPane.getDocument().addUndoableEditListener(undoManager);
       int ctrl = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-      textPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, ctrl), "redo");
-      textPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ctrl), "undo");
-      textPane.getActionMap().put("redo", new RedoAction(undoManager));
-      textPane.getActionMap().put("undo", new UndoAction(undoManager));
 
-      textPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_S, ctrl), "save");
-      textPane.getActionMap().put("save", new AbstractAction() {
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          MplEditorPM pModel = getPresentationModel();
-          if (pModel == null) {
-            return;
-          }
-          pModel.save();
-        }
-      });
-
-      textPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_D, ctrl), "delete");
-      textPane.getActionMap().put("delete", new AbstractAction() {
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          Element root = doc.getDefaultRootElement();
-          int elementIndex = root.getElementIndex(textPane.getCaretPosition());
-          Element line = root.getElement(elementIndex);
-          int start = line.getStartOffset();
-          int length = line.getEndOffset() - start;
-          if (doc.getLength() < start + length) {
-            if (start == 0) {
-              length--;
-            } else {
-              start--;
-            }
-          }
-          try {
-            doc.remove(start, length);
-          } catch (BadLocationException ex) {
-            throw new UndeclaredThrowableException(ex);
-          }
-        }
-      });
-
+      // Comment
       textPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_K, ctrl), "comment");
       textPane.getActionMap().put("comment", new AbstractAction() {
         private static final long serialVersionUID = 1L;
@@ -379,20 +334,20 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
         }
       });
 
+      // Search and Replace
       textPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_F, ctrl), "search and replace");
       textPane.getActionMap().put("search and replace", new AbstractAction() {
         private static final long serialVersionUID = 1L;
 
         @Override
         public void actionPerformed(ActionEvent e) {
-          MplEditorPM pModel = getPresentationModel();
-          if (pModel == null) {
-            return;
+          if (isConnected()) {
+            getPresentationModel().searchAndReplace();
           }
-          pModel.searchAndReplace();
         }
       });
 
+      // AutoCompletion
       textPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, ctrl), "auto complete");
       textPane.getActionMap().put("auto complete", new AbstractAction() {
         private static final long serialVersionUID = 1L;
@@ -431,6 +386,7 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
         }
       });
 
+      // Hover
       textPane.addMouseMotionListener(new MouseMotionAdapter() {
         CompilerExceptionWrapper lastEx;
 
@@ -515,19 +471,8 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
     return mplSyntaxFilter;
   }
 
-  /**
-   * @wbp.nonvisual location=8,419
-   */
-  private RawUndoManager getUndoManager() {
-    if (rawUndoManager == null) {
-      rawUndoManager = new RawUndoManager();
-      rawUndoManager.setLimit(Integer.MAX_VALUE);
-    }
-    return rawUndoManager;
-  }
-
   public void discardAllEdits() {
-    getUndoManager().discardAllEdits();
+    getTextPane().getUndoManager().discardAllEdits();
   }
 
 }

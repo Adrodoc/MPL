@@ -37,33 +37,20 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.utils;
+package de.adrodoc55.minecraft.mpl.ide.gui.editor;
 
-import java.awt.event.ActionEvent;
+import javax.swing.text.Document;
 
-import javax.swing.AbstractAction;
-import javax.swing.undo.CannotUndoException;
-import javax.swing.undo.UndoManager;
+import de.adrodoc55.minecraft.mpl.ide.gui.utils.BnJaggedEditorKit;
 
 /**
  * @author Adrodoc55
  */
-public class UndoAction extends AbstractAction {
-
-  private static final long serialVersionUID = -1330600449731063166L;
-  private final UndoManager manager;
-
-  public UndoAction(UndoManager manager) {
-    this.manager = manager;
-  }
+public class UndoableBnStyledEditorKit extends BnJaggedEditorKit {
+  private static final long serialVersionUID = 1L;
 
   @Override
-  public void actionPerformed(ActionEvent e) {
-    try {
-      manager.undo();
-    } catch (CannotUndoException ex) {
-      // Don't undo
-    }
+  public Document createDefaultDocument() {
+    return new UndoableBnStyledDocument();
   }
-
 }

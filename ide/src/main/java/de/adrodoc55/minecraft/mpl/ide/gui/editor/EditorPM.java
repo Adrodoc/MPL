@@ -37,33 +37,8 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.utils;
+package de.adrodoc55.minecraft.mpl.ide.gui.editor;
 
-import java.awt.event.ActionEvent;
-
-import javax.swing.AbstractAction;
-import javax.swing.undo.CannotRedoException;
-import javax.swing.undo.UndoManager;
-
-/**
- * @author Adrodoc55
- */
-public class RedoAction extends AbstractAction {
-
-  private static final long serialVersionUID = -4557132973085610799L;
-  private final UndoManager manager;
-
-  public RedoAction(UndoManager manager) {
-    this.manager = manager;
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    try {
-      manager.redo();
-    } catch (CannotRedoException ex) {
-      // Don't redo
-    }
-  }
-
+public interface EditorPM {
+  void save();
 }

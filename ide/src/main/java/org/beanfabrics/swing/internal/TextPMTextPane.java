@@ -140,7 +140,7 @@ public class TextPMTextPane extends JTextPane implements View<ITextPM> {
 
   /**
    * Creates the <code>EditorKit</code> to use by default. This is implemented to return
-   * <code>de.adrodoc55.minecraft.mpl.gui.bntextpane.BnStyledEditorKit</code>.
+   * {@link BnStyledEditorKit}.
    *
    * @return the editor kit
    */
@@ -221,7 +221,7 @@ public class TextPMTextPane extends JTextPane implements View<ITextPM> {
    *
    * @return <code>true</code> when this component is connected, else <code>false</code>
    */
-  boolean isConnected() {
+  protected boolean isConnected() {
     return getDocument() != null && getDocument().getPresentationModel() != null;
   }
 
