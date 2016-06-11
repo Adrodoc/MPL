@@ -37,8 +37,10 @@ class AutoCompletionActionSpec extends Specification {
     given:
     JTextComponent component = new JTextArea();
     underTest.template = '$'
+
     when:
     underTest.performOn(component)
+
     then:
     IllegalStateException ex = thrown()
     ex.message == "Template has incomplete variables. Type '\$\$' to enter the dollar character."
@@ -48,8 +50,10 @@ class AutoCompletionActionSpec extends Specification {
     given:
     JTextComponent component = new JTextArea();
     underTest.template = '$$'
+
     when:
     underTest.performOn(component)
+
     then:
     component.text == '$'
   }
@@ -58,8 +62,10 @@ class AutoCompletionActionSpec extends Specification {
     given:
     JTextComponent component = new JTextArea();
     underTest.template = '$$$'
+
     when:
     underTest.performOn(component)
+
     then:
     IllegalStateException ex = thrown()
     ex.message == "Template has incomplete variables. Type '\$\$' to enter the dollar character."
@@ -69,8 +75,10 @@ class AutoCompletionActionSpec extends Specification {
     given:
     JTextComponent component = new JTextArea();
     underTest.template = 'abcd${cursor}efgh'
+
     when:
     underTest.performOn(component)
+
     then:
     component.text == 'abcdefgh'
     component.caretPosition == 4
@@ -80,8 +88,10 @@ class AutoCompletionActionSpec extends Specification {
     given:
     JTextComponent component = new JTextArea();
     underTest.template = 'abcd${cursor}efgh${cursor}ijkl'
+
     when:
     underTest.performOn(component)
+
     then:
     component.text == 'abcdefghijkl'
     component.caretPosition == 4
@@ -92,8 +102,10 @@ class AutoCompletionActionSpec extends Specification {
     underTest = new UnderTest("my funny token")
     JTextComponent component = new JTextArea();
     underTest.template = 'abcd${token}efgh'
+
     when:
     underTest.performOn(component)
+
     then:
     component.text == 'abcdmy funny tokenefgh'
   }
@@ -102,8 +114,10 @@ class AutoCompletionActionSpec extends Specification {
     given:
     JTextComponent component = new JTextArea();
     underTest.template = '${unknown}'
+
     when:
     underTest.performOn(component)
+
     then:
     IllegalArgumentException ex = thrown()
     ex.message == "Unknown variable 'unknown'"
@@ -113,8 +127,10 @@ class AutoCompletionActionSpec extends Specification {
     given:
     JTextComponent component = new JTextArea();
     underTest.template = 'abcd$${cursor}efgh'
+
     when:
     underTest.performOn(component)
+
     then:
     component.text == 'abcd${cursor}efgh'
   }
@@ -123,8 +139,10 @@ class AutoCompletionActionSpec extends Specification {
     given:
     JTextComponent component = new JTextArea();
     underTest.template = 'abcd$$${cursor}efgh'
+
     when:
     underTest.performOn(component)
+
     then:
     component.text == 'abcd$efgh'
     component.caretPosition == 5

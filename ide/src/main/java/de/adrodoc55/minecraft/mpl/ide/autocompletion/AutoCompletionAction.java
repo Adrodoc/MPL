@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.autocompletion;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,7 +60,7 @@ import de.adrodoc55.commons.Filter;
  * @author Adrodoc55
  */
 public abstract class AutoCompletionAction {
-  private static final Pattern INSERT = Pattern.compile("(?<!\\$)(?:\\$\\$)*(\\$\\{([^}]*)\\})");
+  private static final Pattern INSERT = Pattern.compile("(?<!\\$)(\\$+)(?:\\{([^}\\n]*)\\})?");
 
   private static final String CURSOR = "cursor";
   private static final Filter<String> CURSOR_INSERTS = insert -> CURSOR.equals(insert);
@@ -83,6 +85,7 @@ public abstract class AutoCompletionAction {
     template = template.replace("\n", "\n" + indent);
     template = replaceVariables(template, NON_CURSOR_INSERTS);
     int cursorIndex = getCursorIndex(template);
+    System.err.println();
     template = replaceVariables(template, CURSOR_INSERTS);
 
     try {
@@ -99,7 +102,9 @@ public abstract class AutoCompletionAction {
     while (matcher.find()) {
       String match = matcher.group(2);
       if (CURSOR.equals(match)) {
-        return matcher.start(1);
+        String leadingDollar = matcher.group(1);
+        leadingDollar = leadingDollar != null ? leadingDollar : "";
+        return matcher.start() + leadingDollar.length() / 2;
       }
     }
     return template.length();
@@ -109,11 +114,21 @@ public abstract class AutoCompletionAction {
     Matcher matcher = INSERT.matcher(template);
     StringBuffer sb = new StringBuffer(template.length());
     while (matcher.find()) {
-      String match = matcher.group(2);
-      if (filter.matches(match)) {
-        String replacement = getReplacement(match);
-        matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+      String type = matcher.group(2);
+      if (!filter.matches(type)) {
+        continue;
       }
+      String dollars = matcher.group(1);
+      String replacement;
+      int dollarCount = dollars.length();
+      if (dollarCount % 2 == 0) {
+        replacement = matcher.group().substring(dollarCount / 2);
+      } else {
+        checkState(type != null,
+            "Template has incomplete variables. Type '$$' to enter the dollar character.");
+        replacement = dollars.substring((dollarCount + 1) / 2) + getReplacement(type);
+      }
+      matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
     }
     matcher.appendTail(sb);
     return sb.toString();
