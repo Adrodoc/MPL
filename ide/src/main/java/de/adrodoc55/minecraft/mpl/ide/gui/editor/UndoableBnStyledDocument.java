@@ -42,6 +42,7 @@ package de.adrodoc55.minecraft.mpl.ide.gui.editor;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.event.DocumentEvent.EventType;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AttributeSet;
@@ -52,6 +53,9 @@ import javax.swing.undo.CannotUndoException;
 
 import org.beanfabrics.swing.internal.BnStyledDocument;
 
+/**
+ * @author Adrodoc55
+ */
 public class UndoableBnStyledDocument extends BnStyledDocument {
   private static final long serialVersionUID = 1L;
 
@@ -86,6 +90,11 @@ public class UndoableBnStyledDocument extends BnStyledDocument {
     fireUndoableEditEvent(new UndoableEditEvent(this, edit));
   }
 
+  private void remove2(int offs, int len, boolean isUndo) throws BadLocationException {
+    super.remove(offs, len);
+    fireRemoveUpdate(new CaretUpdateEvent(offs, len, EventType.REMOVE));
+  }
+
   @Override
   public void replace(int offset, int length, String newText, AttributeSet attrs)
       throws BadLocationException {
@@ -95,11 +104,31 @@ public class UndoableBnStyledDocument extends BnStyledDocument {
     fireUndoableEditEvent(new UndoableEditEvent(this, edit));
   }
 
+  private void replace2(int offs, int len, String text, AttributeSet attrs, boolean isUndo)
+      throws BadLocationException {
+    super.replace(offs, len, text, attrs);
+    fireChangedUpdate(new CaretUpdateEvent(offs, text.length(), EventType.CHANGE));
+  }
+
   @Override
   public void insertString(int offset, String text, AttributeSet a) throws BadLocationException {
     super.insertString(offset, text, a);
     InsertUndoableEdit edit = new InsertUndoableEdit(offset, text);
     fireUndoableEditEvent(new UndoableEditEvent(this, edit));
+  }
+
+  private void insertString2(int offs, String str, AttributeSet a, boolean isUndo)
+      throws BadLocationException {
+    super.insertString(offs, str, a);
+    fireInsertUpdate(new CaretUpdateEvent(offs, str.length(), EventType.INSERT));
+  }
+
+  public class CaretUpdateEvent extends DefaultDocumentEvent {
+    private static final long serialVersionUID = 1L;
+
+    public CaretUpdateEvent(int offs, int len, EventType type) {
+      super(offs, len, type);
+    }
   }
 
   public class InsertUndoableEdit extends AbstractUndoableEdit {
@@ -115,15 +144,14 @@ public class UndoableBnStyledDocument extends BnStyledDocument {
 
     @Override
     public boolean canUndo() {
-      return super.canUndo()
-          && offset + text.length() <= UndoableBnStyledDocument.super.getLength();
+      return super.canUndo() && offset + text.length() <= getLength();
     }
 
     @Override
     public void undo() throws CannotUndoException {
       super.undo();
       try {
-        UndoableBnStyledDocument.super.remove(offset, text.length());
+        remove2(offset, text.length(), true);
       } catch (BadLocationException ex) {
         throw new CannotUndoException();
       }
@@ -131,14 +159,14 @@ public class UndoableBnStyledDocument extends BnStyledDocument {
 
     @Override
     public boolean canRedo() {
-      return super.canRedo() && offset <= UndoableBnStyledDocument.super.getLength();
+      return super.canRedo() && offset <= getLength();
     }
 
     @Override
     public void redo() throws CannotRedoException {
       super.redo();
       try {
-        UndoableBnStyledDocument.super.insertString(offset, text, null);
+        insertString2(offset, text, null, false);
       } catch (BadLocationException ex) {
         throw new CannotRedoException();
       }
@@ -163,14 +191,14 @@ public class UndoableBnStyledDocument extends BnStyledDocument {
 
     @Override
     public boolean canUndo() {
-      return super.canUndo() && offset <= UndoableBnStyledDocument.super.getLength();
+      return super.canUndo() && offset <= getLength();
     }
 
     @Override
     public void undo() throws CannotRedoException {
       super.undo();
       try {
-        UndoableBnStyledDocument.super.insertString(offset, text, null);
+        insertString2(offset, text, null, true);
       } catch (BadLocationException ex) {
         throw new CannotRedoException();
       }
@@ -178,15 +206,14 @@ public class UndoableBnStyledDocument extends BnStyledDocument {
 
     @Override
     public boolean canRedo() {
-      return super.canRedo()
-          && offset + text.length() <= UndoableBnStyledDocument.super.getLength();
+      return super.canRedo() && offset + text.length() <= getLength();
     }
 
     @Override
     public void redo() throws CannotUndoException {
       super.redo();
       try {
-        UndoableBnStyledDocument.super.remove(offset, text.length());
+        remove2(offset, text.length(), false);
       } catch (BadLocationException ex) {
         throw new CannotUndoException();
       }
@@ -213,15 +240,14 @@ public class UndoableBnStyledDocument extends BnStyledDocument {
 
     @Override
     public boolean canUndo() {
-      return super.canUndo()
-          && offset + newText.length() <= UndoableBnStyledDocument.super.getLength();
+      return super.canUndo() && offset + newText.length() <= getLength();
     }
 
     @Override
     public void undo() throws CannotRedoException {
       super.undo();
       try {
-        UndoableBnStyledDocument.super.replace(offset, newText.length(), oldText, null);
+        replace2(offset, newText.length(), oldText, null, true);
       } catch (BadLocationException ex) {
         throw new CannotRedoException();
       }
@@ -229,15 +255,14 @@ public class UndoableBnStyledDocument extends BnStyledDocument {
 
     @Override
     public boolean canRedo() {
-      return super.canRedo()
-          && offset + oldText.length() <= UndoableBnStyledDocument.super.getLength();
+      return super.canRedo() && offset + oldText.length() <= getLength();
     }
 
     @Override
     public void redo() throws CannotUndoException {
       super.redo();
       try {
-        UndoableBnStyledDocument.super.replace(offset, oldText.length(), newText, null);
+        replace2(offset, oldText.length(), newText, null, false);
       } catch (BadLocationException ex) {
         throw new CannotUndoException();
       }

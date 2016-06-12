@@ -47,7 +47,10 @@ import java.lang.reflect.UndeclaredThrowableException;
 
 import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import javax.swing.text.EditorKit;
 import javax.swing.text.Element;
 import javax.swing.undo.UndoManager;
@@ -55,12 +58,14 @@ import javax.swing.undo.UndoManager;
 import org.beanfabrics.Path;
 import org.beanfabrics.swing.internal.BnStyledDocument;
 
+import de.adrodoc55.minecraft.mpl.ide.gui.editor.UndoableBnStyledDocument.CaretUpdateEvent;
 import de.adrodoc55.minecraft.mpl.ide.gui.utils.NoWrapBnTextPane;
 
+/**
+ * @author Adrodoc55
+ */
 public class BnEditorTextPane extends NoWrapBnTextPane {
   private static final long serialVersionUID = 1L;
-
-  private final UndoManager undoManager = new UndoManager();
 
   public interface Context {
     EditorPM getPresentationModel();
@@ -68,24 +73,70 @@ public class BnEditorTextPane extends NoWrapBnTextPane {
 
   private final Context context;
 
+  private DocumentListener caretListener;
+  private UndoManager undoManager;
+
   public BnEditorTextPane(Context context) {
     this.context = context;
     setFont(new Font("Consolas", Font.PLAIN, 13));
     setPath(new Path("this.code"));
-    getDocument().addUndoableEditListener(undoManager);
     initUndo();
     initRedo();
     initSave();
     initDeleteLine();
   }
 
-  public UndoManager getUndoManager() {
-    return undoManager;
-  }
-
   @Override
   protected EditorKit createDefaultEditorKit() {
     return new UndoableBnStyledEditorKit();
+  }
+
+  @Override
+  public void setDocument(Document doc) {
+    BnStyledDocument oldDoc = getDocument();
+    if (oldDoc != null) {
+      oldDoc.removeDocumentListener(getCaretListener());
+      oldDoc.removeUndoableEditListener(getUndoManager());
+    }
+    super.setDocument(doc);
+    doc.addDocumentListener(getCaretListener());
+    doc.addUndoableEditListener(getUndoManager());
+  }
+
+  public DocumentListener getCaretListener() {
+    if (caretListener == null) {
+      caretListener = new DocumentListener() {
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+          if (e instanceof CaretUpdateEvent) {
+            setCaretPosition(e.getOffset());
+          }
+        }
+
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+          if (e instanceof CaretUpdateEvent) {
+            setCaretPosition(e.getOffset() + e.getLength());
+          }
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+          if (e instanceof CaretUpdateEvent) {
+            setCaretPosition(e.getOffset() + e.getLength());
+          }
+        }
+      };
+    }
+    return caretListener;
+  }
+
+  public UndoManager getUndoManager() {
+    if (undoManager == null) {
+      undoManager = new UndoManager();
+      undoManager.setLimit(-1);
+    }
+    return undoManager;
   }
 
   public void initUndo() {
@@ -96,7 +147,9 @@ public class BnEditorTextPane extends NoWrapBnTextPane {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        undoManager.undo();
+        if (undoManager.canUndo()) {
+          undoManager.undo();
+        }
       }
     });
   }
@@ -109,7 +162,9 @@ public class BnEditorTextPane extends NoWrapBnTextPane {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        undoManager.redo();
+        if (undoManager.canRedo()) {
+          undoManager.redo();
+        }
       }
     });
   }

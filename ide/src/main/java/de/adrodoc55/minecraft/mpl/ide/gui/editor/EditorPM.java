@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui.editor;
 
+/**
+ * @author Adrodoc55
+ */
 public interface EditorPM {
   void save();
 }

@@ -73,8 +73,8 @@ import org.beanfabrics.event.ListListener;
 import org.beanfabrics.model.IListPM;
 import org.beanfabrics.model.ListPM;
 import org.beanfabrics.swing.BnButton;
-import org.beanfabrics.swing.BnMenuItem;
 import org.beanfabrics.swing.BnCheckBoxMenuItem;
+import org.beanfabrics.swing.BnMenuItem;
 
 /**
  * The MplFrame is a {@link View} on a {@link MplFramePM}.

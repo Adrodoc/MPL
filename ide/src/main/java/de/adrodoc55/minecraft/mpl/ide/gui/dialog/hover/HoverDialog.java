@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.ide.gui.dialog.hover;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -52,7 +53,9 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 
 import org.beanfabrics.IModelProvider;
 import org.beanfabrics.Link;
@@ -63,9 +66,6 @@ import org.beanfabrics.View;
 import org.beanfabrics.swing.BnLabel;
 
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowView;
-import java.awt.Color;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.LineBorder;
 
 /**
  * The HoverDialog is a {@link View} on a {@link HoverDialogPM}.
@@ -121,7 +121,8 @@ public class HoverDialog extends JDialog implements WindowView<HoverDialogPM>, M
     if (panel == null) {
       panel = new JPanel();
       panel.setBackground(new Color(250, 250, 210));
-      panel.setBorder(new CompoundBorder(new LineBorder(new Color(0, 0, 0)), new EmptyBorder(5, 5, 5, 5)));
+      panel.setBorder(
+          new CompoundBorder(new LineBorder(new Color(0, 0, 0)), new EmptyBorder(5, 5, 5, 5)));
       panel.setLayout(new BorderLayout(0, 0));
       panel.add(getBnlblMessage());
     }
