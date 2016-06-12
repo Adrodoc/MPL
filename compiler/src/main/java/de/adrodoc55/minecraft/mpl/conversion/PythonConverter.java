@@ -49,8 +49,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 /**
  * @author Adrodoc55
  */
-public class PythonConverter extends MplConverter {
-
+public class PythonConverter {
   private static final String INDENT = "    ";
 
   public static String convert(MplCompilationResult result, String name) {
@@ -96,8 +95,8 @@ public class PythonConverter extends MplConverter {
       CommandBlock commandBlock = (CommandBlock) block;
       String xyz = "(" + x + ", " + y + ", " + z + ")";
       String command = StringUtils.escapeBackslashes(commandBlock.getCommand());
-      byte blockId = commandBlock.getMode().getByteBlockId();
-      int damage = toDamageValue(commandBlock);
+      byte blockId = commandBlock.getByteBlockId();
+      int damage = commandBlock.getDamageValue();
       String auto = commandBlock.getNeedsRedstone() ? "False" : "True";
       return "create_command_block(level, " + xyz + ", '" + command + "', " + blockId + ", "
           + damage + ", " + auto + ")";

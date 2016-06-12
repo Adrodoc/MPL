@@ -62,7 +62,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 /**
  * @author Adrodoc55
  */
-public class SchematicConverter extends MplConverter {
+public class SchematicConverter {
 
   public static TagCompound convert(MplCompilationResult result) {
     ImmutableMap<Coordinate3D, MplBlock> blockMap = result.getBlocks();
@@ -85,7 +85,7 @@ public class SchematicConverter extends MplConverter {
 
           // data
           if (block instanceof CommandBlock) {
-            data.put(toDamageValue((CommandBlock) block));
+            data.put(((CommandBlock) block).getDamageValue());
           } else {
             data.put((byte) 0);
           }

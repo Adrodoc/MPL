@@ -56,7 +56,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 /**
  * @author Adrodoc55
  */
-public class CommandConverter extends MplConverter {
+public class CommandConverter {
   public static final int MAX_COMMAND_LENGTH = 32500;
 
   private static final String HEADER =
@@ -138,8 +138,8 @@ public class CommandConverter extends MplConverter {
 
   private static StringBuilder convert(CommandBlock block, Orientation3D orientation) {
     String coordinate = block.getCoordinate().plus(getOffset(orientation)).toRelativeString();
-    String blockId = block.getMode().getStringBlockId();
-    int damage = toDamageValue(block);
+    String blockId = block.getStringBlockId();
+    int damage = block.getDamageValue();
     StringBuilder sb = new StringBuilder(COMMAND_HEADER);
     sb.append("setblock ");
     sb.append(coordinate).append(' ');

@@ -114,4 +114,33 @@ public class CommandBlock extends MplBlock {
   public String getStringBlockId() {
     return getMode().getStringBlockId();
   }
+
+  public byte getDamageValue() {
+    byte damage = getDamageValue(getDirection());
+    if (isConditional()) {
+      damage += 8;
+    }
+    return damage;
+  }
+
+  public static byte getDamageValue(Direction3D direction) {
+    if (direction == null) {
+      throw new NullPointerException("direction == null");
+    }
+    switch (direction) {
+      case DOWN:
+        return 0;
+      case UP:
+        return 1;
+      case NORTH:
+        return 2;
+      case SOUTH:
+        return 3;
+      case WEST:
+        return 4;
+      case EAST:
+        return 5;
+    }
+    throw new IllegalArgumentException("Unknown Direction: " + direction);
+  }
 }
