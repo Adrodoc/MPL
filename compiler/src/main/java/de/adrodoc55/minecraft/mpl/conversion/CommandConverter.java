@@ -60,9 +60,13 @@ public class CommandConverter {
   public static final int MAX_COMMAND_LENGTH = 32500;
 
   private static final String HEADER =
-      "summon FallingSand ~ ~1 ~ {Block:redstone_block,Time:1,Passengers:[{id:FallingSand,Block:activator_rail,Time:1,Passengers:[";
+      "summon FallingSand ~ ~1 ~ {Block:redstone_block,Time:1,Passengers:["
+          + "{id:FallingSand,Block:activator_rail,Time:1,Passengers:[";
   private static final String TAIL =
-      "{id:MinecartCommandBlock,Command:setblock ~ ~2 ~ command_block 0 replace {Command:fill ~ ~-4 ~ ~ ~ ~ air}},{id:MinecartCommandBlock,Command:setblock ~ ~1 ~ redstone_block},{id:MinecartCommandBlock,Command:kill @e[type=MinecartCommandBlock,r=0]}]}]}";
+      "{id:MinecartCommandBlock,Command:setblock ~ ~-2 ~ command_block},"
+          + "{id:MinecartCommandBlock,Command:setblock ~ ~2 ~ command_block 0 replace {Command:fill ~ ~-3 ~ ~ ~ ~ air}},"
+          + "{id:MinecartCommandBlock,Command:setblock ~ ~1 ~ redstone_block},"
+          + "{id:MinecartCommandBlock,Command:kill @e[type=MinecartCommandBlock,r=0]}]}]}";
   private static final String COMMAND_HEADER = "{id:MinecartCommandBlock,Command:";
   private static final String COMMAND_TAIL = "},";
 
