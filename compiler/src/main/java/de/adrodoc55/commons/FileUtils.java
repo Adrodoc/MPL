@@ -51,9 +51,8 @@ import com.google.common.io.Resources;
  * @author Adrodoc55
  */
 public class FileUtils {
-
-  private FileUtils() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated!");
+  protected FileUtils() throws Exception {
+    throw new Exception("Utils Classes cannot be instantiated!");
   }
 
   public static String getFilenameWithoutExtension(File file) {

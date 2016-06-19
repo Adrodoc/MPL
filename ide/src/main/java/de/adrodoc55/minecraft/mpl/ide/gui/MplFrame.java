@@ -101,6 +101,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnMenuItem bnmntmCompileToFilterUnder;
   private JMenu mnOptions;
   private BnCheckBoxMenuItem bnchckbxmntmDebug;
+  private BnCheckBoxMenuItem bnchckbxmntmDeleteOnUninstall;
   private BnCheckBoxMenuItem bnchckbxmntmTransmitter;
   private JToolBar toolBar;
   private BnButton bnbtnNew;
@@ -387,6 +388,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
     if (mnOptions == null) {
       mnOptions = new JMenu("Options");
       mnOptions.add(getBnchckbxmntmDebug());
+      mnOptions.add(getBnchckbxmntmDeleteOnUninstall());
       mnOptions.add(getBnchckbxmntmTransmitter());
     }
     return mnOptions;
@@ -400,6 +402,16 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
       bnchckbxmntmDebug.setText("Debug");
     }
     return bnchckbxmntmDebug;
+  }
+
+  private BnCheckBoxMenuItem getBnchckbxmntmDeleteOnUninstall() {
+    if (bnchckbxmntmDeleteOnUninstall == null) {
+      bnchckbxmntmDeleteOnUninstall = new BnCheckBoxMenuItem();
+      bnchckbxmntmDeleteOnUninstall.setPath(new Path("this.deleteOnUninstall"));
+      bnchckbxmntmDeleteOnUninstall.setModelProvider(getLocalModelProvider());
+      bnchckbxmntmDeleteOnUninstall.setText("Delete on Uninstall");
+    }
+    return bnchckbxmntmDeleteOnUninstall;
   }
 
   private BnCheckBoxMenuItem getBnchckbxmntmTransmitter() {

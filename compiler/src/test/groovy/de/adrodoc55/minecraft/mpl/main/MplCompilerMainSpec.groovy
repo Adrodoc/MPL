@@ -39,12 +39,16 @@
  */
 package de.adrodoc55.minecraft.mpl.main;
 
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DELETE_ON_UNINSTALL
+
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 
+import org.assertj.core.api.Assertions;
 import org.junit.Test
 
 import de.adrodoc55.minecraft.mpl.MplSpecBase
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions
 
 public class MplCompilerMainSpec extends MplSpecBase {
 
@@ -90,7 +94,7 @@ public class MplCompilerMainSpec extends MplSpecBase {
   }
 
   @Test
-  public void "test startCompiler with invalid srcPath"() throws Exception {
+  public void "test startCompiler with invalid srcPath"() {
     given:
     File file = new File("test.mpl");
 
@@ -104,7 +108,7 @@ public class MplCompilerMainSpec extends MplSpecBase {
   }
 
   @Test
-  public void test_startCompiler_with_valid_srcPath() throws Exception {
+  public void test_startCompiler_with_valid_srcPath() {
     given:
     File file = new File("test.mpl");
     file.createNewFile();
@@ -120,7 +124,7 @@ public class MplCompilerMainSpec extends MplSpecBase {
   }
 
   @Test
-  public void test_startCompiler_with_one_compiler_option() throws Exception {
+  public void test_startCompiler_with_one_compiler_option() {
     given:
     File file = new File("test.mpl");
     file.createNewFile();

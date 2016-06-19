@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.compilation;
 
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
+import static java.util.stream.Collectors.toList;
 
 import java.io.File;
 import java.io.IOException;
@@ -100,8 +101,10 @@ public class MplCompiler extends MplBaseListener {
     List<CommandBlockChain> chains = place(container, options);
 
     // Result
-    List<MplBlock> blocks =
-        chains.stream().flatMap(c -> c.getBlocks().stream()).collect(Collectors.toList());
+    List<MplBlock> blocks = chains.stream()//
+        .flatMap(c -> c.getBlocks().stream())//
+        .collect(toList());
+
     ImmutableMap<Coordinate3D, MplBlock> result = Maps.uniqueIndex(blocks, b -> b.getCoordinate());
     return new MplCompilationResult(program.getOrientation(), result);
   }
@@ -302,8 +305,8 @@ public class MplCompiler extends MplBaseListener {
   private static final Pattern thisPattern =
       Pattern.compile("\\$\\{\\s*this\\s*([+-])\\s*(\\d+)\\s*\\}");
 
-  private static final Pattern originPattern = Pattern
-      .compile("\\$\\{\\s*origin\\s*\\+\\s*\\(\\s*(-?\\d+)\\s+(-?\\d+)\\s+(-?\\d+)\\s*\\)\\s*\\}");
+  private static final Pattern originPattern = Pattern.compile(
+      "\\$\\{\\s*origin\\s*(?:\\+\\s*\\(\\s*(-?\\d+)\\s+(-?\\d+)\\s+(-?\\d+)\\s*\\)\\s*)?\\}");
 
   private static void insertRelativeCoordinates(List<MplBlock> blocks, Orientation3D orientation) {
     for (int i = 0; i < blocks.size(); i++) {
@@ -348,11 +351,14 @@ public class MplCompiler extends MplBaseListener {
       Matcher originMatcher = originPattern.matcher(current.getCommand());
       StringBuffer originSb = new StringBuffer();
       while (originMatcher.find()) {
-        int x = Integer.parseInt(originMatcher.group(1));
-        int y = Integer.parseInt(originMatcher.group(2));
-        int z = Integer.parseInt(originMatcher.group(3));
-        Coordinate3D referenced = new Coordinate3D(x, y, z);
-        Coordinate3D relativeCoordinate = current.getCoordinate().mult(-1).plus(referenced);
+        Coordinate3D relativeCoordinate = current.getCoordinate().mult(-1);
+        if (originMatcher.group(1) != null) {
+          int x = Integer.parseInt(originMatcher.group(1));
+          int y = Integer.parseInt(originMatcher.group(2));
+          int z = Integer.parseInt(originMatcher.group(3));
+          Coordinate3D referenced = new Coordinate3D(x, y, z);
+          relativeCoordinate = relativeCoordinate.plus(referenced);
+        }
         originMatcher.appendReplacement(originSb, relativeCoordinate.toRelativeString());
       }
       originMatcher.appendTail(originSb);

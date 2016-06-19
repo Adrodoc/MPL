@@ -47,9 +47,8 @@ import org.beanfabrics.model.Options;
  * @author Adrodoc55
  */
 public class OptionsUtils {
-
-  private OptionsUtils() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated");
+  protected OptionsUtils() throws Exception {
+    throw new Exception("Utils Classes cannot be instantiated!");
   }
 
   public static void put(Options<String> options, String text) {

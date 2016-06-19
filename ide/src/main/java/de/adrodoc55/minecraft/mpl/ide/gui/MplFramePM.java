@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.ide.gui;
 
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DELETE_ON_UNINSTALL;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.awt.KeyboardFocusManager;
@@ -109,6 +110,7 @@ public class MplFramePM extends AbstractPM {
   final OperationPM compileToFilter = new OperationPM();
   final OperationPM compileToFilterUnder = new OperationPM();
   final BooleanPM debug = new BooleanPM();
+  final BooleanPM deleteOnUninstall = new BooleanPM();
   final BooleanPM transmitter = new BooleanPM();
 
   SearchAndReplaceDialogControler sarController =
@@ -134,6 +136,11 @@ public class MplFramePM extends AbstractPM {
     compileToSchematicUnder.setDescription(COMPILE_TO_SCHEMATIC);
     compileToFilter.setDescription(COMPILE_TO_FILTER);
     compileToFilterUnder.setDescription(COMPILE_TO_FILTER);
+    deleteOnUninstall.setBoolean(true);
+    transmitter.setBoolean(true);
+    debug.setDescription("Compile in debug mode");
+    deleteOnUninstall.setDescription("Delete all command blocks on uninstall");
+    transmitter.setDescription("Use redstone blocks");
     PMManager.setup(this);
   }
 
@@ -326,9 +333,11 @@ public class MplFramePM extends AbstractPM {
   }
 
   private MplCompilationResult compile(MplEditorPM selected) throws CompilationFailedException {
-    List<CompilerOption> options = new ArrayList<>(2);
+    List<CompilerOption> options = new ArrayList<>(3);
     if (debug.getBoolean())
       options.add(DEBUG);
+    if (deleteOnUninstall.getBoolean())
+      options.add(DELETE_ON_UNINSTALL);
     if (transmitter.getBoolean())
       options.add(TRANSMITTER);
     for (MplEditorPM editorPm : editors) {

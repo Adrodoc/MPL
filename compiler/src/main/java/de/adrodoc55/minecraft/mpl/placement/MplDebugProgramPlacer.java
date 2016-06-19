@@ -39,12 +39,15 @@
  */
 package de.adrodoc55.minecraft.mpl.placement;
 
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DELETE_ON_UNINSTALL;
+
 import java.util.List;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.kussm.direction.Directions;
 
@@ -98,7 +101,18 @@ public class MplDebugProgramPlacer extends MplChainPlacer {
   }
 
   protected void generateUnInstall() throws NotEnoughSpaceException {
+    CommandChain uninstall = getPopulatedUninstall();
+    Command deleteOnUninstall = null;
+    if (options.hasOption(DELETE_ON_UNINSTALL)) {
+      deleteOnUninstall = new Command();
+      uninstall.getCommands().add(deleteOnUninstall);
+    }
+
     addChain(getPopulatedInstall());
-    addChain(getPopulatedUninstall());
+    addChain(uninstall);
+
+    if (deleteOnUninstall != null) {
+      deleteOnUninstall.setCommand(getDeleteCommand());
+    }
   }
 }

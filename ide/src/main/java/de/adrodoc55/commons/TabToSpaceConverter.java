@@ -45,9 +45,8 @@ import java.util.Arrays;
  * @author Adrodoc55
  */
 public class TabToSpaceConverter {
-
-  private TabToSpaceConverter() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated!");
+  protected TabToSpaceConverter() throws Exception {
+    throw new Exception("Utils Classes cannot be instantiated!");
   }
 
   /**

@@ -47,9 +47,8 @@ import javax.swing.text.Document;
  * @author Adrodoc55
  */
 public class DocumentUtils {
-
-  private DocumentUtils() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated!");
+  protected DocumentUtils() throws Exception {
+    throw new Exception("Utils Classes cannot be instantiated!");
   }
 
   /**

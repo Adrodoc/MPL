@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.conversion;
 
+import static de.adrodoc55.minecraft.mpl.MplUtils.getMaxCoordinate;
+import static de.adrodoc55.minecraft.mpl.MplUtils.getMinCoordinate;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +55,7 @@ import com.evilco.mc.nbt.tag.TagList;
 import com.evilco.mc.nbt.tag.TagShort;
 import com.evilco.mc.nbt.tag.TagString;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.blocks.AirBlock;
@@ -66,14 +70,19 @@ public class SchematicConverter {
 
   public static TagCompound convert(MplCompilationResult result) {
     ImmutableMap<Coordinate3D, MplBlock> blockMap = result.getBlocks();
-    Coordinate3D max = getMax(blockMap);
-    int volume = max.getX() * max.getY() * max.getZ();
+    ImmutableSet<Coordinate3D> coordinates = blockMap.keySet();
+    Coordinate3D min = getMinCoordinate(coordinates);
+    Coordinate3D max = getMaxCoordinate(coordinates);
+    short width = (short) (1 + max.getX() - min.getX());
+    short heigth = (short) (1 + max.getY() - min.getY());
+    short length = (short) (1 + max.getZ() - min.getZ());
+    int volume = width * heigth * length;
     ByteBuffer blocks = ByteBuffer.allocate(volume);
     ByteBuffer data = ByteBuffer.allocate(volume);
     List<ITag> tileEntities = new ArrayList<>(blockMap.size());
-    for (int y = 0; y < max.getY(); y++) {
-      for (int z = 0; z < max.getZ(); z++) {
-        for (int x = 0; x < max.getX(); x++) {
+    for (int y = min.getY(); y <= max.getY(); y++) {
+      for (int z = min.getZ(); z <= max.getZ(); z++) {
+        for (int x = min.getX(); x <= max.getX(); x++) {
           Coordinate3D coord = new Coordinate3D(x, y, z);
           MplBlock block = blockMap.get(coord);
           if (block == null) {
@@ -98,9 +107,9 @@ public class SchematicConverter {
       }
     }
     TagCompound schematic = new TagCompound("Schematic");
-    schematic.setTag(new TagShort("Width", (short) max.getX()));
-    schematic.setTag(new TagShort("Height", (short) max.getY()));
-    schematic.setTag(new TagShort("Length", (short) max.getZ()));
+    schematic.setTag(new TagShort("Width", width));
+    schematic.setTag(new TagShort("Height", heigth));
+    schematic.setTag(new TagShort("Length", length));
     schematic.setTag(new TagString("Materials", "Alpha"));
     schematic.setTag(new TagByteArray("Blocks", blocks.array()));
     schematic.setTag(new TagByteArray("Data", data.array()));
@@ -108,16 +117,6 @@ public class SchematicConverter {
     schematic.setTag(new TagList("Entities", new ArrayList<>()));
     schematic.setTag(new TagList("TileTicks", new ArrayList<>()));
     return schematic;
-  }
-
-  private static Coordinate3D getMax(ImmutableMap<Coordinate3D, MplBlock> blockMap) {
-    int x = 0, y = 0, z = 0;
-    for (Coordinate3D coord : blockMap.keySet()) {
-      x = Math.max(x, coord.getX());
-      y = Math.max(y, coord.getY());
-      z = Math.max(z, coord.getZ());
-    }
-    return new Coordinate3D(x + 1, y + 1, z + 1);
   }
 
   public static TagCompound toControl(CommandBlock block) {

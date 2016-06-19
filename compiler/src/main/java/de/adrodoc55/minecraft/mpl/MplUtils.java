@@ -1,0 +1,106 @@
+/*
+ * Minecraft Programming Language (MPL): A language for easy development of command block
+ * applications including an IDE.
+ *
+ * © Copyright (C) 2016 Adrodoc55
+ *
+ * This file is part of MPL.
+ *
+ * MPL is free software: you can redistribute it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * MPL is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MPL. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ *
+ *
+ * Minecraft Programming Language (MPL): Eine Sprache für die einfache Entwicklung von Commandoblock
+ * Anwendungen, inklusive einer IDE.
+ *
+ * © Copyright (C) 2016 Adrodoc55
+ *
+ * Diese Datei ist Teil von MPL.
+ *
+ * MPL ist freie Software: Sie können diese unter den Bedingungen der GNU General Public License,
+ * wie von der Free Software Foundation, Version 3 der Lizenz oder (nach Ihrer Wahl) jeder späteren
+ * veröffentlichten Version, weiterverbreiten und/oder modifizieren.
+ *
+ * MPL wird in der Hoffnung, dass es nützlich sein wird, aber OHNE JEDE GEWÄHRLEISTUNG,
+ * bereitgestellt; sogar ohne die implizite Gewährleistung der MARKTFÄHIGKEIT oder EIGNUNG FÜR EINEN
+ * BESTIMMTEN ZWECK. Siehe die GNU General Public License für weitere Details.
+ *
+ * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
+ * nicht, siehe <http://www.gnu.org/licenses/>.
+ */
+package de.adrodoc55.minecraft.mpl;
+
+import static de.adrodoc55.minecraft.coordinate.Axis3D.X;
+import static de.adrodoc55.minecraft.coordinate.Axis3D.Y;
+import static de.adrodoc55.minecraft.coordinate.Axis3D.Z;
+
+import java.util.Collection;
+import java.util.function.BinaryOperator;
+
+import de.adrodoc55.minecraft.coordinate.Axis3D;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Orientation3D;
+
+/**
+ * @author Adrodoc55
+ */
+public class MplUtils {
+  protected MplUtils() throws Exception {
+    throw new Exception("Utils Classes cannot be instantiated!");
+  }
+
+  private static int get(Collection<Coordinate3D> coordinates, Axis3D axis,
+      BinaryOperator<Integer> accumulator) {
+    int result = coordinates.stream().map(c -> c.get(axis)).reduce(accumulator).orElse(0);
+    return result;
+  }
+
+  private static int getBoundary(Collection<Coordinate3D> coordinates, Orientation3D orientation,
+      Axis3D axis) {
+    boolean negative = orientation.get(axis).isNegative();
+    BinaryOperator<Integer> accumulator = negative ? Math::min : Math::max;
+    int result = get(coordinates, axis, accumulator);
+    return result;
+  }
+
+  /**
+   * Return the maximal {@link Coordinate3D} regarding the {@link Orientation3D}
+   *
+   * @param orientation
+   * @param coordinates
+   * @return the maximal coordinate
+   */
+  public static Coordinate3D getBoundaries(Orientation3D orientation,
+      Collection<Coordinate3D> coordinates) {
+    int x = getBoundary(coordinates, orientation, X);
+    int y = getBoundary(coordinates, orientation, Y);
+    int z = getBoundary(coordinates, orientation, Z);
+    return new Coordinate3D(x, y, z);
+  }
+
+  private static Coordinate3D getCoordinate(Collection<Coordinate3D> coordinates,
+      BinaryOperator<Integer> accumulator) {
+    int x = get(coordinates, X, accumulator);
+    int y = get(coordinates, Y, accumulator);
+    int z = get(coordinates, Z, accumulator);
+    return new Coordinate3D(x, y, z);
+  }
+
+  public static Coordinate3D getMinCoordinate(Collection<Coordinate3D> coordinates) {
+    return getCoordinate(coordinates, Math::min);
+  }
+
+  public static Coordinate3D getMaxCoordinate(Collection<Coordinate3D> coordinates) {
+    return getCoordinate(coordinates, Math::max);
+  }
+
+}

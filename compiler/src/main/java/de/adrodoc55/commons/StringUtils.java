@@ -43,9 +43,8 @@ package de.adrodoc55.commons;
  * @author Adrodoc55
  */
 public class StringUtils {
-
-  private StringUtils() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated!");
+  protected StringUtils() throws Exception {
+    throw new Exception("Utils Classes cannot be instantiated!");
   }
 
   public static String escapeBackslashes(String literal) {

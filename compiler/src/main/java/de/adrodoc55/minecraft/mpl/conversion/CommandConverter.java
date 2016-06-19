@@ -39,11 +39,10 @@
  */
 package de.adrodoc55.minecraft.mpl.conversion;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import static de.adrodoc55.minecraft.mpl.MplUtils.getBoundaries;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.ArrayList;
+import java.util.List;
 
 import de.adrodoc55.commons.StringUtils;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
@@ -92,15 +91,13 @@ public class CommandConverter {
 
     StringBuilder sb = new StringBuilder(HEADER);
     // Appending initial fill Command to clear the required Area
-    Coordinate3D max = getMaxCoordinate(result.getBlocks().keySet());
-    if (max != null) {
-      sb.append(COMMAND_HEADER);
-      sb.append("fill ");
-      sb.append(new Coordinate3D().plus(getOffset(orientation)).toRelativeString()).append(' ');
-      sb.append(max.plus(getOffset(orientation)).toRelativeString()).append(' ');
-      sb.append("air");
-      sb.append(COMMAND_TAIL);
-    }
+    Coordinate3D max = getBoundaries(orientation, result.getBlocks().keySet());
+    sb.append(COMMAND_HEADER);
+    sb.append("fill ");
+    sb.append(new Coordinate3D().plus(getOffset(orientation)).toRelativeString()).append(' ');
+    sb.append(max.plus(getOffset(orientation)).toRelativeString()).append(' ');
+    sb.append("air");
+    sb.append(COMMAND_TAIL);
     // Appending setblock for all Commands
     for (MplBlock block : result.getBlocks().values()) {
       if (!(block instanceof CommandBlock)) {
@@ -120,24 +117,6 @@ public class CommandConverter {
     sb = new StringBuilder(HEADER);
 
     return commands;
-  }
-
-  private static Coordinate3D getMaxCoordinate(ImmutableSet<Coordinate3D> immutableSet) {
-    Iterator<Coordinate3D> it = immutableSet.iterator();
-    if (!it.hasNext()) {
-      return null;
-    }
-    Coordinate3D pos = it.next();
-    int maxX = pos.getX();
-    int maxY = pos.getY();
-    int maxZ = pos.getZ();
-    while (it.hasNext()) {
-      Coordinate3D c = it.next();
-      maxX = Math.max(maxX, c.getX());
-      maxY = Math.max(maxY, c.getY());
-      maxZ = Math.max(maxZ, c.getZ());
-    }
-    return new Coordinate3D(maxX, maxY, maxZ);
   }
 
   private static StringBuilder convert(CommandBlock block, Orientation3D orientation) {

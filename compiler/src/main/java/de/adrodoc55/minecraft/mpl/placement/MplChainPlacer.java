@@ -65,6 +65,7 @@ import de.adrodoc55.minecraft.coordinate.Axis3D;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
+import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.blocks.AirBlock;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
@@ -309,6 +310,24 @@ public abstract class MplChainPlacer {
             Stream.of(getInstall().getCommands(), getUninstall().getCommands()))
         .map(commands -> getLongestSuccessiveConditionalCount(commands)).max(naturalOrder())
         .orElse(0);
+  }
+
+  protected String getDeleteCommand() {
+    Coordinate3D max = getBoundaries();
+    StringBuilder sb = new StringBuilder();
+    sb.append("fill ${origin}").append(' ');
+    sb.append("${origin + (").append(max.toAbsoluteString()).append(")}").append(' ');
+    sb.append("air");
+    return sb.toString();
+  }
+
+  protected Coordinate3D getBoundaries() {
+    return MplUtils.getBoundaries(getOrientation(),
+        chains.stream()//
+            .map(c -> c.getBlocks())//
+            .flatMap(bs -> bs.stream())//
+            .map(b -> b.getCoordinate())//
+            .collect(Collectors.toList()));
   }
 
   public static int getLongestSuccessiveConditionalCount(List<? extends ChainLink> chainLinks) {

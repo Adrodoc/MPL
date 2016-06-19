@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.placement;
 
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DELETE_ON_UNINSTALL;
 import static de.kussm.direction.Direction.EAST;
 import static de.kussm.direction.Directions.$;
 import static java.util.Comparator.naturalOrder;
@@ -55,6 +56,7 @@ import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.kussm.chain.Chain;
 import de.kussm.chain.ChainLinkType;
@@ -308,6 +310,12 @@ public class MplProgramPlacer extends MplChainPlacer {
    */
   protected void generateUnInstall() throws NotEnoughSpaceException {
     CommandChain uninstall = getPopulatedUninstall();
+    Command deleteOnUninstall = null;
+    if (options.hasOption(DELETE_ON_UNINSTALL)) {
+      deleteOnUninstall = new Command();
+      uninstall.getCommands().add(deleteOnUninstall);
+    }
+
     if (!uninstall.getCommands().isEmpty()) {
       Coordinate3D start = getOrientation().getB().toCoordinate();
       Directions template = newUninstallTemplate();
@@ -321,6 +329,10 @@ public class MplProgramPlacer extends MplChainPlacer {
       Directions template = newInstallTemplate();
       CommandBlockChain generated = generateFlat(install, start, template);
       chains.add(generated);
+    }
+
+    if (deleteOnUninstall != null) {
+      deleteOnUninstall.setCommand(getDeleteCommand());
     }
   }
 

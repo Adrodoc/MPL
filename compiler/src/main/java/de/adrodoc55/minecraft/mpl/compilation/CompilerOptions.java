@@ -65,11 +65,17 @@ public class CompilerOptions {
     return options.contains(option);
   }
 
+  public ImmutableSet<CompilerOption> getOptions() {
+    return options;
+  }
+
   /**
    * @author Adrodoc55
    */
   public enum CompilerOption {
-    DEBUG, TRANSMITTER
+    DEBUG, //
+    DELETE_ON_UNINSTALL, //
+    TRANSMITTER, //
   }
 }
 

@@ -47,6 +47,7 @@ import java.util.List;
 
 import com.evilco.mc.nbt.stream.NbtOutputStream;
 import com.evilco.mc.nbt.tag.TagCompound;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 
 import de.adrodoc55.commons.FileUtils;
@@ -167,15 +168,17 @@ public class MplCompilerMain {
         "  -t | --type schematic|command|filter \t\tSpecify the output type (defaults to schematic)");
   }
 
-  private static CompilerOptions parseOptions(String string) throws InvalidOptionException {
+  @VisibleForTesting
+  static CompilerOptions parseOptions(String string) throws InvalidOptionException {
     String[] split = string.split(",");
     CompilerOption[] options = new CompilerOption[split.length];
     for (int i = 0; i < split.length; i++) {
+      String option = split[i].replace('-', '_').toUpperCase();
       try {
-        options[i] = CompilerOption.valueOf(split[i].toUpperCase());
+        options[i] = CompilerOption.valueOf(option);
       } catch (IllegalArgumentException ex) {
-        throw new InvalidOptionException("mpl: invalid compiler option " + split[i]
-            + "; possible options are " + Joiner.on(", ").join(CompilerOption.values()));
+        throw new InvalidOptionException("mpl: invalid compiler option " + option
+            + "; possible options are: " + Joiner.on(", ").join(CompilerOption.values()));
       }
     }
     return new CompilerOptions(options);

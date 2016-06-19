@@ -39,15 +39,14 @@
  */
 package de.adrodoc55.minecraft.mpl.chain;
 
-import static de.adrodoc55.minecraft.coordinate.Axis3D.X;
-import static de.adrodoc55.minecraft.coordinate.Axis3D.Y;
-import static de.adrodoc55.minecraft.coordinate.Axis3D.Z;
+import static java.util.stream.Collectors.toList;
 
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.List;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
+import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 
 /**
@@ -79,39 +78,13 @@ public class CommandBlockChain {
   }
 
   public List<MplBlock> getBlocks() {
-    return blocks;
+    return Collections.unmodifiableList(blocks);
   }
 
   public Coordinate3D getBoundaries(Orientation3D orientation) {
-    Iterator<MplBlock> it = blocks.iterator();
-    if (!it.hasNext()) {
-      return new Coordinate3D();
-    }
-    MplBlock first = it.next();
-    Coordinate3D pos = first.getCoordinate();
-    int x = pos.getX();
-    int y = pos.getY();
-    int z = pos.getZ();
-    while (it.hasNext()) {
-      MplBlock current = it.next();
-      Coordinate3D c = current.getCoordinate();
-      if (orientation.get(X).isNegative()) {
-        x = Math.min(x, c.getX());
-      } else {
-        x = Math.max(x, c.getX());
-      }
-      if (orientation.get(Y).isNegative()) {
-        y = Math.min(y, c.getY());
-      } else {
-        y = Math.max(y, c.getY());
-      }
-      if (orientation.get(Z).isNegative()) {
-        z = Math.min(z, c.getZ());
-      } else {
-        z = Math.max(z, c.getZ());
-      }
-    }
-    return new Coordinate3D(x, y, z);
+    return MplUtils.getBoundaries(orientation, blocks.stream()//
+            .map(b -> b.getCoordinate())//
+            .collect(toList()));
   }
 
   @Override

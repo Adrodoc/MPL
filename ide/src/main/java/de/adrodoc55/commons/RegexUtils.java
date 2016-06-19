@@ -45,12 +45,12 @@ import java.util.regex.Pattern;
  * @author Adrodoc55
  */
 public class RegexUtils {
+  protected RegexUtils() throws Exception {
+    throw new Exception("Utils Classes cannot be instantiated!");
+  }
+
   private static final Pattern SPECIAL_REGEX_CHARS =
       Pattern.compile("[\\{\\}\\(\\)\\[\\]\\.\\+\\*\\?\\^\\$\\|\\\\]");
-
-  private RegexUtils() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated!");
-  }
 
   public static String escape(String literal) {
     return SPECIAL_REGEX_CHARS.matcher(literal).replaceAll("\\\\$0").replaceAll("\r?\n", "\\\\R");
