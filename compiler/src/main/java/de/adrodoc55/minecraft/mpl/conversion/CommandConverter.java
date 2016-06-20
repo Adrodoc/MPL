@@ -39,8 +39,11 @@
  */
 package de.adrodoc55.minecraft.mpl.conversion;
 
+import static de.adrodoc55.commons.FileUtils.UTF_8;
 import static de.adrodoc55.minecraft.mpl.MplUtils.getBoundaries;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,7 +58,19 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 /**
  * @author Adrodoc55
  */
-public class CommandConverter {
+public class CommandConverter implements MplConverter {
+  @Override
+  public void write(MplCompilationResult result, String name, OutputStream out) throws IOException {
+    List<String> converted = CommandConverter.convert(result);
+    int i = 0;
+    for (String string : converted) {
+      out.write(("Command " + (++i) + ":\r\n").getBytes(UTF_8));
+      out.write(string.getBytes(UTF_8));
+      out.write("\r\n".getBytes(UTF_8));
+    }
+    out.close();
+  }
+
   public static final int MAX_COMMAND_LENGTH = 32500;
 
   private static final String HEADER =

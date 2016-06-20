@@ -39,11 +39,12 @@
  */
 package de.adrodoc55.minecraft.mpl.conversion;
 
+import static de.adrodoc55.commons.FileUtils.UTF_8;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
 
 import de.adrodoc55.commons.StringUtils;
 import de.adrodoc55.minecraft.mpl.blocks.AirBlock;
@@ -58,8 +59,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 public class PythonConverter implements MplConverter {
   @Override
   public void write(MplCompilationResult result, String name, OutputStream out) throws IOException {
-    try (BufferedWriter writer =
-        new BufferedWriter(new OutputStreamWriter(out, Charset.forName("UTF-8")))) {
+    try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, UTF_8))) {
       writer.write(convert(result, name));
     }
   }

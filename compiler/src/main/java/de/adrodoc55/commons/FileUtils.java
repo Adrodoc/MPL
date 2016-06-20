@@ -55,6 +55,8 @@ public class FileUtils {
     throw new Exception("Utils Classes cannot be instantiated!");
   }
 
+  public static final Charset UTF_8 = Charset.forName("UTF-8");
+
   public static String getFilenameWithoutExtension(File file) {
     return getFilenameWithoutExtension(file.getName());
   }
@@ -79,7 +81,7 @@ public class FileUtils {
 
   public static String getUtf8String(URL url) {
     try {
-      return Resources.toString(url, Charset.forName("UTF-8"));
+      return Resources.toString(url, UTF_8);
     } catch (IOException ex) {
       throw new UndeclaredThrowableException(ex);
     }
