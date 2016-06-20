@@ -76,7 +76,6 @@ public abstract class AutoCompletionAction {
 
   public void performOn(JTextComponent component) {
     Element root = component.getDocument().getDefaultRootElement();
-
     Element line = root.getElement(root.getElementIndex(startIndex));
     int indentCount = startIndex - line.getStartOffset();
     String indent = new String(new char[indentCount]).replace('\0', ' ');
@@ -85,9 +84,7 @@ public abstract class AutoCompletionAction {
     template = template.replace("\n", "\n" + indent);
     template = replaceVariables(template, NON_CURSOR_INSERTS);
     int cursorIndex = getCursorIndex(template);
-    System.err.println();
     template = replaceVariables(template, CURSOR_INSERTS);
-
     try {
       int length = getLength();
       DocumentUtils.replace(component.getDocument(), startIndex, length, template);

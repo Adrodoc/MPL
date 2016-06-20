@@ -112,7 +112,6 @@ public class HoverDialog extends JDialog implements WindowView<HoverDialogPM>, M
       @Override
       public void actionPerformed(ActionEvent e) {
         dispose();
-        System.out.println("closing hover");
       }
     });
   }

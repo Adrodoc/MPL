@@ -82,7 +82,8 @@ public class CommandBlockChain {
   }
 
   public Coordinate3D getBoundaries(Orientation3D orientation) {
-    return MplUtils.getBoundaries(orientation, blocks.stream()//
+    return MplUtils.getBoundaries(orientation,
+        blocks.stream()//
             .map(b -> b.getCoordinate())//
             .collect(toList()));
   }

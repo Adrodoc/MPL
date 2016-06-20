@@ -277,7 +277,6 @@ public class SearchAndReplaceDialogPM extends AbstractPM {
         if (rawMessage.contains("\n")) {
           rawMessage = "<html>Invalid Regex:<br><pre>" + rawMessage.replaceAll("\r?\n", "<br>")
               + "</pre></html>";
-          System.out.println(rawMessage);
         }
         return new ValidationState(rawMessage);
       }
