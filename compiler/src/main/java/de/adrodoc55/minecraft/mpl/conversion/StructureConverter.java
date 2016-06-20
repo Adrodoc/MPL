@@ -74,15 +74,13 @@ import lombok.Setter;
  * @author Adrodoc55
  */
 public class StructureConverter implements MplConverter {
-
   private final List<State> states = new ArrayList<>();
 
   @Override
   public void write(MplCompilationResult result, String name, OutputStream out) throws IOException {
     try (GZIPOutputStream zip = new GZIPOutputStream(out);
         NbtOutputStream nbt = new NbtOutputStream(zip);) {
-      TagCompound converted = convert(result);
-      nbt.write(converted);
+      nbt.write(convert(result));
     }
   }
 

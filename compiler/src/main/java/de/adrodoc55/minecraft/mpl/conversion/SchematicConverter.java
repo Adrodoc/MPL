@@ -42,10 +42,14 @@ package de.adrodoc55.minecraft.mpl.conversion;
 import static de.adrodoc55.minecraft.mpl.MplUtils.getMaxCoordinate;
 import static de.adrodoc55.minecraft.mpl.MplUtils.getMinCoordinate;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
+import com.evilco.mc.nbt.stream.NbtOutputStream;
 import com.evilco.mc.nbt.tag.ITag;
 import com.evilco.mc.nbt.tag.TagByte;
 import com.evilco.mc.nbt.tag.TagByteArray;
@@ -66,7 +70,14 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 /**
  * @author Adrodoc55
  */
-public class SchematicConverter {
+public class SchematicConverter implements MplConverter {
+  @Override
+  public void write(MplCompilationResult result, String name, OutputStream out) throws IOException {
+    try (GZIPOutputStream zip = new GZIPOutputStream(out);
+        NbtOutputStream nbt = new NbtOutputStream(zip);) {
+      nbt.write(convert(result));
+    }
+  }
 
   public static TagCompound convert(MplCompilationResult result) {
     ImmutableMap<Coordinate3D, MplBlock> blockMap = result.getBlocks();
