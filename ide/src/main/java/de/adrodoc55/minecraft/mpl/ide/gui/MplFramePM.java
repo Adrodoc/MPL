@@ -81,6 +81,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
 import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
 import de.adrodoc55.minecraft.mpl.conversion.SchematicConverter;
+import de.adrodoc55.minecraft.mpl.conversion.StructureConverter;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialog;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialogControler;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialogPM;
@@ -96,6 +97,7 @@ import de.adrodoc55.minecraft.mpl.ide.gui.dialog.unsaved.UnsavedResourcesDialogP
  */
 public class MplFramePM extends AbstractPM {
   public static final String COMPILE_TO_COMMAND = "Compile to Command";
+  public static final String COMPILE_TO_STRUCTURE = "Compile to Structure";
   public static final String COMPILE_TO_SCHEMATIC = "Compile to Schematic";
   public static final String COMPILE_TO_FILTER = "Compile to MCEdit Filter";
 
@@ -105,6 +107,8 @@ public class MplFramePM extends AbstractPM {
   final OperationPM saveFile = new OperationPM();
   final OperationPM saveFileUnder = new OperationPM();
   final OperationPM compileToCommand = new OperationPM();
+  final OperationPM compileToStructure = new OperationPM();
+  final OperationPM compileToStructureUnder = new OperationPM();
   final OperationPM compileToSchematic = new OperationPM();
   final OperationPM compileToSchematicUnder = new OperationPM();
   final OperationPM compileToFilter = new OperationPM();
@@ -132,6 +136,8 @@ public class MplFramePM extends AbstractPM {
     openFile.setDescription("Open a file");
     saveFile.setDescription("Save the current file");
     compileToCommand.setDescription(COMPILE_TO_COMMAND);
+    compileToStructure.setDescription(COMPILE_TO_STRUCTURE);
+    compileToStructureUnder.setDescription(COMPILE_TO_STRUCTURE);
     compileToSchematic.setDescription(COMPILE_TO_SCHEMATIC);
     compileToSchematicUnder.setDescription(COMPILE_TO_SCHEMATIC);
     compileToFilter.setDescription(COMPILE_TO_FILTER);
@@ -235,6 +241,44 @@ public class MplFramePM extends AbstractPM {
     CommandDialog view = ctrl.getView();
     pm.setCommands(commands);
     view.setVisible(true);
+  }
+
+  @Operation
+  public void compileToStructure() {
+    try {
+      MplCompilationResult result = compile();
+      if (result == null) {
+        return;
+      }
+      MplEditorPM selected = editors.getSelection().getFirst();
+      if (selected == null) {
+        return;
+      }
+      File dir = getCompilationDir(COMPILE_TO_STRUCTURE);
+      if (dir == null) {
+        return;
+      }
+      String name = FileUtils.getFilenameWithoutExtension(selected.getTitle());
+      String targetFileName = name + ".nbt";
+      File outputFile = new File(dir, targetFileName);
+      outputFile.getParentFile().mkdirs();
+      outputFile.createNewFile();
+      StructureConverter converter = new StructureConverter();
+      try (FileOutputStream out = new FileOutputStream(outputFile);) {
+        converter.write(result, name, out);
+      }
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+      JOptionPane.showMessageDialog(activeWindow, ex.getMessage(), ex.getClass().getSimpleName(),
+          JOptionPane.ERROR_MESSAGE);
+    }
+  }
+
+  @Operation
+  public void compileToStructureUnder() {
+    chooseCompilationDir(COMPILE_TO_STRUCTURE);
+    compileToSchematic();
   }
 
   @Operation

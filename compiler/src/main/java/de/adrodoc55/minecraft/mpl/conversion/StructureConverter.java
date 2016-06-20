@@ -43,10 +43,14 @@ import static de.adrodoc55.minecraft.mpl.MplUtils.getMaxCoordinate;
 import static de.adrodoc55.minecraft.mpl.MplUtils.getMinCoordinate;
 import static java.util.stream.Collectors.toList;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.zip.GZIPOutputStream;
 
+import com.evilco.mc.nbt.stream.NbtOutputStream;
 import com.evilco.mc.nbt.tag.ITag;
 import com.evilco.mc.nbt.tag.TagByte;
 import com.evilco.mc.nbt.tag.TagCompound;
@@ -69,12 +73,21 @@ import lombok.Setter;
 /**
  * @author Adrodoc55
  */
-public class StructureConverter {
+public class StructureConverter implements MplConverter {
 
-  private static final List<State> PALETTE = new ArrayList<>();
+  private final List<State> states = new ArrayList<>();
 
-  public static TagCompound convert(MplCompilationResult result) {
-    PALETTE.clear();
+  @Override
+  public void write(MplCompilationResult result, String name, OutputStream out) throws IOException {
+    try (GZIPOutputStream zip = new GZIPOutputStream(out);
+        NbtOutputStream nbt = new NbtOutputStream(zip);) {
+      TagCompound converted = convert(result);
+      nbt.write(converted);
+    }
+  }
+
+  public TagCompound convert(MplCompilationResult result) {
+    states.clear();
     ImmutableMap<Coordinate3D, MplBlock> blockMap = result.getBlocks();
     ImmutableSet<Coordinate3D> coordinates = blockMap.keySet();
     Coordinate3D min = getMinCoordinate(coordinates);
@@ -106,7 +119,7 @@ public class StructureConverter {
     short sizeX = (short) (1 + max.getX() - min.getX());
     short sizeY = (short) (1 + max.getY() - min.getY());
     short sizeZ = (short) (1 + max.getZ() - min.getZ());
-    List<ITag> palette = PALETTE.stream().map(s -> s.getState()).collect(toList());
+    List<ITag> palette = states.stream().map(s -> s.getState()).collect(toList());
 
     TagCompound structure = new TagCompound("");
     structure.setTag(new TagInteger("version", 1));
@@ -119,7 +132,7 @@ public class StructureConverter {
     return structure;
   }
 
-  private static int registerState(MplBlock block) {
+  protected int registerState(MplBlock block) {
     String blockId = "minecraft:" + block.getStringBlockId();
     String conditional = null;
     String facing = null;
@@ -130,13 +143,13 @@ public class StructureConverter {
     }
 
     State newState = new State(blockId, conditional, facing);
-    int idx = PALETTE.indexOf(newState);
+    int idx = states.indexOf(newState);
     if (idx >= 0)
       return idx;
 
     newState.setState(createNbtState(blockId, conditional, facing));
-    PALETTE.add(newState);
-    return PALETTE.size() - 1;
+    states.add(newState);
+    return states.size() - 1;
   }
 
   public static TagCompound createNbtState(String blockId, String conditional, String facing) {
