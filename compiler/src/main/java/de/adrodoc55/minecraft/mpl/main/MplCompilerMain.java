@@ -43,10 +43,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.List;
 
-import com.evilco.mc.nbt.stream.NbtOutputStream;
-import com.evilco.mc.nbt.tag.TagCompound;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 
@@ -57,8 +54,10 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
 import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
+import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
 import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
 import de.adrodoc55.minecraft.mpl.conversion.SchematicConverter;
+import de.adrodoc55.minecraft.mpl.conversion.StructureConverter;
 
 /**
  * @author Adrodoc55
@@ -93,7 +92,7 @@ public class MplCompilerMain {
       throws InvalidOptionException, IOException, CompilationFailedException {
     String srcPath = null;
     OutputStream out = System.out;
-    CompilationType type = CompilationType.SCHEMATIC;
+    CompilationType type = CompilationType.STRUCTURE;
     CompilerOptions options = new CompilerOptions();
 
     for (int i = 0; i < args.length; i++) {
@@ -153,7 +152,7 @@ public class MplCompilerMain {
     String name = FileUtils.getFilenameWithoutExtension(programFile);
 
     MplCompilationResult compiled = MplCompiler.compile(programFile, options);
-    type.write(compiled, out, name);
+    type.getConverter().write(compiled, name, out);
   }
 
   private static void printHelp() {
@@ -165,7 +164,7 @@ public class MplCompilerMain {
     System.out
         .println("  -o | --output <path> \t\t\t\tSpecify an output file (defaults to stdout)");
     System.out.println(
-        "  -t | --type schematic|command|filter \t\tSpecify the output type (defaults to schematic)");
+        "  -t | --type schematic|command|filter \t\tSpecify the output type (defaults to structure)");
   }
 
   @VisibleForTesting
@@ -185,39 +184,19 @@ public class MplCompilerMain {
   }
 
   private static enum CompilationType {
-    SCHEMATIC {
-      @Override
-      public void write(MplCompilationResult compiled, OutputStream out, String name)
-          throws IOException {
-        TagCompound convert = SchematicConverter.convert(compiled);
-        try (NbtOutputStream nbtOut = new NbtOutputStream(out);) {
-          nbtOut.write(convert);
-        }
-      }
-    },
-    COMMAND {
-      @Override
-      public void write(MplCompilationResult compiled, OutputStream out, String name)
-          throws IOException {
-        List<String> convert = CommandConverter.convert(compiled);
-        int i = 0;
-        for (String string : convert) {
-          out.write(("Command " + (++i) + ":\r\n").getBytes());
-          out.write(string.getBytes());
-        }
-        out.close();
-      }
-    },
-    FILTER {
-      @Override
-      public void write(MplCompilationResult compiled, OutputStream out, String name)
-          throws IOException {
-        String convert = PythonConverter.convert(compiled, name);
-        out.write(convert.getBytes());
-        out.close();
-      }
-    };
-    public abstract void write(MplCompilationResult compiled, OutputStream out, String name)
-        throws IOException;
+    STRUCTURE(new StructureConverter()), //
+    SCHEMATIC(new SchematicConverter()), //
+    COMMAND(new CommandConverter()), //
+    FILTER(new PythonConverter()),//
+    ;
+    private final MplConverter converter;
+
+    private CompilationType(MplConverter converter) {
+      this.converter = converter;
+    }
+
+    public MplConverter getConverter() {
+      return converter;
+    }
   }
 }

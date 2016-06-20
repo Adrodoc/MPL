@@ -42,6 +42,7 @@ package de.adrodoc55.minecraft.mpl.ide.gui;
 import static de.adrodoc55.minecraft.mpl.ide.gui.MplFramePM.COMPILE_TO_COMMAND;
 import static de.adrodoc55.minecraft.mpl.ide.gui.MplFramePM.COMPILE_TO_FILTER;
 import static de.adrodoc55.minecraft.mpl.ide.gui.MplFramePM.COMPILE_TO_SCHEMATIC;
+import static de.adrodoc55.minecraft.mpl.ide.gui.MplFramePM.COMPILE_TO_STRUCTURE;
 
 import java.awt.BorderLayout;
 import java.awt.Toolkit;
@@ -95,6 +96,8 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnMenuItem bnmntmSave;
   private BnMenuItem bnmntmSaveUnder;
   private BnMenuItem bnmntmCompileToCommand;
+  private BnMenuItem bnmntmCompileToStructure;
+  private BnMenuItem bnmntmCompileToStructureUnder;
   private BnMenuItem bnmntmCompileToSchematic;
   private BnMenuItem bnmntmCompileToSchematicUnder;
   private BnMenuItem bnmntmCompileToFilter;
@@ -108,6 +111,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnButton bnbtnOpen;
   private BnButton bnbtnSave;
   private BnButton bnbtnCompileToCommand;
+  private BnButton bnbtnCompilerToStructure;
   private BnButton bnbtnCompileToSchematic;
   private BnButton bnbtnCompileToFilter;
   private JTabbedPane tabbedPane;
@@ -286,6 +290,8 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
       mnFile.add(getBnmntmSave());
       mnFile.add(getBnmntmSaveUnder());
       mnFile.add(getBnmntmCompileToCommand());
+      mnFile.add(getBnmntmCompileToStructure());
+      mnFile.add(getBnmntmCompileToStructureUnder());
       mnFile.add(getBnmntmCompileToSchematic());
       mnFile.add(getBnmntmCompileToSchematicUnder());
       mnFile.add(getBnmntmCompileToFilter());
@@ -344,6 +350,26 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
     return bnmntmCompileToCommand;
   }
 
+  private BnMenuItem getBnmntmCompileToStructure() {
+    if (bnmntmCompileToStructure == null) {
+      bnmntmCompileToStructure = new BnMenuItem();
+      bnmntmCompileToStructure.setPath(new Path("this.compileToStructure"));
+      bnmntmCompileToStructure.setModelProvider(getLocalModelProvider());
+      bnmntmCompileToStructure.setText(COMPILE_TO_STRUCTURE);
+    }
+    return bnmntmCompileToStructure;
+  }
+
+  private BnMenuItem getBnmntmCompileToStructureUnder() {
+    if (bnmntmCompileToStructureUnder == null) {
+      bnmntmCompileToStructureUnder = new BnMenuItem();
+      bnmntmCompileToStructureUnder.setPath(new Path("this.compileToStructureUnder"));
+      bnmntmCompileToStructureUnder.setModelProvider(getLocalModelProvider());
+      bnmntmCompileToStructureUnder.setText(COMPILE_TO_STRUCTURE + " under ...");
+    }
+    return bnmntmCompileToStructureUnder;
+  }
+
   private BnMenuItem getBnmntmCompileToSchematic() {
     if (bnmntmCompileToSchematic == null) {
       bnmntmCompileToSchematic = new BnMenuItem();
@@ -359,7 +385,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
       bnmntmCompileToSchematicUnder = new BnMenuItem();
       bnmntmCompileToSchematicUnder.setPath(new Path("this.compileToSchematicUnder"));
       bnmntmCompileToSchematicUnder.setModelProvider(getLocalModelProvider());
-      bnmntmCompileToSchematicUnder.setText(COMPILE_TO_SCHEMATIC + " under...");
+      bnmntmCompileToSchematicUnder.setText(COMPILE_TO_SCHEMATIC + " under ...");
     }
     return bnmntmCompileToSchematicUnder;
   }
@@ -431,6 +457,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
       toolBar.add(getBnbtnOpen());
       toolBar.add(getBnbtnSave());
       toolBar.add(getBnbtnCompileToCommand());
+      toolBar.add(getBnbtnCompilerToStructure());
       toolBar.add(getBnbtnCompileToSchematic());
       toolBar.add(getBnbtnCompileToFilter());
     }
@@ -470,12 +497,23 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnButton getBnbtnCompileToCommand() {
     if (bnbtnCompileToCommand == null) {
       bnbtnCompileToCommand = new BnButton();
-      bnbtnCompileToCommand.setPath(new Path("this.compileToCommand"));
-      bnbtnCompileToCommand.setModelProvider(getLocalModelProvider());
       bnbtnCompileToCommand
           .setIcon(new ImageIcon(MplFrame.class.getResource("/icons/command_block_icon_16.png")));
+      bnbtnCompileToCommand.setPath(new Path("this.compileToCommand"));
+      bnbtnCompileToCommand.setModelProvider(getLocalModelProvider());
     }
     return bnbtnCompileToCommand;
+  }
+
+  private BnButton getBnbtnCompilerToStructure() {
+    if (bnbtnCompilerToStructure == null) {
+      bnbtnCompilerToStructure = new BnButton();
+      bnbtnCompilerToStructure
+          .setIcon(new ImageIcon(MplFrame.class.getResource("/icons/structure_block_load_16.png")));
+      bnbtnCompilerToStructure.setPath(new Path("this.compileToStructure"));
+      bnbtnCompilerToStructure.setModelProvider(getLocalModelProvider());
+    }
+    return bnbtnCompilerToStructure;
   }
 
   private BnButton getBnbtnCompileToSchematic() {
@@ -492,10 +530,10 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnButton getBnbtnCompileToFilter() {
     if (bnbtnCompileToFilter == null) {
       bnbtnCompileToFilter = new BnButton();
-      bnbtnCompileToFilter.setPath(new Path("this.compileToFilter"));
-      bnbtnCompileToFilter.setModelProvider(getLocalModelProvider());
       bnbtnCompileToFilter
           .setIcon(new ImageIcon(MplFrame.class.getResource("/icons/mcedit_16.png")));
+      bnbtnCompileToFilter.setPath(new Path("this.compileToFilter"));
+      bnbtnCompileToFilter.setModelProvider(getLocalModelProvider());
     }
     return bnbtnCompileToFilter;
   }

@@ -41,22 +41,21 @@ package de.adrodoc55.minecraft.mpl.conversion;
 
 import static de.adrodoc55.minecraft.mpl.MplUtils.getMaxCoordinate;
 import static de.adrodoc55.minecraft.mpl.MplUtils.getMinCoordinate;
+import static java.util.stream.Collectors.toList;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.zip.GZIPOutputStream;
 
 import com.evilco.mc.nbt.stream.NbtOutputStream;
 import com.evilco.mc.nbt.tag.ITag;
 import com.evilco.mc.nbt.tag.TagByte;
-import com.evilco.mc.nbt.tag.TagByteArray;
 import com.evilco.mc.nbt.tag.TagCompound;
 import com.evilco.mc.nbt.tag.TagInteger;
 import com.evilco.mc.nbt.tag.TagList;
-import com.evilco.mc.nbt.tag.TagShort;
 import com.evilco.mc.nbt.tag.TagString;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -66,11 +65,17 @@ import de.adrodoc55.minecraft.mpl.blocks.AirBlock;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author Adrodoc55
  */
-public class SchematicConverter implements MplConverter {
+public class StructureConverter implements MplConverter {
+  private final List<State> states = new ArrayList<>();
+
   @Override
   public void write(MplCompilationResult result, String name, OutputStream out) throws IOException {
     try (GZIPOutputStream zip = new GZIPOutputStream(out);
@@ -79,18 +84,14 @@ public class SchematicConverter implements MplConverter {
     }
   }
 
-  public static TagCompound convert(MplCompilationResult result) {
+  public TagCompound convert(MplCompilationResult result) {
+    states.clear();
     ImmutableMap<Coordinate3D, MplBlock> blockMap = result.getBlocks();
     ImmutableSet<Coordinate3D> coordinates = blockMap.keySet();
     Coordinate3D min = getMinCoordinate(coordinates);
     Coordinate3D max = getMaxCoordinate(coordinates);
-    short width = (short) (1 + max.getX() - min.getX());
-    short heigth = (short) (1 + max.getY() - min.getY());
-    short length = (short) (1 + max.getZ() - min.getZ());
-    int volume = width * heigth * length;
-    ByteBuffer blocks = ByteBuffer.allocate(volume);
-    ByteBuffer data = ByteBuffer.allocate(volume);
-    List<ITag> tileEntities = new ArrayList<>(blockMap.size());
+
+    List<ITag> blocks = new ArrayList<>();
     for (int y = min.getY(); y <= max.getY(); y++) {
       for (int z = min.getZ(); z <= max.getZ(); z++) {
         for (int x = min.getX(); x <= max.getX(); x++) {
@@ -100,42 +101,92 @@ public class SchematicConverter implements MplConverter {
             block = new AirBlock(coord);
           }
 
-          // block
-          blocks.put(block.getByteBlockId());
+          TagCompound tag = new TagCompound("");
+          tag.setTag(new TagInteger("state", registerState(block)));
+          tag.setTag(new TagList("pos", posAt(x, y, z)));
 
-          // data
           if (block instanceof CommandBlock) {
-            data.put(((CommandBlock) block).getDamageValue());
-          } else {
-            data.put((byte) 0);
+            TagCompound nbt = toControl((CommandBlock) block);
+            nbt.setName("nbt");
+            tag.setTag(nbt);
           }
-
-          // tile entity
-          if (block instanceof CommandBlock) {
-            tileEntities.add(toControl((CommandBlock) block));
-          }
+          blocks.add(tag);
         }
       }
     }
-    TagCompound schematic = new TagCompound("Schematic");
-    schematic.setTag(new TagShort("Width", width));
-    schematic.setTag(new TagShort("Height", heigth));
-    schematic.setTag(new TagShort("Length", length));
-    schematic.setTag(new TagString("Materials", "Alpha"));
-    schematic.setTag(new TagByteArray("Blocks", blocks.array()));
-    schematic.setTag(new TagByteArray("Data", data.array()));
-    schematic.setTag(new TagList("TileEntities", tileEntities));
-    schematic.setTag(new TagList("Entities", new ArrayList<>()));
-    schematic.setTag(new TagList("TileTicks", new ArrayList<>()));
-    return schematic;
+    short sizeX = (short) (1 + max.getX() - min.getX());
+    short sizeY = (short) (1 + max.getY() - min.getY());
+    short sizeZ = (short) (1 + max.getZ() - min.getZ());
+    List<ITag> palette = states.stream().map(s -> s.getState()).collect(toList());
+
+    TagCompound structure = new TagCompound("");
+    structure.setTag(new TagInteger("version", 1));
+    structure.setTag(new TagString("author", "MPL"));
+    structure.setTag(new TagList("blocks", blocks));
+    structure.setTag(new TagList("entities", new ArrayList<>()));
+    structure.setTag(new TagList("palette", palette));
+    structure.setTag(new TagList("size", posAt(sizeX, sizeY, sizeZ)));
+
+    return structure;
+  }
+
+  protected int registerState(MplBlock block) {
+    String blockId = "minecraft:" + block.getStringBlockId();
+    String conditional = null;
+    String facing = null;
+    if (block instanceof CommandBlock) {
+      CommandBlock cmd = (CommandBlock) block;
+      conditional = String.valueOf(cmd.isConditional());
+      facing = cmd.getDirection().name().toLowerCase(Locale.US);
+    }
+
+    State newState = new State(blockId, conditional, facing);
+    int idx = states.indexOf(newState);
+    if (idx >= 0)
+      return idx;
+
+    newState.setState(createNbtState(blockId, conditional, facing));
+    states.add(newState);
+    return states.size() - 1;
+  }
+
+  public static TagCompound createNbtState(String blockId, String conditional, String facing) {
+    TagCompound state = new TagCompound("");
+    state.setTag(new TagString("Name", blockId));
+    if (conditional != null || facing != null) {
+      TagCompound properties = new TagCompound("Properties");
+      properties.setTag(new TagString("conditional", conditional));
+      properties.setTag(new TagString("facing", facing));
+      state.setTag(properties);
+    }
+    return state;
+  }
+
+  @EqualsAndHashCode(exclude = "state")
+  @RequiredArgsConstructor
+  @Getter
+  @Setter
+  private static class State {
+    private final String blockId;
+    private final String conditional;
+    private final String facing;
+    private TagCompound state;
+  }
+
+  public static List<ITag> posAt(int sizeX, int sizeY, int sizeZ) {
+    List<ITag> size = new ArrayList<>(3);
+    size.add(new TagInteger("", sizeX));
+    size.add(new TagInteger("", sizeY));
+    size.add(new TagInteger("", sizeZ));
+    return size;
   }
 
   public static TagCompound toControl(CommandBlock block) {
     TagCompound control = new TagCompound("");
     control.setTag(new TagString("id", "Control"));
-    control.setTag(new TagInteger("x", block.getX()));
-    control.setTag(new TagInteger("y", block.getY()));
-    control.setTag(new TagInteger("z", block.getZ()));
+    // control.setTag(new TagInteger("x", block.getX()));
+    // control.setTag(new TagInteger("y", block.getY()));
+    // control.setTag(new TagInteger("z", block.getZ()));
     control.setTag(new TagString("CustomName", "@"));
     // TagCompound commandStats = new TagCompound("CommandStats");
     // commandStats.setTag(new TagString("SuccessCountName", ""));
@@ -150,8 +201,8 @@ public class SchematicConverter implements MplConverter {
     // commandStats.setTag(new TagString("QueryResultObjective", ""));
     // control.setTag(commandStats);
     control.setTag(new TagString("Command", block.getCommand()));
-    // control.setTag(new TagByte("conditionMet", (byte) 0));
-    // control.setTag(new TagInteger("SuccessCount", 0));
+    control.setTag(new TagByte("conditionMet", (byte) 0));
+    control.setTag(new TagInteger("SuccessCount", 0));
     // control.setTag(new TagString("LastOutput", ""));
     control.setTag(new TagByte("TrackOutput", (byte) 0));
     control.setTag(new TagByte("powered", (byte) 0));

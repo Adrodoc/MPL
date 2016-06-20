@@ -37,54 +37,16 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.commons;
+package de.adrodoc55.minecraft.mpl.conversion;
 
-import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.UndeclaredThrowableException;
-import java.net.URL;
-import java.nio.charset.Charset;
+import java.io.OutputStream;
 
-import com.google.common.io.Resources;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 
 /**
  * @author Adrodoc55
  */
-public class FileUtils {
-  protected FileUtils() throws Exception {
-    throw new Exception("Utils Classes cannot be instantiated!");
-  }
-
-  public static final Charset UTF_8 = Charset.forName("UTF-8");
-
-  public static String getFilenameWithoutExtension(File file) {
-    return getFilenameWithoutExtension(file.getName());
-  }
-
-  public static String getFilenameWithoutExtension(String fileName) {
-    int idx = fileName.lastIndexOf('.');
-    String name = (idx == -1) ? fileName : fileName.substring(0, idx);
-    return name;
-  }
-
-  public static String toUnixLineEnding(String text) {
-    return text.replace("\r\n", "\n").replace("\r", "\n");
-  }
-
-  public static String getCanonicalPath(File file) {
-    try {
-      return file.getCanonicalPath();
-    } catch (IOException ex) {
-      return file.getAbsolutePath();
-    }
-  }
-
-  public static String getUtf8String(URL url) {
-    try {
-      return Resources.toString(url, UTF_8);
-    } catch (IOException ex) {
-      throw new UndeclaredThrowableException(ex);
-    }
-  }
-
+public interface MplConverter {
+  void write(MplCompilationResult result, String name, OutputStream out) throws IOException;
 }

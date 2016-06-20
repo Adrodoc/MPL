@@ -45,11 +45,9 @@ import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOpt
 
 import java.awt.KeyboardFocusManager;
 import java.awt.Window;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -68,8 +66,6 @@ import org.beanfabrics.model.PMManager;
 import org.beanfabrics.model.Selection;
 import org.beanfabrics.support.Operation;
 
-import com.evilco.mc.nbt.stream.NbtOutputStream;
-import com.evilco.mc.nbt.tag.TagCompound;
 import com.google.common.collect.ListMultimap;
 
 import de.adrodoc55.commons.FileUtils;
@@ -79,8 +75,10 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
+import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
 import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
 import de.adrodoc55.minecraft.mpl.conversion.SchematicConverter;
+import de.adrodoc55.minecraft.mpl.conversion.StructureConverter;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialog;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialogControler;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialogPM;
@@ -96,6 +94,7 @@ import de.adrodoc55.minecraft.mpl.ide.gui.dialog.unsaved.UnsavedResourcesDialogP
  */
 public class MplFramePM extends AbstractPM {
   public static final String COMPILE_TO_COMMAND = "Compile to Command";
+  public static final String COMPILE_TO_STRUCTURE = "Compile to Structure";
   public static final String COMPILE_TO_SCHEMATIC = "Compile to Schematic";
   public static final String COMPILE_TO_FILTER = "Compile to MCEdit Filter";
 
@@ -105,6 +104,8 @@ public class MplFramePM extends AbstractPM {
   final OperationPM saveFile = new OperationPM();
   final OperationPM saveFileUnder = new OperationPM();
   final OperationPM compileToCommand = new OperationPM();
+  final OperationPM compileToStructure = new OperationPM();
+  final OperationPM compileToStructureUnder = new OperationPM();
   final OperationPM compileToSchematic = new OperationPM();
   final OperationPM compileToSchematicUnder = new OperationPM();
   final OperationPM compileToFilter = new OperationPM();
@@ -132,6 +133,8 @@ public class MplFramePM extends AbstractPM {
     openFile.setDescription("Open a file");
     saveFile.setDescription("Save the current file");
     compileToCommand.setDescription(COMPILE_TO_COMMAND);
+    compileToStructure.setDescription(COMPILE_TO_STRUCTURE);
+    compileToStructureUnder.setDescription(COMPILE_TO_STRUCTURE);
     compileToSchematic.setDescription(COMPILE_TO_SCHEMATIC);
     compileToSchematicUnder.setDescription(COMPILE_TO_SCHEMATIC);
     compileToFilter.setDescription(COMPILE_TO_FILTER);
@@ -238,35 +241,27 @@ public class MplFramePM extends AbstractPM {
   }
 
   @Operation
-  public void compileToSchematic() {
-    try {
-      MplCompilationResult result = compile();
-      if (result == null) {
-        return;
-      }
-      MplEditorPM selected = editors.getSelection().getFirst();
-      if (selected == null) {
-        return;
-      }
-      File dir = getCompilationDir(COMPILE_TO_SCHEMATIC);
-      if (dir == null) {
-        return;
-      }
-      String name = FileUtils.getFilenameWithoutExtension(selected.getTitle());
-      String targetFileName = name + ".schematic";
-      File outputFile = new File(dir, targetFileName);
-      outputFile.getParentFile().mkdirs();
-      outputFile.createNewFile();
-      TagCompound schematic = SchematicConverter.convert(result);
-      try (NbtOutputStream out = new NbtOutputStream(new FileOutputStream(outputFile));) {
-        out.write(schematic);
-      }
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-      JOptionPane.showMessageDialog(activeWindow, ex.getMessage(), ex.getClass().getSimpleName(),
-          JOptionPane.ERROR_MESSAGE);
+  public void compileToStructure() {
+    File dir = getCompilationDir(COMPILE_TO_STRUCTURE);
+    if (dir == null) {
+      return;
     }
+    compileTo(new StructureConverter(), dir, ".nbt");
+  }
+
+  @Operation
+  public void compileToStructureUnder() {
+    chooseCompilationDir(COMPILE_TO_STRUCTURE);
+    compileToSchematic();
+  }
+
+  @Operation
+  public void compileToSchematic() {
+    File dir = getCompilationDir(COMPILE_TO_SCHEMATIC);
+    if (dir == null) {
+      return;
+    }
+    compileTo(new SchematicConverter(), dir, ".schematic");
   }
 
   @Operation
@@ -277,6 +272,20 @@ public class MplFramePM extends AbstractPM {
 
   @Operation
   public void compileToFilter() {
+    File dir = getCompilationDir(COMPILE_TO_FILTER);
+    if (dir == null) {
+      return;
+    }
+    compileTo(new PythonConverter(), dir, ".py");
+  }
+
+  @Operation
+  public void compileToFilterUnder() {
+    chooseCompilationDir(COMPILE_TO_FILTER);
+    compileToFilter();
+  }
+
+  public void compileTo(MplConverter converter, File dir, String fileEnding) {
     try {
       MplCompilationResult result = compile();
       if (result == null) {
@@ -286,18 +295,13 @@ public class MplFramePM extends AbstractPM {
       if (selected == null) {
         return;
       }
-      File dir = getCompilationDir(COMPILE_TO_FILTER);
-      if (dir == null) {
-        return;
-      }
       String name = FileUtils.getFilenameWithoutExtension(selected.getTitle());
-      String targetFileName = name + ".py";
+      String targetFileName = name + fileEnding;
       File outputFile = new File(dir, targetFileName);
       outputFile.getParentFile().mkdirs();
       outputFile.createNewFile();
-      String python = PythonConverter.convert(result, name);
-      try (BufferedWriter writer = Files.newBufferedWriter(outputFile.toPath());) {
-        writer.write(python);
+      try (FileOutputStream out = new FileOutputStream(outputFile);) {
+        converter.write(result, name, out);
       }
     } catch (Exception ex) {
       ex.printStackTrace();
@@ -307,17 +311,10 @@ public class MplFramePM extends AbstractPM {
     }
   }
 
-  @Operation
-  public void compileToFilterUnder() {
-    chooseCompilationDir(COMPILE_TO_FILTER);
-    compileToFilter();
-  }
-
   private MplCompilationResult compile() {
     if (warnAboutUnsavedResources()) {
       return null;
     }
-
     MplEditorPM selected = editors.getSelection().getFirst();
     if (selected == null) {
       return null;
