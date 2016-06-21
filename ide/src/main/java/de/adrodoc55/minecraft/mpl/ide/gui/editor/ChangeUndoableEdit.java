@@ -39,6 +39,10 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui.editor;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import javax.annotation.Nullable;
+import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
@@ -51,13 +55,15 @@ public class ChangeUndoableEdit extends AbstractUndoableBnEdit {
   protected final int offset;
   protected final String oldText;
   protected final String newText;
+  protected final AttributeSet attrs;
 
   public ChangeUndoableEdit(UndoableBnStyledDocument doc, int offset, String oldText,
-      String newText) {
+      String newText, @Nullable AttributeSet attrs) {
     super(doc);
     this.offset = offset;
-    this.oldText = oldText;
-    this.newText = newText;
+    this.oldText = checkNotNull(oldText, "oldText == null!");
+    this.newText = checkNotNull(newText, "newText == null!");
+    this.attrs = attrs;
   }
 
   @Override
@@ -69,7 +75,7 @@ public class ChangeUndoableEdit extends AbstractUndoableBnEdit {
   public void undo() throws CannotRedoException {
     super.undo();
     try {
-      replace(offset, newText.length(), oldText, null);
+      replace(offset, newText.length(), oldText, attrs);
     } catch (BadLocationException ex) {
       throw new CannotRedoException();
     }
@@ -84,7 +90,7 @@ public class ChangeUndoableEdit extends AbstractUndoableBnEdit {
   public void redo() throws CannotUndoException {
     super.redo();
     try {
-      replace(offset, oldText.length(), newText, null);
+      replace(offset, oldText.length(), newText, attrs);
     } catch (BadLocationException ex) {
       throw new CannotUndoException();
     }

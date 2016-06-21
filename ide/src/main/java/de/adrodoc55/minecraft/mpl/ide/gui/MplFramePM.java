@@ -83,7 +83,6 @@ import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialog;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialogControler;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialogPM;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.compilerexception.ExceptionDialog;
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialog;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogControler;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogPM;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.unsaved.UnsavedResourcesDialog;
@@ -432,8 +431,8 @@ public class MplFramePM extends AbstractPM {
       }
 
       @Override
-      public SearchAndReplaceDialog getSearchAndReplaceDialog() {
-        return sarController.getView();
+      public SearchAndReplaceDialogControler getSearchAndReplaceController() {
+        return sarController;
       }
 
       @Override

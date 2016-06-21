@@ -149,7 +149,7 @@ public class SearchAndReplaceDialogPM extends AbstractPM {
 
   public void findIncremental() {
     find.check();
-    JTextComponent component = context.getComponent();
+    JTextComponent component = getComponent();
     Caret caret = component.getCaret();
     int startIndex = Math.min(caret.getDot(), caret.getMark());
     Document doc = component.getDocument();
@@ -171,7 +171,7 @@ public class SearchAndReplaceDialogPM extends AbstractPM {
   @Operation
   public void find() {
     find.check();
-    JTextComponent component = context.getComponent();
+    JTextComponent component = getComponent();
     Caret caret = component.getCaret();
     int startIndex = caret.getDot();
     Document doc = component.getDocument();
@@ -195,7 +195,7 @@ public class SearchAndReplaceDialogPM extends AbstractPM {
   }
 
   private Interval search(int offset, int length) {
-    JTextComponent component = context.getComponent();
+    JTextComponent component = getComponent();
     Document doc = component.getDocument();
     String text;
     try {
@@ -287,7 +287,7 @@ public class SearchAndReplaceDialogPM extends AbstractPM {
   @Operation
   public void replace() {
     replace.check();
-    JTextComponent component = context.getComponent();
+    JTextComponent component = getComponent();
     component.replaceSelection(getReplaceWithText());
     String replaceWithText = replaceWith.getText();
     OptionsUtils.put(replaceWithOptions, replaceWithText);
@@ -305,7 +305,7 @@ public class SearchAndReplaceDialogPM extends AbstractPM {
 
   @Validation(path = "replace")
   public ValidationState canReplace() {
-    JTextComponent component = context.getComponent();
+    JTextComponent component = getComponent();
     Caret caret = component.getCaret();
     if (caret.getDot() == caret.getMark()) {
       return new ValidationState("Nothing selected");
@@ -342,8 +342,7 @@ public class SearchAndReplaceDialogPM extends AbstractPM {
   @Operation
   public void replaceAll() {
     replaceAll.check();
-    JTextComponent component = context.getComponent();
-    Document doc = component.getDocument();
+    Document doc = getComponent().getDocument();
     String replaceWithText = getReplaceWithText();
     int i = 0;
     while (true) {
@@ -366,5 +365,4 @@ public class SearchAndReplaceDialogPM extends AbstractPM {
   public ValidationState canReplaceAll() {
     return canReplaceFind();
   }
-
 }

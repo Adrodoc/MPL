@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui.editor;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import javax.swing.text.BadLocationException;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
@@ -54,7 +56,7 @@ public class RemoveUndoableEdit extends AbstractUndoableBnEdit {
   public RemoveUndoableEdit(UndoableBnStyledDocument doc, int offset, String text) {
     super(doc);
     this.offset = offset;
-    this.text = text;
+    this.text = checkNotNull(text, "text == null!");
   }
 
   @Override

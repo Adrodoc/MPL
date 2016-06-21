@@ -44,6 +44,8 @@ import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Window;
 
+import javax.annotation.Nonnull;
+
 import org.beanfabrics.model.PresentationModel;
 
 /**
@@ -55,7 +57,7 @@ public abstract class WindowControler<V extends WindowView<PM>, PM extends Prese
   private V view;
   private PM pm;
 
-  public V getView() {
+  public @Nonnull V getView() {
     if (view == null) {
       Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
       view = createView(activeWindow);
@@ -66,7 +68,7 @@ public abstract class WindowControler<V extends WindowView<PM>, PM extends Prese
 
   protected abstract V createView(Window activeWindow);
 
-  public PM getPresentationModel() {
+  public @Nonnull PM getPresentationModel() {
     if (pm == null) {
       pm = createPM();
     }

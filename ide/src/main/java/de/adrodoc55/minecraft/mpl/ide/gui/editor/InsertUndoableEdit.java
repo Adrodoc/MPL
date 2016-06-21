@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui.editor;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
@@ -50,11 +53,13 @@ public class InsertUndoableEdit extends AbstractUndoableBnEdit {
   private static final long serialVersionUID = 1L;
   protected final int offset;
   protected final String text;
+  protected final AttributeSet a;
 
-  public InsertUndoableEdit(UndoableBnStyledDocument doc, int offset, String text) {
+  public InsertUndoableEdit(UndoableBnStyledDocument doc, int offset, String text, AttributeSet a) {
     super(doc);
     this.offset = offset;
-    this.text = text;
+    this.text = checkNotNull(text, "text == null!");
+    this.a = a;
   }
 
   @Override
@@ -81,7 +86,7 @@ public class InsertUndoableEdit extends AbstractUndoableBnEdit {
   public void redo() throws CannotRedoException {
     super.redo();
     try {
-      insertString(offset, text, null);
+      insertString(offset, text, a);
     } catch (BadLocationException ex) {
       throw new CannotRedoException();
     }

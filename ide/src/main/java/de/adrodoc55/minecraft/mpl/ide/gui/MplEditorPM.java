@@ -67,7 +67,7 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialog;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogControler;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogPM;
 import de.adrodoc55.minecraft.mpl.ide.gui.editor.EditorPM;
 
@@ -121,7 +121,7 @@ public class MplEditorPM extends AbstractPM implements EditorPM {
   public static interface Context {
     void close(MplEditorPM editorPm);
 
-    SearchAndReplaceDialog getSearchAndReplaceDialog();
+    SearchAndReplaceDialogControler getSearchAndReplaceController();
 
     void compile(MplEditorPM mplEditorPM);
   }
@@ -305,18 +305,16 @@ public class MplEditorPM extends AbstractPM implements EditorPM {
   }
 
   public void searchAndReplace() {
-    SearchAndReplaceDialog dialog = context.getSearchAndReplaceDialog();
-    SearchAndReplaceDialogPM pm = dialog.getPresentationModel();
-    if (pm != null) {
-      JTextComponent component = pm.getComponent();
-      if (component != null) {
-        String selected = component.getSelectedText();
-        if (selected != null) {
-          pm.setSearch(selected);
-        }
+    SearchAndReplaceDialogControler ctrl = context.getSearchAndReplaceController();
+    SearchAndReplaceDialogPM pm = ctrl.getPresentationModel();
+    JTextComponent component = pm.getComponent();
+    if (component != null) {
+      String selected = component.getSelectedText();
+      if (selected != null) {
+        pm.setSearch(selected);
       }
     }
-    dialog.setVisible(true);
+    ctrl.getView().setVisible(true);
   }
 
   MplEditor getView() {

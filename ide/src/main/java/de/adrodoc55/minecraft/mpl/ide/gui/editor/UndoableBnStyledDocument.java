@@ -92,22 +92,19 @@ public class UndoableBnStyledDocument extends BnStyledDocument {
   @Override
   public void remove(int offset, int length) throws BadLocationException {
     String text = getText(offset, length);
-    super.remove(offset, length);
-    fireUndoableEditEvent(new RemoveUndoableEdit(this, offset, text));
+    submit(new RemoveUndoableEdit(this, offset, text));
   }
 
   @Override
   public void replace(int offset, int length, String newText, AttributeSet attrs)
       throws BadLocationException {
     String oldText = getText(offset, length);
-    super.replace(offset, length, newText, attrs);
-    fireUndoableEditEvent(new ChangeUndoableEdit(this, offset, oldText, newText));
+    submit(new ChangeUndoableEdit(this, offset, oldText, newText, attrs));
   }
 
   @Override
   public void insertString(int offset, String text, AttributeSet a) throws BadLocationException {
-    super.insertString(offset, text, a);
-    fireUndoableEditEvent(new InsertUndoableEdit(this, offset, text));
+    submit(new InsertUndoableEdit(this, offset, text, a));
   }
 
   /**

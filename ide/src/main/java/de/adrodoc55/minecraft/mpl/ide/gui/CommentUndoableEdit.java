@@ -59,7 +59,6 @@ public class CommentUndoableEdit extends AbstractUndoableBnEdit {
 
   public CommentUndoableEdit(UndoableBnStyledDocument doc, int dot, int mark) {
     super(doc);
-    super.undo();
     Element root = doc.getDefaultRootElement();
     firstLine = root.getElementIndex(Math.min(dot, mark));
     lastLine = root.getElementIndex(Math.max(dot, mark));

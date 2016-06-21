@@ -39,6 +39,11 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui.editor;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.UndeclaredThrowableException;
+
 import javax.swing.event.DocumentEvent.EventType;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -52,7 +57,14 @@ public abstract class AbstractUndoableBnEdit extends AbstractUndoableEdit {
   protected final UndoableBnStyledDocument doc;
 
   public AbstractUndoableBnEdit(UndoableBnStyledDocument doc) {
-    this.doc = doc;
+    this.doc = checkNotNull(doc, "doc == null!");
+    try {
+      Field hasBeenDone = AbstractUndoableEdit.class.getDeclaredField("hasBeenDone");
+      hasBeenDone.setAccessible(true);
+      hasBeenDone.setBoolean(this, false);
+    } catch (NoSuchFieldException | SecurityException | IllegalAccessException ex) {
+      throw new UndeclaredThrowableException(ex);
+    }
   }
 
   /**
