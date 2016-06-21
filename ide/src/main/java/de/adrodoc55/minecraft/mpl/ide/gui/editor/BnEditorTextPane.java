@@ -53,12 +53,12 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.EditorKit;
 import javax.swing.text.Element;
+import javax.swing.text.StyledDocument;
 import javax.swing.undo.UndoManager;
 
 import org.beanfabrics.Path;
 import org.beanfabrics.swing.internal.BnStyledDocument;
 
-import de.adrodoc55.minecraft.mpl.ide.gui.editor.UndoableBnStyledDocument.CaretUpdateEvent;
 import de.adrodoc55.minecraft.mpl.ide.gui.utils.NoWrapBnTextPane;
 
 /**
@@ -92,15 +92,50 @@ public class BnEditorTextPane extends NoWrapBnTextPane {
   }
 
   @Override
+  public UndoableBnStyledDocument getDocument() {
+    return (UndoableBnStyledDocument) super.getDocument();
+  }
+
+  /**
+   * Associates the editor with a text document. This must be a {@link UndoableBnStyledDocument}.
+   *
+   * @param doc the document to display/edit
+   * @exception IllegalArgumentException if {@code doc} can't be narrowed to a
+   *            {@link UndoableBnStyledDocument} which is the required type of model for this text
+   *            component
+   */
+  @Override
   public void setDocument(Document doc) {
-    BnStyledDocument oldDoc = getDocument();
-    if (oldDoc != null) {
-      oldDoc.removeDocumentListener(getCaretListener());
-      oldDoc.removeUndoableEditListener(getUndoManager());
+    if (doc instanceof UndoableBnStyledDocument) {
+      BnStyledDocument oldDoc = getDocument();
+      if (oldDoc != null) {
+        oldDoc.removeDocumentListener(getCaretListener());
+        oldDoc.removeUndoableEditListener(getUndoManager());
+      }
+      super.setDocument(doc);
+      doc.addDocumentListener(getCaretListener());
+      doc.addUndoableEditListener(getUndoManager());
+    } else {
+      throw new IllegalArgumentException("Model must be UndoableBnStyledDocument");
     }
-    super.setDocument(doc);
-    doc.addDocumentListener(getCaretListener());
-    doc.addUndoableEditListener(getUndoManager());
+  }
+
+  @Override
+  public UndoableBnStyledDocument getStyledDocument() {
+    return getDocument();
+  }
+
+  /**
+   * Associates the editor with a text document. This must be a <code>BnStyledDocument</code>.
+   *
+   * @param doc the document to display/edit
+   * @exception IllegalArgumentException if <code>doc</code> can't be narrowed to a
+   *            <code>BnStyledDocument</code> which is the required type of model for this text
+   *            component
+   */
+  @Override
+  public void setStyledDocument(StyledDocument doc) {
+    setDocument(doc);
   }
 
   public DocumentListener getCaretListener() {

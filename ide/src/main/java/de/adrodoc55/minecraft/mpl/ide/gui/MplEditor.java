@@ -69,7 +69,6 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
-import javax.swing.text.Element;
 
 import org.beanfabrics.IModelProvider;
 import org.beanfabrics.Link;
@@ -78,7 +77,6 @@ import org.beanfabrics.ModelSubscriber;
 import org.beanfabrics.Path;
 import org.beanfabrics.View;
 import org.beanfabrics.swing.BnTextPane;
-import org.beanfabrics.swing.internal.BnStyledDocument;
 
 import de.adrodoc55.commons.AncestorAdapter;
 import de.adrodoc55.commons.FileUtils;
@@ -93,6 +91,7 @@ import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDi
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.hover.HoverDialogControler;
 import de.adrodoc55.minecraft.mpl.ide.gui.editor.BnEditorTextPane;
 import de.adrodoc55.minecraft.mpl.ide.gui.editor.EditorPM;
+import de.adrodoc55.minecraft.mpl.ide.gui.editor.UndoableBnStyledDocument;
 import de.adrodoc55.minecraft.mpl.ide.gui.utils.TextLineNumber;
 
 /**
@@ -272,7 +271,7 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
       });
       textPane.setPath(new Path("this.code"));
       textPane.setModelProvider(getLocalModelProvider());
-      BnStyledDocument doc = textPane.getStyledDocument();
+      UndoableBnStyledDocument doc = textPane.getDocument();
       doc.setDocumentFilter(getMplSyntaxFilter());
       int ctrl = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
@@ -283,54 +282,9 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
 
         @Override
         public void actionPerformed(ActionEvent e) {
-          Element root = doc.getDefaultRootElement();
           int dot = textPane.getCaret().getDot();
           int mark = textPane.getCaret().getMark();
-          int firstLine = root.getElementIndex(Math.min(dot, mark));
-          int lastLine = root.getElementIndex(Math.max(dot, mark));
-
-          boolean uncomment = true;
-          for (int l = firstLine; l <= lastLine; l++) {
-            Element line = root.getElement(l);
-            if (getCommentType(line) == 0) {
-              uncomment = false;
-              break;
-            }
-          }
-
-          for (int l = firstLine; l <= lastLine; l++) {
-            Element line = root.getElement(l);
-            int start = line.getStartOffset();
-            try {
-              if (uncomment) {
-                doc.remove(start, getCommentType(line));
-              } else {
-                doc.insertString(start, "#", null);
-              }
-            } catch (BadLocationException ex) {
-              throw new UndeclaredThrowableException(ex);
-            }
-          }
-        }
-
-        private int getCommentType(Element line) {
-          int start = line.getStartOffset();
-          try {
-            if (start < doc.getLength()) {
-              String s1 = doc.getText(start, 1);
-              if ("#".equals(s1)) {
-                return 1;
-              } else if (start + 1 < doc.getLength()) {
-                String s2 = doc.getText(start + 1, 1);
-                if ("//".equals(s1 + s2)) {
-                  return 2;
-                }
-              }
-            }
-            return 0;
-          } catch (BadLocationException ex) {
-            throw new UndeclaredThrowableException(ex);
-          }
+          doc.submit(new CommentUndoableEdit(doc, dot, mark));
         }
       });
 

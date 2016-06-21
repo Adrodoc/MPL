@@ -42,14 +42,12 @@ package de.adrodoc55.minecraft.mpl.ide.gui.editor;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.event.DocumentEvent.EventType;
+import javax.swing.event.DocumentEvent;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
-import javax.swing.undo.AbstractUndoableEdit;
-import javax.swing.undo.CannotRedoException;
-import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoableEdit;
 
 import org.beanfabrics.swing.internal.BnStyledDocument;
 
@@ -82,17 +80,20 @@ public class UndoableBnStyledDocument extends BnStyledDocument {
     }
   }
 
+  protected void fireUndoableEditEvent(UndoableEdit edit) {
+    fireUndoableEditEvent(new UndoableEditEvent(this, edit));
+  }
+
+  public void submit(UndoableEdit edit) {
+    edit.redo();
+    fireUndoableEditEvent(edit);
+  }
+
   @Override
   public void remove(int offset, int length) throws BadLocationException {
     String text = getText(offset, length);
     super.remove(offset, length);
-    RemoveUndoableEdit edit = new RemoveUndoableEdit(offset, text);
-    fireUndoableEditEvent(new UndoableEditEvent(this, edit));
-  }
-
-  private void remove2(int offs, int len, boolean isUndo) throws BadLocationException {
-    super.remove(offs, len);
-    fireRemoveUpdate(new CaretUpdateEvent(offs, len, EventType.REMOVE));
+    fireUndoableEditEvent(new RemoveUndoableEdit(this, offset, text));
   }
 
   @Override
@@ -100,178 +101,73 @@ public class UndoableBnStyledDocument extends BnStyledDocument {
       throws BadLocationException {
     String oldText = getText(offset, length);
     super.replace(offset, length, newText, attrs);
-    ChangeUndoableEdit edit = new ChangeUndoableEdit(offset, oldText, newText);
-    fireUndoableEditEvent(new UndoableEditEvent(this, edit));
-  }
-
-  private void replace2(int offs, int len, String text, AttributeSet attrs, boolean isUndo)
-      throws BadLocationException {
-    super.replace(offs, len, text, attrs);
-    fireChangedUpdate(new CaretUpdateEvent(offs, text.length(), EventType.CHANGE));
+    fireUndoableEditEvent(new ChangeUndoableEdit(this, offset, oldText, newText));
   }
 
   @Override
   public void insertString(int offset, String text, AttributeSet a) throws BadLocationException {
     super.insertString(offset, text, a);
-    InsertUndoableEdit edit = new InsertUndoableEdit(offset, text);
-    fireUndoableEditEvent(new UndoableEditEvent(this, edit));
+    fireUndoableEditEvent(new InsertUndoableEdit(this, offset, text));
   }
 
-  private void insertString2(int offs, String str, AttributeSet a, boolean isUndo)
+  /**
+   * Removes from this document without generating {@link UndoableEdit}
+   *
+   * @param offs the offset from the beginning
+   * @param len the number of characters to remove
+   * @throws BadLocationException if the given position is not a valid position within the document
+   */
+  public void removeSilent(int offs, int len) throws BadLocationException {
+    super.remove(offs, len);
+  }
+
+  /**
+   * Replaces in this document without generating {@link UndoableEdit}
+   *
+   * @param offs the offset from the beginning
+   * @param len the number of characters to remove
+   * @param text text to insert, null indicates no text to insert
+   * @param attrs AttributeSet indicating attributes of inserted text
+   * @throws BadLocationException if the given position is not a valid position within the document
+   */
+  public void replaceSilent(int offs, int len, String text, AttributeSet attrs)
       throws BadLocationException {
-    super.insertString(offs, str, a);
-    fireInsertUpdate(new CaretUpdateEvent(offs, str.length(), EventType.INSERT));
+    super.replace(offs, len, text, attrs);
   }
 
-  public class CaretUpdateEvent extends DefaultDocumentEvent {
+  /**
+   * Removes from this document without generating {@link UndoableEdit}
+   *
+   * @param offs the offset from the beginning
+   * @param str the string to insert
+   * @param a the attributes to associate with the inserted content
+   * @throws BadLocationException if the given position is not a valid position within the document
+   */
+  public void insertStringSilent(int offs, String str, AttributeSet a) throws BadLocationException {
+    super.insertString(offs, str, a);
+  }
+
+  public class MyCaretUpdateEvent extends DefaultDocumentEvent implements CaretUpdateEvent {
     private static final long serialVersionUID = 1L;
 
-    public CaretUpdateEvent(int offs, int len, EventType type) {
+    public MyCaretUpdateEvent(int offs, int len, EventType type) {
       super(offs, len, type);
     }
   }
 
-  public class InsertUndoableEdit extends AbstractUndoableEdit {
-    private static final long serialVersionUID = 1L;
-
-    protected final int offset;
-    protected final String text;
-
-    public InsertUndoableEdit(int offset, String text) {
-      this.offset = offset;
-      this.text = text;
-    }
-
-    @Override
-    public boolean canUndo() {
-      return super.canUndo() && offset + text.length() <= getLength();
-    }
-
-    @Override
-    public void undo() throws CannotUndoException {
-      super.undo();
-      try {
-        remove2(offset, text.length(), true);
-      } catch (BadLocationException ex) {
-        throw new CannotUndoException();
-      }
-    }
-
-    @Override
-    public boolean canRedo() {
-      return super.canRedo() && offset <= getLength();
-    }
-
-    @Override
-    public void redo() throws CannotRedoException {
-      super.redo();
-      try {
-        insertString2(offset, text, null, false);
-      } catch (BadLocationException ex) {
-        throw new CannotRedoException();
-      }
-    }
-
-    @Override
-    public String getPresentationName() {
-      return "insert";
-    }
+  @Override
+  protected void fireRemoveUpdate(DocumentEvent e) {
+    super.fireRemoveUpdate(e);
   }
 
-  public class RemoveUndoableEdit extends AbstractUndoableEdit {
-    private static final long serialVersionUID = 1L;
-
-    protected final int offset;
-    protected final String text;
-
-    public RemoveUndoableEdit(int offset, String text) {
-      this.offset = offset;
-      this.text = text;
-    }
-
-    @Override
-    public boolean canUndo() {
-      return super.canUndo() && offset <= getLength();
-    }
-
-    @Override
-    public void undo() throws CannotRedoException {
-      super.undo();
-      try {
-        insertString2(offset, text, null, true);
-      } catch (BadLocationException ex) {
-        throw new CannotRedoException();
-      }
-    }
-
-    @Override
-    public boolean canRedo() {
-      return super.canRedo() && offset + text.length() <= getLength();
-    }
-
-    @Override
-    public void redo() throws CannotUndoException {
-      super.redo();
-      try {
-        remove2(offset, text.length(), false);
-      } catch (BadLocationException ex) {
-        throw new CannotUndoException();
-      }
-    }
-
-    @Override
-    public String getPresentationName() {
-      return "remove";
-    }
+  @Override
+  protected void fireChangedUpdate(DocumentEvent e) {
+    super.fireChangedUpdate(e);
   }
 
-  public class ChangeUndoableEdit extends AbstractUndoableEdit {
-    private static final long serialVersionUID = 1L;
-
-    protected final int offset;
-    protected final String oldText;
-    protected final String newText;
-
-    public ChangeUndoableEdit(int offset, String oldText, String newText) {
-      this.offset = offset;
-      this.oldText = oldText;
-      this.newText = newText;
-    }
-
-    @Override
-    public boolean canUndo() {
-      return super.canUndo() && offset + newText.length() <= getLength();
-    }
-
-    @Override
-    public void undo() throws CannotRedoException {
-      super.undo();
-      try {
-        replace2(offset, newText.length(), oldText, null, true);
-      } catch (BadLocationException ex) {
-        throw new CannotRedoException();
-      }
-    }
-
-    @Override
-    public boolean canRedo() {
-      return super.canRedo() && offset + oldText.length() <= getLength();
-    }
-
-    @Override
-    public void redo() throws CannotUndoException {
-      super.redo();
-      try {
-        replace2(offset, oldText.length(), newText, null, false);
-      } catch (BadLocationException ex) {
-        throw new CannotUndoException();
-      }
-    }
-
-    @Override
-    public String getPresentationName() {
-      return "change";
-    }
+  @Override
+  protected void fireInsertUpdate(DocumentEvent e) {
+    super.fireInsertUpdate(e);
   }
 
 }

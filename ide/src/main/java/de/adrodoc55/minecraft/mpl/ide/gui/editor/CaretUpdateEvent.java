@@ -39,16 +39,10 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui.editor;
 
-import de.adrodoc55.minecraft.mpl.ide.gui.utils.BnJaggedEditorKit;
+import javax.swing.event.DocumentEvent;
 
 /**
  * @author Adrodoc55
  */
-public class UndoableBnStyledEditorKit extends BnJaggedEditorKit {
-  private static final long serialVersionUID = 1L;
-
-  @Override
-  public UndoableBnStyledDocument createDefaultDocument() {
-    return new UndoableBnStyledDocument();
-  }
+public interface CaretUpdateEvent extends DocumentEvent {
 }

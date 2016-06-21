@@ -39,16 +39,56 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui.editor;
 
-import de.adrodoc55.minecraft.mpl.ide.gui.utils.BnJaggedEditorKit;
+import javax.swing.text.BadLocationException;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
 
 /**
  * @author Adrodoc55
  */
-public class UndoableBnStyledEditorKit extends BnJaggedEditorKit {
+public class RemoveUndoableEdit extends AbstractUndoableBnEdit {
   private static final long serialVersionUID = 1L;
+  protected final int offset;
+  protected final String text;
+
+  public RemoveUndoableEdit(UndoableBnStyledDocument doc, int offset, String text) {
+    super(doc);
+    this.offset = offset;
+    this.text = text;
+  }
 
   @Override
-  public UndoableBnStyledDocument createDefaultDocument() {
-    return new UndoableBnStyledDocument();
+  public boolean canUndo() {
+    return super.canUndo() && offset <= doc.getLength();
+  }
+
+  @Override
+  public void undo() throws CannotRedoException {
+    super.undo();
+    try {
+      insertString(offset, text, null);
+    } catch (BadLocationException ex) {
+      throw new CannotRedoException();
+    }
+  }
+
+  @Override
+  public boolean canRedo() {
+    return super.canRedo() && offset + text.length() <= doc.getLength();
+  }
+
+  @Override
+  public void redo() throws CannotUndoException {
+    super.redo();
+    try {
+      remove(offset, text.length());
+    } catch (BadLocationException ex) {
+      throw new CannotUndoException();
+    }
+  }
+
+  @Override
+  public String getPresentationName() {
+    return "remove";
   }
 }

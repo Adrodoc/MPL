@@ -168,14 +168,6 @@ public class TextPMTextPane extends JTextPane implements View<ITextPM> {
     }
   }
 
-  // public void setDocument(Document document) {
-  // if (this.isConnected())
-  // throw new IllegalStateException("The document was initialized already.");
-  // if (document instanceof BnStyledDocument)
-  // this.document = (BnStyledDocument) document;
-  // super.setDocument(document);
-  // }
-
   @Override
   public BnStyledDocument getStyledDocument() {
     return getDocument();

@@ -39,16 +39,59 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui.editor;
 
-import de.adrodoc55.minecraft.mpl.ide.gui.utils.BnJaggedEditorKit;
+import javax.swing.event.DocumentEvent.EventType;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.undo.AbstractUndoableEdit;
 
 /**
  * @author Adrodoc55
  */
-public class UndoableBnStyledEditorKit extends BnJaggedEditorKit {
+public abstract class AbstractUndoableBnEdit extends AbstractUndoableEdit {
   private static final long serialVersionUID = 1L;
+  protected final UndoableBnStyledDocument doc;
 
-  @Override
-  public UndoableBnStyledDocument createDefaultDocument() {
-    return new UndoableBnStyledDocument();
+  public AbstractUndoableBnEdit(UndoableBnStyledDocument doc) {
+    this.doc = doc;
+  }
+
+  /**
+   * Silently removes from {@link #doc} and updates the cursor.
+   *
+   * @param offs
+   * @param len
+   * @throws BadLocationException
+   * @see UndoableBnStyledDocument#removeSilent(int, int)
+   */
+  protected void remove(int offs, int len) throws BadLocationException {
+    doc.removeSilent(offs, len);
+    doc.fireRemoveUpdate(doc.new MyCaretUpdateEvent(offs, len, EventType.REMOVE));
+  }
+
+  /**
+   * Silently replace in {@link #doc} and updates the cursor.
+   *
+   * @param offs
+   * @param len
+   * @throws BadLocationException
+   * @see UndoableBnStyledDocument#replaceSilent(int, int)
+   */
+  protected void replace(int offs, int len, String text, AttributeSet attrs)
+      throws BadLocationException {
+    doc.replaceSilent(offs, len, text, attrs);
+    doc.fireChangedUpdate(doc.new MyCaretUpdateEvent(offs, text.length(), EventType.CHANGE));
+  }
+
+  /**
+   * Silently inserts into {@link #doc} and updates the cursor.
+   *
+   * @param offs
+   * @param len
+   * @throws BadLocationException
+   * @see UndoableBnStyledDocument#insertStringSilent(int, int)
+   */
+  protected void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
+    doc.insertStringSilent(offs, str, a);
+    doc.fireInsertUpdate(doc.new MyCaretUpdateEvent(offs, str.length(), EventType.INSERT));
   }
 }
