@@ -195,6 +195,7 @@ public class MplFramePM extends AbstractPM {
       addMplEditorPm(editorPm);
       editorPm.setUnsavedChanges(false);
     } catch (IOException ex) {
+      ex.printStackTrace();
       String message = "The File '" + file.getPath() + "' couldn't be loaded!\n" + ex.getMessage();
       String title = ex.getClass().getSimpleName();
       JOptionPane.showMessageDialog(chooser, message, title, JOptionPane.ERROR_MESSAGE);

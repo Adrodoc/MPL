@@ -246,6 +246,7 @@ public class MplEditorPM extends AbstractPM implements EditorPM {
         setUnsavedChanges(false);
         context.compile(this);
       } catch (IOException ex) {
+        ex.printStackTrace();
         Window activeWindow =
             KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
         String path = file != null ? file.getPath() : null;

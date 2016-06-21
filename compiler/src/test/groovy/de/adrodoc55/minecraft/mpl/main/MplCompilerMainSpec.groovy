@@ -44,11 +44,9 @@ import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOpt
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 
-import org.assertj.core.api.Assertions;
 import org.junit.Test
 
 import de.adrodoc55.minecraft.mpl.MplSpecBase
-import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions
 
 public class MplCompilerMainSpec extends MplSpecBase {
 
@@ -82,7 +80,7 @@ public class MplCompilerMainSpec extends MplSpecBase {
     when:
     compile("-t myType")
     then:
-    lastError == 'mpl: invalid type myType; possible types are SCHEMATIC, COMMAND, FILTER\r\n'
+    lastError == 'mpl: invalid type myType; possible types are: STRUCTURE, SCHEMATIC, COMMAND, FILTER\r\n'
   }
 
   @Test
@@ -90,7 +88,7 @@ public class MplCompilerMainSpec extends MplSpecBase {
     when:
     compile("-c myOption")
     then:
-    lastError == 'mpl: invalid compiler option myOption; possible options are DEBUG, TRANSMITTER\r\n'
+    lastError == 'mpl: invalid compiler option MYOPTION; possible options are: DEBUG, DELETE_ON_UNINSTALL, TRANSMITTER\r\n'
   }
 
   @Test

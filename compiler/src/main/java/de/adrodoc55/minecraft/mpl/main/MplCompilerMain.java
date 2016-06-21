@@ -135,7 +135,7 @@ public class MplCompilerMain {
             type = CompilationType.valueOf(typeString.toUpperCase());
           } catch (IllegalArgumentException ex) {
             throw new InvalidOptionException("mpl: invalid type " + typeString
-                + "; possible types are " + Joiner.on(", ").join(CompilationType.values()));
+                + "; possible types are: " + Joiner.on(", ").join(CompilationType.values()));
           }
           continue;
 
