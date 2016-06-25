@@ -11,10 +11,21 @@ uninstall {
 
 repeat process verticalRails {
   /scoreboard players reset * InLadder
+  /scoreboard players set @e[type=MinecartChest] InLadder 0
+  /scoreboard players set @e[type=MinecartTNT] InLadder 0
+  /scoreboard players set @e[type=MinecartSpawner] InLadder 0
+  /scoreboard players set @e[type=MinecartHopper] InLadder 0
   /scoreboard players set @e[type=MinecartRideable] InLadder 0
+  /scoreboard players set @e[type=MinecartFurnace] InLadder 0
+  /execute @e[type=MinecartChest] ~ ~ ~ detect ~ ~ ~ ladder -1 scoreboard players set @e[r=0,c=1] InLadder 1
+  /execute @e[type=MinecartTNT] ~ ~ ~ detect ~ ~ ~ ladder -1 scoreboard players set @e[r=0,c=1] InLadder 1
+  /execute @e[type=MinecartSpawner] ~ ~ ~ detect ~ ~ ~ ladder -1 scoreboard players set @e[r=0,c=1] InLadder 1
+  /execute @e[type=MinecartHopper] ~ ~ ~ detect ~ ~ ~ ladder -1 scoreboard players set @e[r=0,c=1] InLadder 1
   /execute @e[type=MinecartRideable] ~ ~ ~ detect ~ ~ ~ ladder -1 scoreboard players set @e[r=0,c=1] InLadder 1
-  /entitydata @e[score_InLadder_min=1] {NoGravity:1}
+  /execute @e[type=MinecartFurnace] ~ ~ ~ detect ~ ~ ~ ladder -1 scoreboard players set @e[r=0,c=1] InLadder 1
   /tp @e[score_InLadder_min=1] ~ ~.1 ~
+
+  /entitydata @e[score_InLadder_min=1] {NoGravity:1}
   /execute @e[score_InLadder=1] ~ ~ ~ detect ~ ~-.5 ~.5 ladder 2 entitydata @e[r=0,c=1] {Motion:[0.0,0.0,0.2]}
   /execute @e[score_InLadder=1] ~ ~ ~ detect ~ ~-.5 ~-.5 ladder 3 entitydata @e[r=0,c=1] {Motion:[0.0,0.0,-0.2]}
   /execute @e[score_InLadder=1] ~ ~ ~ detect ~.5 ~-.5 ~ ladder 4 entitydata @e[r=0,c=1] {Motion:[0.2,0.0,0.0]}
