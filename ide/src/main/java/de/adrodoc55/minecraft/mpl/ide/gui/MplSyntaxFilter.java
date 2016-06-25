@@ -49,6 +49,7 @@ import java.util.regex.Pattern;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
+import javax.swing.text.DocumentFilter;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
@@ -67,7 +68,6 @@ import org.beanfabrics.event.BnPropertyChangeEvent;
 
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.ide.gui.MplSyntaxFilterPM.CompilerExceptionWrapper;
-import de.adrodoc55.minecraft.mpl.ide.gui.utils.TabToSpaceDocumentFilter;
 
 /**
  * The MplSyntaxFilter is a {@link View} on a
@@ -76,17 +76,10 @@ import de.adrodoc55.minecraft.mpl.ide.gui.utils.TabToSpaceDocumentFilter;
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class MplSyntaxFilter extends TabToSpaceDocumentFilter implements View<MplSyntaxFilterPM> {
+public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFilterPM> {
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
   private BnModelObserver modelObserver = getModelObserver();
-
-  /**
-   * Constructs a new <code>MplSyntaxFilter</code>.
-   */
-  public MplSyntaxFilter() {
-    super(2);
-  }
 
   public BnModelObserver getModelObserver() {
     if (modelObserver == null) {

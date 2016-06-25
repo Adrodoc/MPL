@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui.editor;
 
+import static de.adrodoc55.commons.TabToSpaceConverter.convertTabsToSpaces;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +49,7 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Element;
 import javax.swing.undo.UndoableEdit;
 
 import org.beanfabrics.swing.internal.BnStyledDocument;
@@ -56,8 +59,16 @@ import org.beanfabrics.swing.internal.BnStyledDocument;
  */
 public class UndoableBnStyledDocument extends BnStyledDocument {
   private static final long serialVersionUID = 1L;
-
   private final List<UndoableEditListener> listeners = new ArrayList<>();
+  private int tabWidth;
+
+  public UndoableBnStyledDocument() {
+    this(2);
+  }
+
+  public UndoableBnStyledDocument(int tabWidth) {
+    this.tabWidth = tabWidth;
+  }
 
   @Override
   public void addUndoableEditListener(UndoableEditListener listener) {
@@ -89,6 +100,14 @@ public class UndoableBnStyledDocument extends BnStyledDocument {
     fireUndoableEditEvent(edit);
   }
 
+  private int getOffsetInLine(int offset) {
+    Element root = getDefaultRootElement();
+    int elementIndex = root.getElementIndex(offset);
+    int startOffset = root.getElement(elementIndex).getStartOffset();
+    int lineOffset = offset - startOffset;
+    return lineOffset;
+  }
+
   @Override
   public void remove(int offset, int length) throws BadLocationException {
     String text = getText(offset, length);
@@ -99,11 +118,15 @@ public class UndoableBnStyledDocument extends BnStyledDocument {
   public void replace(int offset, int length, String newText, AttributeSet attrs)
       throws BadLocationException {
     String oldText = getText(offset, length);
+    int lineOffset = getOffsetInLine(offset);
+    newText = convertTabsToSpaces(lineOffset, tabWidth, newText);
     submit(new ChangeUndoableEdit(this, offset, oldText, newText, attrs));
   }
 
   @Override
   public void insertString(int offset, String text, AttributeSet a) throws BadLocationException {
+    int lineOffset = getOffsetInLine(offset);
+    text = convertTabsToSpaces(lineOffset, tabWidth, text);
     submit(new InsertUndoableEdit(this, offset, text, a));
   }
 

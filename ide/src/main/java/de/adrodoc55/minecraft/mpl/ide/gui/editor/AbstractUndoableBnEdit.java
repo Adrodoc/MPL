@@ -70,9 +70,9 @@ public abstract class AbstractUndoableBnEdit extends AbstractUndoableEdit {
   /**
    * Silently removes from {@link #doc} and updates the cursor.
    *
-   * @param offs
-   * @param len
-   * @throws BadLocationException
+   * @param offs the offset from the beginning
+   * @param len the number of characters to remove
+   * @throws BadLocationException if the given position is not a valid position within the document
    * @see UndoableBnStyledDocument#removeSilent(int, int)
    */
   protected void remove(int offs, int len) throws BadLocationException {
@@ -83,10 +83,12 @@ public abstract class AbstractUndoableBnEdit extends AbstractUndoableEdit {
   /**
    * Silently replace in {@link #doc} and updates the cursor.
    *
-   * @param offs
-   * @param len
-   * @throws BadLocationException
-   * @see UndoableBnStyledDocument#replaceSilent(int, int)
+   * @param offs the offset from the beginning
+   * @param len the number of characters to remove
+   * @param text text to insert, null indicates no text to insert
+   * @param attrs AttributeSet indicating attributes of inserted text
+   * @throws BadLocationException if the given position is not a valid position within the document
+   * @see UndoableBnStyledDocument#replaceSilent(int, int, String, AttributeSet)
    */
   protected void replace(int offs, int len, String text, AttributeSet attrs)
       throws BadLocationException {
@@ -97,10 +99,11 @@ public abstract class AbstractUndoableBnEdit extends AbstractUndoableEdit {
   /**
    * Silently inserts into {@link #doc} and updates the cursor.
    *
-   * @param offs
-   * @param len
-   * @throws BadLocationException
-   * @see UndoableBnStyledDocument#insertStringSilent(int, int)
+   * @param offs the offset from the beginning
+   * @param str the string to insert
+   * @param a the attributes to associate with the inserted content
+   * @throws BadLocationException if the given position is not a valid position within the document
+   * @see UndoableBnStyledDocument#insertStringSilent(int, String, AttributeSet)
    */
   protected void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
     doc.insertStringSilent(offs, str, a);
