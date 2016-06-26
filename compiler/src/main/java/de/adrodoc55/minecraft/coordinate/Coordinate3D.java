@@ -131,6 +131,11 @@ public class Coordinate3D {
     }
   }
 
+  public Coordinate3D plus(int skalar, Direction3D direction) {
+    skalar = direction.isNegative() ? -skalar : skalar;
+    return plus(skalar, direction.getAxis());
+  }
+
   public Coordinate3D plus(int skalar, Axis3D axis) {
     switch (axis) {
       case X:
@@ -145,6 +150,11 @@ public class Coordinate3D {
       default:
         throw new IllegalArgumentException("axis must not be null");
     }
+  }
+
+  public Coordinate3D minus(int skalar, Direction3D direction) {
+    skalar = direction.isNegative() ? -skalar : skalar;
+    return minus(skalar, direction.getAxis());
   }
 
   public Coordinate3D minus(int skalar, Axis3D axis) {
