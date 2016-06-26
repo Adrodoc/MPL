@@ -1,15 +1,15 @@
-install (
+install {
   /scoreboard objectives add ST_Triangle dummy
   /scoreboard objectives add ST_X dummy
   /scoreboard objectives add ST_Z dummy
-)
+}
 
-process reset (
+process reset {
   /kill @e[name=ST_Head]
   /summon ArmorStand ${origin + (0 0 5)} {CustomName:ST_Head,NoGravity:1}
-)
+}
 
-repeat process triangle (
+repeat process triangle {
   /scoreboard players reset @e[name=ST_Head] ST_Triangle
   /execute @e[name=ST_Head] ~ ~ ~ detect ~-1 ~ ~ wool 15 scoreboard players add @e[r=0,c=1] ST_Triangle 1
   /execute @e[name=ST_Head] ~ ~ ~ detect ~ ~ ~-1 wool 15 scoreboard players add @e[r=0,c=1] ST_Triangle 1
@@ -33,7 +33,7 @@ repeat process triangle (
   /scoreboard players add @e[name=ST_Head,score_ST_Z=-1] ST_Z 1
 
   if not: /testfor @e[name=ST_Head]
-  then (
+  then {
     stop
-  )
-)
+  }
+}
