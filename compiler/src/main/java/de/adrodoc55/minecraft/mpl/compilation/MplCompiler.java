@@ -101,22 +101,20 @@ public class MplCompiler extends MplBaseListener {
     List<CommandBlockChain> chains = place(container, options);
 
     // Result
+    return toResult(program.getOrientation(), chains);
+  }
+
+  public static MplCompilationResult toResult(Orientation3D orientation,
+      List<CommandBlockChain> chains) {
     List<MplBlock> blocks = chains.stream()//
         .flatMap(c -> c.getBlocks().stream())//
         .collect(toList());
 
     ImmutableMap<Coordinate3D, MplBlock> result = Maps.uniqueIndex(blocks, b -> b.getCoordinate());
-    return new MplCompilationResult(program.getOrientation(), result);
+    return new MplCompilationResult(orientation, result);
   }
 
-  private static ChainContainer materialize(MplProgram program, CompilerOptions options) {
-    MplAstVisitor visitor = new MplAstVisitorImpl(options);
-    program.accept(visitor);
-    ChainContainer container = visitor.getResult();
-    return container;
-  }
-
-  private static List<CommandBlockChain> place(ChainContainer container, CompilerOptions options)
+  public static List<CommandBlockChain> place(ChainContainer container, CompilerOptions options)
       throws CompilationFailedException {
     List<CommandBlockChain> chains;
     try {
@@ -133,6 +131,13 @@ public class MplCompiler extends MplBaseListener {
       insertRelativeCoordinates(chain.getBlocks(), container.getOrientation());
     }
     return chains;
+  }
+
+  public static ChainContainer materialize(MplProgram program, CompilerOptions options) {
+    MplAstVisitor visitor = new MplAstVisitorImpl(options);
+    program.accept(visitor);
+    ChainContainer container = visitor.getResult();
+    return container;
   }
 
   public static MplProgram assembleProgram(File programFile)
