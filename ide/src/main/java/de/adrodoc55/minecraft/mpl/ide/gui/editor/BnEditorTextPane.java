@@ -112,9 +112,9 @@ public class BnEditorTextPane extends NoWrapBnTextPane {
         oldDoc.removeDocumentListener(getCaretListener());
         oldDoc.removeUndoableEditListener(getUndoManager());
       }
-      super.setDocument(doc);
       doc.addDocumentListener(getCaretListener());
       doc.addUndoableEditListener(getUndoManager());
+      super.setDocument(doc);
     } else {
       throw new IllegalArgumentException("Model must be UndoableBnStyledDocument");
     }
