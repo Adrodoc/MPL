@@ -58,16 +58,19 @@ dependencies {
 }
 ```
 
-Building
---------
-MPL is built using [Gradle]. You don't have to install Gradle, because the project contains a [Gradle Wrapper] along with the source files. To fully configure the project for [Eclipse], all you have to do is:
+Contributing
+------------
+If you are missing a feature or just want to help out you can contribute to MPL by opening a [pull request](https://help.github.com/articles/using-pull-requests/).
 
-1. Open a command line in the root project directory
-2. Run the command `gradlew eclipse` on Windows
-   or `./gradlew eclipse` on Unix systems
+Here are some guidelines to make contributing easier:
+* The MPL Project is split into two parts, the `compiler` and the `ide`. Both of these directories are subprojects, that should be imported into your IDE
+* You should configure your IDE to use the [google java formatter](https://github.com/google/styleguide)
+* All files should be encoded in `UTF-8`
+* When using [Eclipse] configure the project by using the [Gradle Wrapper] and executing `gradlew eclipse` on a command line in the root directory
 
-To to build custom jar files execute `gradlew build` on Windows
-   or `./gradlew build` on Unix systems. The jar files will be created in the directories `MPL/ide/build/libs` and `MPL/compiler/build/libs`.
+### Building
+
+MPL is built using [Gradle]. You don't have to install Gradle, because the project contains a [Gradle Wrapper] along with the source files. To to build custom jar files execute `gradlew build` on Windows or `./gradlew build` on Unix systems. The jar files will be created in the directories `MPL/ide/build/libs` and `MPL/compiler/build/libs`.
 
 [Sonatype OSS Maven Repository]: https://oss.sonatype.org/content/repositories/releases/de/adrodoc55/mpl
 [Maven Central]: http://search.maven.org/#search|ga|1|g%3Ade.adrodoc55.mpl
