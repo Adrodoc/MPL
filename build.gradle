@@ -1,19 +1,27 @@
+buildscript {
+  repositories { jcenter() }
+
+  dependencies { classpath 'com.github.ben-manes:gradle-versions-plugin:0.12.0' }
+}
+apply plugin: 'com.github.ben-manes.versions'
+
 ext {
   productName = 'MPL'
   encoding = 'UTF-8'
 }
 allprojects {
   group = 'de.adrodoc55.mpl'
-  version = '0.11.0'
+  version = getGitVersion()
 }
 
-buildscript {
-  repositories { jcenter() }
-
-  dependencies { classpath 'com.github.ben-manes:gradle-versions-plugin:0.12.0' }
+def getGitVersion() {
+  def stdout = new ByteArrayOutputStream()
+  exec {
+    commandLine 'git', 'describe', '--dirty=-SNAPSHOT'
+    standardOutput = stdout
+  }
+  stdout.toString().trim().substring(1)
 }
-
-apply plugin: 'com.github.ben-manes.versions'
 
 // ----------------------------------------------------------------------------------------------------
 //    _      _  _                        _
