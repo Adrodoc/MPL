@@ -48,8 +48,8 @@ dependencies {
   compile libs.antlr4_runtime
   compile libs.guava
   compile libs.jsr305
-  compile libs.lombok
   compile libs.nbt
+  compileOnly libs.lombok
 
   testCompile libs.assertj
   testCompile libs.guava

@@ -16,6 +16,7 @@ archivesBaseName = 'mpl-ide'
 dependencies {
   compile project(':compiler')
   compile libs.beanfabrics
+  compileOnly libs.lombok
 
   testCompile libs.spock
   testCompile project(':compiler').sourceSets.test.output
