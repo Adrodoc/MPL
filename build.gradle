@@ -14,7 +14,7 @@ allprojects {
   version = getGitVersion()
 }
 
-def getVersionName = { ->
+def getGitVersion() {
   try {
     def stdout = new ByteArrayOutputStream()
     exec {
@@ -22,8 +22,8 @@ def getVersionName = { ->
       standardOutput = stdout
     }
     return stdout.toString().trim()
-  } catch(Exception e) {
-    return "UNKOWN"
+  } catch (Exception e) {
+    return "UNKNOWN-VERSION"
   }
 }
 
