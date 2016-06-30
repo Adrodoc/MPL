@@ -51,7 +51,6 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  */
 @Immutable
 public class Coordinate3D {
-
   public static final Coordinate3D SELF = new Coordinate3D(0, 0, 0);
   public static final Coordinate3D EAST = new Coordinate3D(1, 0, 0);
   public static final Coordinate3D WEST = new Coordinate3D(-1, 0, 0);

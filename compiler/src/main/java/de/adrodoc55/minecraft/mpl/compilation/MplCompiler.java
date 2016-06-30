@@ -100,8 +100,13 @@ public class MplCompiler extends MplBaseListener {
     // Placement
     List<CommandBlockChain> chains = place(container, options);
 
+    Orientation3D orientation = program.getOrientation();
+
+    // Inserts
+    insertRelativeCoordinates(orientation, chains);
+
     // Result
-    return toResult(program.getOrientation(), chains);
+    return toResult(orientation, chains);
   }
 
   public static MplCompilationResult toResult(Orientation3D orientation,
@@ -114,23 +119,25 @@ public class MplCompiler extends MplBaseListener {
     return new MplCompilationResult(orientation, result);
   }
 
+  public static void insertRelativeCoordinates(Orientation3D orientation,
+      Iterable<CommandBlockChain> chains) {
+    for (CommandBlockChain chain : chains) {
+      insertRelativeCoordinates(orientation, chain.getBlocks());
+    }
+  }
+
   public static List<CommandBlockChain> place(ChainContainer container, CompilerOptions options)
       throws CompilationFailedException {
-    List<CommandBlockChain> chains;
     try {
       if (options.hasOption(DEBUG)) {
-        chains = new MplDebugProgramPlacer(container, options).place();
+        return new MplDebugProgramPlacer(container, options).place();
       } else {
-        chains = new MplProgramPlacer(container, options).place();
+        return new MplProgramPlacer(container, options).place();
       }
     } catch (NotEnoughSpaceException ex) {
       throw new CompilationFailedException(
           "The maximal coordinate is to small to place the entire program", ex);
     }
-    for (CommandBlockChain chain : chains) {
-      insertRelativeCoordinates(chain.getBlocks(), container.getOrientation());
-    }
-    return chains;
   }
 
   public static ChainContainer materialize(MplProgram program, CompilerOptions options) {
@@ -313,7 +320,7 @@ public class MplCompiler extends MplBaseListener {
   private static final Pattern originPattern = Pattern.compile(
       "\\$\\{\\s*origin\\s*(?:\\+\\s*\\(\\s*(-?\\d+)\\s+(-?\\d+)\\s+(-?\\d+)\\s*\\)\\s*)?\\}");
 
-  private static void insertRelativeCoordinates(List<MplBlock> blocks, Orientation3D orientation) {
+  private static void insertRelativeCoordinates(Orientation3D orientation, List<MplBlock> blocks) {
     for (int i = 0; i < blocks.size(); i++) {
       MplBlock currentBlock = blocks.get(i);
       if (!(currentBlock instanceof CommandBlock)) {
