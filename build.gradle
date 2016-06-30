@@ -132,7 +132,9 @@ allprojects { Project proj ->
 
           // repository(url: "file://localhost/Users/Adrian/.m2/repository")
           repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2") {
-            authentication(userName: project.'sonatype.username', password: project.'sonatype.password')
+            if (project.hasProperty('sonatype.username') && project.hasProperty('sonatype.password')) {
+              authentication(userName: project.'sonatype.username', password: project.'sonatype.password')
+            }
           }
 
           pom.project {
