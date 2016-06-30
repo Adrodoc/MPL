@@ -14,13 +14,17 @@ allprojects {
   version = getGitVersion()
 }
 
-def getGitVersion() {
-  def stdout = new ByteArrayOutputStream()
-  exec {
-    commandLine 'git', 'describe', '--dirty=-SNAPSHOT'
-    standardOutput = stdout
+def getVersionName = { ->
+  try {
+    def stdout = new ByteArrayOutputStream()
+    exec {
+      commandLine 'git', 'describe', '--dirty=-SNAPSHOT'
+      standardOutput = stdout
+    }
+    return stdout.toString().trim()
+  } catch(Exception e) {
+    return "UNKOWN"
   }
-  stdout.toString().trim().substring(1)
 }
 
 // ----------------------------------------------------------------------------------------------------
