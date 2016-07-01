@@ -1,6 +1,5 @@
 buildscript {
   repositories { jcenter() }
-
   dependencies { classpath 'com.github.ben-manes:gradle-versions-plugin:0.12.0' }
 }
 apply plugin: 'com.github.ben-manes.versions'
@@ -42,6 +41,7 @@ ext {
     antlr4_runtime: 'org.antlr:antlr4-runtime:4.5.3',
     assertj:        'org.assertj:assertj-core:3.4.1',
     beanfabrics:    'org.beanfabrics:beanfabrics-swing:1.4.3',
+    groovy:         'org.codehaus.groovy:groovy-all:2.4.7',
     guava:          'com.google.guava:guava:19.0',
     jsr305:         'com.google.code.findbugs:jsr305:3.0.1',
     junit:          'junit:junit:4.12',

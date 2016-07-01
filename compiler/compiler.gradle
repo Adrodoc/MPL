@@ -46,6 +46,7 @@ dependencies {
 
   compile sourceSets.jdotsoft.output
   compile libs.antlr4_runtime
+  compile libs.groovy
   compile libs.guava
   compile libs.jsr305
   compile libs.nbt
