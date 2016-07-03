@@ -92,9 +92,9 @@ public class StructureConverter implements MplConverter {
     Coordinate3D max = getMaxCoordinate(coordinates);
 
     List<ITag> blocks = new ArrayList<>();
-    for (int y = min.getY(); y <= max.getY(); y++) {
-      for (int z = min.getZ(); z <= max.getZ(); z++) {
-        for (int x = min.getX(); x <= max.getX(); x++) {
+    for (int y = (int) min.getY(); y <= max.getY(); y++) {
+      for (int z = (int) min.getZ(); z <= max.getZ(); z++) {
+        for (int x = (int) min.getX(); x <= max.getX(); x++) {
           Coordinate3D coord = new Coordinate3D(x, y, z);
           MplBlock block = blockMap.get(coord);
           if (block == null) {

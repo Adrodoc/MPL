@@ -160,11 +160,11 @@ public abstract class MplChainPlacer {
       Set<Position> forbiddenTransmitter) {
     Orientation3D orientation = getOrientation();
     Axis3D cAxis = orientation.getC().getAxis();
-    int startC = start.get(cAxis);
+    int startC = (int) start.get(cAxis);
     for (CommandBlockChain materialized : chains) {
       for (MplBlock block : materialized.getBlocks()) {
         Coordinate3D currentCoord = block.getCoordinate();
-        int currentC = currentCoord.get(cAxis);
+        int currentC = (int) currentCoord.get(cAxis);
 
         Position pos = toPosition(currentCoord.minus(start), orientation);
         ImmutableSet<Position> illegalPositions;
@@ -373,8 +373,8 @@ public abstract class MplChainPlacer {
   public static Position toPosition(Coordinate3D coord, Orientation3D orientation) {
     Direction3D a = orientation.getA();
     Direction3D b = orientation.getB();
-    int x = coord.get(a.getAxis());
-    int y = coord.get(b.getAxis());
+    int x = (int) coord.get(a.getAxis());
+    int y = (int) coord.get(b.getAxis());
     return Position.at(x, y);
   }
 

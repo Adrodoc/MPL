@@ -58,18 +58,30 @@ public class MplUtils {
     throw new Exception("Utils Classes cannot be instantiated!");
   }
 
-  private static int get(Collection<Coordinate3D> coordinates, Axis3D axis,
-      BinaryOperator<Integer> accumulator) {
-    int result = coordinates.stream().map(c -> c.get(axis)).reduce(accumulator).orElse(0);
-    return result;
+  /**
+   * Converts a double into a String that can be used in Minecraft commands.
+   *
+   * @param d double to convert
+   * @return string representation
+   */
+  public static String toString(double d) {
+    if (d == (long) d) {
+      return String.format("%d", (long) d);
+    } else {
+      return String.format("%s", d);
+    }
   }
 
-  private static int getBoundary(Collection<Coordinate3D> coordinates, Orientation3D orientation,
+  private static double get(Collection<Coordinate3D> coordinates, Axis3D axis,
+      BinaryOperator<Double> accumulator) {
+    return coordinates.stream().map(c -> c.get(axis)).reduce(accumulator).orElse(0D);
+  }
+
+  private static double getBoundary(Collection<Coordinate3D> coordinates, Orientation3D orientation,
       Axis3D axis) {
     boolean negative = orientation.get(axis).isNegative();
-    BinaryOperator<Integer> accumulator = negative ? Math::min : Math::max;
-    int result = get(coordinates, axis, accumulator);
-    return result;
+    BinaryOperator<Double> accumulator = negative ? Math::min : Math::max;
+    return get(coordinates, axis, accumulator);
   }
 
   /**
@@ -81,17 +93,17 @@ public class MplUtils {
    */
   public static Coordinate3D getBoundaries(Orientation3D orientation,
       Collection<Coordinate3D> coordinates) {
-    int x = getBoundary(coordinates, orientation, X);
-    int y = getBoundary(coordinates, orientation, Y);
-    int z = getBoundary(coordinates, orientation, Z);
+    double x = getBoundary(coordinates, orientation, X);
+    double y = getBoundary(coordinates, orientation, Y);
+    double z = getBoundary(coordinates, orientation, Z);
     return new Coordinate3D(x, y, z);
   }
 
   private static Coordinate3D getCoordinate(Collection<Coordinate3D> coordinates,
-      BinaryOperator<Integer> accumulator) {
-    int x = get(coordinates, X, accumulator);
-    int y = get(coordinates, Y, accumulator);
-    int z = get(coordinates, Z, accumulator);
+      BinaryOperator<Double> accumulator) {
+    double x = get(coordinates, X, accumulator);
+    double y = get(coordinates, Y, accumulator);
+    double z = get(coordinates, Z, accumulator);
     return new Coordinate3D(x, y, z);
   }
 

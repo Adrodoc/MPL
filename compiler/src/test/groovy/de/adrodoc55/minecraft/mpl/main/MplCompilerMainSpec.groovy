@@ -118,7 +118,9 @@ public class MplCompilerMainSpec extends MplSpecBase {
     MplCompilerMain.startCompiler(args);
 
     then:
-    notThrown Exception
+    File output = new File('a.txt')
+    output.exists()
+    output.delete()
   }
 
   @Test

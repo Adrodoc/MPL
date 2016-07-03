@@ -66,15 +66,15 @@ public abstract class MplBlock {
   }
 
   public int getX() {
-    return coordinate.getX();
+    return (int) coordinate.getX();
   }
 
   public int getY() {
-    return coordinate.getY();
+    return (int) coordinate.getY();
   }
 
   public int getZ() {
-    return coordinate.getZ();
+    return (int) coordinate.getZ();
   }
 
   public abstract byte getByteBlockId();
