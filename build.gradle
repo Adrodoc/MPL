@@ -74,8 +74,21 @@ allprojects { Project proj ->
 
   pluginManager.withPlugin('java') {
 
+    // ----------------------------------------------------------------------------------------------------
+    //        _
+    //       | |  __ _  _ __
+    //    _  | | / _` || '__|
+    //   | |_| || (_| || |
+    //    \___/  \__,_||_|
+    //
+    // ----------------------------------------------------------------------------------------------------
+
     artifacts {
-      tasks.withType(Jar) { Task task -> archives task }
+      tasks.withType(Jar) { Task task ->
+        from rootProject.file('LICENCE.md')
+        from rootProject.file('README.md')
+        archives task
+      }
     }
 
     apply plugin: 'signing'
