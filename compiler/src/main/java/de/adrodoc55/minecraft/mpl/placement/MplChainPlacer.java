@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.placement;
 
+import static de.adrodoc55.minecraft.coordinate.Axis3D.Y;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static de.kussm.direction.Direction.EAST;
@@ -248,7 +249,7 @@ public abstract class MplChainPlacer {
       if (name == null || name == "install" || name == "uninstall") {
         continue;
       }
-      Coordinate3D chainStart = chain.getBlocks().get(0).getCoordinate();
+      Coordinate3D chainStart = chain.getBlocks().get(0).getCoordinate().plus(0.4, Y);
       int index = options.hasOption(TRANSMITTER) ? 2 : 1;
       result.add(index,
           new Command("/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString()

@@ -22,7 +22,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
 @Ignore
-public class MplProjectPlacerTest extends MplTestBase {
+public class MplProgramPlacerTest extends MplTestBase {
 
   @Test
   public void test_size() throws NotEnoughSpaceException {

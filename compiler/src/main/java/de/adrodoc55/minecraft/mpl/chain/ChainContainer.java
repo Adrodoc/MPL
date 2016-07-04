@@ -64,7 +64,7 @@ public class ChainContainer {
   protected final @Nonnull CommandChain install;
   protected final @Nonnull CommandChain uninstall;
   protected final @Nonnull List<CommandChain> chains;
-  protected final String hashCode;
+  protected final @Nonnull String hashCode;
 
   @GenerateMplPojoBuilder
   public ChainContainer(Orientation3D orientation, Coordinate3D max, CommandChain install,
@@ -74,7 +74,7 @@ public class ChainContainer {
     this.install = checkNotNull(install, "install == null!");
     this.uninstall = checkNotNull(uninstall, "uninstall == null!");
     this.chains = checkNotNull(chains, "chains == null!");
-    this.hashCode = hashCode;
+    this.hashCode = checkNotNull(hashCode, "hashCode == null!");
   }
 
 }
