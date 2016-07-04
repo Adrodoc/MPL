@@ -142,12 +142,12 @@ public class Coordinate3D {
     }
   }
 
-  public Coordinate3D minus(int skalar, Direction3D direction) {
+  public Coordinate3D minus(double skalar, Direction3D direction) {
     skalar = direction.isNegative() ? -skalar : skalar;
     return minus(skalar, direction.getAxis());
   }
 
-  public Coordinate3D minus(int skalar, Axis3D axis) {
+  public Coordinate3D minus(double skalar, Axis3D axis) {
     switch (axis) {
       case X:
         double x = this.x - skalar;

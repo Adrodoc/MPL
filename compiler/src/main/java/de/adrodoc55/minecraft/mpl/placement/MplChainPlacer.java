@@ -249,13 +249,20 @@ public abstract class MplChainPlacer {
       if (name == null || name == "install" || name == "uninstall") {
         continue;
       }
-      Coordinate3D chainStart = chain.getBlocks().get(0).getCoordinate().plus(0.4, Y);
+      Coordinate3D chainStart = chain.getBlocks().get(0).getCoordinate();
+      boolean nonTransmitterDebug = !options.hasOption(TRANSMITTER) && options.hasOption(DEBUG);
+      if (nonTransmitterDebug) {
+        chainStart = chainStart.minus(0.4, Y);
+      } else {
+        chainStart = chainStart.plus(0.4, Y);
+      }
       int index = options.hasOption(TRANSMITTER) ? 2 : 1;
       result.add(index,
           new Command("/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString()
               + ")} {CustomName:" + name + ",Tags:[" + container.getHashCode()
-              + "],NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b"
-              + (options.hasOption(DEBUG) ? ",CustomNameVisible:1" : "") + "}"));
+              + "],NoGravity:1b,Invisible:1b,Invulnerable:1b"
+              + (nonTransmitterDebug ? "" : ",Marker:1b")
+              + (options.hasOption(DEBUG) ? ",CustomNameVisible:1b" : "") + "}"));
     }
     return new CommandChain(getInstall().getName(), result);
   }
