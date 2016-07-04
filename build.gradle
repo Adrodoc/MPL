@@ -21,7 +21,7 @@ def getGitVersion() {
       commandLine 'git', 'describe', '--dirty=-SNAPSHOT'
       standardOutput = stdout
     }
-    return stdout.toString().trim()
+    return stdout.toString().trim().substring(1)
   } catch (Exception e) {
     return "UNKNOWN-VERSION"
   }
