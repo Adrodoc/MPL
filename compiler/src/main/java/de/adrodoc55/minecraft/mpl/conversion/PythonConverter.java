@@ -47,10 +47,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
 import de.adrodoc55.commons.StringUtils;
-import de.adrodoc55.minecraft.mpl.blocks.AirBlock;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
-import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 
 /**
@@ -101,22 +99,17 @@ public class PythonConverter implements MplConverter {
     String x = "box.minx + " + block.getX();
     String y = "box.miny + " + block.getY();
     String z = "box.minz + " + block.getZ();
-    if (block instanceof AirBlock) {
-      return "level.setBlockAt(" + x + ", " + y + ", " + z + ", 0)";
-    } else if (block instanceof Transmitter) {
-      return "level.setBlockAt(" + x + ", " + y + ", " + z + ", 1)";
-    } else if (block instanceof CommandBlock) {
+    byte blockId = block.getByteBlockId();
+    if (block instanceof CommandBlock) {
       CommandBlock commandBlock = (CommandBlock) block;
       String xyz = "(" + x + ", " + y + ", " + z + ")";
       String command = StringUtils.escapeBackslashes(commandBlock.getCommand());
-      byte blockId = commandBlock.getByteBlockId();
       int damage = commandBlock.getDamageValue();
       String auto = commandBlock.getNeedsRedstone() ? "False" : "True";
       return "create_command_block(level, " + xyz + ", '" + command + "', " + blockId + ", "
           + damage + ", " + auto + ")";
     } else {
-      throw new IllegalArgumentException(
-          "Can't convert block of type " + block.getClass() + " to python!");
+      return "level.setBlockAt(" + x + ", " + y + ", " + z + ", " + blockId + ")";
     }
   }
 

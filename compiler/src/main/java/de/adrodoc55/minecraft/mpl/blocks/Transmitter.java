@@ -60,12 +60,12 @@ public class Transmitter extends MplBlock {
 
   @Override
   public byte getByteBlockId() {
-    return 1;
+    return 0;
   }
 
   @Override
   public String getStringBlockId() {
-    return "stone";
+    return "air";
   }
 
 }

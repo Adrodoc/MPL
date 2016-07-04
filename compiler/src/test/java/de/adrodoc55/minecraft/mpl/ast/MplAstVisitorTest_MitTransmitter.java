@@ -94,7 +94,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
 
   @Override
   protected String getOffCommand(String ref) {
-    return "setblock " + ref + " stone";
+    return "setblock " + ref + " air";
   }
 
   // @formatter:off
