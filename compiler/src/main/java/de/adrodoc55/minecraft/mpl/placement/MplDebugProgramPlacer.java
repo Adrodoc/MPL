@@ -56,7 +56,7 @@ import de.kussm.direction.Directions;
  */
 public class MplDebugProgramPlacer extends MplChainPlacer {
 
-  private Coordinate3D start = new Coordinate3D().plus(4, getOrientation().getC());
+  private Coordinate3D start = new Coordinate3D().plus(3, getOrientation().getC());
 
   public MplDebugProgramPlacer(ChainContainer container, CompilerOptions options) {
     super(container, options);

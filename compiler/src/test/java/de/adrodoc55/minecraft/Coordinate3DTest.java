@@ -128,7 +128,7 @@ public class Coordinate3DTest {
   }
 
   @Test
-  public void test_toAbsoluteString() {
+  public void test_toAbsoluteString_with_int() {
     // Given:
     int x = someInt();
     int y = someInt();
@@ -141,7 +141,7 @@ public class Coordinate3DTest {
   }
 
   @Test
-  public void test_toRelativeString() {
+  public void test_toRelativeString_with_int() {
     // Given:
     int x = someInt();
     int y = someInt();
@@ -154,73 +154,33 @@ public class Coordinate3DTest {
   }
 
   @Test
-  public void test_overflowSaveAddition_handles_normal_Addition() {
+  public void test_toAbsoluteString_with_double() {
     // Given:
-    int a = someInt(1000) - 500;
-    int b = someInt(1000) - 500;
+    double x = 0;
+    double y = 1.23456789;
+    double z = 123456789;
+    Coordinate3D c = new Coordinate3D(x, y, z);
+
     // When:
-    int c = Coordinate3D.overflowSaveAddition(a, b);
+    String absoluteString = c.toAbsoluteString();
+
     // Then:
-    assertThat(c).isEqualTo(a + b);
+    assertThat(absoluteString).isEqualTo("0 1.23456789 123456789");
   }
 
   @Test
-  public void test_overflowSaveAddition_handles_Overflow() {
+  public void test_toRelativeString_with_double() {
     // Given:
-    int a = someInt(1000) + 1; // a < 0
-    int b = Integer.MAX_VALUE - a + 1;
-    // When:
-    int c = Coordinate3D.overflowSaveAddition(a, b);
-    // Then:
-    assertThat(c).isEqualTo(Integer.MAX_VALUE);
-  }
+    double x = 0;
+    double y = 1.23456789;
+    double z = 123456789;
+    Coordinate3D c = new Coordinate3D(x, y, z);
 
-  @Test
-  public void test_overflowSaveAddition_handles_Underflow() {
-    // Given:
-    int a = someInt(1000) + 1; // a < 0
-    int b = Integer.MAX_VALUE - a + 1;
-    a *= -1;
-    b *= -1;
     // When:
-    int c = Coordinate3D.overflowSaveAddition(a, b);
-    // Then:
-    assertThat(c).isEqualTo(Integer.MIN_VALUE);
-  }
+    String relativeString = c.toRelativeString();
 
-  @Test
-  public void test_overflowSaveSubstraction_handles_normal_Substraction() {
-    // Given:
-    int a = someInt(1000) - 500;
-    int b = someInt(1000) - 500;
-    // When:
-    int c = Coordinate3D.overflowSaveSubstraction(a, b);
     // Then:
-    assertThat(c).isEqualTo(a - b);
-  }
-
-  @Test
-  public void test_overflowSaveSubstraction_handles_Overflow() {
-    // Given:
-    int a = someInt(1000) + 1; // a < 0
-    int b = Integer.MAX_VALUE - a + 1;
-    b *= -1;
-    // When:
-    int c = Coordinate3D.overflowSaveSubstraction(a, b);
-    // Then:
-    assertThat(c).isEqualTo(Integer.MAX_VALUE);
-  }
-
-  @Test
-  public void test_overflowSaveSubstraction_handles_Underflow() {
-    // Given:
-    int a = someInt(1000) + 1; // a < 0
-    int b = Integer.MAX_VALUE - a + 1;
-    a *= -1;
-    // When:
-    int c = Coordinate3D.overflowSaveSubstraction(a, b);
-    // Then:
-    assertThat(c).isEqualTo(Integer.MIN_VALUE);
+    assertThat(relativeString).isEqualTo("~ ~1.23456789 ~123456789");
   }
 
   @Test
@@ -243,44 +203,6 @@ public class Coordinate3DTest {
   }
 
   @Test
-  public void test_plus_will_not_overflow() {
-    // Given:
-    int x1 = someInt(1000) + 1; // x1 > 0
-    int y1 = someInt(1000) + 1; // y1 > 0
-    int z1 = someInt(1000) + 1; // z1 > 0
-    Coordinate3D c1 = new Coordinate3D(x1, y1, z1);
-    int x2 = Integer.MAX_VALUE - x1 + 1;
-    int y2 = Integer.MAX_VALUE - y1 + 1;
-    int z2 = Integer.MAX_VALUE - z1 + 1;
-    Coordinate3D c2 = new Coordinate3D(x2, y2, z2);
-    // When:
-    Coordinate3D actual = c1.plus(c2);
-    // Then:
-    assertThat(actual.getX()).isEqualTo(Integer.MAX_VALUE);
-    assertThat(actual.getY()).isEqualTo(Integer.MAX_VALUE);
-    assertThat(actual.getZ()).isEqualTo(Integer.MAX_VALUE);
-  }
-
-  @Test
-  public void test_plus_will_not_underflow() {
-    // Given:
-    int x1 = someInt(1000) * -1 - 1; // x1 < 0
-    int y1 = someInt(1000) * -1 - 1; // y1 < 0
-    int z1 = someInt(1000) * -1 - 1; // z1 < 0
-    Coordinate3D c1 = new Coordinate3D(x1, y1, z1);
-    int x2 = Integer.MIN_VALUE - x1 - 1;
-    int y2 = Integer.MIN_VALUE - y1 - 1;
-    int z2 = Integer.MIN_VALUE - z1 - 1;
-    Coordinate3D c2 = new Coordinate3D(x2, y2, z2);
-    // When:
-    Coordinate3D actual = c1.plus(c2);
-    // Then:
-    assertThat(actual.getX()).isEqualTo(Integer.MIN_VALUE);
-    assertThat(actual.getY()).isEqualTo(Integer.MIN_VALUE);
-    assertThat(actual.getZ()).isEqualTo(Integer.MIN_VALUE);
-  }
-
-  @Test
   public void test_minus() {
     // Given:
     int x1 = someInt(1000);
@@ -297,44 +219,6 @@ public class Coordinate3DTest {
     assertThat(actual.getX()).isEqualTo(x1 - x2);
     assertThat(actual.getY()).isEqualTo(y1 - y2);
     assertThat(actual.getZ()).isEqualTo(z1 - z2);
-  }
-
-  @Test
-  public void test_minus_will_not_overflow() {
-    // Given:
-    int x1 = someInt(1000) + 1; // x1 > 0
-    int y1 = someInt(1000) + 1; // y1 > 0
-    int z1 = someInt(1000) + 1; // z1 > 0
-    Coordinate3D c1 = new Coordinate3D(x1, y1, z1);
-    int x2 = Integer.MIN_VALUE + x1 - 1;
-    int y2 = Integer.MIN_VALUE + y1 - 1;
-    int z2 = Integer.MIN_VALUE + z1 - 1;
-    Coordinate3D c2 = new Coordinate3D(x2, y2, z2);
-    // When:
-    Coordinate3D actual = c1.minus(c2);
-    // Then:
-    assertThat(actual.getX()).isEqualTo(Integer.MAX_VALUE);
-    assertThat(actual.getY()).isEqualTo(Integer.MAX_VALUE);
-    assertThat(actual.getZ()).isEqualTo(Integer.MAX_VALUE);
-  }
-
-  @Test
-  public void test_minus_will_not_underflow() {
-    // Given:
-    int x1 = someInt(1000) * -1 - 1; // x1 < 0
-    int y1 = someInt(1000) * -1 - 1; // y1 < 0
-    int z1 = someInt(1000) * -1 - 1; // z1 < 0
-    Coordinate3D c1 = new Coordinate3D(x1, y1, z1);
-    int x2 = Integer.MAX_VALUE + x1 + 1;
-    int y2 = Integer.MAX_VALUE + y1 + 1;
-    int z2 = Integer.MAX_VALUE + z1 + 1;
-    Coordinate3D c2 = new Coordinate3D(x2, y2, z2);
-    // When:
-    Coordinate3D actual = c1.minus(c2);
-    // Then:
-    assertThat(actual.getX()).isEqualTo(Integer.MIN_VALUE);
-    assertThat(actual.getY()).isEqualTo(Integer.MIN_VALUE);
-    assertThat(actual.getZ()).isEqualTo(Integer.MIN_VALUE);
   }
 
 }

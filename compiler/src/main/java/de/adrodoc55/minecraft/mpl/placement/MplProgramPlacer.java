@@ -112,8 +112,8 @@ public class MplProgramPlacer extends MplChainPlacer {
     Orientation3D o = getOrientation();
     Direction3D a = o.getA();
     Direction3D b = o.getB();
-    int maxA = max.get(a.getAxis());
-    int maxB = max.get(b.getAxis());
+    int maxA = (int) max.get(a.getAxis());
+    int maxB = (int) max.get(b.getAxis());
     int x = getSize().getX();
     int y = getSize().getY();
     if (x < maxA || maxA < 0) {
@@ -144,8 +144,8 @@ public class MplProgramPlacer extends MplChainPlacer {
     Orientation3D orientation = getOrientation();
     Direction3D a = orientation.getA();
     Direction3D b = orientation.getB();
-    int maxA = container.getMax().get(a.getAxis());
-    int maxB = container.getMax().get(b.getAxis());
+    int maxA = (int) container.getMax().get(a.getAxis());
+    int maxB = (int) container.getMax().get(b.getAxis());
     if (maxA >= 0 && maxB >= 0) {
       return Position.at(maxA, maxB);
     }
@@ -219,7 +219,7 @@ public class MplProgramPlacer extends MplChainPlacer {
     while (true) {
       Coordinate3D start = findStart(minB);
       LinkedHashMap<Position, ChainLinkType> placed = place(chain, start, newTemplate(size.getX()));
-      int startB = start.get(getOrientation().getB());
+      int startB = (int) start.get(getOrientation().getB());
       int actualB = getMaxY(placed.keySet());
       minB = startB + actualB;
       if (minB <= size.getY()) {
@@ -282,8 +282,8 @@ public class MplProgramPlacer extends MplChainPlacer {
     Direction3D b = orientation.getB();
     Direction3D c = orientation.getC();
     Coordinate3D max = materialized.getBoundaries(orientation);
-    int maxB = max.get(b.getAxis());
-    int maxC = max.get(c.getAxis());
+    int maxB = (int) max.get(b.getAxis());
+    int maxC = (int) max.get(c.getAxis());
     occupied[Math.abs(maxC)] = Math.abs(maxB) + 1;
   }
 

@@ -45,12 +45,14 @@ import static de.adrodoc55.minecraft.coordinate.Direction3D.NORTH;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.SOUTH;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.UP;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.WEST;
+import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import de.adrodoc55.TestBase;
 import de.adrodoc55.minecraft.coordinate.Coordinate3DBuilder;
-import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3DBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpointBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommandBuilder;
@@ -66,12 +68,16 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhileBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcessBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgramBuilder;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainerBuilder;
-import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChainBuilder;
 import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.CommandBuilder;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkipBuilder;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBufferBuilder;
 import net.karneim.pojobuilder.Builder;
 
@@ -227,20 +233,33 @@ public class MplTestBase extends TestBase {
         ;
   }
 
-  public static ChainContainerBuilder $ChainContainer() {
+  public static ChainContainerBuilder $ChainContainer(CompilerOption... options) {
     return new ChainContainerBuilder()//
-        .withOrientation(new Orientation3D())//
+        .withOrientation($Orientation3D())//
         .withMax($Coordinate3D())//
-        .withInstall(new CommandChain(new ArrayList<>()))//
-        .withUninstall(new CommandChain(new ArrayList<>()))//
+        .withInstall($CommandChain(options).withName("install"))//
+        .withUninstall($CommandChain(options).withName("uninstall"))//
         .withChains(new ArrayList<>())//
+        .withHashCode($String())//
         ;
   }
 
-  public static CommandChainBuilder $CommandChain() {
+  public static CommandChainBuilder $CommandChain(CompilerOption... options) {
     return new CommandChainBuilder()//
         .withName($String())//
+        .withCommands(validChainCommands(options))//
         ;
+  }
+
+  private static List<ChainLink> validChainCommands(CompilerOption... options) {
+    List<ChainLink> result = new ArrayList<>();
+    if (new CompilerOptions(options).hasOption(TRANSMITTER)) {
+      result.add(new MplSkip());
+      result.add(new Command("setblock ${this - 1} stone", IMPULSE));
+    } else {
+      result.add(new Command("blockdata ${this - 1} {auto:0b}", IMPULSE));
+    }
+    return result;
   }
 
 }

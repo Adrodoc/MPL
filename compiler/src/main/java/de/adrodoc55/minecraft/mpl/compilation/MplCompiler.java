@@ -317,8 +317,10 @@ public class MplCompiler extends MplBaseListener {
   private static final Pattern thisPattern =
       Pattern.compile("\\$\\{\\s*this\\s*([+-])\\s*(\\d+)\\s*\\}");
 
-  private static final Pattern originPattern = Pattern.compile(
-      "\\$\\{\\s*origin\\s*(?:\\+\\s*\\(\\s*(-?\\d+)\\s+(-?\\d+)\\s+(-?\\d+)\\s*\\)\\s*)?\\}");
+  private static final String numberPattern = "-?\\d+(?:\\.\\d+)?";
+  private static final Pattern originPattern =
+      Pattern.compile("\\$\\{\\s*origin\\s*(?:\\+\\s*\\(\\s*(" + numberPattern + ")\\s+("
+          + numberPattern + ")\\s+(" + numberPattern + ")\\s*\\)\\s*)?\\}");
 
   private static void insertRelativeCoordinates(Orientation3D orientation, List<MplBlock> blocks) {
     for (int i = 0; i < blocks.size(); i++) {
@@ -365,9 +367,9 @@ public class MplCompiler extends MplBaseListener {
       while (originMatcher.find()) {
         Coordinate3D relativeCoordinate = current.getCoordinate().mult(-1);
         if (originMatcher.group(1) != null) {
-          int x = Integer.parseInt(originMatcher.group(1));
-          int y = Integer.parseInt(originMatcher.group(2));
-          int z = Integer.parseInt(originMatcher.group(3));
+          double x = Double.parseDouble(originMatcher.group(1));
+          double y = Double.parseDouble(originMatcher.group(2));
+          double z = Double.parseDouble(originMatcher.group(3));
           Coordinate3D referenced = new Coordinate3D(x, y, z);
           relativeCoordinate = relativeCoordinate.plus(referenced);
         }

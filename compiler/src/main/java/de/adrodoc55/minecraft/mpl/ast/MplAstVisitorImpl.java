@@ -154,7 +154,11 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   public String getStopCommand(String ref) {
     if (options.hasOption(TRANSMITTER)) {
-      return "setblock " + ref + " stone";
+      if (options.hasOption(DEBUG)) {
+        return "setblock " + ref + " air";
+      } else {
+        return "setblock " + ref + " stone";
+      }
     } else {
       return "blockdata " + ref + " {auto:0b}";
     }
