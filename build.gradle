@@ -91,8 +91,10 @@ allprojects { Project proj ->
       }
     }
 
-    apply plugin: 'signing'
-    signing { sign configurations.archives }
+    if(project.hasProperty('signing.keyId') && project.hasProperty('signing.password') && project.hasProperty('signing.secretKeyRingFile')) {
+      apply plugin: 'signing'
+      signing { sign configurations.archives }
+    }
 
     // ----------------------------------------------------------------------------------------------------
     //    ____                                             _
