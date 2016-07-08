@@ -40,7 +40,7 @@
 package de.adrodoc55.minecraft.mpl.interpretation
 
 import static de.adrodoc55.TestBase.someString
-import static de.adrodoc55.minecraft.mpl.MplTestBase.someIdentifier
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$Identifier
 import static org.assertj.core.api.Assertions.assertThat
 
 import org.junit.Test
@@ -62,8 +62,8 @@ public class MplInterpreterSpec extends MplSpecBase {
   @Test
   public void "breakpoint in repeating Prozess wirft Exception"() {
     given:
-    String name = someIdentifier()
-    String identifier = someIdentifier()
+    String name = some($Identifier())
+    String identifier = some($Identifier())
     String programString = """
     repeat process ${name} (
     breakpoint
@@ -83,7 +83,7 @@ public class MplInterpreterSpec extends MplSpecBase {
   @Test
   public void "breakpoint in repeating script wirft Exception"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     repeat: /say hi
     breakpoint
@@ -102,8 +102,8 @@ public class MplInterpreterSpec extends MplSpecBase {
   @Test
   public void "waitfor in repeating Prozess wirft Exception"() {
     given:
-    String name = someIdentifier()
-    String identifier = someIdentifier()
+    String name = some($Identifier())
+    String identifier = some($Identifier())
     String programString = """
     repeat process ${name} (
     start ${identifier}
@@ -124,7 +124,7 @@ public class MplInterpreterSpec extends MplSpecBase {
   @Test
   public void "waitfor in repeating script wirft Exception"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     repeat: /say hi
     start ${identifier}
@@ -144,8 +144,8 @@ public class MplInterpreterSpec extends MplSpecBase {
   @Test
   public void "intercept in repeating Prozess wirft Exception"() {
     given:
-    String name = someIdentifier()
-    String identifier = someIdentifier()
+    String name = some($Identifier())
+    String identifier = some($Identifier())
     String programString = """
     repeat process ${name} (
     intercept ${identifier}
@@ -165,7 +165,7 @@ public class MplInterpreterSpec extends MplSpecBase {
   @Test
   public void "intercept in repeating script wirft Exception"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     repeat: /say hi
     intercept ${identifier}
@@ -343,7 +343,7 @@ public class MplInterpreterSpec extends MplSpecBase {
   @Test
   public void "start in then chain erzeugt include"() {
     given:
-    String name = someIdentifier()
+    String name = some($Identifier())
     String programString = """
     process ${name} (
       if: /say hi
@@ -367,7 +367,7 @@ public class MplInterpreterSpec extends MplSpecBase {
   @Test
   public void "notify in then chain funktioniert"() {
     given:
-    String name = someIdentifier()
+    String name = some($Identifier())
     String programString = """
     process ${name} (
       if: /say hi

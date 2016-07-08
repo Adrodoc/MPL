@@ -83,8 +83,13 @@ import net.karneim.pojobuilder.Builder;
 
 public class MplTestBase extends TestBase {
 
-  public static String someIdentifier() {
-    return "Identifier_" + somePositiveInt();
+  public static Builder<String> $Identifier() {
+    return new Builder<String>() {
+      @Override
+      public String build() {
+        return "Identifier_" + somePositiveInt();
+      }
+    };
   }
 
   public static Builder<String> $CommandString() {
@@ -137,6 +142,7 @@ public class MplTestBase extends TestBase {
     return new MplProcessBuilder()//
         .withName($String())//
         .withRepeating($boolean())//
+        .withTags(new ArrayList<>())//
         ;
   }
 

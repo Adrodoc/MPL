@@ -39,16 +39,15 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation
 
-import static de.adrodoc55.TestBase.*
+import static de.adrodoc55.TestBase.some
+import static de.adrodoc55.TestBase.$String
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$Identifier
 
 import org.antlr.v4.runtime.ANTLRInputStream
-import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.Token
-import org.antlr.v4.runtime.TokenStream
 
 import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer
-import de.adrodoc55.minecraft.mpl.interpretation.MplLexerUtils;
 
 class MplLexerUtilsSpec extends MplSpecBase {
 
@@ -103,6 +102,39 @@ class MplLexerUtilsSpec extends MplSpecBase {
     Token token = lexer.nextToken()
     when:
     String result = MplLexerUtils.getContainedString(token)
+    then:
+    result == string
+  }
+
+  void 'getTagString throws NullPointerException'() {
+    when:
+    MplLexerUtils.getTagString(null)
+    then:
+    NullPointerException ex = thrown()
+    ex.message == 'tagToken == null!'
+  }
+
+  void 'getTagString throws IllegalArgumentException'() {
+    given:
+    ANTLRInputStream input = new ANTLRInputStream('abc')
+    MplLexer lexer = new MplLexer(input);
+    Token token = lexer.nextToken()
+    when:
+    MplLexerUtils.getTagString(token)
+    then:
+    IllegalArgumentException ex = thrown()
+    ex.message == 'The Given Token is not of type MplLexer.TAG!'
+  }
+
+  void 'getTagString returns contained String'() {
+    given:
+    String string = some($Identifier())
+
+    ANTLRInputStream input = new ANTLRInputStream('#' + string)
+    MplLexer lexer = new MplLexer(input);
+    Token token = lexer.nextToken()
+    when:
+    String result = MplLexerUtils.getTagString(token)
     then:
     result == string
   }

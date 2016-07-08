@@ -61,28 +61,30 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @EqualsAndHashCode(exclude = "source")
 @ToString(includeFieldNames = true, exclude = "source")
 public class MplProcess implements MplNode, Named {
-
   private final String name;
   private final boolean repeating;
   private final MplSource source;
   private final List<ChainPart> chainParts = new ArrayList<>();
+  private final List<String> tags = new ArrayList<>();
 
   public MplProcess() {
     this(null);
   }
 
   public MplProcess(@Nullable String name) {
-    this(name, false, null);
+    this(name, null);
   }
 
   public MplProcess(@Nullable String name, @Nullable MplSource source) {
-    this(name, false, source);
+    this(name, false, new ArrayList<>(), source);
   }
 
   @GenerateMplPojoBuilder
-  public MplProcess(@Nullable String name, boolean repeating, @Nullable MplSource source) {
+  public MplProcess(@Nullable String name, boolean repeating, Collection<String> tags,
+      @Nullable MplSource source) {
     this.name = name;
     this.repeating = repeating;
+    setTags(tags);
     this.source = source;
   }
 
@@ -123,6 +125,15 @@ public class MplProcess implements MplNode, Named {
 
   public void addAll(MplProcess other) {
     this.chainParts.addAll(other.chainParts);
+  }
+
+  public List<String> getTags() {
+    return Collections.unmodifiableList(tags);
+  }
+
+  public void setTags(Collection<String> tags) {
+    this.tags.clear();
+    this.tags.addAll(tags);
   }
 
   @Override
