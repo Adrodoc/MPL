@@ -39,11 +39,12 @@
  */
 package de.adrodoc55.minecraft.mpl.chain;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nullable;
-
-import com.google.common.base.Preconditions;
 
 import de.adrodoc55.commons.Named;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
@@ -57,17 +58,41 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @EqualsAndHashCode
 @Getter
 public class CommandChain implements Named {
-  protected final String name;
-  protected final List<ChainLink> commands;
+  private final String name;
+  private List<ChainLink> commands = new ArrayList<>();
+  private List<String> tags = new ArrayList<>();
 
   public CommandChain(List<ChainLink> commands) {
     this(null, commands);
   }
 
   @GenerateMplPojoBuilder
-  public CommandChain(@Nullable String name, List<ChainLink> commands) {
-    this.name = name;
-    this.commands = Preconditions.checkNotNull(commands, "commands == null!");
+  public CommandChain(@Nullable String name, Collection<ChainLink> commands) {
+    this(name, commands, new ArrayList<>(0));
   }
 
+  public CommandChain(@Nullable String name, Collection<ChainLink> commands,
+      Collection<String> tags) {
+    this.name = name;
+    setCommands(commands);
+    setTags(tags);
+  }
+
+  public List<ChainLink> getCommands() {
+    return Collections.unmodifiableList(commands);
+  }
+
+  public void setCommands(Collection<ChainLink> commands) {
+    this.commands.clear();
+    this.commands.addAll(commands);
+  }
+
+  public List<String> getTags() {
+    return Collections.unmodifiableList(tags);
+  }
+
+  public void setTags(Collection<String> tags) {
+    this.tags.clear();
+    this.tags.addAll(tags);
+  }
 }

@@ -40,9 +40,12 @@
 package de.adrodoc55.minecraft.mpl.ast;
 
 import static de.adrodoc55.TestBase.$Enum;
+import static de.adrodoc55.TestBase.$String;
 import static de.adrodoc55.TestBase.$boolean;
+import static de.adrodoc55.TestBase.$listOf;
 import static de.adrodoc55.TestBase.$oneOf;
 import static de.adrodoc55.TestBase.listOf;
+import static de.adrodoc55.TestBase.several;
 import static de.adrodoc55.TestBase.some;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplBreak;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplBreakpoint;
@@ -85,6 +88,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreak;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -112,6 +116,31 @@ public abstract class MplAstVisitorTest {
   protected abstract String getOnCommand(String ref);
 
   protected abstract String getOffCommand(String ref);
+
+  // @formatter:off
+  // ----------------------------------------------------------------------------------------------------
+  //    ____
+  //   |  _ \  _ __  ___    ___  ___  ___  ___
+  //   | |_) || '__|/ _ \  / __|/ _ \/ __|/ __|
+  //   |  __/ | |  | (_) || (__|  __/\__ \\__ \
+  //   |_|    |_|   \___/  \___|\___||___/|___/
+  //
+  // ----------------------------------------------------------------------------------------------------
+  // @formatter:on
+
+  @Test
+  public void test_a_process_with_tags_results_in_a_chain_with_tags() throws Exception {
+    // given:
+    List<String> tags = some($listOf(several(), $String()));
+    MplProcess process = some($MplProcess().withTags(tags));
+
+    // when:
+    process.accept(underTest);
+
+    // then:
+    assertThat(underTest.chains).hasSize(1);
+    assertThat(underTest.chains.get(0).getTags()).containsExactlyElementsOf(tags);
+  }
 
   // @formatter:off
   // ----------------------------------------------------------------------------------------------------
