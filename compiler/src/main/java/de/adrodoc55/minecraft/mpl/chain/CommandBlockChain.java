@@ -41,6 +41,8 @@ package de.adrodoc55.minecraft.mpl.chain;
 
 import static java.util.stream.Collectors.toList;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -55,11 +57,35 @@ import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 public class CommandBlockChain {
 
   private final String name;
-  private final List<MplBlock> blocks;
+  private final List<MplBlock> blocks = new ArrayList<>();
+  private final List<String> tags = new ArrayList<>();
 
-  public CommandBlockChain(String name, List<MplBlock> commandBlocks) {
+  public CommandBlockChain(String name, Collection<MplBlock> blocks, Collection<String> tags) {
     this.name = name;
-    this.blocks = commandBlocks;
+    setBlocks(blocks);
+    setTags(tags);
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public List<MplBlock> getBlocks() {
+    return Collections.unmodifiableList(blocks);
+  }
+
+  public void setBlocks(Collection<MplBlock> blocks) {
+    this.blocks.clear();
+    this.blocks.addAll(blocks);
+  }
+
+  public List<String> getTags() {
+    return Collections.unmodifiableList(tags);
+  }
+
+  public void setTags(Collection<String> tags) {
+    this.tags.clear();
+    this.tags.addAll(tags);
   }
 
   /**
@@ -71,14 +97,6 @@ public class CommandBlockChain {
     for (MplBlock block : blocks) {
       block.setCoordinate(block.getCoordinate().plus(vector));
     }
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public List<MplBlock> getBlocks() {
-    return Collections.unmodifiableList(blocks);
   }
 
   public Coordinate3D getBoundaries(Orientation3D orientation) {

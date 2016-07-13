@@ -59,6 +59,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 
@@ -131,7 +132,7 @@ public abstract class MplChainPlacer {
       throws NotEnoughSpaceException {
     LinkedHashMap<Position, ChainLinkType> placed = place(chain, start, template);
     List<MplBlock> blocks = toBlocks(chain.getCommands(), placed);
-    CommandBlockChain result = new CommandBlockChain(chain.getName(), blocks);
+    CommandBlockChain result = new CommandBlockChain(chain.getName(), blocks, chain.getTags());
     result.move(start);
     return result;
   }
@@ -259,8 +260,8 @@ public abstract class MplChainPlacer {
       int index = options.hasOption(TRANSMITTER) ? 2 : 1;
       result.add(index,
           new Command("/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString()
-              + ")} {CustomName:" + name + ",Tags:[" + container.getHashCode()
-              + "],NoGravity:1b,Invisible:1b,Invulnerable:1b"
+              + ")} {CustomName:" + name + ",Tags:[" + container.getHashCode() + ","
+              + Joiner.on(",").join(chain.getTags()) + "],NoGravity:1b,Invisible:1b,Invulnerable:1b"
               + (nonTransmitterDebug ? "" : ",Marker:1b")
               + (options.hasOption(DEBUG) ? ",CustomNameVisible:1b" : "") + "}"));
     }
