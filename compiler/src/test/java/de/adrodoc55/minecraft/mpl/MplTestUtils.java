@@ -39,13 +39,13 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
-import java.util.List;
+import java.util.Collection;
 
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 
 public class MplTestUtils extends MplTestBase {
 
-  public static CommandBlockChain findChain(String name, List<CommandBlockChain> chains) {
+  public static CommandBlockChain findChain(String name, Collection<CommandBlockChain> chains) {
     return chains.stream().filter(c -> name.equals(c.getName())).findFirst().get();
   }
 

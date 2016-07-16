@@ -49,6 +49,8 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.google.common.base.Joiner;
+
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.MplTestBase;
@@ -151,6 +153,30 @@ public abstract class AbstractMplProgramPlacerTest extends MplTestBase {
     for (MplBlock block : placed.getBlocks()) {
       assertThat(block.getCoordinate()).isEqualTo(new Coordinate3D(i++, 0, z));
     }
+  }
+
+  @Test
+  public void test_a_process_with_tags_is_summoned_with_those_tags()
+      throws NotEnoughSpaceException {
+    // given:
+    CompilerOptions options =
+        some($boolean()) ? new CompilerOptions(TRANSMITTER) : new CompilerOptions();
+
+    List<String> tags = some($listOf(several(), $Identifier()));
+    ChainContainer container = some($ChainContainer(options)//
+        .withChains($listOf(1, $CommandChain(options)//
+            .withTags(tags))));
+
+    // when:
+    List<CommandBlockChain> chains = createPlacer(options, container).place();
+
+    // then:
+    CommandBlockChain install = findChain("install", chains);
+
+    int index = options.hasOption(TRANSMITTER) ? 2 : 1;
+    CommandBlock summon = (CommandBlock) install.getBlocks().get(index);
+    assertThat(summon.getCommand())
+        .contains("Tags:[" + container.getHashCode() + "," + Joiner.on(",").join(tags) + "]");
   }
 
 }
