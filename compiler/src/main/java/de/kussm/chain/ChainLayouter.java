@@ -51,7 +51,6 @@ import java.util.function.Predicate;
 import javax.annotation.Nullable;
 
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import de.adrodoc55.minecraft.mpl.placement.NotEnoughSpaceException;
@@ -86,7 +85,7 @@ public class ChainLayouter {
   private final Predicate<Position> isReceiverAllowed;
   private final Predicate<Position> isTransmitterAllowed;
   private Iterator<Direction> itDirections;
-  private LinkedHashMap<Position, ChainLinkType> placedChainLinks = Maps.newLinkedHashMap();
+  private LinkedHashMap<Position, ChainLinkType> placedChainLinks = new LinkedHashMap<>();
   private int cntDirections;
 
   /**
@@ -130,7 +129,8 @@ public class ChainLayouter {
 
   private void restoreInsertionPoint() throws NotEnoughSpaceException {
     if (insertionPoint == null) {
-      throw new NotEnoughSpaceException();
+      throw new NotEnoughSpaceException(
+          "It is impossible to place the chain " + chain + " along the template " + dirs);
     }
     this.currentPosition = insertionPoint.currentPosition;
     this.placedReceivers = insertionPoint.placedReceivers;
@@ -220,7 +220,8 @@ public class ChainLayouter {
       }
       return placedChainLinks;
     } catch (NoSuchElementException ex) {
-      throw new NotEnoughSpaceException();
+      throw new NotEnoughSpaceException(
+          "End of template for chain " + chain + " (template=" + dirs + ")");
     }
   }
 

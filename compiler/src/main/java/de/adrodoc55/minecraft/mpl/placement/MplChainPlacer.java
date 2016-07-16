@@ -455,7 +455,9 @@ public abstract class MplChainPlacer {
   }
 
   protected static Directions newTemplate(int a) {
-    return $(EAST.repeat(a - 1), NORTH, WEST.repeat(a - 1), NORTH).repeat();
+    // "Timeout" nach 100 b
+    int maxB = 1000;
+    return $(EAST.repeat(a - 1), NORTH, WEST.repeat(a - 1), NORTH).repeat(a * maxB);
   }
 
 }

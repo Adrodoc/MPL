@@ -49,6 +49,7 @@ import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import de.adrodoc55.TestBase;
@@ -240,32 +241,87 @@ public class MplTestBase extends TestBase {
   }
 
   public static ChainContainerBuilder $ChainContainer(CompilerOption... options) {
+    return $ChainContainer(new CompilerOptions(options));
+  }
+
+  public static ChainContainerBuilder $ChainContainer(CompilerOptions options) {
     return new ChainContainerBuilder()//
         .withOrientation($Orientation3D())//
         .withMax($Coordinate3D().withX(-1).withY(-1).withZ(-1))//
-        .withInstall($CommandChain(options).withName("install"))//
-        .withUninstall($CommandChain(options).withName("uninstall"))//
+        .withInstall($CommandChain(options)//
+            .withName("install")//
+            .withCommands($validChainCommands(options)//
+                .withCommands(new ArrayList<>())))//
+        .withUninstall($CommandChain(options)//
+            .withName("uninstall")//
+            .withCommands($validChainCommands(options)//
+                .withCommands(new ArrayList<>())))//
         .withChains(new ArrayList<>())//
         .withHashCode($String())//
         ;
   }
 
   public static CommandChainBuilder $CommandChain(CompilerOption... options) {
+    return $CommandChain(new CompilerOptions(options));
+  }
+
+  public static CommandChainBuilder $CommandChain(CompilerOptions options) {
     return new CommandChainBuilder()//
         .withName($String())//
-        .withCommands(validChainCommands(options))//
+        .withCommands($validChainCommands(options))//
         ;
   }
 
-  public static List<ChainLink> validChainCommands(CompilerOption... options) {
-    List<ChainLink> result = new ArrayList<>();
-    if (new CompilerOptions(options).hasOption(TRANSMITTER)) {
-      result.add(new MplSkip());
-      result.add(new Command("setblock ${this - 1} stone", IMPULSE));
-    } else {
-      result.add(new Command("blockdata ${this - 1} {auto:0b}", IMPULSE));
+  public static ValidCommandChainBuilder $validChainCommands(CompilerOption... options) {
+    return $validChainCommands(new CompilerOptions(options));
+  }
+
+  public static ValidCommandChainBuilder $validChainCommands(CompilerOptions options) {
+    return new ValidCommandChainBuilder(options)//
+        .withCommands($chainLinkCollectionOf(several(), $Command()))//
+        ;
+  }
+
+  public static class ValidCommandChainBuilder implements Builder<Collection<ChainLink>> {
+    private final CompilerOptions options;
+    private Collection<ChainLink> value$commands$java$util$Collection;
+    private boolean isSet$commands$java$util$Collection;
+    private Builder<Collection<ChainLink>> builder$commands$java$util$Collection;
+
+    public ValidCommandChainBuilder(CompilerOptions options) {
+      this.options = options;
     }
-    return result;
+
+    public ValidCommandChainBuilder withCommands(Collection<ChainLink> value) {
+      this.value$commands$java$util$Collection = value;
+      this.isSet$commands$java$util$Collection = true;
+      return this;
+    }
+
+    public ValidCommandChainBuilder withCommands(Builder<Collection<ChainLink>> builder) {
+      this.builder$commands$java$util$Collection = builder;
+      this.isSet$commands$java$util$Collection = false;
+      return this;
+    }
+
+    @Override
+    public List<ChainLink> build() {
+      List<ChainLink> result = new ArrayList<>();
+      if (options.hasOption(TRANSMITTER)) {
+        result.add(new MplSkip());
+        result.add(new Command("setblock ${this - 1} stone", IMPULSE));
+      } else {
+        result.add(new Command("blockdata ${this - 1} {auto:0b}", IMPULSE));
+      }
+      Collection<ChainLink> _commands =
+          !isSet$commands$java$util$Collection && builder$commands$java$util$Collection != null
+              ? builder$commands$java$util$Collection.build() : value$commands$java$util$Collection;
+      if (_commands != null && !_commands.isEmpty()) {
+        result.add(new Command(some($CommandString())));
+        result.addAll(_commands);
+      }
+      return result;
+    }
   }
 
 }

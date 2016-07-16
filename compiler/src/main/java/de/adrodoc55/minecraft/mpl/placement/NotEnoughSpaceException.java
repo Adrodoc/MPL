@@ -43,7 +43,13 @@ package de.adrodoc55.minecraft.mpl.placement;
  * @author Adrodoc55
  */
 public class NotEnoughSpaceException extends Exception {
-
   private static final long serialVersionUID = 1L;
 
+  public NotEnoughSpaceException() {
+    super();
+  }
+
+  public NotEnoughSpaceException(String message) {
+    super(message);
+  }
 }

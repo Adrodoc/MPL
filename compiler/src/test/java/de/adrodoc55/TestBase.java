@@ -41,6 +41,7 @@ package de.adrodoc55;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -50,6 +51,7 @@ import java.util.Random;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import net.karneim.pojobuilder.Builder;
 
 public class TestBase {
@@ -156,6 +158,23 @@ public class TestBase {
       return next;
     }
 
+  }
+
+  /**
+   * This is a workaround for pojobuilder #100
+   *
+   * @return
+   */
+  @Deprecated
+  public static Builder<Collection<ChainLink>> $chainLinkCollectionOf(int count,
+      Builder<? extends ChainLink> prototype) {
+    return new Builder<Collection<ChainLink>>() {
+      @SuppressWarnings("unchecked")
+      @Override
+      public List<ChainLink> build() {
+        return (List<ChainLink>) listOf(count, prototype);
+      }
+    };
   }
 
   public static <P> Builder<List<P>> $listOf(int count, Builder<P> prototype) {

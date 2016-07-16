@@ -3,7 +3,6 @@ package de.adrodoc55.minecraft.mpl.compilation;
 import static de.adrodoc55.TestBase.listOf;
 import static de.adrodoc55.TestBase.some;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$ChainContainer;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$Command;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$CommandChain;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,7 +16,6 @@ import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
-import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 
 public class MplCompilerTest {
 
@@ -25,10 +23,9 @@ public class MplCompilerTest {
   public void testPlacement_Prozess_ArmorStands_befinden_sich_oben_in_jedem_Block()
       throws Exception {
     // given:
-    CommandChain chain = some($CommandChain().withCommands(listOf(some($Command()))));
     ChainContainer container = some($ChainContainer()//
         .withOrientation(new Orientation3D())//
-        .withChains(listOf(chain)));
+        .withChains(listOf(some($CommandChain()))));
 
     // when:
     List<CommandBlockChain> placed = MplCompiler.place(container, new CompilerOptions());
@@ -47,11 +44,9 @@ public class MplCompilerTest {
   public void testPlacement_Im_debug_mode_ohne_Transmitter_werden_keine_Marker_ArmorStands_fuer_Prozesse_benutzt_und_die_ArmorStands_befinden_sich_unten()
       throws Exception {
     // given:
-    CommandChain chain = some($CommandChain(DEBUG)//
-        .withCommands(listOf(some($Command()))));
     ChainContainer container = some($ChainContainer(DEBUG)//
         .withOrientation(new Orientation3D())//
-        .withChains(listOf(chain)));
+        .withChains(listOf(some($CommandChain(DEBUG)))));
 
     // when:
     List<CommandBlockChain> placed = MplCompiler.place(container, new CompilerOptions(DEBUG));
