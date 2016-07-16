@@ -40,10 +40,14 @@
 package de.adrodoc55.minecraft.mpl.blocks;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class AirBlock extends MplBlock {
 
   public AirBlock(Coordinate3D coordinate) {

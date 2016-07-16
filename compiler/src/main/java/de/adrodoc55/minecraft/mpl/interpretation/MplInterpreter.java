@@ -397,9 +397,12 @@ public class MplInterpreter extends MplBaseListener {
   public void enterProcess(ProcessContext ctx) {
     String name = ctx.IDENTIFIER().getText();
     boolean repeat = ctx.REPEAT() != null;
+    Collection<String> tags = new ArrayList<>(ctx.TAG().size());
+    for (TerminalNode tag : ctx.TAG()) {
+      tags.add(MplLexerUtils.getTagString(tag.getSymbol()));
+    }
     MplSource source = toSource(ctx.IDENTIFIER().getSymbol());
-    process = new MplProcess(name, repeat, source);
-
+    process = new MplProcess(name, repeat, tags, source);
     newChainBuffer();
   }
 

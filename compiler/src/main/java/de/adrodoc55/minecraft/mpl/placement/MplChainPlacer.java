@@ -74,7 +74,6 @@ import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
@@ -131,7 +130,7 @@ public abstract class MplChainPlacer {
       throws NotEnoughSpaceException {
     LinkedHashMap<Position, ChainLinkType> placed = place(chain, start, template);
     List<MplBlock> blocks = toBlocks(chain.getCommands(), placed);
-    CommandBlockChain result = new CommandBlockChain(chain.getName(), blocks);
+    CommandBlockChain result = new CommandBlockChain(chain.getName(), blocks, chain.getTags());
     result.move(start);
     return result;
   }
@@ -257,9 +256,13 @@ public abstract class MplChainPlacer {
         chainStart = chainStart.plus(0.4, Y);
       }
       int index = options.hasOption(TRANSMITTER) ? 2 : 1;
+      String tags = "";
+      for (String tag : chain.getTags()) {
+        tags += "," + tag;
+      }
       result.add(index,
           new Command("/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString()
-              + ")} {CustomName:" + name + ",Tags:[" + container.getHashCode()
+              + ")} {CustomName:" + name + ",Tags:[" + container.getHashCode() + tags
               + "],NoGravity:1b,Invisible:1b,Invulnerable:1b"
               + (nonTransmitterDebug ? "" : ",Marker:1b")
               + (options.hasOption(DEBUG) ? ",CustomNameVisible:1b" : "") + "}"));
@@ -422,7 +425,7 @@ public abstract class MplChainPlacer {
   public static boolean isReceiver(ChainLink chainLink) {
     if (chainLink instanceof Command) {
       Command command = (Command) chainLink;
-      return command.getMode() != Mode.CHAIN;
+      return command.getNeedsRedstone();
     } else {
       return false;
     }
@@ -454,7 +457,9 @@ public abstract class MplChainPlacer {
   }
 
   protected static Directions newTemplate(int a) {
-    return $(EAST.repeat(a - 1), NORTH, WEST.repeat(a - 1), NORTH).repeat();
+    // "Timeout" nach 100 b
+    int maxB = 1000;
+    return $(EAST.repeat(a - 1), NORTH, WEST.repeat(a - 1), NORTH).repeat(a * maxB);
   }
 
 }

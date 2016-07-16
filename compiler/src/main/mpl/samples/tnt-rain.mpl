@@ -1,14 +1,14 @@
-# Start the machine:
-# /execute @e[name=tntRain] ~ ~ ~ setblock ~ ~ ~ redstone_block
-#
-# Stop the machine:
-# /execute @e[name=tntRain] ~ ~ ~ setblock ~ ~ ~ stone
-#
-# Set the delay to 100:
-# /scoreboard players set delay Tnt 100
-#
-# Set the tnt count to 5:
-# /scoreboard players set count Tnt -5
+// Start the machine:
+// /execute @e[name=tntRain] ~ ~ ~ setblock ~ ~ ~ redstone_block
+//
+// Stop the machine:
+// /execute @e[name=tntRain] ~ ~ ~ setblock ~ ~ ~ stone
+//
+// Set the delay to 100:
+// /scoreboard players set delay Tnt 100
+//
+// Set the tnt count to 5:
+// /scoreboard players set count Tnt -5
 
 
 
@@ -28,7 +28,7 @@ repeat process tntRain (
   /execute @a ~ ~ ~ /scoreboard players tag @e[type=Item,r=10] add closeToPlayer
   /kill @e[type=Item,tag=!closeToPlayer]
 
-  # Test for var <= count
+  // Test for var <= count
   /scoreboard players operation temp Tnt = var Tnt
   /scoreboard players operation temp Tnt -= count Tnt
   /scoreboard players test temp Tnt * 0

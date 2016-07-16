@@ -37,77 +37,57 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.chain;
+package de.adrodoc55.minecraft.mpl.placement;
 
-import static java.util.stream.Collectors.toList;
+import static de.adrodoc55.minecraft.mpl.MplTestUtils.findChain;
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import org.junit.Test;
+
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
-import de.adrodoc55.minecraft.mpl.MplUtils;
+import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
+import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
+import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
-/**
- * @author Adrodoc55
- */
-public class CommandBlockChain {
+public class MplDebugProgramPlacerTest extends AbstractMplProgramPlacerTest {
 
-  private final String name;
-  private final List<MplBlock> blocks = new ArrayList<>();
-  private final List<String> tags = new ArrayList<>();
-
-  public CommandBlockChain(String name, Collection<MplBlock> blocks, Collection<String> tags) {
-    this.name = name;
-    setBlocks(blocks);
-    setTags(tags);
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public List<MplBlock> getBlocks() {
-    return Collections.unmodifiableList(blocks);
-  }
-
-  public void setBlocks(Collection<MplBlock> blocks) {
-    this.blocks.clear();
-    this.blocks.addAll(blocks);
-  }
-
-  public List<String> getTags() {
-    return Collections.unmodifiableList(tags);
-  }
-
-  public void setTags(Collection<String> tags) {
-    this.tags.clear();
-    this.tags.addAll(tags);
-  }
-
-  /**
-   * Moves this Chain according to the given vector.
-   *
-   * @param vector to move this chain
-   */
-  public void move(Coordinate3D vector) {
-    for (MplBlock block : blocks) {
-      block.setCoordinate(block.getCoordinate().plus(vector));
-    }
-  }
-
-  public Coordinate3D getBoundaries(Orientation3D orientation) {
-    return MplUtils.getBoundaries(orientation,
-        blocks.stream()//
-            .map(b -> b.getCoordinate())//
-            .collect(toList()));
+  @Override
+  protected boolean isDebug() {
+    return true;
   }
 
   @Override
-  public String toString() {
-    return getName();
+  protected MplDebugProgramPlacer createPlacer(CompilerOptions options, ChainContainer container) {
+    return new MplDebugProgramPlacer(container, options);
   }
+
+  @Test
+  public void test_when_using_Debug_Mode_without_Transmitter_ArmorStands_are_at_the_bottom_of_each_block_and_are_not_Markers()
+      throws Exception {
+    // given:
+    CompilerOptions options = new CompilerOptions(DEBUG);
+
+    ChainContainer container = some($ChainContainer(options)//
+        .withOrientation(new Orientation3D())//
+        .withChains(listOf(some($CommandChain(options)))));
+
+    // when:
+    List<CommandBlockChain> placed = createPlacer(options, container).place();
+
+    // then:
+    assertThat(placed).hasSize(3);
+    CommandBlockChain install = findChain("install", placed);
+    List<MplBlock> blocks = install.getBlocks();
+    assertThat(blocks).hasSize(3);
+    CommandBlock block = (CommandBlock) blocks.get(1);
+    String command = block.getCommand();
+    assertThat(command).startsWith("summon ArmorStand ${origin + (0 -0.4 5)}");
+    assertThat(command).doesNotContain("Marker");
+  }
+
 }

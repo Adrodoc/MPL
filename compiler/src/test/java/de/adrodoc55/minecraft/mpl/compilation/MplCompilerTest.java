@@ -1,73 +1,44 @@
+/*
+ * Minecraft Programming Language (MPL): A language for easy development of command block
+ * applications including an IDE.
+ *
+ * © Copyright (C) 2016 Adrodoc55
+ *
+ * This file is part of MPL.
+ *
+ * MPL is free software: you can redistribute it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * MPL is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MPL. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ *
+ *
+ * Minecraft Programming Language (MPL): Eine Sprache für die einfache Entwicklung von Commandoblock
+ * Anwendungen, inklusive einer IDE.
+ *
+ * © Copyright (C) 2016 Adrodoc55
+ *
+ * Diese Datei ist Teil von MPL.
+ *
+ * MPL ist freie Software: Sie können diese unter den Bedingungen der GNU General Public License,
+ * wie von der Free Software Foundation, Version 3 der Lizenz oder (nach Ihrer Wahl) jeder späteren
+ * veröffentlichten Version, weiterverbreiten und/oder modifizieren.
+ *
+ * MPL wird in der Hoffnung, dass es nützlich sein wird, aber OHNE JEDE GEWÄHRLEISTUNG,
+ * bereitgestellt; sogar ohne die implizite Gewährleistung der MARKTFÄHIGKEIT oder EIGNUNG FÜR EINEN
+ * BESTIMMTEN ZWECK. Siehe die GNU General Public License für weitere Details.
+ *
+ * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
+ * nicht, siehe <http://www.gnu.org/licenses/>.
+ */
 package de.adrodoc55.minecraft.mpl.compilation;
 
-import static de.adrodoc55.TestBase.listOf;
-import static de.adrodoc55.TestBase.some;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$ChainContainer;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$Command;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$CommandChain;
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.junit.Test;
-
-import de.adrodoc55.minecraft.coordinate.Orientation3D;
-import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
-import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
-import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
-import de.adrodoc55.minecraft.mpl.chain.CommandChain;
-
 public class MplCompilerTest {
-
-  @Test
-  public void testPlacement_Prozess_ArmorStands_befinden_sich_oben_in_jedem_Block()
-      throws Exception {
-    // given:
-    CommandChain chain = some($CommandChain().withCommands(listOf(some($Command()))));
-    ChainContainer container = some($ChainContainer()//
-        .withOrientation(new Orientation3D())//
-        .withChains(listOf(chain)));
-
-    // when:
-    List<CommandBlockChain> placed = MplCompiler.place(container, new CompilerOptions());
-
-    // then:
-    assertThat(placed).hasSize(3);
-    CommandBlockChain install =
-        placed.stream().filter(c -> "install".equals(c.getName())).findFirst().get();
-    List<MplBlock> blocks = install.getBlocks();
-    assertThat(blocks).hasSize(3);
-    CommandBlock block = (CommandBlock) blocks.get(1);
-    assertThat(block.getCommand()).isEqualTo(
-        "summon ArmorStand ${origin + (0 0.4 1)} {CustomName:" + chain.getName() + ",Tags:["
-            + container.getHashCode() + "],NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
-  }
-
-  @Test
-  public void testPlacement_Im_debug_mode_ohne_Transmitter_werden_keine_Marker_ArmorStands_fuer_Prozesse_benutzt_und_die_ArmorStands_befinden_sich_unten()
-      throws Exception {
-    // given:
-    CommandChain chain = some($CommandChain(DEBUG)//
-        .withCommands(listOf(some($Command()))));
-    ChainContainer container = some($ChainContainer(DEBUG)//
-        .withOrientation(new Orientation3D())//
-        .withChains(listOf(chain)));
-
-    // when:
-    List<CommandBlockChain> placed = MplCompiler.place(container, new CompilerOptions(DEBUG));
-
-    // then:
-    assertThat(placed).hasSize(3);
-    CommandBlockChain install =
-        placed.stream().filter(c -> "install".equals(c.getName())).findFirst().get();
-    List<MplBlock> blocks = install.getBlocks();
-    assertThat(blocks).hasSize(3);
-    CommandBlock block = (CommandBlock) blocks.get(1);
-    assertThat(block.getCommand()).isEqualTo("summon ArmorStand ${origin + (0 -0.4 5)} {CustomName:"
-        + chain.getName() + ",Tags:[" + container.getHashCode()
-        + "],NoGravity:1b,Invisible:1b,Invulnerable:1b,CustomNameVisible:1b}");
-  }
 
 }

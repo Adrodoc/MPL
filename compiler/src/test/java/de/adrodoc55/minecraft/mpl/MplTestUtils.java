@@ -37,39 +37,16 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.interpretation;
+package de.adrodoc55.minecraft.mpl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Collection;
 
-import org.antlr.v4.runtime.Token;
+import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 
-import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
+public class MplTestUtils extends MplTestBase {
 
-/**
- * @author Adrodoc55
- */
-public class MplLexerUtils {
-
-  private MplLexerUtils() throws Throwable {
-    throw new Throwable("Utils Classes cannot be instantiated!");
-  }
-
-  public static String getContainedString(Token stringToken) {
-    checkNotNull(stringToken, "stringToken == null!");
-    if (stringToken.getType() != MplLexer.STRING) {
-      throw new IllegalArgumentException("The Given Token is not of type MplLexer.STRING!");
-    }
-    String wholeString = stringToken.getText();
-    return wholeString.substring(1, wholeString.length() - 1);
-  }
-
-  public static String getTagString(Token tagToken) {
-    checkNotNull(tagToken, "tagToken == null!");
-    if (tagToken.getType() != MplLexer.TAG) {
-      throw new IllegalArgumentException("The Given Token is not of type MplLexer.TAG!");
-    }
-    String wholeTag = tagToken.getText();
-    return wholeTag.substring(1);
+  public static CommandBlockChain findChain(String name, Collection<CommandBlockChain> chains) {
+    return chains.stream().filter(c -> name.equals(c.getName())).findFirst().get();
   }
 
 }

@@ -69,4 +69,9 @@ public class Directions implements DirectionIterable {
   public static Directions $(DirectionIterable... args) {
     return new Directions(Iterables.concat(args));
   }
+
+  @Override
+  public String toString() {
+    return directions.toString();
+  }
 }

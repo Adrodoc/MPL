@@ -285,7 +285,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     if (process.isRepeating() && containsSkip) {
       addRestartBackref(commands.get(0), false);
     }
-    chains.add(new CommandChain(process.getName(), commands));
+    chains.add(new CommandChain(process.getName(), commands, process.getTags()));
   }
 
   private boolean containsHighlevelSkip(MplProcess process) {

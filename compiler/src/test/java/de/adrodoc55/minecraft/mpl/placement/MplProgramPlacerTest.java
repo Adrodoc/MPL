@@ -1,67 +1,88 @@
+/*
+ * Minecraft Programming Language (MPL): A language for easy development of command block
+ * applications including an IDE.
+ *
+ * © Copyright (C) 2016 Adrodoc55
+ *
+ * This file is part of MPL.
+ *
+ * MPL is free software: you can redistribute it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * MPL is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MPL. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ *
+ *
+ * Minecraft Programming Language (MPL): Eine Sprache für die einfache Entwicklung von Commandoblock
+ * Anwendungen, inklusive einer IDE.
+ *
+ * © Copyright (C) 2016 Adrodoc55
+ *
+ * Diese Datei ist Teil von MPL.
+ *
+ * MPL ist freie Software: Sie können diese unter den Bedingungen der GNU General Public License,
+ * wie von der Free Software Foundation, Version 3 der Lizenz oder (nach Ihrer Wahl) jeder späteren
+ * veröffentlichten Version, weiterverbreiten und/oder modifizieren.
+ *
+ * MPL wird in der Hoffnung, dass es nützlich sein wird, aber OHNE JEDE GEWÄHRLEISTUNG,
+ * bereitgestellt; sogar ohne die implizite Gewährleistung der MARKTFÄHIGKEIT oder EIGNUNG FÜR EINEN
+ * BESTIMMTEN ZWECK. Siehe die GNU General Public License für weitere Details.
+ *
+ * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
+ * nicht, siehe <http://www.gnu.org/licenses/>.
+ */
 package de.adrodoc55.minecraft.mpl.placement;
 
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
+import static de.adrodoc55.minecraft.mpl.MplTestUtils.findChain;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.coordinate.Direction3D;
-import de.adrodoc55.minecraft.mpl.MplTestBase;
-import de.adrodoc55.minecraft.mpl.blocks.AirBlock;
+import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
-import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
+import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
-import de.adrodoc55.minecraft.mpl.chain.CommandChain;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
-@Ignore
-public class MplProgramPlacerTest extends MplTestBase {
+public class MplProgramPlacerTest extends AbstractMplProgramPlacerTest {
+  @Override
+  protected boolean isDebug() {
+    return false;
+  }
 
-  @Test
-  public void test_size() throws NotEnoughSpaceException {
-    // given:
-    int chainCount = several();
-    List<ChainLink> list = listOf(some($Command()));
-    ChainContainer container = some($ChainContainer()//
-        .withChains($listOf(chainCount, $CommandChain()//
-            .withCommands(list))));
-
-    // when:
-    List<CommandBlockChain> chains =
-        new MplProgramPlacer(container, new CompilerOptions(TRANSMITTER)).place();
-
-    // then:
-    assertThat(chains.size()).isEqualTo(chainCount);
+  @Override
+  protected MplProgramPlacer createPlacer(CompilerOptions options, ChainContainer container) {
+    return new MplProgramPlacer(container, options);
   }
 
   @Test
-  public void test_unconditional_Start() throws NotEnoughSpaceException {
+  public void test_when_using_normal_Mode_Prozess_ArmorStands_are_at_the_top_of_each_block()
+      throws Exception {
     // given:
-    CommandChain chain = some($CommandChain().withCommands(listOf(//
-        new Command("/say hi"))));
+    CompilerOptions options = new CompilerOptions();
 
-    ChainContainer container = some($ChainContainer()//
-        .withChains(listOf(chain)));
+    ChainContainer container = some($ChainContainer(options)//
+        .withOrientation(new Orientation3D())//
+        .withChains(listOf(some($CommandChain(options)))));
 
     // when:
-    List<CommandBlockChain> chains =
-        new MplProgramPlacer(container, new CompilerOptions(TRANSMITTER)).place();
+    List<CommandBlockChain> placed = createPlacer(options, container).place();
 
     // then:
-    assertThat(chains.size()).isEqualTo(1);
-    assertThat(chains.get(0).getBlocks()).containsExactly(//
-        new Transmitter(false, new Coordinate3D()), //
-        new CommandBlock((Command) chain.getCommands().get(0), Direction3D.EAST,
-            new Coordinate3D(1, 0, 0)), //
-        new AirBlock(new Coordinate3D(2, 0, 0))//
-    );
+    CommandBlockChain install = findChain("install", placed);
+    List<MplBlock> blocks = install.getBlocks();
+    assertThat(blocks).hasSize(3);
+    CommandBlock block = (CommandBlock) blocks.get(1);
+    assertThat(block.getCommand()).startsWith("summon ArmorStand ${origin + (0 0.4 1)}");
   }
 
 }

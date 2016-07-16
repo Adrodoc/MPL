@@ -95,6 +95,7 @@ public class MplCompilerMainSpec extends MplSpecBase {
   public void "test startCompiler with invalid srcPath"() {
     given:
     File file = new File("test.mpl");
+    file.delete();
 
     String[] args = ["test.mpl"]
 

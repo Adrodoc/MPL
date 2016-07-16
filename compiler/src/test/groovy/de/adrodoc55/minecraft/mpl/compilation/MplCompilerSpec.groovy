@@ -39,7 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation
 
-import static de.adrodoc55.minecraft.mpl.MplTestBase.someIdentifier
+import static de.adrodoc55.TestBase.some
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$Identifier
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER
 
 import org.junit.Test
@@ -361,9 +362,9 @@ class MplCompilerSpec extends MplSpecBase {
   @Test
   public void "project includes are processed correctly"() {
     given:
-    String id1 = someIdentifier()
-    String id2 = someIdentifier()
-    String id3 = someIdentifier()
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
+    String id3 = some($Identifier())
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     project ${id1} {
@@ -398,8 +399,8 @@ class MplCompilerSpec extends MplSpecBase {
   @Test
   public void "including two processes with the same name throws ambigious process Exception"() {
     given:
-    String id1 = someIdentifier()
-    String id2 = someIdentifier()
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     project ${id1} {
@@ -436,9 +437,9 @@ class MplCompilerSpec extends MplSpecBase {
   @Test
   public void "scripts can't be included"() {
     given:
-    String id1 = someIdentifier()
-    String id2 = someIdentifier()
-    String id3 = someIdentifier()
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
+    String id3 = some($Identifier())
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     project ${id1} {
@@ -465,7 +466,7 @@ class MplCompilerSpec extends MplSpecBase {
   @Test
   public void "Eine Projekt mit Orientation erzeugt ein Projekt mit Orientation"() {
     given:
-    String id1 = someIdentifier()
+    String id1 = some($Identifier())
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     project ${id1} {
@@ -483,12 +484,12 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project ${someIdentifier()} {
+    project ${some($Identifier())} {
     include "other.mpl"
     }
     """
     new File(folder, 'other.mpl').text = """
-    project ${someIdentifier()} {
+    project ${some($Identifier())} {
     orientation "z-yx"
     }
     """
@@ -687,7 +688,7 @@ class MplCompilerSpec extends MplSpecBase {
       /say install
     }
 
-    process main { # If there is no process, there are no generated commands
+    process main { // If there is no process, there are no generated commands
       /say hi
     }
     """
@@ -722,7 +723,7 @@ class MplCompilerSpec extends MplSpecBase {
     /say uninstall
     }
 
-    process main { # If there is no process, there are no generated commands
+    process main { // If there is no process, there are no generated commands
       /say hi
     }
     """

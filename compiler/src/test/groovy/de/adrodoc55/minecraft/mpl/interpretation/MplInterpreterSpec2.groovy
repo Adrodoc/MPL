@@ -39,7 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation
 
-import static de.adrodoc55.minecraft.mpl.MplTestBase.someIdentifier
+import static de.adrodoc55.TestBase.some
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$Identifier
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY
 import static de.adrodoc55.minecraft.mpl.commands.Conditional.*
 import static de.adrodoc55.minecraft.mpl.commands.Mode.*
@@ -60,9 +61,9 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor
-import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreak;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreak
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram
 import de.adrodoc55.minecraft.mpl.commands.Conditional
@@ -74,8 +75,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "Each file can only define one project"() {
     given:
-    String id1 = someIdentifier()
-    String id2 = someIdentifier()
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
     String programString = """
     project ${id1} {}
     project ${id2} {}
@@ -99,8 +100,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "A project and processes can be defined in the same file"() {
     given:
-    String id1 = someIdentifier()
-    String id2 = someIdentifier()
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
     String programString = """
     project ${id1} {}
     process ${id2} {}
@@ -115,7 +116,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "Each project can only have a single orientation"() {
     given:
-    String id1 = someIdentifier()
+    String id1 = some($Identifier())
     String programString = """
     project ${id1} {
       orientation "zxy"
@@ -161,9 +162,56 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
+  public void "Multiple install/uninstall blocks are concatenated"() {
+    given:
+    String id1 = some($Identifier())
+    String programString = """
+    install {
+      /say hi
+    }
+
+    install {
+      /say hi2
+    }
+
+    uninstall {
+      /say hi3
+    }
+
+    uninstall {
+      /say hi4
+    }
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    program.install.chainParts[0] == new MplCommand('/say hi')
+    program.install.chainParts[1] == new MplCommand('/say hi2')
+    program.install.chainParts.size() == 2
+
+    program.uninstall.chainParts[0] == new MplCommand('/say hi3')
+    program.uninstall.chainParts[1] == new MplCommand('/say hi4')
+    program.uninstall.chainParts.size() == 2
+  }
+
+  // @formatter:off
+  // ----------------------------------------------------------------------------------------------------
+  //    ____
+  //   |  _ \  _ __  ___    ___  ___  ___  ___
+  //   | |_) || '__|/ _ \  / __|/ _ \/ __|/ __|
+  //   |  __/ | |  | (_) || (__|  __/\__ \\__ \
+  //   |_|    |_|   \___/  \___|\___||___/|___/
+  //
+  // ----------------------------------------------------------------------------------------------------
+  // @formatter:on
+
+  @Test
   public void "A file may not contain duplicate processes"() {
     given:
-    String id = someIdentifier()
+    String id = some($Identifier())
     String programString = """
     process ${id} {
     /say I am a process
@@ -191,9 +239,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "A file may contain multiple processes"() {
     given:
-    String id1 = someIdentifier()
-    String id2 = someIdentifier()
-    String id3 = someIdentifier()
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
+    String id3 = some($Identifier())
     String programString = """
     process ${id1} {
     /say I am a default process
@@ -234,24 +282,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
-  public void "Multiple install/uninstall blocks are concatenated"() {
+  public void "a process can have multiple tags"() {
     given:
-    String id1 = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
-    install {
+    #Tag1
+    #Test
+    #AnotherTag
+    process main {
       /say hi
-    }
-
-    install {
-      /say hi2
-    }
-
-    uninstall {
-      /say hi3
-    }
-
-    uninstall {
-      /say hi4
     }
     """
     when:
@@ -260,13 +299,13 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplProgram program = interpreter.program
     program.exceptions.isEmpty()
 
-    program.install.chainParts[0] == new MplCommand('/say hi')
-    program.install.chainParts[1] == new MplCommand('/say hi2')
-    program.install.chainParts.size() == 2
-
-    program.uninstall.chainParts[0] == new MplCommand('/say hi3')
-    program.uninstall.chainParts[1] == new MplCommand('/say hi4')
-    program.uninstall.chainParts.size() == 2
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+    process.name
+    process.tags[0] == 'Tag1'
+    process.tags[1] == 'Test'
+    process.tags[2] == 'AnotherTag'
+    process.tags.size() == 3
   }
 
   // ----------------------------------------------------------------------------------------------------
@@ -376,7 +415,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "a project can include files and directories"() {
     given:
-    String id1 = someIdentifier()
+    String id1 = some($Identifier())
     String programString = """
     project ${id1} {
       include "datei1.mpl"
@@ -413,8 +452,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "starting a foreign process creates an include"() {
     given:
-    String id1 = someIdentifier()
-    String id2 = someIdentifier()
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
     String programString = """
     process ${id1} {
       start ${id2}
@@ -455,8 +494,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "imported files are used for implicit includes"() {
     given:
-    String id1 = someIdentifier()
-    String id2 = someIdentifier()
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
     String programString = """
     import "newFolder/newFile"
 
@@ -487,8 +526,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "the subfiles of imported directories are used for implicit includes"() {
     given:
-    String id1 = someIdentifier()
-    String id2 = someIdentifier()
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
     String programString = """
     import "newFolder"
 
@@ -526,8 +565,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "starting a process in the same file creates an include (process definition after call)"() {
     given:
-    String id1 = someIdentifier()
-    String id2 = someIdentifier()
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
     String programString = """
     process ${id1} {
       start ${id2}
@@ -562,8 +601,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "starting a process in the same file creates an include (process definition before call)"() {
     given:
-    String id1 = someIdentifier()
-    String id2 = someIdentifier()
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
     String programString = """
     process ${id1} {
       /say I am a process
@@ -603,7 +642,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Unroll("leading #conditional #command with identifier in script")
   public void "leading conditional/invert with identifier in script"(String conditional, String command) {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     ${conditional}: ${command} ${identifier}
     """
@@ -626,7 +665,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Unroll("leading #conditional #command with identifier in process")
   public void "leading conditional/invert with identifier in process"(String conditional, String command) {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     process main {
       ${conditional}: ${command} ${identifier}
@@ -764,7 +803,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Unroll("#modifier start with identifier")
   public void "start with identifier"(String modifier, Conditional conditional) {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     /say hi
     ${modifier} start ${identifier}
@@ -799,7 +838,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "start with identifier in script"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     start ${identifier}
     """
@@ -820,7 +859,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Unroll("start with illegal modifier: '#modifier'")
   public void "start with illegal modifier"(String modifier) {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     ${modifier}: start ${identifier}
     """
@@ -852,7 +891,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Unroll("#modifier stop with identifier")
   public void "stop with identifier"(String modifier, Conditional conditional) {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     /say hi
     ${modifier} stop ${identifier}
@@ -905,7 +944,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "stop without identifier in repeat process"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     repeat process ${identifier} {
       stop
@@ -947,7 +986,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Unroll("stop with illegal modifier: '#modifier'")
   public void "stop with illegal modifier"(String modifier) {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     process main {
       ${modifier}: stop ${identifier}
@@ -981,7 +1020,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Unroll("#modifier waitfor with identifier")
   public void "waitfor with identifier"(String modifier, Conditional conditional) {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     /say hi
     ${modifier} waitfor ${identifier}
@@ -1016,7 +1055,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "waitfor notify with identifier"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     waitfor notify ${identifier}
     """
@@ -1036,7 +1075,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "waitfor without identifier after start"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     start ${identifier}
     waitfor
@@ -1077,7 +1116,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Unroll("waitfor with illegal modifier: '#modifier'")
   public void "waitfor with illegal modifier"(String modifier) {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     ${modifier}: waitfor ${identifier}
     """
@@ -1109,7 +1148,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Unroll("#modifier notify in process")
   public void "notify in process"(String modifier, Conditional conditional) {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     process ${identifier} {
       /say hi
@@ -1145,7 +1184,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "notify in script"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     notify
     """
@@ -1165,7 +1204,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Unroll("notify with illegal modifier: '#modifier'")
   public void "notify with illegal modifier"(String modifier) {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     process ${identifier} {
       ${modifier}: notify
@@ -1199,7 +1238,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Unroll("#modifier intercept with identifier")
   public void "intercept with identifier"(String modifier, Conditional conditional) {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     /say hi
     ${modifier} intercept ${identifier}
@@ -1235,7 +1274,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Unroll("intercept with illegal modifier: '#modifier'")
   public void "intercept with illegal modifier"(String modifier) {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     ${modifier}: intercept ${identifier}
     """
@@ -1332,7 +1371,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "if with leading conditional in then"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     if: /say if
     then {
@@ -1354,7 +1393,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "if with leading invert in then"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     if: /say if
     then {
@@ -1376,7 +1415,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "if with leading conditional in else"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     if: /say if
     then {
@@ -1399,7 +1438,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "if with leading invert in else"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     if: /say if
     then {
@@ -1422,7 +1461,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "if then else"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     if: /say if
     then {
@@ -1457,7 +1496,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "if not then else"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     if not: /say if
     then {
@@ -1492,7 +1531,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "nested if"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     if: /outer condition
     then {
@@ -1566,7 +1605,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "while repeat with leading conditional in repeat"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     while: /say while
     repeat {
@@ -1588,7 +1627,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "while repeat with leading invert in repeat"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     while: /say while
     repeat {
@@ -1610,7 +1649,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "repeat while with leading conditional in repeat"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     repeat {
       conditional: /say repeat
@@ -1631,7 +1670,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "repeat while with leading invert in repeat"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     repeat {
       invert: /say repeat
@@ -1679,7 +1718,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "repeat with label"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     ${identifier}: repeat {
       /say repeat1
@@ -1735,7 +1774,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "while repeat with label"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     ${identifier}: while: /say while
     repeat {
@@ -1819,7 +1858,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "repeat while with label"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     ${identifier}: repeat {
       /say repeat1
@@ -1874,7 +1913,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "nested while"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     while: /outer condition
     repeat {
@@ -1924,7 +1963,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Unroll("#modifier break with identifier")
   public void "break with identifier"(String modifier, Conditional conditional) {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     ${identifier}: repeat {
       /say hi
@@ -2028,7 +2067,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "break with missing label"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String testString = """
     repeat {
       break ${identifier}
@@ -2083,7 +2122,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Unroll("#modifier continue with identifier")
   public void "continue with identifier"(String modifier, Conditional conditional) {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String programString = """
     ${identifier}: repeat {
       /say hi
@@ -2187,7 +2226,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   @Test
   public void "continue with missing label"() {
     given:
-    String identifier = someIdentifier()
+    String identifier = some($Identifier())
     String testString = """
     repeat {
       continue ${identifier}

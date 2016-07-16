@@ -51,7 +51,7 @@ import lombok.ToString;
  * @author Adrodoc55
  */
 @EqualsAndHashCode
-@ToString(includeFieldNames = true)
+@ToString
 @Getter
 @Setter
 public abstract class MplBlock {
