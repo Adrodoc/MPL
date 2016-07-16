@@ -242,7 +242,7 @@ public class MplTestBase extends TestBase {
   public static ChainContainerBuilder $ChainContainer(CompilerOption... options) {
     return new ChainContainerBuilder()//
         .withOrientation($Orientation3D())//
-        .withMax($Coordinate3D())//
+        .withMax($Coordinate3D().withX(-1).withY(-1).withZ(-1))//
         .withInstall($CommandChain(options).withName("install"))//
         .withUninstall($CommandChain(options).withName("uninstall"))//
         .withChains(new ArrayList<>())//
@@ -257,7 +257,7 @@ public class MplTestBase extends TestBase {
         ;
   }
 
-  private static List<ChainLink> validChainCommands(CompilerOption... options) {
+  public static List<ChainLink> validChainCommands(CompilerOption... options) {
     List<ChainLink> result = new ArrayList<>();
     if (new CompilerOptions(options).hasOption(TRANSMITTER)) {
       result.add(new MplSkip());

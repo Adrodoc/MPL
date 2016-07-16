@@ -40,9 +40,7 @@ public class MplCompilerTest {
     List<MplBlock> blocks = install.getBlocks();
     assertThat(blocks).hasSize(3);
     CommandBlock block = (CommandBlock) blocks.get(1);
-    assertThat(block.getCommand()).isEqualTo(
-        "summon ArmorStand ${origin + (0 0.4 1)} {CustomName:" + chain.getName() + ",Tags:["
-            + container.getHashCode() + "],NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
+    assertThat(block.getCommand()).startsWith("summon ArmorStand ${origin + (0 0.4 1)}");
   }
 
   @Test
@@ -65,9 +63,9 @@ public class MplCompilerTest {
     List<MplBlock> blocks = install.getBlocks();
     assertThat(blocks).hasSize(3);
     CommandBlock block = (CommandBlock) blocks.get(1);
-    assertThat(block.getCommand()).isEqualTo("summon ArmorStand ${origin + (0 -0.4 5)} {CustomName:"
-        + chain.getName() + ",Tags:[" + container.getHashCode()
-        + "],NoGravity:1b,Invisible:1b,Invulnerable:1b,CustomNameVisible:1b}");
+    String command = block.getCommand();
+    assertThat(command).startsWith("summon ArmorStand ${origin + (0 -0.4 5)}");
+    assertThat(command).doesNotContain("Marker");
   }
 
 }

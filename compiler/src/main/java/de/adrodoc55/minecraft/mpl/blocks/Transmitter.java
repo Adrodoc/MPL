@@ -40,12 +40,14 @@
 package de.adrodoc55.minecraft.mpl.blocks;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
-@ToString(includeFieldNames = true)
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class Transmitter extends MplBlock {
   private final boolean internal;
 
