@@ -278,7 +278,7 @@ public class MplTestBase extends TestBase {
 
   public static ValidCommandChainBuilder $validChainCommands(CompilerOptions options) {
     return new ValidCommandChainBuilder(options)//
-        .withCommands($chainLinkCollectionOf(several(), $Command()))//
+        .withCommands($chainLinkCollectionOf(several(), $Command().withConditional(false)))//
         ;
   }
 

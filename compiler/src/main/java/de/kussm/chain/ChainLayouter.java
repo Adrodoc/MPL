@@ -221,7 +221,7 @@ public class ChainLayouter {
       return placedChainLinks;
     } catch (NoSuchElementException ex) {
       throw new NotEnoughSpaceException(
-          "End of template for chain " + chain + " (template=" + dirs + ")");
+          "End of template for " + chain + " (template=" + dirs + ")");
     }
   }
 

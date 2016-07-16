@@ -37,52 +37,16 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.placement;
-
-import static de.adrodoc55.minecraft.mpl.MplTestUtils.findChain;
-import static org.assertj.core.api.Assertions.assertThat;
+package de.adrodoc55.minecraft.mpl;
 
 import java.util.List;
 
-import org.junit.Test;
-
-import de.adrodoc55.minecraft.coordinate.Orientation3D;
-import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
-import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
-import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
-public class MplProgramPlacerTest extends AbstractMplProgramPlacerTest {
-  @Override
-  protected boolean isDebug() {
-    return false;
-  }
+public class MplTestUtils extends MplTestBase {
 
-  @Override
-  protected MplProgramPlacer createPlacer(CompilerOptions options, ChainContainer container) {
-    return new MplProgramPlacer(container, options);
-  }
-
-  @Test
-  public void test_when_using_normal_Mode_Prozess_ArmorStands_are_at_the_top_of_each_block()
-      throws Exception {
-    // given:
-    CompilerOptions options = new CompilerOptions();
-
-    ChainContainer container = some($ChainContainer(options)//
-        .withOrientation(new Orientation3D())//
-        .withChains(listOf(some($CommandChain(options)))));
-
-    // when:
-    List<CommandBlockChain> placed = createPlacer(options, container).place();
-
-    // then:
-    CommandBlockChain install = findChain("install", placed);
-    List<MplBlock> blocks = install.getBlocks();
-    assertThat(blocks).hasSize(3);
-    CommandBlock block = (CommandBlock) blocks.get(1);
-    assertThat(block.getCommand()).startsWith("summon ArmorStand ${origin + (0 0.4 1)}");
+  public static CommandBlockChain findChain(String name, List<CommandBlockChain> chains) {
+    return chains.stream().filter(c -> name.equals(c.getName())).findFirst().get();
   }
 
 }

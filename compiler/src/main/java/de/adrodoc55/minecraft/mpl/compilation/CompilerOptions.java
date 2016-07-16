@@ -69,6 +69,11 @@ public class CompilerOptions {
     return options;
   }
 
+  @Override
+  public String toString() {
+    return options.toString();
+  }
+
   /**
    * @author Adrodoc55
    */

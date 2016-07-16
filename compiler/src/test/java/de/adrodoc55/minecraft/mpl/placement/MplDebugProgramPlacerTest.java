@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.placement;
 
 import static de.adrodoc55.minecraft.mpl.MplTestUtils.findChain;
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -53,22 +54,23 @@ import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
-public class MplProgramPlacerTest extends AbstractMplProgramPlacerTest {
+public class MplDebugProgramPlacerTest extends AbstractMplProgramPlacerTest {
+
   @Override
   protected boolean isDebug() {
-    return false;
+    return true;
   }
 
   @Override
-  protected MplProgramPlacer createPlacer(CompilerOptions options, ChainContainer container) {
-    return new MplProgramPlacer(container, options);
+  protected MplDebugProgramPlacer createPlacer(CompilerOptions options, ChainContainer container) {
+    return new MplDebugProgramPlacer(container, options);
   }
 
   @Test
-  public void test_when_using_normal_Mode_Prozess_ArmorStands_are_at_the_top_of_each_block()
+  public void test_when_using_Debug_Mode_without_Transmitter_ArmorStands_are_at_the_bottom_of_each_block_and_are_not_Markers()
       throws Exception {
     // given:
-    CompilerOptions options = new CompilerOptions();
+    CompilerOptions options = new CompilerOptions(DEBUG);
 
     ChainContainer container = some($ChainContainer(options)//
         .withOrientation(new Orientation3D())//
@@ -78,11 +80,14 @@ public class MplProgramPlacerTest extends AbstractMplProgramPlacerTest {
     List<CommandBlockChain> placed = createPlacer(options, container).place();
 
     // then:
+    assertThat(placed).hasSize(3);
     CommandBlockChain install = findChain("install", placed);
     List<MplBlock> blocks = install.getBlocks();
     assertThat(blocks).hasSize(3);
     CommandBlock block = (CommandBlock) blocks.get(1);
-    assertThat(block.getCommand()).startsWith("summon ArmorStand ${origin + (0 0.4 1)}");
+    String command = block.getCommand();
+    assertThat(command).startsWith("summon ArmorStand ${origin + (0 -0.4 5)}");
+    assertThat(command).doesNotContain("Marker");
   }
 
 }
