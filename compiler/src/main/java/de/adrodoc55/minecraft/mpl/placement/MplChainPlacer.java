@@ -74,7 +74,6 @@ import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
@@ -426,7 +425,7 @@ public abstract class MplChainPlacer {
   public static boolean isReceiver(ChainLink chainLink) {
     if (chainLink instanceof Command) {
       Command command = (Command) chainLink;
-      return command.getMode() != Mode.CHAIN;
+      return command.getNeedsRedstone();
     } else {
       return false;
     }
