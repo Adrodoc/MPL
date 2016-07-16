@@ -44,6 +44,7 @@ import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOpt
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -153,6 +154,28 @@ public abstract class AbstractMplProgramPlacerTest extends MplTestBase {
     for (MplBlock block : placed.getBlocks()) {
       assertThat(block.getCoordinate()).isEqualTo(new Coordinate3D(i++, 0, z));
     }
+  }
+
+  @Test
+  public void test_a_process_without_tags_is_summoned_without_tags()
+      throws NotEnoughSpaceException {
+    // given:
+    CompilerOptions options =
+        some($boolean()) ? new CompilerOptions(TRANSMITTER) : new CompilerOptions();
+
+    ChainContainer container = some($ChainContainer(options)//
+        .withChains($listOf(1, $CommandChain(options)//
+            .withTags(new ArrayList<>()))));
+
+    // when:
+    List<CommandBlockChain> chains = createPlacer(options, container).place();
+
+    // then:
+    CommandBlockChain install = findChain("install", chains);
+
+    int index = options.hasOption(TRANSMITTER) ? 2 : 1;
+    CommandBlock summon = (CommandBlock) install.getBlocks().get(index);
+    assertThat(summon.getCommand()).contains("Tags:[" + container.getHashCode() + "]");
   }
 
   @Test

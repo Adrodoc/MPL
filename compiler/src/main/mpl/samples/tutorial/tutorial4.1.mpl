@@ -17,7 +17,7 @@ process testPow (
 repeat process pow (
   /scoreboard players operation result POW *= base POW
   /scoreboard players remove exponent POW 1
-  # This should test for 0 0 once this bug is fixed: https://bugs.mojang.com/browse/MC-97060
+  // This should test for 0 0 once this bug is fixed: https://bugs.mojang.com/browse/MC-97060
   /scoreboard players test exponent POW * 1
   conditional: stop
 )

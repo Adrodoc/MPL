@@ -1,4 +1,4 @@
-# start the main process with: /execute @e[name=main] ~ ~ ~ setblock ~ ~ ~ redstone_block
+// start the main process with: /execute @e[name=main] ~ ~ ~ setblock ~ ~ ~ redstone_block
 process main (
   /say starting program
   start other

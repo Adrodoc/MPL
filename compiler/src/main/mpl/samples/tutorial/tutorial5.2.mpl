@@ -6,7 +6,7 @@ uninstall (
   /scoreboard objectives remove ZombieKills
 )
 
-# start: /execute @e[name=startZombieGame] ~ ~ ~ setblock ~ ~ ~ redstone_block
+// start: /execute @e[name=startZombieGame] ~ ~ ~ setblock ~ ~ ~ redstone_block
 process startZombieGame (
   /say starting new zombie challenge
   /execute @a ~ ~ ~ summon Zombie
@@ -19,7 +19,7 @@ process startZombieGame (
 repeat process testForWinner (
   /testfor @p[score_ZombieKills_min=1]
   conditional: /kill @e[type=Zombie]
-  # if no zombies were killed by the previous command, this process will not stop
+  // if no zombies were killed by the previous command, this process will not stop
   conditional: notify
   conditional: stop
 )

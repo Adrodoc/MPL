@@ -48,6 +48,7 @@ import javax.annotation.Nullable;
 
 import de.adrodoc55.commons.Named;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
@@ -87,6 +88,14 @@ public class CommandChain implements Named {
     this.commands.addAll(commands);
   }
 
+  public void addCommand(Command command) {
+    commands.add(command);
+  }
+
+  public boolean removeCommand(Command command) {
+    return commands.remove(command);
+  }
+
   public List<String> getTags() {
     return Collections.unmodifiableList(tags);
   }
@@ -95,4 +104,5 @@ public class CommandChain implements Named {
     this.tags.clear();
     this.tags.addAll(tags);
   }
+
 }

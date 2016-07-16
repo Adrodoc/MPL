@@ -444,24 +444,24 @@ process finish {
   /say ALL TESTS SUCCESSFUL!!!
 }
 
-# Utility Prozesse
+// Utility Prozesse
 
 process setting_MplTest_to_5_and_calling_add_one_to_MplTest {
-  # 1 tick delay
+  // 1 tick delay
   /setblock ${this+1} redstone_block
   skip
   impulse: /setblock ${this-1} stone
-  # 1 tick delay end
+  // 1 tick delay end
   /scoreboard players set MplTest MplTest 5
   start add_one_to_MplTest
 }
 
 process add_one_to_MplTest {
-  # 1 tick delay
+  // 1 tick delay
   /setblock ${this+1} redstone_block
   skip
   impulse: /setblock ${this-1} stone
-  # 1 tick delay end
+  // 1 tick delay end
   /scoreboard players add MplTest MplTest 1
   notify
 }

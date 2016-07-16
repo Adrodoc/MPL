@@ -59,7 +59,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 
@@ -258,10 +257,14 @@ public abstract class MplChainPlacer {
         chainStart = chainStart.plus(0.4, Y);
       }
       int index = options.hasOption(TRANSMITTER) ? 2 : 1;
+      String tags = "";
+      for (String tag : chain.getTags()) {
+        tags += "," + tag;
+      }
       result.add(index,
           new Command("/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString()
-              + ")} {CustomName:" + name + ",Tags:[" + container.getHashCode() + ","
-              + Joiner.on(",").join(chain.getTags()) + "],NoGravity:1b,Invisible:1b,Invulnerable:1b"
+              + ")} {CustomName:" + name + ",Tags:[" + container.getHashCode() + tags
+              + "],NoGravity:1b,Invisible:1b,Invulnerable:1b"
               + (nonTransmitterDebug ? "" : ",Marker:1b")
               + (options.hasOption(DEBUG) ? ",CustomNameVisible:1b" : "") + "}"));
     }

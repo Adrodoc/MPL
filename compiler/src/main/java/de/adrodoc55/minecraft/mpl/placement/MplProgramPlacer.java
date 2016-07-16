@@ -313,7 +313,7 @@ public class MplProgramPlacer extends MplChainPlacer {
     Command deleteOnUninstall = null;
     if (options.hasOption(DELETE_ON_UNINSTALL)) {
       deleteOnUninstall = new Command();
-      uninstall.getCommands().add(deleteOnUninstall);
+      uninstall.addCommand(deleteOnUninstall);
     }
 
     if (!uninstall.getCommands().isEmpty()) {
