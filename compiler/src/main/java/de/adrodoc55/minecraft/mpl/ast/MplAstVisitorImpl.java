@@ -334,8 +334,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   public void visitStart(MplStart start) {
     visitPossibleInvert(start);
 
-    String process = start.getProcess();
-    String command = "execute @e[name=" + process + "] ~ ~ ~ " + getStartCommand("~ ~ ~");
+    String command = "execute " + start.getSelector() + " ~ ~ ~ " + getStartCommand("~ ~ ~");
     commands.add(new Command(command, start));
   }
 
@@ -343,8 +342,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   public void visitStop(MplStop stop) {
     visitPossibleInvert(stop);
 
-    String process = stop.getProcess();
-    String command = "execute @e[name=" + process + "] ~ ~ ~ " + getStopCommand("~ ~ ~");
+    String command = "execute " + stop.getSelector() + " ~ ~ ~ " + getStopCommand("~ ~ ~");
     commands.add(new Command(command, stop));
   }
 
@@ -442,7 +440,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
     ModifierBuffer modifier = new ModifierBuffer();
     modifier.setConditional(cond ? CONDITIONAL : UNCONDITIONAL);
-    visitStart(new MplStart("breakpoint", modifier));
+    visitStart(new MplStart("@e[name=breakpoint]", modifier));
     visitWaitfor(new MplWaitfor("breakpoint" + NOTIFY, modifier));
   }
 

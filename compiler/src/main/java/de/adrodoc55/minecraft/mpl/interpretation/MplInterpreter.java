@@ -527,28 +527,40 @@ public class MplInterpreter extends MplBaseListener {
     addModifiableChainPart(command);
   }
 
+  private String toSelector(String text) {
+    return "@e[name=" + text + "]";
+  }
+
   private String lastStartIdentifier;
 
   @Override
   public void enterStart(StartContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
-    String process = identifier.getText();
-    MplStart start = new MplStart(process, modifierBuffer);
+    String selector;
+    if (identifier != null) {
+      selector = toSelector(identifier.getText());
+    } else {
+      selector = ctx.SELECTOR().getText();
+    }
+    MplStart start = new MplStart(selector, modifierBuffer);
     addModifiableChainPart(start);
 
     checkNoModifier(start.getName(), modifierBuffer.getModeToken());
     checkNoModifier(start.getName(), modifierBuffer.getNeedsRedstoneToken());
 
-    lastStartIdentifier = process;
-    if (program.isScript()) {
-      return;
-    }
+    if (identifier != null) {
+      String process = identifier.getText();
+      lastStartIdentifier = process;
+      if (program.isScript()) {
+        return;
+      }
 
-    String srcProcess = this.process != null ? this.process.getName() : null;
-    Token token = identifier.getSymbol();
-    MplSource source = toSource(token);
-    Include include = new Include(source, process, imports);
-    includes.put(srcProcess, include);
+      String srcProcess = this.process != null ? this.process.getName() : null;
+      Token token = identifier.getSymbol();
+      MplSource source = toSource(token);
+      Include include = new Include(source, process, imports);
+      includes.put(srcProcess, include);
+    }
   }
 
   @Override
@@ -556,12 +568,14 @@ public class MplInterpreter extends MplBaseListener {
     Token token = ctx.STOP().getSymbol();
     MplSource source = toSource(token);
 
-    String process;
-    if (ctx.IDENTIFIER() != null) {
-      process = ctx.IDENTIFIER().getText();
+    String selector;
+    if (ctx.SELECTOR() != null) {
+      selector = ctx.SELECTOR().getText();
+    } else if (ctx.IDENTIFIER() != null) {
+      selector = toSelector(ctx.IDENTIFIER().getText());
     } else if (this.process != null) {
       if (this.process.isRepeating()) {
-        process = this.process.getName();
+        selector = toSelector(this.process.getName());
       } else {
         addException(new CompilerException(source, "An impulse process cannot be stopped"));
         return;
@@ -571,7 +585,7 @@ public class MplInterpreter extends MplBaseListener {
       return;
     }
 
-    MplStop stop = new MplStop(process, modifierBuffer);
+    MplStop stop = new MplStop(selector, modifierBuffer);
     addModifiableChainPart(stop);
 
     checkNoModifier(stop.getName(), modifierBuffer.getModeToken());

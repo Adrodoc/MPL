@@ -212,12 +212,20 @@ command
 
 start
 :
-  START IDENTIFIER
+  START
+  (
+    IDENTIFIER
+    | SELECTOR
+  )
 ;
 
 stop
 :
-  STOP IDENTIFIER?
+  STOP
+  (
+    IDENTIFIER
+    | SELECTOR
+  )?
 ;
 
 waitfor
@@ -441,6 +449,11 @@ IDENTIFIER
 TAG
 :
   '#' IDENTIFIER
+;
+
+SELECTOR
+:
+  '@' [pare] '[' [a-zA-Z0-9,=_]+ ']'
 ;
 
 UNRECOGNIZED

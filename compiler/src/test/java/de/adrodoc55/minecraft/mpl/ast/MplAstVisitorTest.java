@@ -167,8 +167,8 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(
-            "/execute @e[name=" + mplStart.getProcess() + "] ~ ~ ~ " + getOnCommand("~ ~ ~"), mode,
-            false, needsRedstone));
+            "/execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"), mode, false,
+            needsRedstone));
   }
 
   @Test
@@ -185,8 +185,8 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(
-            "/execute @e[name=" + mplStart.getProcess() + "] ~ ~ ~ " + getOnCommand("~ ~ ~"), mode,
-            true, needsRedstone));
+            "/execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"), mode, true,
+            needsRedstone));
   }
 
   @Test
@@ -216,8 +216,8 @@ public abstract class MplAstVisitorTest {
     assertThat(underTest.commands).containsExactly(//
         new InvertingCommand(modeForInverting), //
         new InternalCommand(
-            "/execute @e[name=" + mplStart.getProcess() + "] ~ ~ ~ " + getOnCommand("~ ~ ~"), mode,
-            true, needsRedstone));
+            "/execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"), mode, true,
+            needsRedstone));
   }
 
   // @formatter:off
@@ -245,8 +245,8 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(
-            "/execute @e[name=" + mplStop.getProcess() + "] ~ ~ ~ " + getOffCommand("~ ~ ~"), mode,
-            false, needsRedstone));
+            "/execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"), mode, false,
+            needsRedstone));
   }
 
   @Test
@@ -263,8 +263,8 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(
-            "/execute @e[name=" + mplStop.getProcess() + "] ~ ~ ~ " + getOffCommand("~ ~ ~"), mode,
-            true, needsRedstone));
+            "/execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"), mode, true,
+            needsRedstone));
   }
 
   @Test
@@ -294,8 +294,8 @@ public abstract class MplAstVisitorTest {
     assertThat(underTest.commands).containsExactly(//
         new InvertingCommand(modeForInvering),
         new InternalCommand(
-            "/execute @e[name=" + mplStop.getProcess() + "] ~ ~ ~ " + getOffCommand("~ ~ ~"), mode,
-            true, needsRedstone));
+            "/execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"), mode, true,
+            needsRedstone));
   }
 
   // @formatter:off

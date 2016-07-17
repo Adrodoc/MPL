@@ -60,21 +60,21 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @Getter
 @Setter
 public class MplStop extends ModifiableChainPart {
-  private final String process;
+  private final String selector;
 
-  public MplStop(String process) {
-    this(process, new ModifierBuffer());
+  public MplStop(String selector) {
+    this(selector, new ModifierBuffer());
   }
 
-  public MplStop(String process, ModifierBuffer modifier) {
+  public MplStop(String selector, ModifierBuffer modifier) {
     super(modifier);
-    this.process = checkNotNull(process, "process == null!");
+    this.selector = checkNotNull(selector, "selector == null!");
   }
 
   @GenerateMplPojoBuilder
-  public MplStop(String process, ModifierBuffer modifier, @Nullable Dependable previous) {
+  public MplStop(String selector, ModifierBuffer modifier, @Nullable Dependable previous) {
     super(modifier, previous);
-    this.process = checkNotNull(process, "process == null!");
+    this.selector = checkNotNull(selector, "selector == null!");
   }
 
   @Override

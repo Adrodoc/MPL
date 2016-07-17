@@ -477,6 +477,28 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
+  public void "dynamically starting a foreign process does not create an include"() {
+    given:
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
+    String programString = """
+    process ${id1} {
+      start @e[name=${id2}]
+    }
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    ListMultimap<String, Include> includeMap = interpreter.includes
+    includeMap.isEmpty()
+  }
+
+  @Test
   public void "starting a foreign process from a script does not create an include"() {
     given:
     String programString = """
@@ -825,7 +847,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     }
 
     process.chainParts[0] == new MplCommand('/say hi')
-    process.chainParts[1] == new MplStart(identifier, modifierBuffer, previous)
+    process.chainParts[1] == new MplStart("@e[name=${identifier}]", modifierBuffer, previous)
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -836,11 +858,36 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
-  public void "start with identifier in script"() {
+  @Unroll("start identifier with illegal modifier: '#modifier'")
+  public void "start identifier with illegal modifier"(String modifier) {
     given:
     String identifier = some($Identifier())
     String programString = """
-    start ${identifier}
+    ${modifier}: start ${identifier}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "Illegal modifier for start; only unconditional, conditional and invert are permitted"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == modifier
+    program.exceptions[0].source.token.line == 2
+    program.exceptions.size() == 1
+
+    where:
+    modifier << commandOnlyModifier
+  }
+
+  @Test
+  @Unroll("#modifier start with selector")
+  public void "start with selector"(String modifier, Conditional conditional) {
+    given:
+    String identifier = some($Identifier())
+    String programString = """
+    /say hi
+    ${modifier} start @e[name=${identifier}]
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -851,17 +898,31 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplStart(identifier)
-    process.chainParts.size() == 1
+    ModifierBuffer modifierBuffer = new ModifierBuffer()
+    modifierBuffer.setConditional(conditional);
+    ChainPart previous = null
+    if (conditional != UNCONDITIONAL) {
+      previous = process.chainParts[0]
+    }
+
+    process.chainParts[0] == new MplCommand('/say hi')
+    process.chainParts[1] == new MplStart("@e[name=${identifier}]", modifierBuffer, previous)
+    process.chainParts.size() == 2
+    where:
+    modifier        | conditional
+    ''              | UNCONDITIONAL
+    'unconditional:'| UNCONDITIONAL
+    'conditional:'  | CONDITIONAL
+    'invert:'       | INVERT
   }
 
   @Test
-  @Unroll("start with illegal modifier: '#modifier'")
-  public void "start with illegal modifier"(String modifier) {
+  @Unroll("start selector with illegal modifier: '#modifier'")
+  public void "start selector with illegal modifier"(String modifier) {
     given:
     String identifier = some($Identifier())
     String programString = """
-    ${modifier}: start ${identifier}
+    ${modifier}: start @e[name=${identifier}]
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -913,7 +974,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     }
 
     process.chainParts[0] == new MplCommand('/say hi')
-    process.chainParts[1] == new MplStop(identifier, modifierBuffer, previous)
+    process.chainParts[1] == new MplStop("@e[name=${identifier}]", modifierBuffer, previous)
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -958,7 +1019,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplStop(identifier)
+    process.chainParts[0] == new MplStop("@e[name=${identifier}]")
     process.chainParts.size() == 1
   }
 
@@ -983,13 +1044,74 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
-  @Unroll("stop with illegal modifier: '#modifier'")
-  public void "stop with illegal modifier"(String modifier) {
+  @Unroll("stop identifier with illegal modifier: '#modifier'")
+  public void "stop identifier with illegal modifier"(String modifier) {
     given:
     String identifier = some($Identifier())
     String programString = """
     process main {
       ${modifier}: stop ${identifier}
+    }
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "Illegal modifier for stop; only unconditional, conditional and invert are permitted"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == modifier
+    program.exceptions[0].source.token.line == 3
+    program.exceptions.size() == 1
+
+    where:
+    modifier << commandOnlyModifier
+  }
+
+  @Test
+  @Unroll("#modifier stop with selector")
+  public void "stop with selector"(String modifier, Conditional conditional) {
+    given:
+    String identifier = some($Identifier())
+    String programString = """
+    /say hi
+    ${modifier} stop @e[name=${identifier}]
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    ModifierBuffer modifierBuffer = new ModifierBuffer()
+    modifierBuffer.setConditional(conditional);
+    ChainPart previous = null
+    if (conditional != UNCONDITIONAL) {
+      previous = process.chainParts[0]
+    }
+
+    process.chainParts[0] == new MplCommand('/say hi')
+    process.chainParts[1] == new MplStop("@e[name=${identifier}]", modifierBuffer, previous)
+    process.chainParts.size() == 2
+    where:
+    modifier        | conditional
+    ''              | UNCONDITIONAL
+    'unconditional:'| UNCONDITIONAL
+    'conditional:'  | CONDITIONAL
+    'invert:'       | INVERT
+  }
+
+  @Test
+  @Unroll("stop selector with illegal modifier: '#modifier'")
+  public void "stop selector with illegal modifier"(String modifier) {
+    given:
+    String identifier = some($Identifier())
+    String programString = """
+    process main {
+      ${modifier}: stop @e[name=${identifier}]
     }
     """
     when:
@@ -1089,7 +1211,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplStart(identifier)
+    process.chainParts[0] == new MplStart("@e[name=${identifier}]")
     process.chainParts[1] == new MplWaitfor(identifier + NOTIFY);
     process.chainParts.size() == 2
   }

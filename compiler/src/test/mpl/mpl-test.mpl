@@ -19,7 +19,7 @@ process mpl_tests {
     /scoreboard players tag @e[tag=param,c=1] add current
     /scoreboard players tag @e[tag=current] remove param
     /tellraw @a [{"text":"Starting "},{"selector":"@e[tag=current]","color":"yellow"}]
-    /execute @e[tag=current] ~ ~ ~ setblock ~ ~ ~ redstone_block
+    start @e[tag=current]
     waitfor continue_tests
     /kill @e[name=continue_tests]
     /scoreboard players tag @e[tag=current] remove current

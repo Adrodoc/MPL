@@ -102,6 +102,15 @@ public class MplTestBase extends TestBase {
     };
   }
 
+  public static Builder<String> $Selector() {
+    return new Builder<String>() {
+      @Override
+      public String build() {
+        return "@e[name=" + some($Identifier()) + "]";
+      }
+    };
+  }
+
   public static CommandBuilder $Command() {
     return new CommandBuilder()//
         .withCommand($CommandString())//
@@ -150,14 +159,14 @@ public class MplTestBase extends TestBase {
   public static MplStartBuilder $MplStart() {
     return new MplStartBuilder()//
         .withModifier($ModifierBuffer())//
-        .withProcess($String())//
+        .withSelector($Selector())//
         ;
   }
 
   public static MplStopBuilder $MplStop() {
     return new MplStopBuilder()//
         .withModifier($ModifierBuffer())//
-        .withProcess($String())//
+        .withSelector($Selector())//
         ;
   }
 
