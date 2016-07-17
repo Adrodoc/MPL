@@ -47,9 +47,10 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.commons.Named;
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.ast.MplNode;
+import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -63,6 +64,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 public class MplProcess implements MplNode, Named {
   private final String name;
   private final boolean repeating;
+  private final ProcessType type;
   private final MplSource source;
   private final List<ChainPart> chainParts = new ArrayList<>();
   private final List<String> tags = new ArrayList<>();
@@ -72,18 +74,15 @@ public class MplProcess implements MplNode, Named {
   }
 
   public MplProcess(@Nullable String name) {
-    this(name, null);
-  }
-
-  public MplProcess(@Nullable String name, @Nullable MplSource source) {
-    this(name, false, new ArrayList<>(), source);
+    this(name, false, ProcessType.DEFAULT, new ArrayList<>(), null);
   }
 
   @GenerateMplPojoBuilder
-  public MplProcess(@Nullable String name, boolean repeating, Collection<String> tags,
-      @Nullable MplSource source) {
+  public MplProcess(@Nullable String name, boolean repeating, ProcessType type,
+      Collection<String> tags, @Nullable MplSource source) {
     this.name = name;
     this.repeating = repeating;
+    this.type = type;
     setTags(tags);
     this.source = source;
   }

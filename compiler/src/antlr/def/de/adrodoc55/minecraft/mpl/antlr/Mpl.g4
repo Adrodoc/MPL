@@ -107,6 +107,10 @@ process
 :
   TAG*
   (
+    REMOTE
+    | INLINE
+  )?
+  (
     IMPULSE
     | REPEAT
   )? PROCESS IDENTIFIER '{' chain? '}'
@@ -424,6 +428,16 @@ BREAK
 CONTINUE
 :
   'continue'
+;
+
+REMOTE
+:
+  'remote'
+;
+
+INLINE
+:
+  'inline'
 ;
 
 UNSIGNED_INT

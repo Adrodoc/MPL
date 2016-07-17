@@ -44,7 +44,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.adrodoc55.minecraft.mpl.commands.Conditional;
+import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;

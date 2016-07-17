@@ -40,13 +40,13 @@
 package de.adrodoc55.minecraft.mpl.ast.chainparts.loop;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static de.adrodoc55.minecraft.mpl.commands.Conditional.CONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 
 import javax.annotation.Nonnull;
 
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitorImpl;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitorImpl;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

@@ -47,7 +47,7 @@ import javax.annotation.Nullable;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;

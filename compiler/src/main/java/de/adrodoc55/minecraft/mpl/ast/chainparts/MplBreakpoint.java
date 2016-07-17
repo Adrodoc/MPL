@@ -43,7 +43,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nullable;
 
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

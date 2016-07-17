@@ -37,19 +37,12 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+package de.adrodoc55.minecraft.mpl.ast;
 
 /**
  * @author Adrodoc55
  */
-@RequiredArgsConstructor
-@Getter
-public enum Conditional {
-  UNCONDITIONAL(false), CONDITIONAL(true), INVERT(true);
-  public static final Conditional DEFAULT = UNCONDITIONAL;
-
-  private final boolean conditional;
+public enum ProcessType {
+  INLINE, REMOTE;
+  public static final ProcessType DEFAULT = INLINE;
 }

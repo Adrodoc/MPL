@@ -41,7 +41,7 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;

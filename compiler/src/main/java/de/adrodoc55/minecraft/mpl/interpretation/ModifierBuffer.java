@@ -43,8 +43,8 @@ import javax.annotation.Nullable;
 
 import org.antlr.v4.runtime.Token;
 
+import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Modifiable;
-import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import lombok.Getter;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;

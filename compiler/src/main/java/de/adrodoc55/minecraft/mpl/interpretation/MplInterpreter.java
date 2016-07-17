@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation;
 
+import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
+import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 
 import java.io.File;
@@ -100,6 +102,8 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.ThenContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.UninstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.WaitforContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.WhileDeclarationContext;
+import de.adrodoc55.minecraft.mpl.ast.Conditional;
+import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
@@ -115,7 +119,6 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
@@ -397,12 +400,19 @@ public class MplInterpreter extends MplBaseListener {
   public void enterProcess(ProcessContext ctx) {
     String name = ctx.IDENTIFIER().getText();
     boolean repeat = ctx.REPEAT() != null;
+    ProcessType type = ProcessType.DEFAULT;
+    if (ctx.INLINE() != null) {
+      type = INLINE;
+    }
+    if (ctx.REMOTE() != null) {
+      type = REMOTE;
+    }
     Collection<String> tags = new ArrayList<>(ctx.TAG().size());
     for (TerminalNode tag : ctx.TAG()) {
       tags.add(MplLexerUtils.getTagString(tag.getSymbol()));
     }
     MplSource source = toSource(ctx.IDENTIFIER().getSymbol());
-    process = new MplProcess(name, repeat, tags, source);
+    process = new MplProcess(name, repeat, type, tags, source);
     newChainBuffer();
   }
 

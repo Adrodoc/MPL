@@ -37,15 +37,15 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast;
+package de.adrodoc55.minecraft.mpl.ast.visitor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept.INTERCEPTED;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
-import static de.adrodoc55.minecraft.mpl.commands.Conditional.CONDITIONAL;
-import static de.adrodoc55.minecraft.mpl.commands.Conditional.INVERT;
-import static de.adrodoc55.minecraft.mpl.commands.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
@@ -65,6 +65,7 @@ import com.google.common.annotations.VisibleForTesting;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
+import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
@@ -85,7 +86,6 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
-import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;

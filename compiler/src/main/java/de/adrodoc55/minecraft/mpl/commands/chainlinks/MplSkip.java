@@ -42,8 +42,8 @@ package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 import javax.annotation.concurrent.Immutable;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
 import lombok.EqualsAndHashCode;

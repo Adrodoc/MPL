@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast;
+package de.adrodoc55.minecraft.mpl.ast.visitor;
 
 import static de.adrodoc55.TestBase.$Enum;
 import static de.adrodoc55.TestBase.$String;
@@ -60,10 +60,10 @@ import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStart;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStop;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWaitfor;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWhile;
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
-import static de.adrodoc55.minecraft.mpl.commands.Conditional.CONDITIONAL;
-import static de.adrodoc55.minecraft.mpl.commands.Conditional.INVERT;
-import static de.adrodoc55.minecraft.mpl.commands.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;

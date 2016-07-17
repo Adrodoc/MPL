@@ -41,8 +41,9 @@ package de.adrodoc55.minecraft.mpl.interpretation
 
 import static de.adrodoc55.TestBase.some
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$Identifier
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.*
+import static de.adrodoc55.minecraft.mpl.ast.ProcessType.*
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY
-import static de.adrodoc55.minecraft.mpl.commands.Conditional.*
 import static de.adrodoc55.minecraft.mpl.commands.Mode.*
 
 import org.junit.Test
@@ -52,6 +53,7 @@ import spock.lang.Unroll
 import com.google.common.collect.ListMultimap
 
 import de.adrodoc55.minecraft.mpl.MplSpecBase
+import de.adrodoc55.minecraft.mpl.ast.Conditional
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand
@@ -66,7 +68,6 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram
-import de.adrodoc55.minecraft.mpl.commands.Conditional
 
 class MplInterpreterSpec2 extends MplSpecBase {
 
@@ -244,14 +245,44 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String id3 = some($Identifier())
     String programString = """
     process ${id1} {
-    /say I am a default process
+      /say I am the first process
     }
-    impulse process ${id2} {
-    /say I am an impulse process, wich is actually equivalent to the default
+    process ${id2} {
+      /say I am the second process
     }
-    repeat process ${id3} {
-    /say I am a repeating process. I am completely different :)
-    }
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    Collection<MplProcess> processes = program.processes
+    processes.size() == 2
+
+    MplProcess process1 = processes.find { it.name == id1 }
+    List<ChainPart> chainParts1 = process1.chainParts
+    chainParts1[0] == new MplCommand("/say I am the first process")
+    chainParts1.size() == 1
+
+    MplProcess process2 = processes.find { it.name == id2 }
+    List<ChainPart> chainParts2 = process2.chainParts
+    chainParts2[0] == new MplCommand("/say I am the second process")
+    chainParts2.size() == 1
+  }
+
+  @Test
+  public void "A process may be impulse or repeat"() {
+    given:
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
+    String id3 = some($Identifier())
+    String programString = """
+    process ${id1} {}
+
+    impulse process ${id2} {}
+
+    repeat process ${id3} {}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -264,21 +295,44 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     MplProcess process1 = processes.find { it.name == id1 }
     process1.repeating == false
-    List<ChainPart> chainParts1 = process1.chainParts
-    chainParts1[0] == new MplCommand("/say I am a default process")
-    chainParts1.size() == 1
 
     MplProcess process2 = processes.find { it.name == id2 }
     process2.repeating == false
-    List<ChainPart> chainParts2 = process2.chainParts
-    chainParts2[0] == new MplCommand("/say I am an impulse process, wich is actually equivalent to the default")
-    chainParts2.size() == 1
 
     MplProcess process3 = processes.find { it.name == id3 }
     process3.repeating == true
-    List<ChainPart> chainParts3 = process3.chainParts
-    chainParts3[0] == new MplCommand("/say I am a repeating process. I am completely different :)")
-    chainParts3.size() == 1
+  }
+
+  @Test
+  public void "A process may be inline or remote"() {
+    given:
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
+    String id3 = some($Identifier())
+    String programString = """
+    process ${id1} {}
+
+    inline process ${id2} {}
+
+    remote process ${id3} {}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    Collection<MplProcess> processes = program.processes
+    processes.size() == 3
+
+    MplProcess process1 = processes.find { it.name == id1 }
+    process1.type == INLINE
+
+    MplProcess process2 = processes.find { it.name == id2 }
+    process2.type == INLINE
+
+    MplProcess process3 = processes.find { it.name == id3 }
+    process3.type == REMOTE
   }
 
   @Test
