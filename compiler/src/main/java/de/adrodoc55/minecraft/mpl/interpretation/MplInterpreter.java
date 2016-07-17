@@ -78,6 +78,7 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.AutoContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.BreakDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.BreakpointContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.CallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ConditionalContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ContinueDeclarationContext;
@@ -107,6 +108,7 @@ import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept;
@@ -535,6 +537,23 @@ public class MplInterpreter extends MplBaseListener {
     String commandString = ctx.COMMAND().getText();
     MplCommand command = new MplCommand(commandString, modifierBuffer);
     addModifiableChainPart(command);
+  }
+
+  @Override
+  public void enterCall(CallContext ctx) {
+    TerminalNode identifier = ctx.IDENTIFIER();
+    String process = identifier.getText();
+    MplCall call = new MplCall(process);
+    chainBuffer.add(call);
+
+    if (program.isScript()) {
+      return;
+    }
+    String srcProcess = this.process != null ? this.process.getName() : null;
+    Token token = identifier.getSymbol();
+    MplSource source = toSource(token);
+    Include include = new Include(source, process, imports);
+    includes.put(srcProcess, include);
   }
 
   private String toSelector(String text) {

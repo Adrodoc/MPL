@@ -160,6 +160,7 @@ mplCommand
   modifierList?
   (
     command
+    | call
     | start
     | stop
     | waitfor
@@ -212,6 +213,11 @@ auto
 command
 :
   COMMAND
+;
+
+call
+:
+  IDENTIFIER '(' ')'
 ;
 
 start

@@ -57,7 +57,7 @@ import lombok.ToString;
  * @author Adrodoc55
  */
 @EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true, includeFieldNames = true)
+@ToString(callSuper = true)
 @Getter
 @Setter
 public class MplBreakLoop extends ModifiableChainPart {

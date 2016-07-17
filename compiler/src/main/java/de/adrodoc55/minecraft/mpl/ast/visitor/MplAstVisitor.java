@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.ast.visitor;
 
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept;
@@ -64,6 +65,8 @@ public interface MplAstVisitor {
   void visitProcess(MplProcess process);
 
   void visitCommand(MplCommand command);
+
+  void visitCall(MplCall mplCall);
 
   void visitStart(MplStart start);
 

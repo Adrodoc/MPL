@@ -70,6 +70,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept;
@@ -328,6 +329,12 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
     String cmd = command.getCommand();
     commands.add(new Command(cmd, command));
+  }
+
+  @Override
+  public void visitCall(MplCall mplCall) {
+    // TODO Auto-generated method stub
+
   }
 
   @Override

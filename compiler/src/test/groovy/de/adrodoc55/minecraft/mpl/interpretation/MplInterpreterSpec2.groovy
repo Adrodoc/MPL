@@ -56,6 +56,7 @@ import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.ast.Conditional
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept
@@ -355,11 +356,31 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
-    process.name
     process.tags[0] == 'Tag1'
     process.tags[1] == 'Test'
     process.tags[2] == 'AnotherTag'
     process.tags.size() == 3
+  }
+
+  public void "a process can be called"() {
+    given:
+    String identifier = some($Identifier())
+    String programString = """
+    process main {
+      other()
+    }
+    process other {}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    program.processes.size() == 2
+    MplProcess process = program.processes.find { it.name == 'main' }
+    process.chainParts[0] == new MplCall('other')
+    process.chainParts.size() == 1
   }
 
   // ----------------------------------------------------------------------------------------------------
@@ -501,6 +522,33 @@ class MplInterpreterSpec2 extends MplSpecBase {
     includes[1].files.size() == 1
     includes[1].processName == null
     includes.size() == 2
+  }
+
+  @Test
+  public void "calling a foreign process creates an include"() {
+    given:
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
+    String programString = """
+    process ${id1} {
+      ${id2}()
+    }
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    MplProgram program = interpreter.program
+    program.exceptions.isEmpty()
+
+    ListMultimap<String, Include> includeMap = interpreter.includes
+    includeMap.size() == 1
+    List<Include> includes = includeMap.get(id1);
+    includes[0].files.containsAll([lastTempFile])
+    includes[0].files.size() == 1
+    includes[0].processName == id2
+    includes.size() == 1
   }
 
   @Test
