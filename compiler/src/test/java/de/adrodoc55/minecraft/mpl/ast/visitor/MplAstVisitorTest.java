@@ -39,7 +39,6 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.visitor;
 
-import static de.adrodoc55.TestBase.$Enum;
 import static de.adrodoc55.TestBase.$String;
 import static de.adrodoc55.TestBase.$boolean;
 import static de.adrodoc55.TestBase.$listOf;
@@ -47,8 +46,10 @@ import static de.adrodoc55.TestBase.$oneOf;
 import static de.adrodoc55.TestBase.listOf;
 import static de.adrodoc55.TestBase.several;
 import static de.adrodoc55.TestBase.some;
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$Mode;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplBreak;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplBreakpoint;
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplCall;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplCommand;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplContinue;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplIf;
@@ -80,11 +81,13 @@ import org.junit.runners.MethodSorters;
 
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreak;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
@@ -144,6 +147,103 @@ public abstract class MplAstVisitorTest {
 
   // @formatter:off
   // ----------------------------------------------------------------------------------------------------
+  //     ____        _  _
+  //    / ___| __ _ | || |
+  //   | |    / _` || || |
+  //   | |___| (_| || || |
+  //    \____|\__,_||_||_|
+  //
+  // ----------------------------------------------------------------------------------------------------
+  // @formatter:on
+
+  @Test
+  public void test_unconditional_Call() {
+    // given:
+    MplCall mplCall = some($MplCall()//
+        .withConditional(UNCONDITIONAL));
+
+    // when:
+    mplCall.accept(underTest);
+
+    // then:
+    MplAstVisitorImpl underTest2 = newUnderTest();
+    MplStart mplStart = some($MplStart()//
+        .withSelector("@e[name=" + mplCall.getProcess() + "]")//
+        .withModifier(mplCall));
+    mplStart.accept(underTest2);
+    MplWaitfor mplWaitfor = some($MplWaitfor()//
+        .withEvent(mplCall.getProcess() + NOTIFY)//
+        .withMode(CHAIN)//
+        .withConditional(UNCONDITIONAL)//
+        .withNeedsRedstone(false));
+    mplWaitfor.accept(underTest2);
+
+    assertThat(underTest.commands).containsExactlyElementsOf(underTest2.commands);
+  }
+
+  @Test
+  public void test_conditional_Call() {
+    // given:
+    MplCall mplCall = some($MplCall()//
+        .withConditional(CONDITIONAL));
+
+    // when:
+    mplCall.accept(underTest);
+
+    // then:
+    MplAstVisitorImpl underTest2 = newUnderTest();
+    MplStart mplStart = some($MplStart()//
+        .withSelector("@e[name=" + mplCall.getProcess() + "]")//
+        .withModifier(mplCall));
+    mplStart.accept(underTest2);
+    MplWaitfor mplWaitfor = some($MplWaitfor()//
+        .withEvent(mplCall.getProcess() + NOTIFY)//
+        .withMode(CHAIN)//
+        .withConditional(CONDITIONAL)//
+        .withNeedsRedstone(false));
+    mplWaitfor.accept(underTest2);
+
+    assertThat(underTest.commands).containsExactlyElementsOf(underTest2.commands);
+  }
+
+  @Test
+  public void test_invert_Call() {
+    // given:
+    Mode modeForInverting = some($Mode());
+    MplCall mplCall = some($MplCall()//
+        .withConditional(CONDITIONAL).withPrevious(new Dependable() {
+          @Override
+          public boolean canBeDependedOn() {
+            return true;
+          }
+
+          @Override
+          public Mode getModeForInverting() {
+            return modeForInverting;
+          }
+        }));
+
+    // when:
+    mplCall.accept(underTest);
+
+    // then:
+    MplAstVisitorImpl underTest2 = newUnderTest();
+    MplStart mplStart = some($MplStart()//
+        .withSelector("@e[name=" + mplCall.getProcess() + "]")//
+        .withModifier(mplCall));
+    mplStart.accept(underTest2);
+    MplWaitfor mplWaitfor = some($MplWaitfor()//
+        .withEvent(mplCall.getProcess() + NOTIFY)//
+        .withMode(CHAIN)//
+        .withConditional(CONDITIONAL)//
+        .withNeedsRedstone(false));
+    mplWaitfor.accept(underTest2);
+
+    assertThat(underTest.commands).containsExactlyElementsOf(underTest2.commands);
+  }
+
+  // @formatter:off
+  // ----------------------------------------------------------------------------------------------------
   //    ____   _                _
   //   / ___| | |_  __ _  _ __ | |_
   //   \___ \ | __|/ _` || '__|| __|
@@ -192,7 +292,7 @@ public abstract class MplAstVisitorTest {
   @Test
   public void test_invert_Start() {
     // given:
-    Mode modeForInverting = some($Enum(Mode.class));
+    Mode modeForInverting = some($Mode());
     MplStart mplStart = some($MplStart()//
         .withConditional(INVERT)//
         .withPrevious(new Dependable() {
@@ -270,7 +370,7 @@ public abstract class MplAstVisitorTest {
   @Test
   public void test_invert_Stop() {
     // given:
-    Mode modeForInvering = some($Enum(Mode.class));
+    Mode modeForInvering = some($Mode());
     MplStop mplStop = some($MplStop()//
         .withConditional(INVERT)//
         .withPrevious(new Dependable() {
@@ -344,7 +444,7 @@ public abstract class MplAstVisitorTest {
   @Test
   public void test_invert_Notify() {
     // given:
-    Mode mode = some($Enum(Mode.class));
+    Mode mode = some($Mode());
     MplNotify mplNotify = some($MplNotify()//
         .withConditional(INVERT)//
         .withPrevious(new Dependable() {
@@ -419,7 +519,7 @@ public abstract class MplAstVisitorTest {
   public void test_If_modifier_gelten_fuer_condition() {
     // given:
     MplIf mplIf = some($MplIf()//
-        .withMode($Enum(Mode.class))//
+        .withMode($Mode())//
         .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL))//
         .withNeedsRedstone($boolean()));
 
@@ -436,10 +536,10 @@ public abstract class MplAstVisitorTest {
   @Test
   public void test_If_modifier_mit_invert_gelten_fuer_condition() {
     // given:
-    Mode mode = some($Enum(Mode.class));
+    Mode mode = some($Mode());
 
     MplIf mplIf = some($MplIf()//
-        .withMode($Enum(Mode.class))//
+        .withMode($Mode())//
         .withConditional(INVERT)//
         .withNeedsRedstone($boolean())//
         .withPrevious(new Dependable() {
@@ -1182,7 +1282,7 @@ public abstract class MplAstVisitorTest {
     // given:
     MplWhile mplWhile = some($MplWhile()//
         .withTrailing(false)//
-        .withMode($Enum(Mode.class))//
+        .withMode($Mode())//
         .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL))//
         .withNeedsRedstone($boolean()));
 
@@ -1198,11 +1298,11 @@ public abstract class MplAstVisitorTest {
   @Test
   public void test_While_repeat_modifier_mit_invert_gelten_fuer_condition() {
     // given:
-    Mode mode = some($Enum(Mode.class));
+    Mode mode = some($Mode());
 
     MplWhile mplWhile = some($MplWhile()//
         .withTrailing(false)//
-        .withMode($Enum(Mode.class))//
+        .withMode($Mode())//
         .withConditional(INVERT)//
         .withNeedsRedstone($boolean())//
         .withPrevious(new Dependable() {
@@ -1232,7 +1332,7 @@ public abstract class MplAstVisitorTest {
     // given:
     MplWhile mplWhile = some($MplWhile()//
         .withTrailing(true)//
-        .withMode($Enum(Mode.class))//
+        .withMode($Mode())//
         .withConditional($oneOf(UNCONDITIONAL))//
         .withNeedsRedstone($boolean()));
 
@@ -1250,7 +1350,7 @@ public abstract class MplAstVisitorTest {
     // given:
     MplWhile mplWhile = some($MplWhile()//
         .withTrailing(true)//
-        .withMode($Enum(Mode.class))//
+        .withMode($Mode())//
         .withConditional($oneOf(CONDITIONAL))//
         .withNeedsRedstone($boolean()));
 
@@ -1272,11 +1372,11 @@ public abstract class MplAstVisitorTest {
   @Test
   public void test_repeat_While_invert_modifier_erzeugt_invert_jump() {
     // given:
-    Mode mode = some($Enum(Mode.class));
+    Mode mode = some($Mode());
 
     MplWhile mplWhile = some($MplWhile()//
         .withTrailing(true)//
-        .withMode($Enum(Mode.class))//
+        .withMode($Mode())//
         .withConditional(INVERT)//
         .withNeedsRedstone($boolean())//
         .withPrevious(new Dependable() {
@@ -1313,7 +1413,7 @@ public abstract class MplAstVisitorTest {
         .withCondition((String) null)//
         .withNot($boolean())//
         .withTrailing($boolean())//
-        .withMode($Enum(Mode.class))//
+        .withMode($Mode())//
         .withConditional($oneOf(UNCONDITIONAL))//
         .withNeedsRedstone($boolean()));
 
@@ -1333,7 +1433,7 @@ public abstract class MplAstVisitorTest {
         .withCondition((String) null)//
         .withNot($boolean())//
         .withTrailing($boolean())//
-        .withMode($Enum(Mode.class))//
+        .withMode($Mode())//
         .withConditional($oneOf(CONDITIONAL))//
         .withNeedsRedstone($boolean()));
 
@@ -1355,13 +1455,13 @@ public abstract class MplAstVisitorTest {
   @Test
   public void test_repeat_invert_modifier_erzeugt_invert_jump() {
     // given:
-    Mode mode = some($Enum(Mode.class));
+    Mode mode = some($Mode());
 
     MplWhile mplWhile = some($MplWhile()//
         .withCondition((String) null)//
         .withNot($boolean())//
         .withTrailing($boolean())//
-        .withMode($Enum(Mode.class))//
+        .withMode($Mode())//
         .withConditional(INVERT)//
         .withNeedsRedstone($boolean())//
         .withPrevious(new Dependable() {

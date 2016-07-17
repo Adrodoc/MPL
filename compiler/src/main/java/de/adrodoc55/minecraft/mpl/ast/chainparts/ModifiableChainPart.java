@@ -45,8 +45,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
+import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
-import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -59,18 +59,23 @@ import lombok.ToString;
 @ToString(includeFieldNames = true)
 @Getter
 @Setter
-public abstract class ModifiableChainPart implements Modifiable, ChainPart {
+public abstract class ModifiableChainPart implements ExtendedModifiable, ChainPart {
   protected @Nonnull Mode mode;
   protected @Nonnull Conditional conditional;
   protected boolean needsRedstone;
 
   protected @Nullable Dependable previous;
 
-  public ModifiableChainPart(ModifierBuffer modifier) {
+  public ModifiableChainPart(ExtendedModifiable modifier) {
     this(modifier, null);
   }
 
-  public ModifiableChainPart(ModifierBuffer modifier, @Nullable Dependable previous) {
+  public ModifiableChainPart(ExtendedModifiable modifier, @Nullable Dependable previous) {
+    setModifier(modifier);
+    this.previous = previous;
+  }
+
+  private void setModifier(ExtendedModifiable modifier) {
     Mode mode = modifier.getMode();
     Conditional conditional = modifier.getConditional();
     Boolean needsRedstone = modifier.getNeedsRedstone();
@@ -82,7 +87,6 @@ public abstract class ModifiableChainPart implements Modifiable, ChainPart {
     } else {
       this.needsRedstone = (this.mode == Mode.CHAIN) ? false : true;
     }
-    this.previous = previous;
   }
 
   @Override
@@ -98,14 +102,14 @@ public abstract class ModifiableChainPart implements Modifiable, ChainPart {
   /*
    * Kann sonst nicht aus javadoc referenziert werden
    */
-  public Dependable getPrevious() {
+  public @Nullable Dependable getPrevious() {
     return previous;
   }
 
   /*
    * see https://github.com/mkarneim/pojobuilder/issues/86
    */
-  public void setPrevious(Dependable previous) {
+  public void setPrevious(@Nullable Dependable previous) {
     this.previous = previous;
   }
 

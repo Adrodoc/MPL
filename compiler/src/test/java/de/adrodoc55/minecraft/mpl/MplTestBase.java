@@ -56,7 +56,9 @@ import de.adrodoc55.TestBase;
 import de.adrodoc55.minecraft.coordinate.Coordinate3DBuilder;
 import de.adrodoc55.minecraft.coordinate.Orientation3DBuilder;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
+import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpointBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCallBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommandBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIfBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplInterceptBuilder;
@@ -111,27 +113,51 @@ public class MplTestBase extends TestBase {
     };
   }
 
+  public static OneOf<Mode> $Mode() {
+    return $oneOf(Mode.values());
+  }
+
+  public static OneOf<Conditional> $Conditional() {
+    return $oneOf(Conditional.values());
+  }
+
   public static CommandBuilder $Command() {
     return new CommandBuilder()//
         .withCommand($CommandString())//
-        .withMode($Enum(Mode.class))//
+        .withMode($Mode())//
         .withConditional($boolean())//
         .withNeedsRedstone($boolean())//
         ;
+  }
+
+  private static Builder<ExtendedModifiable> $ModifierBuffer() {
+    return new ExtendedModifiableBuilder(new ModifierBufferBuilder()//
+        .withMode($Mode())//
+        .withConditional($Conditional())//
+        .withNeedsRedstone($boolean())//
+    );
+  }
+
+  /**
+   * TODO: This is a workaround for pojobuilder #100
+   */
+  private static class ExtendedModifiableBuilder implements Builder<ExtendedModifiable> {
+    private final Builder<? extends ExtendedModifiable> delegate;
+
+    public ExtendedModifiableBuilder(Builder<? extends ExtendedModifiable> delegate) {
+      this.delegate = delegate;
+    }
+
+    @Override
+    public ExtendedModifiable build() {
+      return delegate.build();
+    }
   }
 
   public static MplCommandBuilder $MplCommand() {
     return new MplCommandBuilder()//
         .withModifier($ModifierBuffer())//
         .withCommand($CommandString())//
-        ;
-  }
-
-  private static ModifierBufferBuilder $ModifierBuffer() {
-    return new ModifierBufferBuilder()//
-        .withMode($Enum(Mode.class))//
-        .withConditional($Enum(Conditional.class))//
-        .withNeedsRedstone($boolean())//
         ;
   }
 
@@ -153,6 +179,15 @@ public class MplTestBase extends TestBase {
         .withName($String())//
         .withRepeating($boolean())//
         .withTags(new ArrayList<>())//
+        ;
+  }
+
+  public static MplCallBuilder $MplCall() {
+    return new MplCallBuilder()//
+        .withMode($Mode())//
+        .withConditional($Conditional())//
+        .withNeedsRedstone($boolean())//
+        .withProcess($Identifier())//
         ;
   }
 

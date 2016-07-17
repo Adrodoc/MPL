@@ -37,57 +37,22 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.chainparts;
+package de.adrodoc55.minecraft.mpl.ast;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
-import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
-import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import net.karneim.pojobuilder.GenerateMplPojoBuilder;
+import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-@Getter
-@Setter
-public class MplCommand extends ModifiableChainPart {
-  private String command;
-
-  public MplCommand(String command) {
-    this(command, new ModifierBuffer());
-  }
-
-  @GenerateMplPojoBuilder
-  public MplCommand(String command, ExtendedModifiable modifier) {
-    super(modifier);
-    this.command = checkNotNull(command, "command == null!");
-  }
+public interface ExtendedModifiable extends Modifiable {
+  Conditional getConditional();
 
   @Override
-  public String getName() {
-    return "command";
-  }
-
-  @Override
-  public void accept(MplAstVisitor visitor) {
-    visitor.visitCommand(this);
-  }
-
-  @Override
-  public boolean canBeDependedOn() {
-    return true;
-  }
-
-  @Override
-  public Mode getModeForInverting() {
-    return getMode();
+  public default Boolean isConditional() {
+    Conditional conditional = getConditional();
+    if (conditional == null) {
+      return null;
+    }
+    return conditional.isConditional();
   }
 }

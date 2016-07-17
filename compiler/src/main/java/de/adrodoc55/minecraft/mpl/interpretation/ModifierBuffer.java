@@ -44,7 +44,7 @@ import javax.annotation.Nullable;
 import org.antlr.v4.runtime.Token;
 
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.Modifiable;
+import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import lombok.Getter;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
@@ -56,22 +56,13 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 // https://github.com/mkarneim/pojobuilder/issues/86
 // @Setter
 @GenerateMplPojoBuilder
-public class ModifierBuffer implements Modifiable {
+public class ModifierBuffer implements ExtendedModifiable {
   private @Nullable Mode mode;
   private @Nullable Conditional conditional;
   private @Nullable Boolean needsRedstone;
   private @Nullable Token modeToken;
   private @Nullable Token conditionalToken;
   private @Nullable Token needsRedstoneToken;
-
-  @Override
-  public Boolean isConditional() {
-    Conditional conditional = getConditional();
-    if (conditional == null) {
-      return null;
-    }
-    return conditional.isConditional();
-  }
 
   public void setMode(Mode mode) {
     this.mode = mode;

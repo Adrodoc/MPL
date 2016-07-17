@@ -333,8 +333,14 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitCall(MplCall mplCall) {
-    // TODO Auto-generated method stub
+    ModifierBuffer modifier = new ModifierBuffer();
+    modifier.setConditional(mplCall.isConditional() ? CONDITIONAL : UNCONDITIONAL);
+    MplStart mplStart =
+        new MplStart("@e[name=" + mplCall.getProcess() + "]", mplCall, mplCall.getPrevious());
 
+    MplWaitfor mplWaitfor = new MplWaitfor(mplCall.getProcess() + NOTIFY, modifier);
+    mplStart.accept(this);
+    mplWaitfor.accept(this);
   }
 
   @Override
@@ -442,11 +448,10 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
     visitPossibleInvert(breakpoint);
 
-    boolean cond = breakpoint.isConditional();
-    commands.add(new InternalCommand("say " + breakpoint.getMessage(), cond));
+    commands.add(new InternalCommand("say " + breakpoint.getMessage(), breakpoint));
 
     ModifierBuffer modifier = new ModifierBuffer();
-    modifier.setConditional(cond ? CONDITIONAL : UNCONDITIONAL);
+    modifier.setConditional(breakpoint.isConditional() ? CONDITIONAL : UNCONDITIONAL);
     visitStart(new MplStart("@e[name=breakpoint]", modifier));
     visitWaitfor(new MplWaitfor("breakpoint" + NOTIFY, modifier));
   }

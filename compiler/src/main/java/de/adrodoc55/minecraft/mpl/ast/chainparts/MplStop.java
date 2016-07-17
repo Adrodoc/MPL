@@ -43,6 +43,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nullable;
 
+import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
@@ -66,13 +67,13 @@ public class MplStop extends ModifiableChainPart {
     this(selector, new ModifierBuffer());
   }
 
-  public MplStop(String selector, ModifierBuffer modifier) {
+  public MplStop(String selector, ExtendedModifiable modifier) {
     super(modifier);
     this.selector = checkNotNull(selector, "selector == null!");
   }
 
   @GenerateMplPojoBuilder
-  public MplStop(String selector, ModifierBuffer modifier, @Nullable Dependable previous) {
+  public MplStop(String selector, ExtendedModifiable modifier, @Nullable Dependable previous) {
     super(modifier, previous);
     this.selector = checkNotNull(selector, "selector == null!");
   }

@@ -39,8 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
-import de.adrodoc55.minecraft.mpl.ast.chainparts.Modifiable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 
 /**
  * @author Adrodoc55

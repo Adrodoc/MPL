@@ -43,6 +43,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nullable;
 
+import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
@@ -68,13 +69,13 @@ public class MplNotify extends ModifiableChainPart {
     this(process, new ModifierBuffer());
   }
 
-  public MplNotify(String process, ModifierBuffer modifier) {
+  public MplNotify(String process, ExtendedModifiable modifier) {
     super(modifier);
     this.process = checkNotNull(process, "process == null!");
   }
 
   @GenerateMplPojoBuilder
-  public MplNotify(String process, ModifierBuffer modifier, @Nullable Dependable previous) {
+  public MplNotify(String process, ExtendedModifiable modifier, @Nullable Dependable previous) {
     super(modifier, previous);
     this.process = checkNotNull(process, "process == null!");
   }

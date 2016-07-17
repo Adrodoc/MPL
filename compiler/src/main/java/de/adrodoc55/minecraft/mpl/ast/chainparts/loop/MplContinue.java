@@ -44,6 +44,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
@@ -69,14 +70,14 @@ public class MplContinue extends ModifiableChainPart {
     this(label, loop, new ModifierBuffer());
   }
 
-  public MplContinue(@Nullable String label, MplWhile loop, ModifierBuffer modifier) {
+  public MplContinue(@Nullable String label, MplWhile loop, ExtendedModifiable modifier) {
     super(modifier);
     this.label = label;
     this.loop = checkNotNull(loop, "loop == null!");
   }
 
   @GenerateMplPojoBuilder
-  public MplContinue(@Nullable String label, MplWhile loop, ModifierBuffer modifier,
+  public MplContinue(@Nullable String label, MplWhile loop, ExtendedModifiable modifier,
       @Nullable Dependable previous) {
     super(modifier, previous);
     this.label = label;

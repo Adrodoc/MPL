@@ -39,11 +39,11 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.visitor;
 
-import static de.adrodoc55.TestBase.$Enum;
 import static de.adrodoc55.TestBase.$boolean;
 import static de.adrodoc55.TestBase.$oneOf;
 import static de.adrodoc55.TestBase.listOf;
 import static de.adrodoc55.TestBase.some;
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$Mode;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplBreakpoint;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplCommand;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplIf;
@@ -316,7 +316,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
   @Test
   public void test_conditional_Intercept() {
     // given:
-    Mode mode = some($Enum(Mode.class));
+    Mode mode = some($Mode());
     MplIntercept mplIntercept = some($MplIntercept()//
         .withConditional(CONDITIONAL)//
         .withPrevious(new Dependable() {
@@ -352,7 +352,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
   @Test
   public void test_invert_Intercept() {
     // given:
-    Mode mode = some($Enum(Mode.class));
+    Mode mode = some($Mode());
     MplIntercept mplIntercept = some($MplIntercept()//
         .withConditional(INVERT)//
         .withPrevious(new Dependable() {
@@ -407,7 +407,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
 
     // then:
     assertThat(underTest.commands).containsExactly(//
-        new InternalCommand("/say " + mplBreakpoint.getMessage()), //
+        new InternalCommand("/say " + mplBreakpoint.getMessage(), mplBreakpoint), //
         new InternalCommand("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~")), //
         new InternalCommand(
             "/summon ArmorStand ${this + 1} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
@@ -426,7 +426,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
 
     // then:
     assertThat(underTest.commands).containsExactly(//
-        new InternalCommand("/say " + mplBreakpoint.getMessage(), true), //
+        new InternalCommand("/say " + mplBreakpoint.getMessage(), mplBreakpoint), //
         new InternalCommand("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~"), true), //
         new InternalCommand(
             "/summon ArmorStand ${this + 3} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
@@ -440,7 +440,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
   @Test
   public void test_invert_Breakpoint() {
     // given:
-    Mode mode = some($Enum(Mode.class));
+    Mode mode = some($Mode());
     MplBreakpoint mplBreakpoint = some($MplBreakpoint()//
         .withConditional(INVERT)//
         .withPrevious(new Dependable() {
@@ -450,7 +450,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
           }
 
           @Override
-          public Mode getModeForInverting() throws UnsupportedOperationException {
+          public Mode getModeForInverting() {
             return mode;
           }
         }));
@@ -461,7 +461,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InvertingCommand(mode), //
-        new InternalCommand("/say " + mplBreakpoint.getMessage(), true), //
+        new InternalCommand("/say " + mplBreakpoint.getMessage(), mplBreakpoint), //
         new InternalCommand("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~"), true), //
         new InternalCommand(
             "/summon ArmorStand ${this + 3} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",

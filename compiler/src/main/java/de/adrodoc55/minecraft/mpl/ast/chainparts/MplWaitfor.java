@@ -43,6 +43,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nullable;
 
+import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
@@ -65,13 +66,13 @@ public class MplWaitfor extends ModifiableChainPart {
     this(event, new ModifierBuffer());
   }
 
-  public MplWaitfor(String event, ModifierBuffer modifier) {
+  public MplWaitfor(String event, ExtendedModifiable modifier) {
     super(modifier);
     this.event = checkNotNull(event, "event == null!");
   }
 
   @GenerateMplPojoBuilder
-  public MplWaitfor(String event, ModifierBuffer modifier, @Nullable Dependable previous) {
+  public MplWaitfor(String event, ExtendedModifiable modifier, @Nullable Dependable previous) {
     super(modifier, previous);
     this.event = checkNotNull(event, "event == null!");
   }

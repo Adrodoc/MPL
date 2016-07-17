@@ -109,26 +109,16 @@ public class TestBase {
     };
   }
 
-  public static <E extends Enum<E>> Builder<E> $Enum(Class<E> type) {
-    return new Builder<E>() {
-      @Override
-      public E build() {
-        E[] values = type.getEnumConstants();
-        return values[someInt(values.length)];
-      }
-    };
-  }
-
   public static <P> P some(Builder<P> builder) {
     return builder.build();
   }
 
   @SafeVarargs
-  public static <C> Builder<C> $oneOf(C... choices) {
+  public static <C> OneOf<C> $oneOf(C... choices) {
     return $oneOf(Arrays.asList(choices));
   }
 
-  public static <C> Builder<C> $oneOf(Iterable<C> choices) {
+  public static <C> OneOf<C> $oneOf(Iterable<C> choices) {
     return new OneOf<>(choices);
   }
 
@@ -161,7 +151,7 @@ public class TestBase {
   }
 
   /**
-   * This is a workaround for pojobuilder #100
+   * TODO: This is a workaround for pojobuilder #100
    *
    * @return
    */
