@@ -41,6 +41,7 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
@@ -63,6 +64,17 @@ public class MplCall extends ModifiableChainPart {
   public MplCall(String process) {
     super(new ModifierBuffer());
     this.process = checkNotNull(process, "process == null!");
+  }
+
+  protected MplCall(MplCall original, CopyScope scope) {
+    super(original, scope);
+    process = original.process;
+  }
+
+  @Deprecated
+  @Override
+  public MplCall copy(CopyScope scope) {
+    return new MplCall(this, scope);
   }
 
   @Override

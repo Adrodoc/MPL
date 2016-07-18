@@ -47,6 +47,7 @@ import javax.annotation.Nullable;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
@@ -61,7 +62,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  * @author Adrodoc55
  */
 @EqualsAndHashCode(callSuper = true, of = {"trailing", "condition"})
-@ToString(includeFieldNames = true, of = {"trailing", "condition"})
+@ToString(callSuper = true, of = {"trailing", "condition"})
 public class MplWhile extends ModifiableChainPart implements ChainPartBuffer {
   private final @Nullable ChainPartBuffer parent;
 
@@ -94,6 +95,22 @@ public class MplWhile extends ModifiableChainPart implements ChainPartBuffer {
     this.not = not;
     this.trailing = trailing;
     this.condition = condition;
+  }
+
+  protected MplWhile(MplWhile original, CopyScope scope) {
+    super(original, scope);
+    parent = original.parent;
+    label = original.label;
+    not = original.not;
+    trailing = original.trailing;
+    condition = original.condition;
+    chainParts.addAll(scope.copy(original.chainParts));
+  }
+
+  @Deprecated
+  @Override
+  public MplWhile copy(CopyScope scope) {
+    return new MplWhile(this, scope);
   }
 
   @Override

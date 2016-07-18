@@ -61,9 +61,11 @@ import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStart;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStop;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWaitfor;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWhile;
+import static de.adrodoc55.minecraft.mpl.MplTestUtils.findByName;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
@@ -155,6 +157,34 @@ public abstract class MplAstVisitorTest {
   //
   // ----------------------------------------------------------------------------------------------------
   // @formatter:on
+
+  @Test
+  public void test_calling_an_inline_process_will_inline_all_ChainParts() {
+    // given:
+    MplProcess other = some($MplProcess()//
+        .withType(INLINE)//
+        .withRepeating(false)//
+        .withChainParts(listOf(several(), $MplCommand().withConditional(UNCONDITIONAL))));
+    MplProcess main = some($MplProcess()//
+        .withRepeating(false)//
+        .withChainParts(listOf(//
+            some($MplCall()//
+                .withProcess(other.getName())//
+                .withMode(CHAIN)//
+                .withConditional(UNCONDITIONAL)//
+                .withNeedsRedstone(false))//
+    )));
+    MplProgram program = some($MplProgram().withProcesses(listOf(main, other)));
+
+    // when:
+    program.accept(underTest);
+
+    // then:
+    CommandChain mainChain = findByName(main.getName(), underTest.chains);
+    CommandChain otherChain = findByName(other.getName(), underTest.chains);
+
+    assertThat(mainChain.getCommands()).containsExactlyElementsOf(otherChain.getCommands());
+  }
 
   @Test
   public void test_unconditional_Call() {

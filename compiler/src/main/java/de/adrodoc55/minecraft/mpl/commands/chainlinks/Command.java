@@ -59,7 +59,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  * @author Adrodoc55
  */
 @EqualsAndHashCode(doNotUseGetters = false)
-@ToString(includeFieldNames = true)
+@ToString
 @Getter
 @Setter
 public class Command implements ChainLink, Modifiable {

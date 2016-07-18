@@ -44,6 +44,7 @@ import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 
 import javax.annotation.Nonnull;
 
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitorImpl;
@@ -73,6 +74,17 @@ public class MplContinueLoop extends ModifiableChainPart {
     if (conditional) {
       setConditional(CONDITIONAL);
     }
+  }
+
+  protected MplContinueLoop(MplContinueLoop original, CopyScope scope) {
+    super(original, scope);
+    loop = scope.copy(original.loop);
+  }
+
+  @Deprecated
+  @Override
+  public MplContinueLoop copy(CopyScope scope) {
+    return new MplContinueLoop(this, scope);
   }
 
   @Override

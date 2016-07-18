@@ -41,6 +41,7 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -69,6 +70,17 @@ public class MplCommand extends ModifiableChainPart {
   public MplCommand(String command, ExtendedModifiable modifier) {
     super(modifier);
     this.command = checkNotNull(command, "command == null!");
+  }
+
+  protected MplCommand(MplCommand original, CopyScope scope) {
+    super(original, scope);
+    command = original.command;
+  }
+
+  @Deprecated
+  @Override
+  public MplCommand copy(CopyScope scope) {
+    return new MplCommand(this, scope);
   }
 
   @Override

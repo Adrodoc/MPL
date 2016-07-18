@@ -44,6 +44,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept.INTERCEPTED;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
@@ -63,6 +64,7 @@ import javax.annotation.Nonnull;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
@@ -187,8 +189,11 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     }
   }
 
+  private MplProgram program;
+
   @Override
   public void visitProgram(MplProgram program) {
+    this.program = program;
     chains = new ArrayList<>(1);
     Orientation3D orientation = program.getOrientation();
     Coordinate3D max = program.getMax();
@@ -252,15 +257,15 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitProcess(MplProcess process) {
-    List<ChainPart> chainParts = process.getChainParts();
+    List<ChainPart> chainParts = new CopyScope().copy(process.getChainParts());
     commands = new ArrayList<>(chainParts.size());
-    boolean containsSkip = containsHighlevelSkip(process);
+    boolean containsSkip = containsHighlevelSkip(chainParts);
     if (process.getName() != null) {
       if (process.isRepeating()) {
         if (options.hasOption(TRANSMITTER)) {
           commands.add(new MplSkip());
         }
-        if (process.getChainParts().isEmpty()) {
+        if (chainParts.isEmpty()) {
           process.add(new MplCommand(""));
         }
         ChainPart first = chainParts.get(0);
@@ -289,8 +294,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     chains.add(new CommandChain(process.getName(), commands, process.getTags()));
   }
 
-  private boolean containsHighlevelSkip(MplProcess process) {
-    List<ChainPart> chainParts = process.getChainParts();
+  private boolean containsHighlevelSkip(List<ChainPart> chainParts) {
     for (ChainPart chainPart : chainParts) {
       if (chainPart instanceof MplWaitfor//
           || chainPart instanceof MplIntercept//
@@ -333,12 +337,22 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitCall(MplCall mplCall) {
+    String processName = mplCall.getProcess();
+    if (program != null) {
+      MplProcess process = program.getProcess(processName);
+      if (process.getType() == INLINE) {
+        for (ChainPart cp : process.getChainParts()) {
+          cp.accept(this);
+        }
+        return;
+      }
+    }
     ModifierBuffer modifier = new ModifierBuffer();
     modifier.setConditional(mplCall.isConditional() ? CONDITIONAL : UNCONDITIONAL);
     MplStart mplStart =
-        new MplStart("@e[name=" + mplCall.getProcess() + "]", mplCall, mplCall.getPrevious());
+        new MplStart("@e[name=" + processName + "]", mplCall, mplCall.getPrevious());
 
-    MplWaitfor mplWaitfor = new MplWaitfor(mplCall.getProcess() + NOTIFY, modifier);
+    MplWaitfor mplWaitfor = new MplWaitfor(processName + NOTIFY, modifier);
     mplStart.accept(this);
     mplWaitfor.accept(this);
   }

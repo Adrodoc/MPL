@@ -43,6 +43,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nullable;
 
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -78,6 +79,17 @@ public class MplNotify extends ModifiableChainPart {
   public MplNotify(String process, ExtendedModifiable modifier, @Nullable Dependable previous) {
     super(modifier, previous);
     this.process = checkNotNull(process, "process == null!");
+  }
+
+  protected MplNotify(MplNotify original, CopyScope scope) {
+    super(original, scope);
+    process = original.process;
+  }
+
+  @Deprecated
+  @Override
+  public MplNotify copy(CopyScope scope) {
+    return new MplNotify(this, scope);
   }
 
   @Override

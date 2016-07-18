@@ -43,6 +43,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nullable;
 
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -76,6 +77,17 @@ public class MplStop extends ModifiableChainPart {
   public MplStop(String selector, ExtendedModifiable modifier, @Nullable Dependable previous) {
     super(modifier, previous);
     this.selector = checkNotNull(selector, "selector == null!");
+  }
+
+  protected MplStop(MplStop original, CopyScope scope) {
+    super(original, scope);
+    selector = original.selector;
+  }
+
+  @Deprecated
+  @Override
+  public MplStop copy(CopyScope scope) {
+    return new MplStop(this, scope);
   }
 
   @Override

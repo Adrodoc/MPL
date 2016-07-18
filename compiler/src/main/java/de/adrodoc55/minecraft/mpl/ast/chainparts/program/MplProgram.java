@@ -46,9 +46,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import org.antlr.v4.runtime.Token;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.commons.Named;
@@ -70,10 +74,10 @@ public class MplProgram implements MplNode, Named {
 
   @Getter
   @Setter
-  private Token token;
+  private @Nullable Token token;
 
   @Getter
-  private String name;
+  private @Nullable String name;
 
   @Getter
   private boolean script;
@@ -95,7 +99,7 @@ public class MplProgram implements MplNode, Named {
 
   private final Map<String, MplProcess> processMap = new HashMap<>();
 
-  protected Coordinate3D max;
+  protected @Nullable Coordinate3D max;
 
   public Coordinate3D getMax() {
     if (max != null) {
@@ -145,6 +149,13 @@ public class MplProgram implements MplNode, Named {
     return Collections.unmodifiableCollection(processMap.values());
   }
 
+  @Deprecated
+  @VisibleForTesting
+  void setProcesses(Collection<MplProcess> processes) {
+    processMap.clear();
+    processMap.putAll(Maps.uniqueIndex(processes, p -> p.getName()));
+  }
+
   @Override
   public void accept(MplAstVisitor visitor) {
     visitor.visitProgram(this);
@@ -154,7 +165,7 @@ public class MplProgram implements MplNode, Named {
     return "MPL" + hashCode();
   }
 
-  public void setName(String name) {
+  public void setName(@Nullable String name) {
     this.name = name;
   }
 
@@ -162,7 +173,7 @@ public class MplProgram implements MplNode, Named {
     this.script = script;
   }
 
-  public void setMax(Coordinate3D max) {
+  public void setMax(@Nullable Coordinate3D max) {
     this.max = max;
   }
 

@@ -47,6 +47,7 @@ import javax.annotation.Nullable;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
@@ -82,6 +83,22 @@ public class MplIf extends ModifiableChainPart implements ChainPartBuffer {
     this.parent = parent;
     this.not = not;
     this.condition = condition;
+  }
+
+  protected MplIf(MplIf original, CopyScope scope) {
+    super(original, scope);
+    parent = original.parent;
+    not = original.not;
+    condition = original.condition;
+    thenParts.addAll(scope.copy(original.thenParts));
+    elseParts.addAll(scope.copy(original.elseParts));
+    inElse = original.inElse;
+  }
+
+  @Deprecated
+  @Override
+  public MplIf copy(CopyScope scope) {
+    return new MplIf(this, scope);
   }
 
   @Override

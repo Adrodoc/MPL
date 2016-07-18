@@ -143,8 +143,7 @@ public class MplCompiler extends MplBaseListener {
   public static ChainContainer materialize(MplProgram program, CompilerOptions options) {
     MplAstVisitor visitor = new MplAstVisitorImpl(options);
     program.accept(visitor);
-    ChainContainer container = visitor.getResult();
-    return container;
+    return visitor.getResult();
   }
 
   public static MplProgram assembleProgram(File programFile)

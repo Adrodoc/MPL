@@ -43,6 +43,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nullable;
 
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
@@ -75,6 +76,17 @@ public class MplBreakpoint extends ModifiableChainPart {
   public MplBreakpoint(String message, ExtendedModifiable modifier, @Nullable Dependable previous) {
     super(modifier, previous);
     this.message = checkNotNull(message, "message == null!");
+  }
+
+  protected MplBreakpoint(MplBreakpoint original, CopyScope scope) {
+    super(original, scope);
+    message = original.message;
+  }
+
+  @Deprecated
+  @Override
+  public MplBreakpoint copy(CopyScope scope) {
+    return new MplBreakpoint(this, scope);
   }
 
   @Override

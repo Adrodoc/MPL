@@ -149,7 +149,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
 
     // then:
     assertThat(underTest.commands).containsExactly(//
-        new Command(first.getCommand(), REPEAT, false, first.getNeedsRedstone()), //
+        new Command(first.getCommand(), REPEAT, false, true), //
         new InvertingCommand(REPEAT), // Important line!
         new Command(second.getCommand(), second));
   }

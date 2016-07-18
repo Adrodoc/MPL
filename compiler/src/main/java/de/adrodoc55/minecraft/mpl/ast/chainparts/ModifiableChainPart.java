@@ -44,6 +44,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -56,7 +57,7 @@ import lombok.ToString;
  * @author Adrodoc55
  */
 @EqualsAndHashCode
-@ToString(includeFieldNames = true)
+@ToString
 @Getter
 @Setter
 public abstract class ModifiableChainPart implements ExtendedModifiable, ChainPart {
@@ -87,6 +88,13 @@ public abstract class ModifiableChainPart implements ExtendedModifiable, ChainPa
     } else {
       this.needsRedstone = (this.mode == Mode.CHAIN) ? false : true;
     }
+  }
+
+  protected ModifiableChainPart(ModifiableChainPart other, CopyScope scope) {
+    mode = other.mode;
+    conditional = other.conditional;
+    needsRedstone = other.needsRedstone;
+    previous = scope.copyObject(other.previous);
   }
 
   @Override

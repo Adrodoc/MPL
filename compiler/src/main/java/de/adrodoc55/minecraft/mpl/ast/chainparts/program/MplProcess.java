@@ -53,6 +53,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
@@ -60,7 +61,8 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  * @author Adrodoc55
  */
 @EqualsAndHashCode(exclude = "source")
-@ToString(includeFieldNames = true, exclude = "source")
+@ToString(exclude = "source")
+@Getter
 public class MplProcess implements MplNode, Named {
   private final String name;
   private final boolean repeating;
@@ -87,19 +89,6 @@ public class MplProcess implements MplNode, Named {
     this.source = source;
   }
 
-  @Override
-  public @Nullable String getName() {
-    return name;
-  }
-
-  public boolean isRepeating() {
-    return repeating;
-  }
-
-  public @Nullable MplSource getSource() {
-    return source;
-  }
-
   /**
    * Read only!
    *
@@ -109,7 +98,7 @@ public class MplProcess implements MplNode, Named {
     return Collections.unmodifiableList(chainParts);
   }
 
-  public void setChainParts(Collection<ChainPart> chainParts) {
+  public void setChainParts(Collection<? extends ChainPart> chainParts) {
     this.chainParts.clear();
     addAll(chainParts);
   }
@@ -118,7 +107,7 @@ public class MplProcess implements MplNode, Named {
     this.chainParts.add(chainPart);
   }
 
-  public void addAll(Collection<ChainPart> chainParts) {
+  public void addAll(Collection<? extends ChainPart> chainParts) {
     this.chainParts.addAll(chainParts);
   }
 

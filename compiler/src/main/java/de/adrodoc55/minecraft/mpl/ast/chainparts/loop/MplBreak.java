@@ -44,6 +44,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
@@ -82,6 +83,18 @@ public class MplBreak extends ModifiableChainPart {
     super(modifier, previous);
     this.label = label;
     this.loop = checkNotNull(loop, "loop == null!");
+  }
+
+  protected MplBreak(MplBreak original, CopyScope scope) {
+    super(original, scope);
+    label = original.label;
+    loop = scope.copy(original.loop);
+  }
+
+  @Deprecated
+  @Override
+  public MplBreak copy(CopyScope scope) {
+    return new MplBreak(this, scope);
   }
 
   @Override

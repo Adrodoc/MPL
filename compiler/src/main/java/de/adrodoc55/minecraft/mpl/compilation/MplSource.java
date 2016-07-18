@@ -54,13 +54,9 @@ import org.antlr.v4.runtime.Token;
  */
 @Immutable
 public class MplSource {
-
-  @Nonnull
-  public final File file;
-  @Nonnull
-  public final Token token;
-  @Nonnull
-  public final String line;
+  public final @Nonnull File file;
+  public final @Nonnull Token token;
+  public final @Nonnull String line;
 
   public MplSource(@Nonnull File file, @Nonnull Token token, @Nonnull String line)
       throws NullPointerException {
