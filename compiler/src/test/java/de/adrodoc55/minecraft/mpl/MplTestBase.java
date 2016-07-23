@@ -45,6 +45,7 @@ import static de.adrodoc55.minecraft.coordinate.Direction3D.NORTH;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.SOUTH;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.UP;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.WEST;
+import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
@@ -57,6 +58,7 @@ import de.adrodoc55.minecraft.coordinate.Coordinate3DBuilder;
 import de.adrodoc55.minecraft.coordinate.Orientation3DBuilder;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
+import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpointBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCallBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommandBuilder;
@@ -121,6 +123,10 @@ public class MplTestBase extends TestBase {
     return $oneOf(Conditional.values());
   }
 
+  public static OneOf<ProcessType> $ProcessType() {
+    return $oneOf(ProcessType.values());
+  }
+
   public static CommandBuilder $Command() {
     return new CommandBuilder()//
         .withCommand($CommandString())//
@@ -179,6 +185,7 @@ public class MplTestBase extends TestBase {
         .withName($String())//
         .withRepeating($boolean())//
         .withTags(new ArrayList<>())//
+        .withType(REMOTE)//
         ;
   }
 

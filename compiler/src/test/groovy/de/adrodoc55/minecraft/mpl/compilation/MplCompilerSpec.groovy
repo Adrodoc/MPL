@@ -688,7 +688,7 @@ class MplCompilerSpec extends MplSpecBase {
       /say install
     }
 
-    process main { // If there is no process, there are no generated commands
+    remote process main { // If there is no process, there are no generated commands
       /say hi
     }
     """

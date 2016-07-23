@@ -66,6 +66,7 @@ import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
+import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
@@ -147,6 +148,18 @@ public abstract class MplAstVisitorTest {
     assertThat(underTest.chains.get(0).getTags()).containsExactlyElementsOf(tags);
   }
 
+  @Test
+  public void test_a_inline_process_is_ignored() throws Exception {
+    // given:
+    MplProcess process = some($MplProcess().withType(INLINE));
+
+    // when:
+    process.accept(underTest);
+
+    // then:
+    assertThat(underTest.chains).isEmpty();
+  }
+
   // @formatter:off
   // ----------------------------------------------------------------------------------------------------
   //     ____        _  _
@@ -161,20 +174,25 @@ public abstract class MplAstVisitorTest {
   @Test
   public void test_calling_an_inline_process_will_inline_all_ChainParts() {
     // given:
+    List<MplCommand> mplCommands = listOf(several(), $MplCommand().withConditional(UNCONDITIONAL));
     MplProcess other = some($MplProcess()//
+        .withType(REMOTE)//
+        .withRepeating(false)//
+        .withChainParts(mplCommands));
+    MplProcess inline = some($MplProcess()//
         .withType(INLINE)//
         .withRepeating(false)//
-        .withChainParts(listOf(several(), $MplCommand().withConditional(UNCONDITIONAL))));
+        .withChainParts(mplCommands));
     MplProcess main = some($MplProcess()//
         .withRepeating(false)//
         .withChainParts(listOf(//
             some($MplCall()//
-                .withProcess(other.getName())//
+                .withProcess(inline.getName())//
                 .withMode(CHAIN)//
                 .withConditional(UNCONDITIONAL)//
                 .withNeedsRedstone(false))//
     )));
-    MplProgram program = some($MplProgram().withProcesses(listOf(main, other)));
+    MplProgram program = some($MplProgram().withProcesses(listOf(main, inline, other)));
 
     // when:
     program.accept(underTest);
@@ -182,7 +200,6 @@ public abstract class MplAstVisitorTest {
     // then:
     CommandChain mainChain = findByName(main.getName(), underTest.chains);
     CommandChain otherChain = findByName(other.getName(), underTest.chains);
-
     assertThat(mainChain.getCommands()).containsExactlyElementsOf(otherChain.getCommands());
   }
 

@@ -39,9 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.blocks;
 
-import javax.annotation.Nonnull;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.base.Preconditions;
+import javax.annotation.Nonnull;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
@@ -65,8 +65,8 @@ public class CommandBlock extends MplBlock {
 
   public CommandBlock(Command command, Direction3D direction, Coordinate3D coordinate) {
     super(coordinate);
-    this.command = Preconditions.checkNotNull(command, "command == null!");
-    this.direction = Preconditions.checkNotNull(direction, "direction == null!");
+    this.command = checkNotNull(command, "command == null!");
+    this.direction = checkNotNull(direction, "direction == null!");
   }
 
   public Command toCommand() {

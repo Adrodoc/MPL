@@ -39,6 +39,8 @@
  */
 package de.kussm.chain;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static de.kussm.chain.ChainLinkType.CONDITIONAL;
 import static de.kussm.chain.ChainLinkType.RECEIVER;
 import static de.kussm.chain.ChainLinkType.TRANSMITTER;
@@ -95,22 +97,22 @@ public class Chain implements Iterable<ChainLinkType> {
    *         </ul>
    */
   private Chain(ChainLinkType... chainLinks) {
-    Preconditions.checkNotNull(chainLinks, "chainLinks must not be null");
-    Preconditions.checkArgument(chainLinks.length > 0, "chain must not be empty");
-    Preconditions.checkArgument(chainLinks[0] != CONDITIONAL, "chain must not start with a %s",
+    checkNotNull(chainLinks, "chainLinks must not be null");
+    checkArgument(chainLinks.length > 0, "chain must not be empty");
+    checkArgument(chainLinks[0] != CONDITIONAL, "chain must not start with a %s",
         CONDITIONAL);
-    // Preconditions.checkArgument(chainLinks[chainLinks.length - 1] != CONDITIONAL,
+    // checkArgument(chainLinks[chainLinks.length - 1] != CONDITIONAL,
     // "chain must not end with a %s", CONDITIONAL);
     for (int i = 0; i < chainLinks.length; i++) {
-      Preconditions.checkNotNull(chainLinks[i], "chain link at index %s must not be null", i);
+      checkNotNull(chainLinks[i], "chain link at index %s must not be null", i);
       // if (chainLinks[i] == TRANSMITTER) {
-      // Preconditions.checkArgument(i + 1 < chainLinks.length && chainLinks[i + 1] == RECEIVER,
+      // checkArgument(i + 1 < chainLinks.length && chainLinks[i + 1] == RECEIVER,
       // "%s at index %s is not followed by a %s", TRANSMITTER, i, RECEIVER);
       // }
       if (chainLinks[i] == RECEIVER) {
-        // Preconditions.checkArgument(i - 1 >= 0 && chainLinks[i - 1] == TRANSMITTER,
+        // checkArgument(i - 1 >= 0 && chainLinks[i - 1] == TRANSMITTER,
         // "%s at index %s is not preceded by a %s", RECEIVER, i, TRANSMITTER);
-        Preconditions.checkArgument(i + 1 >= chainLinks.length || chainLinks[i + 1] != TRANSMITTER,
+        checkArgument(i + 1 >= chainLinks.length || chainLinks[i + 1] != TRANSMITTER,
             "%s at index %s is followed by a %s", RECEIVER, i, TRANSMITTER);
       }
     }

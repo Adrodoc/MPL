@@ -39,11 +39,11 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.beanfabrics.model.AbstractPM;
 import org.beanfabrics.model.PMManager;
 import org.beanfabrics.model.TextPM;
-
-import com.google.common.base.Preconditions;
 
 import de.adrodoc55.minecraft.mpl.ide.autocompletion.AutoCompletionAction;
 
@@ -56,7 +56,7 @@ public class AutoCompletionPM extends AbstractPM {
   private TextPM displayName = new TextPM();
 
   public AutoCompletionPM(AutoCompletionAction action) {
-    this.action = Preconditions.checkNotNull(action, "action == null!");
+    this.action = checkNotNull(action, "action == null!");
     displayName.setText(getAction().getDisplayName());
     PMManager.setup(this);
   }

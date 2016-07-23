@@ -136,7 +136,7 @@ public class CopyScope {
    * @param <O> the type to copy
    * @param original the Object to copy
    * @return an independent copy or {@code original} if it is not {@link Copyable}
-   * @see #copy(C)
+   * @see #copy(Copyable)
    */
   public @Nullable <O> O copyObject(@Nullable O original) {
     if (original instanceof Copyable) {
@@ -198,39 +198,39 @@ public class CopyScope {
    * fields using the scope:
    *
    * <pre>
-   * <code>
-   * public class MyCopyable implements Copyable {
-   *   private int primitive;
-   *   private String notCopyable;
+   * {@code
+   *   public class MyCopyable implements Copyable {
+   *     private int primitive;
+   *     private String notCopyable;
    *
-   *   private MyCopyable copyable;
-   *   private final List<MyCopyable> finalCopyableCollection = new ArrayList<>();
-   *   private Set<MyCopyable> copyableCollection = new HashSet<>();
+   *     private MyCopyable copyable;
+   *     private final List<MyCopyable> finalCopyableCollection = new ArrayList<>();
+   *     private Set<MyCopyable> copyableCollection = new HashSet<>();
    *
-   *   private Object maybeCopyable;
-   *   private final List<String> finalCollection = new ArrayList<>();
-   *   private Set<Object> collection = new HashSet<>();
+   *     private Object maybeCopyable;
+   *     private final List<String> finalCollection = new ArrayList<>();
+   *     private Set<Object> collection = new HashSet<>();
    *
-   *   protected MyCopyable(MyCopyable original, CopyScope scope) {
-   *     primitive = original.primitive;
-   *     notCopyable = original.notCopyable;
+   *     protected MyCopyable(MyCopyable original, CopyScope scope) {
+   *       primitive = original.primitive;
+   *       notCopyable = original.notCopyable;
    *
-   *     copyable = scope.copy(original.copyable);
-   *     finalCopyableCollection.addAll(scope.copy(original.finalCopyableCollection));
-   *     copyableCollection = scope.copyInto(original.copyableCollection, new HashSet<>());
+   *       copyable = scope.copy(original.copyable);
+   *       finalCopyableCollection.addAll(scope.copy(original.finalCopyableCollection));
+   *       copyableCollection = scope.copyInto(original.copyableCollection, new HashSet<>());
    *
-   *     maybeCopyable = scope.copyObject(original.maybeCopyable);
-   *     finalCollection.addAll(scope.copyObjects(original.finalCollection));
-   *     collection = scope.copyObjectsInto(original.collection, new HashSet<>());
-   *   }
+   *       maybeCopyable = scope.copyObject(original.maybeCopyable);
+   *       finalCollection.addAll(scope.copyObjects(original.finalCollection));
+   *       collection = scope.copyObjectsInto(original.collection, new HashSet<>());
+   *     }
    *
-   *   &#64;Deprecated
-   *   &#64;Override
-   *   public Copyable copy(CopyScope scope) {
-   *     return new MyCopyable(this, scope);
+   *     @Deprecated
+   *     @Override
+   *     public Copyable copy(CopyScope scope) {
+   *       return new MyCopyable(this, scope);
+   *     }
    *   }
    * }
-   * </code>
    * </pre>
    *
    * @author Adrodoc55

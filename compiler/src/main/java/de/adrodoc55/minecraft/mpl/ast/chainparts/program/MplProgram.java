@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.chainparts.program;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,7 +53,6 @@ import javax.annotation.Nullable;
 import org.antlr.v4.runtime.Token;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 
 import de.adrodoc55.commons.FileUtils;
@@ -110,7 +111,7 @@ public class MplProgram implements MplNode, Named {
   }
 
   public void addProcess(MplProcess process) {
-    Preconditions.checkNotNull(process, "process == null!");
+    checkNotNull(process, "process == null!");
     String name = process.getName();
     MplProcess previous = processMap.get(name);
     if (previous == null) {

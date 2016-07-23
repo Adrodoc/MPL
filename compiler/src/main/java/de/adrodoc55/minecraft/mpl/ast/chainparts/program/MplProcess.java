@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.chainparts.program;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -76,7 +79,7 @@ public class MplProcess implements MplNode, Named {
   }
 
   public MplProcess(@Nullable String name) {
-    this(name, false, ProcessType.DEFAULT, new ArrayList<>(), null);
+    this(name, false, REMOTE, new ArrayList<>(), null);
   }
 
   @GenerateMplPojoBuilder
@@ -84,7 +87,7 @@ public class MplProcess implements MplNode, Named {
       Collection<String> tags, @Nullable MplSource source) {
     this.name = name;
     this.repeating = repeating;
-    this.type = type;
+    this.type = checkNotNull(type, "type == null!");
     setTags(tags);
     this.source = source;
   }
@@ -120,6 +123,7 @@ public class MplProcess implements MplNode, Named {
   }
 
   public void setTags(Collection<String> tags) {
+    checkNotNull(tags, "tags == null!");
     this.tags.clear();
     this.tags.addAll(tags);
   }

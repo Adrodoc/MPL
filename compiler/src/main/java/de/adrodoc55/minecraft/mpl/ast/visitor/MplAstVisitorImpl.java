@@ -257,6 +257,9 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitProcess(MplProcess process) {
+    if (process.getType() == INLINE) {
+      return;
+    }
     List<ChainPart> chainParts = new CopyScope().copy(process.getChainParts());
     commands = new ArrayList<>(chainParts.size());
     boolean containsSkip = containsHighlevelSkip(chainParts);
@@ -266,7 +269,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
           commands.add(new MplSkip());
         }
         if (chainParts.isEmpty()) {
-          process.add(new MplCommand(""));
+          chainParts.add(new MplCommand(""));
         }
         ChainPart first = chainParts.get(0);
         try {
