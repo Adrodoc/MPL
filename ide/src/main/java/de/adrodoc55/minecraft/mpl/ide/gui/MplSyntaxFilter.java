@@ -213,6 +213,7 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
         case MplLexer.IF:
         case MplLexer.IMPORT:
         case MplLexer.INCLUDE:
+        case MplLexer.INLINE:
         case MplLexer.INSTALL:
         case MplLexer.INTERCEPT:
         case MplLexer.INVERT:
@@ -221,6 +222,7 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
         case MplLexer.ORIENTATION:
         case MplLexer.PROCESS:
         case MplLexer.PROJECT:
+        case MplLexer.REMOTE:
         case MplLexer.SKIP_TOKEN:
         case MplLexer.START:
         case MplLexer.STOP:
@@ -249,6 +251,11 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
           styleToken(token, getIdentifierStyle());
           break;
         case MplLexer.COMMAND:
+        case MplLexer.SELECTOR:
+        case MplLexer.STRING:
+        case MplLexer.TAG:
+        case MplLexer.UNRECOGNIZED:
+        case MplLexer.UNSIGNED_INT:
           styleToken(token, getDefaultStyle());
           Matcher insert = INSERT_PATTERN.matcher(token.getText());
           while (insert.find()) {
