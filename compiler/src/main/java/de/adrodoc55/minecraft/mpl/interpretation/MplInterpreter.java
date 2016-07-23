@@ -649,10 +649,10 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterNotifyDeclaration(NotifyDeclarationContext ctx) {
-    if (this.process == null) {
+    if (process == null || process.getType() != REMOTE) {
       Token token = ctx.NOTIFY().getSymbol();
       MplSource source = toSource(token);
-      addException(new CompilerException(source, "notify can only be used in a process"));
+      addException(new CompilerException(source, "notify can only be used in a remote process"));
       return;
     }
     String process = this.process.getName();

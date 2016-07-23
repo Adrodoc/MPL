@@ -833,11 +833,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
-  @Unroll("leading #conditional #command without identifier in process")
-  public void "leading conditional/invert without identifier in process"(String conditional, String command) {
+  @Unroll("leading #conditional #command without identifier in remote process")
+  public void "leading conditional/invert without identifier in remote process"(String conditional, String command) {
     given:
     String programString = """
-    process main {
+    remote process main {
       ${conditional}: ${command}
     }
     """
@@ -1369,12 +1369,12 @@ class MplInterpreterSpec2 extends MplSpecBase {
   // ----------------------------------------------------------------------------------------------------
 
   @Test
-  @Unroll("#modifier notify in process")
-  public void "notify in process"(String modifier, Conditional conditional) {
+  @Unroll("#modifier notify in remote process")
+  public void "notify in remote process"(String modifier, Conditional conditional) {
     given:
     String identifier = some($Identifier())
     String programString = """
-    process ${identifier} {
+    remote process ${identifier} {
       /say hi
       ${modifier} notify
     }
@@ -1406,6 +1406,28 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
+  public void "notify in process"() {
+    given:
+    String identifier = some($Identifier())
+    String programString = """
+    process ${identifier} {
+      /say hi
+      notify
+    }
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    program.exceptions[0].message == "notify can only be used in a remote process"
+    program.exceptions[0].source.file == lastTempFile
+    program.exceptions[0].source.token.text == 'notify'
+    program.exceptions[0].source.token.line == 4
+    program.exceptions.size() == 1
+  }
+
+  @Test
   public void "notify in script"() {
     given:
     String identifier = some($Identifier())
@@ -1417,7 +1439,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "notify can only be used in a process"
+    program.exceptions[0].message == "notify can only be used in a remote process"
     program.exceptions[0].source.file == lastTempFile
     program.exceptions[0].source.token.text == 'notify'
     program.exceptions[0].source.token.line == 2
@@ -1430,7 +1452,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = some($Identifier())
     String programString = """
-    process ${identifier} {
+    remote process ${identifier} {
       ${modifier}: notify
     }
     """
