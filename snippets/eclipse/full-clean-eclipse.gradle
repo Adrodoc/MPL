@@ -1,0 +1,10 @@
+task cleanEclipseFactorypath(type: Delete) {
+  delete file('.factorypath')
+}
+
+task cleanEclipseSettings(type: Delete) {
+  delete file('.settings')
+}
+
+tasks.cleanEclipse.dependsOn cleanEclipseFactorypath
+tasks.cleanEclipse.dependsOn cleanEclipseSettings
