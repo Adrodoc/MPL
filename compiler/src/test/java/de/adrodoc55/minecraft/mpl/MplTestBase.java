@@ -57,7 +57,6 @@ import de.adrodoc55.TestBase;
 import de.adrodoc55.minecraft.coordinate.Coordinate3DBuilder;
 import de.adrodoc55.minecraft.coordinate.Orientation3DBuilder;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
-import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpointBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCallBuilder;
@@ -85,6 +84,8 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBufferBuilder;
 import net.karneim.pojobuilder.Builder;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
+import net.karneim.pojobuilder.GeneratePojoBuilder;
 
 public class MplTestBase extends TestBase {
 
@@ -136,28 +137,12 @@ public class MplTestBase extends TestBase {
         ;
   }
 
-  private static Builder<ExtendedModifiable> $ModifierBuffer() {
-    return new ExtendedModifiableBuilder(new ModifierBufferBuilder()//
+  private static ModifierBufferBuilder $ModifierBuffer() {
+    return new ModifierBufferBuilder()//
         .withMode($Mode())//
         .withConditional($Conditional())//
         .withNeedsRedstone($boolean())//
-    );
-  }
-
-  /**
-   * TODO: This is a workaround for pojobuilder #100
-   */
-  private static class ExtendedModifiableBuilder implements Builder<ExtendedModifiable> {
-    private final Builder<? extends ExtendedModifiable> delegate;
-
-    public ExtendedModifiableBuilder(Builder<? extends ExtendedModifiable> delegate) {
-      this.delegate = delegate;
-    }
-
-    @Override
-    public ExtendedModifiable build() {
-      return delegate.build();
-    }
+        ;
   }
 
   public static MplCommandBuilder $MplCommand() {
@@ -328,54 +313,26 @@ public class MplTestBase extends TestBase {
   }
 
   public static ValidCommandChainBuilder $validChainCommands(CompilerOptions options) {
-    return new ValidCommandChainBuilder(options)//
-        .withCommands($chainLinkCollectionOf(several(),
-            $Command()//
-                .withConditional(false)//
-                .withNeedsRedstone(false)))//
-                ;
+    return new ValidCommandChainBuilder().withOptions(options);
   }
 
-  public static class ValidCommandChainBuilder implements Builder<Collection<ChainLink>> {
-    private final CompilerOptions options;
-    private Collection<ChainLink> value$commands$java$util$Collection;
-    private boolean isSet$commands$java$util$Collection;
-    private Builder<Collection<ChainLink>> builder$commands$java$util$Collection;
-
-    public ValidCommandChainBuilder(CompilerOptions options) {
-      this.options = options;
+  @GeneratePojoBuilder(intoPackage = "de.adrodoc55.minecraft.mpl",
+      withName = "ValidCommandChainBuilder")
+  @GenerateMplPojoBuilder
+  public static List<ChainLink> validChainCommands(CompilerOptions options,
+      Collection<? extends ChainLink> commands) {
+    List<ChainLink> result = new ArrayList<>();
+    if (options.hasOption(TRANSMITTER)) {
+      result.add(new MplSkip());
+      result.add(new Command("setblock ${this - 1} stone", IMPULSE));
+    } else {
+      result.add(new Command("blockdata ${this - 1} {auto:0b}", IMPULSE));
     }
-
-    public ValidCommandChainBuilder withCommands(Collection<ChainLink> value) {
-      this.value$commands$java$util$Collection = value;
-      this.isSet$commands$java$util$Collection = true;
-      return this;
+    if (commands != null && !commands.isEmpty()) {
+      result.add(new Command(some($CommandString())));
+      result.addAll(commands);
     }
-
-    public ValidCommandChainBuilder withCommands(Builder<Collection<ChainLink>> builder) {
-      this.builder$commands$java$util$Collection = builder;
-      this.isSet$commands$java$util$Collection = false;
-      return this;
-    }
-
-    @Override
-    public List<ChainLink> build() {
-      List<ChainLink> result = new ArrayList<>();
-      if (options.hasOption(TRANSMITTER)) {
-        result.add(new MplSkip());
-        result.add(new Command("setblock ${this - 1} stone", IMPULSE));
-      } else {
-        result.add(new Command("blockdata ${this - 1} {auto:0b}", IMPULSE));
-      }
-      Collection<ChainLink> _commands =
-          !isSet$commands$java$util$Collection && builder$commands$java$util$Collection != null
-              ? builder$commands$java$util$Collection.build() : value$commands$java$util$Collection;
-      if (_commands != null && !_commands.isEmpty()) {
-        result.add(new Command(some($CommandString())));
-        result.addAll(_commands);
-      }
-      return result;
-    }
+    return result;
   }
 
 }
