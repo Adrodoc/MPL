@@ -69,14 +69,14 @@ public class MplSkip implements ChainPart, ChainLink {
     this.internal = internal;
   }
 
-  protected MplSkip(MplSkip original, CopyScope scope) {
+  protected MplSkip(MplSkip original) {
     internal = original.internal;
   }
 
   @Deprecated
   @Override
-  public MplSkip copy(CopyScope scope) {
-    return new MplSkip(this, scope);
+  public MplSkip createFlatCopy(CopyScope scope) {
+    return new MplSkip(this);
   }
 
   public boolean isInternal() {

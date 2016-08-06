@@ -80,15 +80,15 @@ public class MplIntercept extends ModifiableChainPart {
     this.event = checkNotNull(event, "event == null!");
   }
 
-  protected MplIntercept(MplIntercept original, CopyScope scope) {
-    super(original, scope);
+  protected MplIntercept(MplIntercept original) {
+    super(original);
     event = original.event;
   }
 
   @Deprecated
   @Override
-  public MplIntercept copy(CopyScope scope) {
-    return new MplIntercept(this, scope);
+  public MplIntercept createFlatCopy(CopyScope scope) {
+    return new MplIntercept(this);
   }
 
   @Override

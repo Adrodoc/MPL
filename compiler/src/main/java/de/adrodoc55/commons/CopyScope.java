@@ -50,39 +50,55 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * This class is able to copy Objects of type {@link Copyable} without creating loops on
- * bidirectional mappings while retaining a correct structure of references.
+ * This class is able to copy objects of type {@link Copyable} without throwing a
+ * {@link StackOverflowError} on bidirectional mappings while retaining a correct structure of
+ * references.
  *
  * @author Adrodoc55
  */
 public class CopyScope {
-  private final IdentityHashMap<Object, Object> mapOriginalToCopy = new IdentityHashMap<>();
+
+  /**
+   * The underlying {@link CopyCache} that keeps track of all objects copied by {@code this}
+   * {@link CopyScope}.
+   */
+  private final CopyCache cache = new CopyCache();
+
+  /**
+   * Returns the underlying {@link CopyCache} that keeps track of all objects copied by {@code this}
+   * {@link CopyScope}.
+   *
+   * @return the underlying {@link CopyCache}
+   */
+  public @Nonnull CopyCache getCache() {
+    return cache;
+  }
 
   /**
    * Returns an independent copy of {@code original}. This returns a deep copy meaning that the
    * {@code original} instance is never affected by any changes made to the copy or it's fields.
    * <br>
-   * Every Object is only copied once per {@link CopyScope}, each copy is cached to avoid cycles and
-   * retain the structure. This method returns {@code null} if and only if {@code original} is
-   * {@code null}.
+   * Every object is only copied once per {@link CopyScope}, each copy is cached to avoid cycles and
+   * retain the structure. The cache can be accessed with {@link #getCache()}. This method returns
+   * {@code null} if and only if {@code original} is {@code null}.
    *
-   * @param <C> the type of {@link Copyable}s
-   * @param original the Object to copy
+   * @param <C> the type of {@link Copyable}
+   * @param original the object to copy
    * @return an independent copy
    */
   public @Nullable <C extends Copyable> C copy(@Nullable C original) {
     if (original == null) {
       return null;
     }
-    @SuppressWarnings("unchecked")
-    C cached = (C) mapOriginalToCopy.get(original);
+    C cached = cache.getCopyOrNull(original);
     if (cached != null) {
       return cached;
     }
     @SuppressWarnings("unchecked")
-    C copy = (C) original.copy(this);
+    C copy = (C) original.createFlatCopy(this);
     checkNotNull(copy, "copy == null!");
-    mapOriginalToCopy.put(original, copy);
+    cache.put(original, copy);
+    copy.completeDeepCopy(this);
     return copy;
   }
 
@@ -114,7 +130,7 @@ public class CopyScope {
    * @param <R> the type of Collection to fill
    * @param originals the elements to copy
    * @param result the Collection to fill
-   * @return {@code result} the given Collection
+   * @return {@code result} the specified Collection
    * @throws NullPointerException if any parameter is {@code null}
    */
   public @Nonnull <C extends Copyable, R extends Collection<C>> R copyInto(
@@ -134,7 +150,7 @@ public class CopyScope {
    * {@code null}.
    *
    * @param <O> the type to copy
-   * @param original the Object to copy
+   * @param original the object to copy
    * @return an independent copy or {@code original} if it is not {@link Copyable}
    * @see #copy(Copyable)
    */
@@ -176,7 +192,7 @@ public class CopyScope {
    * @param <R> the type of Collection to fill
    * @param originals the elements to copy
    * @param result the Collection to fill
-   * @return {@code result} the given Collection
+   * @return {@code result} the specified Collection
    * @throws NullPointerException if any parameter is {@code null}
    * @see #copyObject(Object)
    */
@@ -192,45 +208,169 @@ public class CopyScope {
   }
 
   /**
+   * This class caches the copies and originals of a {@link CopyScope} and provides read only access
+   * to the chached objects.
+   *
+   * @author Adrodoc55
+   */
+  public static class CopyCache {
+    private final IdentityHashMap<Object, Object> mapOriginalToCopy = new IdentityHashMap<>();
+    private final IdentityHashMap<Object, Object> mapCopyToOriginal = new IdentityHashMap<>();
+
+    /**
+     * Caches and associates the specified {@code original} with the specified {@code copy}.
+     *
+     * @param original the original {@link Copyable} that was copied
+     * @param copy the copy created by a {@link CopyScope}
+     * @throws NullPointerException if any parameter is {@code null}
+     */
+    private <C extends Copyable> void put(@Nonnull C original, @Nonnull C copy)
+        throws NullPointerException {
+      checkNotNull(original, "original == original!");
+      checkNotNull(copy, "copy == null!");
+      mapOriginalToCopy.put(original, copy);
+      mapCopyToOriginal.put(copy, original);
+    }
+
+    /**
+     * Returns the number of cached original-copy associations.
+     *
+     * @return the size of this cache
+     */
+    public int size() {
+      int sizeOtC = mapOriginalToCopy.size();
+      int sizeCtO = mapCopyToOriginal.size();
+      if (sizeOtC != sizeCtO) {
+        String message = String.format("Unexpected size difference in CopyCache: OtC:%d, CtO:%d",
+            sizeOtC, sizeCtO);
+        throw new IllegalStateException(message);
+      }
+      return sizeOtC;
+    }
+
+    /**
+     * Returns the cached copy of the specified {@code original}. If {@code original} is
+     * {@code null} or was not copied using {@code this} cache, this method returns {@code null}.
+     *
+     * @param <C> the type of {@link Copyable}
+     * @param original the original object
+     * @return the cached copy or {@code null}
+     */
+    public @Nullable <C extends Copyable> C getCopyOrNull(@Nullable C original) {
+      @SuppressWarnings("unchecked")
+      C copy = (C) mapOriginalToCopy.get(original);
+      return copy;
+    }
+
+    /**
+     * Returns the cached copy of the specified {@code original}. If {@code original} was not copied
+     * using {@code this} cache, this method will throw an {@link IllegalArgumentException}. This
+     * method returns {@code null} if and only if {@code original} is {@code null}.
+     *
+     * @param <C> the type of {@link Copyable}
+     * @param original the original object
+     * @return the cached copy
+     * @throws IllegalArgumentException if {@code original} was not copied using this cache
+     */
+    public @Nullable <C extends Copyable> C getCopy(@Nullable C original)
+        throws IllegalArgumentException {
+      if (original == null) {
+        return null;
+      }
+      C copy = getCopyOrNull(original);
+      if (copy != null)
+        return copy;
+      throw new IllegalArgumentException(
+          "The specified instance was not copied using this CopyScope!");
+    }
+
+    /**
+     * Returns the cached original of the specified {@code copy}. If {@code copy} is {@code null} or
+     * was not created using {@code this} cache, this method returns {@code null}.
+     *
+     * @param <C> the type of {@link Copyable}
+     * @param copy the copied object
+     * @return the cached original or {@code null}
+     */
+    public @Nullable <C extends Copyable> C getOriginalOrNull(@Nullable C copy) {
+      @SuppressWarnings("unchecked")
+      C original = (C) mapCopyToOriginal.get(copy);
+      return original;
+    }
+
+    /**
+     * Returns the cached original of the specified {@code copy}. If {@code copy} was not created
+     * using {@code this} cache, this method will throw an {@link IllegalArgumentException}. This
+     * method returns {@code null} if and only if {@code copy} is {@code null}.
+     *
+     * @param <C> the type of {@link Copyable}
+     * @param copy the copied object
+     * @return the cached original
+     * @throws IllegalArgumentException if {@code copy} was not created using this cache
+     */
+    public @Nullable <C extends Copyable> C getOriginal(@Nullable C copy)
+        throws IllegalArgumentException {
+      if (copy == null) {
+        return null;
+      }
+      C original = getOriginalOrNull(copy);
+      if (original != null)
+        return original;
+      throw new IllegalArgumentException(
+          "The specified instance was not created using this CopyCache!");
+    }
+  }
+
+  /**
    * An interface for the copy constructor pattern. Objects of type {@link Copyable} should be
    * copied by a {@link CopyScope}. To enable inheritance, an implementation of
-   * {@link #copy(CopyScope)} should call a protected copy constructor that copies all copyable
-   * fields using the scope:
+   * {@link #createFlatCopy(CopyScope)} should call a protected copy constructor that copies all
+   * final fields and fields that are not {@link Copyable} themself. Non-final references to other
+   * {@link Copyable} objects should be filled in {@link #completeDeepCopy(CopyScope)} by using the
+   * provided {@link CopyScope}.
    *
    * <pre>
-   * {@code
-   *   public class MyCopyable implements Copyable {
-   *     private int primitive;
-   *     private String notCopyable;
+   * <code>
+   * public class MyCopyable implements Copyable {
+   *   private int primitive;
+   *   private String notCopyable;
+   *   private final MyCopyable finalCopyable;
    *
-   *     private MyCopyable copyable;
-   *     private final List<MyCopyable> finalCopyableCollection = new ArrayList<>();
-   *     private Set<MyCopyable> copyableCollection = new HashSet<>();
+   *   private MyCopyable nonFinalCopyable;
+   *   private final List&lt;MyCopyable&gt; finalCopyableCollection = new ArrayList&lt;&gt;();
+   *   private Set&lt;MyCopyable&gt; copyableCollection = new HashSet&lt;&gt;();
    *
-   *     private Object maybeCopyable;
-   *     private final List<String> finalCollection = new ArrayList<>();
-   *     private Set<Object> collection = new HashSet<>();
+   *   private Object maybeCopyable;
+   *   private final List&lt;String&gt; finalCollection = new ArrayList&lt;&gt;();
+   *   private Set&lt;Object&gt; collection = new HashSet&lt;&gt;();
    *
-   *     protected MyCopyable(MyCopyable original, CopyScope scope) {
-   *       primitive = original.primitive;
-   *       notCopyable = original.notCopyable;
+   *   protected MyCopyable(MyCopyable original, CopyScope scope) {
+   *     primitive = original.primitive;
+   *     notCopyable = original.notCopyable;
+   *     finalCopyable = scope.copy(original.finalCopyable);
+   *   }
    *
-   *       copyable = scope.copy(original.copyable);
-   *       finalCopyableCollection.addAll(scope.copy(original.finalCopyableCollection));
-   *       copyableCollection = scope.copyInto(original.copyableCollection, new HashSet<>());
+   *   &#64;Deprecated
+   *   &#64;Override
+   *   public Copyable createFlatCopy(CopyScope scope) throws NullPointerException {
+   *     return new MyCopyable(this, scope);
+   *   }
    *
-   *       maybeCopyable = scope.copyObject(original.maybeCopyable);
-   *       finalCollection.addAll(scope.copyObjects(original.finalCollection));
-   *       collection = scope.copyObjectsInto(original.collection, new HashSet<>());
-   *     }
+   *   &#64;Deprecated
+   *   &#64;Override
+   *   public void completeDeepCopy(CopyScope scope) throws NullPointerException {
+   *     MyCopyable original = scope.getCache().getOriginal(this);
    *
-   *     @Deprecated
-   *     @Override
-   *     public Copyable copy(CopyScope scope) {
-   *       return new MyCopyable(this, scope);
-   *     }
+   *     nonFinalCopyable = scope.copy(original.nonFinalCopyable);
+   *     finalCopyableCollection.addAll(scope.copy(original.finalCopyableCollection));
+   *     copyableCollection = scope.copyInto(original.copyableCollection, new HashSet&lt;&gt;());
+   *
+   *     maybeCopyable = scope.copyObject(original.maybeCopyable);
+   *     finalCollection.addAll(scope.copyObjects(original.finalCollection));
+   *     collection = scope.copyObjectsInto(original.collection, new HashSet&lt;&gt;());
    *   }
    * }
+   * </code>
    * </pre>
    *
    * @author Adrodoc55
@@ -241,20 +381,44 @@ public class CopyScope {
      * subclasses should also annotate their implementation of this method with {@link Deprecated
      * &#64;Deprecated}.</b><br>
      *
-     * Returns an independent copy of {@code this}. This returns a deep copy meaning that
-     * {@code this} instance is never affected by any changes made to the copy or it's fields.<br>
-     * <b>This method must return an instance of the same runtime class.</b><br>
+     * Returns an independent flat copy, meaning that {@code this} instance is never affected by any
+     * changes made to the copy or it's fields. References to other {@link Copyable}s should not be
+     * filled by this method unless they are final. Those non-final references should be filled in
+     * the implementation of {@link #completeDeepCopy(CopyScope)} by using the provided
+     * {@link CopyScope}. <b>This method must return an instance of the same runtime class.</b><br>
      * This method must not return {@code null}. If {@code scope} is {@code null} this method may
      * throw a {@link NullPointerException}.
      *
      * @deprecated
      * @param scope the {@link CopyScope}
-     * @return an independent copy of {@code this}
+     * @return an independent flat copy of {@code this}
      * @throws NullPointerException if {@code scope} is null
      * @see CopyScope#copy(Copyable)
      */
     @Deprecated
-    public @Nonnull Copyable copy(CopyScope scope) throws NullPointerException;
-  }
+    public @Nonnull Copyable createFlatCopy(CopyScope scope) throws NullPointerException;
 
+    /**
+     * <b>This method should not be called, instead use {@link CopyScope#copy(Copyable)}. All
+     * subclasses should also annotate their implementation of this method with {@link Deprecated
+     * &#64;Deprecated}.</b><br>
+     *
+     * Modifies this instance to fill all non-final references to other {@link Copyable}s by using
+     * the provided {@link CopyScope}. This two step process avoids a {@link StackOverflowError}.
+     * The original object can be accessed through the {@link CopyCache}:
+     *
+     * <pre>
+     * {@code MyCopyable original = scope.getCache().getOriginal(this)}
+     * </pre>
+     *
+     * If {@code scope} is {@code null} this method may throw a {@link NullPointerException}.
+     *
+     * @deprecated
+     * @param scope the {@link CopyScope}
+     * @throws NullPointerException if {@code scope} is null
+     * @see CopyScope#copy(Copyable)
+     */
+    @Deprecated
+    public default void completeDeepCopy(CopyScope scope) throws NullPointerException {}
+  }
 }

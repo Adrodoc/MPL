@@ -90,11 +90,17 @@ public abstract class ModifiableChainPart implements ExtendedModifiable, ChainPa
     }
   }
 
-  protected ModifiableChainPart(ModifiableChainPart other, CopyScope scope) {
-    mode = other.mode;
-    conditional = other.conditional;
-    needsRedstone = other.needsRedstone;
-    previous = scope.copyObject(other.previous);
+  protected ModifiableChainPart(ModifiableChainPart original) {
+    mode = original.mode;
+    conditional = original.conditional;
+    needsRedstone = original.needsRedstone;
+  }
+
+  @Deprecated
+  @Override
+  public void completeDeepCopy(CopyScope scope) throws NullPointerException {
+    ModifiableChainPart original = scope.getCache().getOriginal(this);
+    previous = scope.copyObject(original.previous);
   }
 
   @Override

@@ -77,13 +77,13 @@ public class MplContinueLoop extends ModifiableChainPart {
   }
 
   protected MplContinueLoop(MplContinueLoop original, CopyScope scope) {
-    super(original, scope);
+    super(original);
     loop = scope.copy(original.loop);
   }
 
   @Deprecated
   @Override
-  public MplContinueLoop copy(CopyScope scope) {
+  public MplContinueLoop createFlatCopy(CopyScope scope) {
     return new MplContinueLoop(this, scope);
   }
 

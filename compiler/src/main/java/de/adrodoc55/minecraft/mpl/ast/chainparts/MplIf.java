@@ -86,19 +86,26 @@ public class MplIf extends ModifiableChainPart implements ChainPartBuffer {
   }
 
   protected MplIf(MplIf original, CopyScope scope) {
-    super(original, scope);
-    parent = original.parent;
+    super(original);
+    parent = scope.copyObject(original.parent);
     not = original.not;
     condition = original.condition;
-    thenParts.addAll(scope.copy(original.thenParts));
-    elseParts.addAll(scope.copy(original.elseParts));
     inElse = original.inElse;
   }
 
   @Deprecated
   @Override
-  public MplIf copy(CopyScope scope) {
+  public MplIf createFlatCopy(CopyScope scope) {
     return new MplIf(this, scope);
+  }
+
+  @Deprecated
+  @Override
+  public void completeDeepCopy(CopyScope scope) throws NullPointerException {
+    super.completeDeepCopy(scope);
+    MplIf original = scope.getCache().getOriginal(this);
+    thenParts.addAll(scope.copy(original.thenParts));
+    elseParts.addAll(scope.copy(original.elseParts));
   }
 
   @Override

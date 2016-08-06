@@ -78,15 +78,15 @@ public class MplWaitfor extends ModifiableChainPart {
     this.event = checkNotNull(event, "event == null!");
   }
 
-  protected MplWaitfor(MplWaitfor original, CopyScope scope) {
-    super(original, scope);
+  protected MplWaitfor(MplWaitfor original) {
+    super(original);
     event = original.event;
   }
 
   @Deprecated
   @Override
-  public MplWaitfor copy(CopyScope scope) {
-    return new MplWaitfor(this, scope);
+  public MplWaitfor createFlatCopy(CopyScope scope) {
+    return new MplWaitfor(this);
   }
 
   @Override

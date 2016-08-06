@@ -81,15 +81,15 @@ public class MplNotify extends ModifiableChainPart {
     this.process = checkNotNull(process, "process == null!");
   }
 
-  protected MplNotify(MplNotify original, CopyScope scope) {
-    super(original, scope);
+  protected MplNotify(MplNotify original) {
+    super(original);
     process = original.process;
   }
 
   @Deprecated
   @Override
-  public MplNotify copy(CopyScope scope) {
-    return new MplNotify(this, scope);
+  public MplNotify createFlatCopy(CopyScope scope) {
+    return new MplNotify(this);
   }
 
   @Override

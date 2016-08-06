@@ -79,15 +79,15 @@ public class MplStart extends ModifiableChainPart {
     this.selector = checkNotNull(selector, "selector == null!");
   }
 
-  protected MplStart(MplStart original, CopyScope scope) {
-    super(original, scope);
+  protected MplStart(MplStart original) {
+    super(original);
     selector = original.selector;
   }
 
   @Deprecated
   @Override
-  public MplStart copy(CopyScope scope) {
-    return new MplStart(this, scope);
+  public MplStart createFlatCopy(CopyScope scope) {
+    return new MplStart(this);
   }
 
   @Override

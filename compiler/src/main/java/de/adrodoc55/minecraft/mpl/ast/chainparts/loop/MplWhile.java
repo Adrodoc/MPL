@@ -97,20 +97,27 @@ public class MplWhile extends ModifiableChainPart implements ChainPartBuffer {
     this.condition = condition;
   }
 
-  protected MplWhile(MplWhile original, CopyScope scope) {
-    super(original, scope);
+  protected MplWhile(MplWhile original) {
+    super(original);
     parent = original.parent;
     label = original.label;
     not = original.not;
     trailing = original.trailing;
     condition = original.condition;
-    chainParts.addAll(scope.copy(original.chainParts));
   }
 
   @Deprecated
   @Override
-  public MplWhile copy(CopyScope scope) {
-    return new MplWhile(this, scope);
+  public MplWhile createFlatCopy(CopyScope scope) {
+    return new MplWhile(this);
+  }
+
+  @Deprecated
+  @Override
+  public void completeDeepCopy(CopyScope scope) throws NullPointerException {
+    super.completeDeepCopy(scope);
+    MplWhile original = scope.getCache().getOriginal(this);
+    chainParts.addAll(scope.copy(original.chainParts));
   }
 
   @Override

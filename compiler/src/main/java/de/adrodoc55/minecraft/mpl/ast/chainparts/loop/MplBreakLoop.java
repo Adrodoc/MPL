@@ -77,13 +77,13 @@ public class MplBreakLoop extends ModifiableChainPart {
   }
 
   protected MplBreakLoop(MplBreakLoop original, CopyScope scope) {
-    super(original, scope);
+    super(original);
     loop = scope.copy(original.loop);
   }
 
   @Deprecated
   @Override
-  public MplBreakLoop copy(CopyScope scope) {
+  public MplBreakLoop createFlatCopy(CopyScope scope) {
     return new MplBreakLoop(this, scope);
   }
 

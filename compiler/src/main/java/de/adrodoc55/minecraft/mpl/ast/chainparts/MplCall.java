@@ -66,15 +66,15 @@ public class MplCall extends ModifiableChainPart {
     this.process = checkNotNull(process, "process == null!");
   }
 
-  protected MplCall(MplCall original, CopyScope scope) {
-    super(original, scope);
+  protected MplCall(MplCall original) {
+    super(original);
     process = original.process;
   }
 
   @Deprecated
   @Override
-  public MplCall copy(CopyScope scope) {
-    return new MplCall(this, scope);
+  public MplCall createFlatCopy(CopyScope scope) {
+    return new MplCall(this);
   }
 
   @Override

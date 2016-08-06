@@ -78,15 +78,15 @@ public class MplBreakpoint extends ModifiableChainPart {
     this.message = checkNotNull(message, "message == null!");
   }
 
-  protected MplBreakpoint(MplBreakpoint original, CopyScope scope) {
-    super(original, scope);
+  protected MplBreakpoint(MplBreakpoint original) {
+    super(original);
     message = original.message;
   }
 
   @Deprecated
   @Override
-  public MplBreakpoint copy(CopyScope scope) {
-    return new MplBreakpoint(this, scope);
+  public MplBreakpoint createFlatCopy(CopyScope scope) {
+    return new MplBreakpoint(this);
   }
 
   @Override

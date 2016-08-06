@@ -79,15 +79,15 @@ public class MplStop extends ModifiableChainPart {
     this.selector = checkNotNull(selector, "selector == null!");
   }
 
-  protected MplStop(MplStop original, CopyScope scope) {
-    super(original, scope);
+  protected MplStop(MplStop original) {
+    super(original);
     selector = original.selector;
   }
 
   @Deprecated
   @Override
-  public MplStop copy(CopyScope scope) {
-    return new MplStop(this, scope);
+  public MplStop createFlatCopy(CopyScope scope) {
+    return new MplStop(this);
   }
 
   @Override

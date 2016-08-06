@@ -72,15 +72,15 @@ public class MplCommand extends ModifiableChainPart {
     this.command = checkNotNull(command, "command == null!");
   }
 
-  protected MplCommand(MplCommand original, CopyScope scope) {
-    super(original, scope);
+  protected MplCommand(MplCommand original) {
+    super(original);
     command = original.command;
   }
 
   @Deprecated
   @Override
-  public MplCommand copy(CopyScope scope) {
-    return new MplCommand(this, scope);
+  public MplCommand createFlatCopy(CopyScope scope) {
+    return new MplCommand(this);
   }
 
   @Override
