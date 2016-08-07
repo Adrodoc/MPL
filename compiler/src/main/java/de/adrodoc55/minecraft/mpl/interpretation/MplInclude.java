@@ -37,32 +37,40 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl
+package de.adrodoc55.minecraft.mpl.interpretation;
 
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import spock.lang.Specification
-import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext
-import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter
+import java.io.File;
 
-class MplSpecBase extends Specification {
-  @Rule
-  TemporaryFolder tempFolder
-  File lastTempFile
-  MplCompilerContext lastContext
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 
-  File newTempFile() {
-    lastTempFile = tempFolder.newFile()
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+
+/**
+ * @author Adrodoc55
+ */
+@EqualsAndHashCode(exclude = "source")
+@ToString(exclude = "source")
+@Getter
+@Immutable
+public class MplInclude {
+  private final @Nullable String processName;
+  private final @Nonnull File file;
+  private final @Nonnull MplSource source;
+
+  public MplInclude(@Nonnull File file, @Nonnull MplSource source) {
+    this(null, file, source);
   }
 
-  MplInterpreter interpret(String program, File file = newTempFile()) {
-    file.text = program
-    interpret(file)
-  }
-
-  MplInterpreter interpret(File file = newTempFile()) {
-    lastContext = new MplCompilerContext()
-    MplInterpreter.interpret(file, lastContext)
+  public MplInclude(@Nullable String processName, @Nonnull File file, @Nonnull MplSource source) {
+    this.processName = processName;
+    this.file = checkNotNull(file, "file == null!");
+    this.source = checkNotNull(source, "source == null!");
   }
 }

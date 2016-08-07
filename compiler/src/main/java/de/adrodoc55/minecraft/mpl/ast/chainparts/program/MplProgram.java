@@ -44,8 +44,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -62,6 +60,7 @@ import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.ast.MplNode;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import lombok.Getter;
 import lombok.Setter;
@@ -70,9 +69,8 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 /**
  * @author Adrodoc55
  */
-@GenerateMplPojoBuilder
 public class MplProgram implements MplNode, Named {
-
+  private final MplCompilerContext context;
   @Getter
   @Setter
   private @Nullable Token token;
@@ -95,12 +93,14 @@ public class MplProgram implements MplNode, Named {
   @Setter
   protected MplProcess uninstall = new MplProcess("uninstall");
 
-  @Getter
-  protected final List<CompilerException> exceptions = new LinkedList<>();
-
   private final Map<String, MplProcess> processMap = new HashMap<>();
 
   protected @Nullable Coordinate3D max;
+
+  @GenerateMplPojoBuilder
+  public MplProgram(MplCompilerContext context) {
+    this.context = context;
+  }
 
   public Coordinate3D getMax() {
     if (max != null) {
@@ -127,9 +127,9 @@ public class MplProgram implements MplNode, Named {
       newMessage += "; was also found in " + FileUtils.getCanonicalPath(oldSource.file);
     }
     CompilerException ex1 = new CompilerException(oldSource, oldMessage);
-    exceptions.add(ex1);
+    context.addException(ex1);
     CompilerException ex2 = new CompilerException(newSource, newMessage);
-    exceptions.add(ex2);
+    context.addException(ex2);
   }
 
   public boolean containsProcess(String name) {

@@ -79,12 +79,15 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 
 public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
 
   @Override
   protected MplAstVisitorImpl newUnderTest() {
-    return new MplAstVisitorImpl(new CompilerOptions(TRANSMITTER, DEBUG));
+    CompilerOptions options = new CompilerOptions(TRANSMITTER, DEBUG);
+    MplCompilerContext context = new MplCompilerContext(options);
+    return new MplAstVisitorImpl(context);
   }
 
   @Override

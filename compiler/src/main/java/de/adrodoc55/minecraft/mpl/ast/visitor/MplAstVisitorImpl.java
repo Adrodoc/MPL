@@ -99,6 +99,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.NormalizingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingTestforSuccessCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.Getter;
@@ -109,18 +110,21 @@ import lombok.Setter;
  * @author Adrodoc55
  */
 public class MplAstVisitorImpl implements MplAstVisitor {
+  @SuppressWarnings("unused")
+  private final MplCompilerContext context;
+  @VisibleForTesting
+  final CompilerOptions options;
   private ChainContainer container;
   @VisibleForTesting
   List<CommandChain> chains = new ArrayList<>();
   @VisibleForTesting
   List<ChainLink> commands = new ArrayList<>();
-  @VisibleForTesting
-  final CompilerOptions options;
 
   private boolean addBreakpointProcess;
 
-  public MplAstVisitorImpl(CompilerOptions options) {
-    this.options = checkNotNull(options, "options == null!");
+  public MplAstVisitorImpl(MplCompilerContext context) {
+    this.context = checkNotNull(context, "context == null!");
+    this.options = context.getOptions();
   }
 
   @Override

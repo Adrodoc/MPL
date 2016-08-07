@@ -55,7 +55,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -67,8 +67,9 @@ import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.ListMultimap;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
 
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
@@ -124,6 +125,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer.ChainPartBufferImpl;
 
@@ -132,16 +134,17 @@ import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer.ChainPartBuffer
  */
 public class MplInterpreter extends MplBaseListener {
 
-  public static MplInterpreter interpret(File programFile) throws IOException {
-    MplInterpreter interpreter = new MplInterpreter(programFile);
-    FileContext ctx = interpreter.parse(programFile);
-    if (interpreter.getProgram().getExceptions().isEmpty()) {
+  public static MplInterpreter interpret(File programFile, MplCompilerContext context)
+      throws IOException {
+    MplInterpreter interpreter = new MplInterpreter(programFile, context);
+    FileContext ctx = interpreter.parse();
+    if (context.getExceptions().isEmpty()) {
       new ParseTreeWalker().walk(interpreter, ctx);
     }
     return interpreter;
   }
 
-  private FileContext parse(File programFile) throws IOException {
+  private FileContext parse() throws IOException {
     byte[] bytes = Files.readAllBytes(programFile.toPath());
     ANTLRInputStream input = new ANTLRInputStream(FileUtils.toUnixLineEnding(new String(bytes)));
     MplLexer lexer = new MplLexer(input);
@@ -161,15 +164,17 @@ public class MplInterpreter extends MplBaseListener {
     return context;
   }
 
+  private final MplCompilerContext context;
   private final File programFile;
   private final List<String> lines;
-  private final ListMultimap<String, Include> includes = LinkedListMultimap.create();
+  private final SetMultimap<String, MplProcessReference> references = HashMultimap.create();
   private final Set<File> imports = new HashSet<>();
 
-  private MplInterpreter(File programFile) throws IOException {
+  private MplInterpreter(File programFile, MplCompilerContext context) throws IOException {
+    this.context = context;
+    program = new MplProgram(context);
     this.programFile = programFile;
     lines = Files.readAllLines(programFile.toPath());
-    // TODO was sinnvolleres als null reinstecken
     addFileImport(null, programFile.getParentFile());
   }
 
@@ -177,31 +182,29 @@ public class MplInterpreter extends MplBaseListener {
     return programFile;
   }
 
-  private final MplProgram program = new MplProgram();
+  private final MplProgram program;
 
   public MplProgram getProgram() {
     return program;
   }
 
-  private void addException(CompilerException ex1) {
-    program.getExceptions().add(ex1);
+  private void addException(CompilerException ex) {
+    context.addException(ex);
   }
 
   /**
-   * Returns the mapping of process names to includes required by that process. A key of null
-   * indicates that this include is not required by a specific process, but by an explicit include
-   * of a project.
+   * Returns the read only mapping of process names to the references of each process.
    *
-   * @return the mapping of process names
+   * @return the references
    */
-  public ListMultimap<String, Include> getIncludes() {
-    return includes;
+  public SetMultimap<String, MplProcessReference> getReferences() {
+    return Multimaps.unmodifiableSetMultimap(references);
   }
 
   // ----------------------------------------------------------------------------------------------------
 
-  public MplSource toSource(@Nullable Token token) {
-    String line = token != null ? lines.get(token.getLine() - 1) : null;
+  public MplSource toSource(@Nonnull Token token) {
+    String line = lines.get(token.getLine() - 1);
     return new MplSource(programFile, token, line);
   }
 
@@ -259,22 +262,24 @@ public class MplInterpreter extends MplBaseListener {
     program.setOrientation(newOrientation);
   }
 
+  private final Set<File> included = new HashSet<>();
+
   @Override
   public void enterInclude(IncludeContext ctx) {
     String includePath = MplLexerUtils.getContainedString(ctx.STRING().getSymbol());
     Token token = ctx.STRING().getSymbol();
-    File file = new File(programFile.getParentFile(), includePath);
-    List<File> files = new ArrayList<File>();
-    if (!addFile(files, file, token)) {
-      return;
-    }
+    File includeFile = new File(programFile.getParentFile(), includePath);
     MplSource source = toSource(token);
-    Include include = new Include(source, files);
-    if (includes.get(null).contains(include)) {
-      addException(new CompilerException(source, "Duplicate include"));
+    if (!included.add(includeFile)) {
+      context.addException(new CompilerException(source, "Duplicate include"));
+    }
+    List<File> files = new ArrayList<File>();
+    if (!addFile(files, includeFile, token)) {
       return;
     }
-    includes.put(null, include);
+    for (File file : files) {
+      context.addInclude(new MplInclude(file, source));
+    }
   }
 
   /**
@@ -300,10 +305,10 @@ public class MplInterpreter extends MplBaseListener {
    *
    * @param files the Collection to add to
    * @param file the File
-   * @param token the Token to display in potential Exceptions
+   * @param token the Token to display potential Exceptions
    * @return true if something was added to the Collection, false otherwise
    */
-  private boolean addFile(Collection<File> files, File file, @Nullable Token token) {
+  private boolean addFile(Collection<File> files, File file, Token token) {
     if (file.isFile()) {
       files.add(file);
       return true;
@@ -552,8 +557,7 @@ public class MplInterpreter extends MplBaseListener {
     String srcProcess = this.process != null ? this.process.getName() : null;
     Token token = identifier.getSymbol();
     MplSource source = toSource(token);
-    Include include = new Include(source, process, imports);
-    includes.put(srcProcess, include);
+    references.put(srcProcess, new MplProcessReference(process, imports, source));
   }
 
   private String toSelector(String text) {
@@ -587,8 +591,7 @@ public class MplInterpreter extends MplBaseListener {
       String srcProcess = this.process != null ? this.process.getName() : null;
       Token token = identifier.getSymbol();
       MplSource source = toSource(token);
-      Include include = new Include(source, process, imports);
-      includes.put(srcProcess, include);
+      references.put(srcProcess, new MplProcessReference(process, imports, source));
     }
   }
 
