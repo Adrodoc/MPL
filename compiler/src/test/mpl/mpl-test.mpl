@@ -9,7 +9,7 @@ uninstall {
   /kill @e[name=continue_tests]
 }
 
-process mpl_tests {
+remote process mpl_tests {
   /say starting mpl test
   /scoreboard players set MplTestFailed MplTest 0
 
@@ -42,16 +42,16 @@ process mpl_tests {
   }
 }
 
-process continue_tests {}
+remote process continue_tests {}
 
-process fail {
+remote process fail {
   /say TEST FAILED
   /scoreboard players set MplTestFailed MplTest 1
   start continue_tests
 }
 
 #Test
-process test_invert_with_true {
+remote process test_invert_with_true {
   // given:
   /scoreboard players set MplTest MplTest 0
 
@@ -66,7 +66,7 @@ process test_invert_with_true {
 }
 
 #Test
-process test_invert_with_false {
+remote process test_invert_with_false {
   // given:
   /scoreboard players set MplTest MplTest 0
 
@@ -81,7 +81,7 @@ process test_invert_with_false {
 }
 
 #Test
-process test_waitfor_impulse {
+remote process test_waitfor_impulse {
   // given:
   /scoreboard players set MplTest MplTest 0
   start impulse_process
@@ -96,7 +96,7 @@ process test_waitfor_impulse {
 }
 
 #Test
-process test_waitfor_repeat {
+remote process test_waitfor_repeat {
   // given:
   /scoreboard players set MplTest MplTest 0
   start repeat_process
@@ -111,7 +111,7 @@ process test_waitfor_repeat {
 }
 
 #Test
-process test_conditional_waitfor_with_true {
+remote process test_conditional_waitfor_with_true {
   // given:
   /scoreboard players set MplTest MplTest 0
   start add_one_to_MplTest
@@ -127,7 +127,7 @@ process test_conditional_waitfor_with_true {
 }
 
 #Test
-process test_conditional_waitfor_with_false {
+remote process test_conditional_waitfor_with_false {
   // given:
   /scoreboard players set MplTest MplTest 0
   start add_one_to_MplTest
@@ -143,7 +143,7 @@ process test_conditional_waitfor_with_false {
 }
 
 #Test
-process test_intercept {
+remote process test_intercept {
   // given:
   /scoreboard players set MplTest MplTest 0
 
@@ -158,7 +158,7 @@ process test_intercept {
 }
 
 #Test
-process test_conditional_intercept_with_true {
+remote process test_conditional_intercept_with_true {
   // given:
   /scoreboard players set MplTest MplTest 0
 
@@ -174,7 +174,7 @@ process test_conditional_intercept_with_true {
 }
 
 #Test
-process test_conditional_intercept_with_false {
+remote process test_conditional_intercept_with_false {
   // given:
   /scoreboard players set MplTest MplTest 0
 
@@ -190,7 +190,7 @@ process test_conditional_intercept_with_false {
 }
 
 #Test
-process test_invert_intercept_with_true {
+remote process test_invert_intercept_with_true {
   // given:
   /scoreboard players set MplTest MplTest 0
 
@@ -206,7 +206,7 @@ process test_invert_intercept_with_true {
 }
 
 #Test
-process test_invert_intercept_with_false {
+remote process test_invert_intercept_with_false {
   // given:
   /scoreboard players set MplTest MplTest 0
 
@@ -222,7 +222,7 @@ process test_invert_intercept_with_false {
 }
 
 #Test
-process test_while_repeat_with_false {
+remote process test_while_repeat_with_false {
   // given:
   /scoreboard players set MplTest MplTest 1
 
@@ -239,7 +239,7 @@ process test_while_repeat_with_false {
 }
 
 #Test
-process test_while_repeat_with_5_iterations {
+remote process test_while_repeat_with_5_iterations {
   // given:
   /scoreboard players set MplTest MplTest 1
 
@@ -256,7 +256,7 @@ process test_while_repeat_with_5_iterations {
 }
 
 #Test
-process test_repeat_while_with_false {
+remote process test_repeat_while_with_false {
   // given:
   /scoreboard players set MplTest MplTest 1
 
@@ -272,7 +272,7 @@ process test_repeat_while_with_false {
 }
 
 #Test
-process test_repeat_while_with_5_iterations {
+remote process test_repeat_while_with_5_iterations {
   // given:
   /scoreboard players set MplTest MplTest 1
 
@@ -288,7 +288,7 @@ process test_repeat_while_with_5_iterations {
 }
 
 #Test
-process test_repeat_with_unconditional_break {
+remote process test_repeat_with_unconditional_break {
   // given:
   /scoreboard players set MplTest MplTest 1
 
@@ -305,7 +305,7 @@ process test_repeat_with_unconditional_break {
 }
 
 #Test
-process test_repeat_with_conditional_break_after_5_iterations {
+remote process test_repeat_with_conditional_break_after_5_iterations {
   // given:
   /scoreboard players set MplTest MplTest 1
 
@@ -323,7 +323,7 @@ process test_repeat_with_conditional_break_after_5_iterations {
 }
 
 #Test
-process test_repeat_with_invert_break_after_5_iterations {
+remote process test_repeat_with_invert_break_after_5_iterations {
   // given:
   /scoreboard players set MplTest MplTest 1
 
@@ -341,7 +341,7 @@ process test_repeat_with_invert_break_after_5_iterations {
 }
 
 #Test
-process test_nested_break_with_label {
+remote process test_nested_break_with_label {
   // given:
   /scoreboard players set MplTest MplTest 1
 
@@ -360,7 +360,7 @@ process test_nested_break_with_label {
 }
 
 #Test
-process test_conditional_continue_checks_the_condition {
+remote process test_conditional_continue_checks_the_condition {
   // given:
   /scoreboard players set MplTest MplTest 1
 
@@ -378,7 +378,7 @@ process test_conditional_continue_checks_the_condition {
 }
 
 #Test
-process test_invert_continue_checks_the_condition {
+remote process test_invert_continue_checks_the_condition {
   // given:
   /scoreboard players set MplTest MplTest 1
 
@@ -396,7 +396,7 @@ process test_invert_continue_checks_the_condition {
 }
 
 #Test
-process test_repeat_with_conditional_continue_for_5_iterations {
+remote process test_repeat_with_conditional_continue_for_5_iterations {
   // given:
   /scoreboard players set MplTest MplTest 1
 
@@ -415,7 +415,7 @@ process test_repeat_with_conditional_continue_for_5_iterations {
 }
 
 #Test
-process test_repeat_with_invert_continue_for_5_iterations {
+remote process test_repeat_with_invert_continue_for_5_iterations {
   // given:
   /scoreboard players set MplTest MplTest 1
 
@@ -434,7 +434,7 @@ process test_repeat_with_invert_continue_for_5_iterations {
 }
 
 #Test
-process test_nested_continue_with_label {
+remote process test_nested_continue_with_label {
   // given:
   /scoreboard players set MplTest MplTest 1
 
@@ -456,7 +456,7 @@ process test_nested_continue_with_label {
 
 // Utility Prozesse
 
-process setting_MplTest_to_5_and_calling_add_one_to_MplTest {
+remote process setting_MplTest_to_5_and_calling_add_one_to_MplTest {
   // 1 tick delay
   /setblock ${this+1} redstone_block
   skip
@@ -466,7 +466,7 @@ process setting_MplTest_to_5_and_calling_add_one_to_MplTest {
   start add_one_to_MplTest
 }
 
-process add_one_to_MplTest {
+remote process add_one_to_MplTest {
   // 1 tick delay
   /setblock ${this+1} redstone_block
   skip
@@ -476,13 +476,13 @@ process add_one_to_MplTest {
   notify
 }
 
-impulse process impulse_process {
+remote impulse process impulse_process {
   /say impulse process
   /scoreboard players set MplTest MplTest 4
   notify
 }
 
-repeat process repeat_process {
+remote repeat process repeat_process {
   /say repeat process
   /scoreboard players set MplTest MplTest 3
   notify
