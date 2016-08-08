@@ -62,6 +62,8 @@ import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOpt
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.File;
+
 import org.junit.Test;
 
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
@@ -89,7 +91,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     CompilerOptions options = new CompilerOptions(TRANSMITTER, DEBUG);
     MplCompilerContext context = new MplCompilerContext(options);
     MplAstVisitorImpl result = new MplAstVisitorImpl(context);
-    result.program = new MplProgram(context);
+    result.program = new MplProgram(new File(""), context);
     return result;
   }
 

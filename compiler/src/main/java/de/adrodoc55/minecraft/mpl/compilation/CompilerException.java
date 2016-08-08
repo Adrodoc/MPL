@@ -81,13 +81,15 @@ public class CompilerException extends Exception {
     String path = FileUtils.getCanonicalPath(source.file);
     sb.append(path).append(':').append(source.token.getLine()).append(":\n");
     sb.append(this.getLocalizedMessage()).append("\n");
-    sb.append(source.line).append("\n");
     int count = source.token.getCharPositionInLine();
-    sb.append(new String(new char[count]).replace('\0', ' '));
-    sb.append("^");
+    if (count >= 0) {
+      sb.append(source.line).append("\n");
+      sb.append(new String(new char[count]).replace('\0', ' '));
+      sb.append("^\n");
+    }
     Throwable cause = getCause();
     if (cause != null) {
-      sb.append("\npossible cause: ");
+      sb.append("possible cause: ");
       File file = null;
       if (cause instanceof FileException) {
         file = ((FileException) cause).getFile();

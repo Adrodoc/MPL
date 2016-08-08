@@ -173,7 +173,7 @@ public class MplInterpreter extends MplBaseListener {
 
   private MplInterpreter(File programFile, MplCompilerContext context) throws IOException {
     this.context = context;
-    program = new MplProgram(context);
+    program = new MplProgram(programFile, context);
     this.programFile = programFile;
     lines = Files.readAllLines(programFile.toPath());
     addFileImport(null, programFile.getParentFile());

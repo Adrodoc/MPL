@@ -86,6 +86,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkipBuilder;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSourceBuilder;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBufferBuilder;
 import net.karneim.pojobuilder.Builder;
@@ -167,6 +168,8 @@ public class MplTestBase extends TestBase {
 
   public static MplProgramBuilder $MplProgram() {
     return new MplProgramBuilder()//
+        .withProgramFile(new File(""))//
+        .withContext(new MplCompilerContext())//
         .withName($String())//
         .withScript($boolean())//
         .withOrientation($Orientation3D())//

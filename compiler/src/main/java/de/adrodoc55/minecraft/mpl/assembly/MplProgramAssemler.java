@@ -47,11 +47,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.antlr.v4.runtime.CommonToken;
+
 import de.adrodoc55.commons.FileUtils;
+import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
+import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.FileException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInclude;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter;
 import de.adrodoc55.minecraft.mpl.interpretation.MplProcessReference;
@@ -85,6 +90,13 @@ public class MplProgramAssemler {
       doIncludes();
     }
     MplProgram result = programBuilder.getProgram();
+    boolean containsRemoteProcess = result.getProcesses().stream()//
+        .anyMatch(p -> p.getType() == ProcessType.REMOTE);
+    if (context.getExceptions().isEmpty() && !containsRemoteProcess) {
+      context.addException(
+          new CompilerException(new MplSource(programFile, new CommonToken(MplLexer.PROCESS), ""),
+              "This file does not include any remote processes"));
+    }
     return result;
   }
 

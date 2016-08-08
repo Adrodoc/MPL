@@ -41,6 +41,7 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts.program;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -72,6 +73,8 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 public class MplProgram implements MplNode, Named {
   private final MplCompilerContext context;
   @Getter
+  private final File programFile;
+  @Getter
   @Setter
   private @Nullable Token token;
 
@@ -98,8 +101,9 @@ public class MplProgram implements MplNode, Named {
   protected @Nullable Coordinate3D max;
 
   @GenerateMplPojoBuilder
-  public MplProgram(MplCompilerContext context) {
-    this.context = context;
+  public MplProgram(File programFile, MplCompilerContext context) {
+    this.programFile = checkNotNull(programFile, "programFile == null");
+    this.context = checkNotNull(context, "context == null!");
   }
 
   public Coordinate3D getMax() {

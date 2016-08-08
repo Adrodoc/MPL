@@ -54,6 +54,7 @@ import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
+import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -63,11 +64,14 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.antlr.v4.runtime.CommonToken;
+
 import com.google.common.annotations.VisibleForTesting;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
+import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
@@ -204,8 +208,9 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     chains = new ArrayList<>(1);
     Orientation3D orientation = program.getOrientation();
     Coordinate3D max = program.getMax();
-    CommandChain install = visitUnInstall("install", program.getInstall());
-    CommandChain uninstall = visitUnInstall("uninstall", program.getUninstall());
+    File file = program.getProgramFile();
+    CommandChain install = visitUnInstall("install", file, program.getInstall());
+    CommandChain uninstall = visitUnInstall("uninstall", file, program.getUninstall());
 
     chains = new ArrayList<>(program.getProcesses().size());
     for (MplProcess process : program.getProcesses()) {
@@ -217,9 +222,11 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     container = new ChainContainer(orientation, max, install, uninstall, chains, program.getHash());
   }
 
-  private @Nullable CommandChain visitUnInstall(String name, @Nullable MplProcess process) {
+  private @Nullable CommandChain visitUnInstall(String name, File programFile,
+      @Nullable MplProcess process) {
     if (process == null) {
-      return new CommandChain(name, new ArrayList<>(0));
+      process =
+          new MplProcess(name, new MplSource(programFile, new CommonToken(MplLexer.PROCESS), ""));
     }
     process.accept(this);
     CommandChain chain = chains.get(0);
