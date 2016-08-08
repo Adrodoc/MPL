@@ -39,8 +39,12 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.File;
 import java.nio.charset.CharacterCodingException;
+
+import javax.annotation.Nonnull;
 
 import de.adrodoc55.commons.FileUtils;
 
@@ -51,23 +55,23 @@ public class CompilerException extends Exception {
 
   private static final long serialVersionUID = 1L;
 
-  private MplSource source;
+  private @Nonnull MplSource source;
 
-  public CompilerException(MplSource source, String message) {
+  public CompilerException(@Nonnull MplSource source, String message) {
     super(message);
     init(source);
   }
 
-  public CompilerException(MplSource source, String message, Throwable cause) {
+  public CompilerException(@Nonnull MplSource source, String message, Throwable cause) {
     super(message, cause);
     init(source);
   }
 
   private void init(MplSource source) {
-    this.source = source;
+    this.source = checkNotNull(source, "source == null!");
   }
 
-  public MplSource getSource() {
+  public @Nonnull MplSource getSource() {
     return source;
   }
 

@@ -49,6 +49,8 @@ import javax.annotation.concurrent.Immutable;
 
 import org.antlr.v4.runtime.Token;
 
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
+
 /**
  * @author Adrodoc55
  */
@@ -58,6 +60,7 @@ public class MplSource {
   public final @Nonnull Token token;
   public final @Nonnull String line;
 
+  @GenerateMplPojoBuilder
   public MplSource(@Nonnull File file, @Nonnull Token token, @Nonnull String line)
       throws NullPointerException {
     this.file = checkNotNull(file, "file == null!");
@@ -69,5 +72,4 @@ public class MplSource {
   public int getLineNumber() {
     return token.getLine();
   }
-
 }

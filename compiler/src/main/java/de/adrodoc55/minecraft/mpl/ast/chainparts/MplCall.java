@@ -41,8 +41,12 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import javax.annotation.Nonnull;
+
 import de.adrodoc55.commons.CopyScope;
+import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -60,9 +64,13 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 public class MplCall extends ModifiableChainPart {
   private final String process;
 
+  public MplCall(String process, @Nonnull MplSource source) {
+    this(process, new ModifierBuffer(), source);
+  }
+
   @GenerateMplPojoBuilder
-  public MplCall(String process) {
-    super(new ModifierBuffer());
+  public MplCall(String process, ExtendedModifiable modifier, @Nonnull MplSource source) {
+    super(modifier, source);
     this.process = checkNotNull(process, "process == null!");
   }
 

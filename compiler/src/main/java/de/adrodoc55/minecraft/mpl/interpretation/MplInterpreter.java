@@ -59,6 +59,7 @@ import javax.annotation.Nonnull;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
@@ -204,7 +205,7 @@ public class MplInterpreter extends MplBaseListener {
   // ----------------------------------------------------------------------------------------------------
 
   public MplSource toSource(@Nonnull Token token) {
-    String line = lines.get(token.getLine() - 1);
+    String line = token.getLine() > 0 ? lines.get(token.getLine() - 1) : "";
     return new MplSource(programFile, token, line);
   }
 
@@ -361,7 +362,7 @@ public class MplInterpreter extends MplBaseListener {
   public void exitInstall(InstallContext ctx) {
     MplProcess install = program.getInstall();
     if (install == null) {
-      install = new MplProcess("install");
+      install = new MplProcess("install", toSource(ctx.INSTALL().getSymbol()));
       program.setInstall(install);
     }
     install.addAll(chainBuffer.getChainParts());
@@ -378,7 +379,7 @@ public class MplInterpreter extends MplBaseListener {
   public void exitUninstall(UninstallContext ctx) {
     MplProcess install = program.getUninstall();
     if (install == null) {
-      install = new MplProcess("uninstall");
+      install = new MplProcess("uninstall", toSource(ctx.UNINSTALL().getSymbol()));
       program.setUninstall(install);
     }
     install.addAll(chainBuffer.getChainParts());
@@ -394,7 +395,7 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void exitScriptFile(ScriptFileContext ctx) {
-    process = new MplProcess();
+    process = new MplProcess(toSource(new CommonToken(MplLexer.PROCESS)));
     Deque<ChainPart> chainParts = chainBuffer.getChainParts();
     process.setChainParts(chainParts);
     program.addProcess(process);
@@ -540,7 +541,8 @@ public class MplInterpreter extends MplBaseListener {
   @Override
   public void enterCommand(CommandContext ctx) {
     String commandString = ctx.COMMAND().getText();
-    MplCommand command = new MplCommand(commandString, modifierBuffer);
+    MplCommand command =
+        new MplCommand(commandString, modifierBuffer, toSource(ctx.COMMAND().getSymbol()));
     addModifiableChainPart(command);
   }
 
@@ -548,7 +550,7 @@ public class MplInterpreter extends MplBaseListener {
   public void enterCall(CallContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String process = identifier.getText();
-    MplCall call = new MplCall(process);
+    MplCall call = new MplCall(process, toSource(identifier.getSymbol()));
     chainBuffer.add(call);
 
     if (program.isScript()) {
@@ -570,12 +572,15 @@ public class MplInterpreter extends MplBaseListener {
   public void enterStart(StartContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String selector;
+    MplSource source;
     if (identifier != null) {
       selector = toSelector(identifier.getText());
+      source = toSource(identifier.getSymbol());
     } else {
       selector = ctx.SELECTOR().getText();
+      source = toSource(ctx.SELECTOR().getSymbol());
     }
-    MplStart start = new MplStart(selector, modifierBuffer);
+    MplStart start = new MplStart(selector, modifierBuffer, source);
     addModifiableChainPart(start);
 
     checkNoModifier(start.getName(), modifierBuffer.getModeToken());
@@ -589,8 +594,6 @@ public class MplInterpreter extends MplBaseListener {
       }
 
       String srcProcess = this.process != null ? this.process.getName() : null;
-      Token token = identifier.getSymbol();
-      MplSource source = toSource(token);
       references.put(srcProcess, new MplProcessReference(process, imports, source));
     }
   }
@@ -603,8 +606,10 @@ public class MplInterpreter extends MplBaseListener {
     String selector;
     if (ctx.SELECTOR() != null) {
       selector = ctx.SELECTOR().getText();
+      source = toSource(ctx.SELECTOR().getSymbol());
     } else if (ctx.IDENTIFIER() != null) {
       selector = toSelector(ctx.IDENTIFIER().getText());
+      source = toSource(ctx.IDENTIFIER().getSymbol());
     } else if (this.process != null) {
       if (this.process.isRepeating()) {
         selector = toSelector(this.process.getName());
@@ -617,7 +622,7 @@ public class MplInterpreter extends MplBaseListener {
       return;
     }
 
-    MplStop stop = new MplStop(selector, modifierBuffer);
+    MplStop stop = new MplStop(selector, modifierBuffer, source);
     addModifiableChainPart(stop);
 
     checkNoModifier(stop.getName(), modifierBuffer.getModeToken());
@@ -628,22 +633,22 @@ public class MplInterpreter extends MplBaseListener {
   public void enterWaitfor(WaitforContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String event;
+    MplSource source = toSource(ctx.WAITFOR().getSymbol());
     if (identifier != null) {
       event = identifier.getText();
       if (ctx.NOTIFY() != null) {
         event += NOTIFY;
       }
+      source = toSource(identifier.getSymbol());
     } else if (lastStartIdentifier != null) {
       event = lastStartIdentifier += NOTIFY;
       lastStartIdentifier = null;
     } else {
-      Token token = ctx.WAITFOR().getSymbol();
-      MplSource source = toSource(token);
       addException(new CompilerException(source,
           "Missing identifier; no previous start was found to wait for"));
       return;
     }
-    MplWaitfor waitfor = new MplWaitfor(event, modifierBuffer);
+    MplWaitfor waitfor = new MplWaitfor(event, modifierBuffer, source);
     addModifiableChainPart(waitfor);
 
     checkNoModifier(waitfor.getName(), modifierBuffer.getModeToken());
@@ -652,14 +657,14 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterNotifyDeclaration(NotifyDeclarationContext ctx) {
+    Token token = ctx.NOTIFY().getSymbol();
+    MplSource source = toSource(token);
     if (process == null || process.getType() != REMOTE) {
-      Token token = ctx.NOTIFY().getSymbol();
-      MplSource source = toSource(token);
       addException(new CompilerException(source, "notify can only be used in a remote process"));
       return;
     }
     String process = this.process.getName();
-    MplNotify notify = new MplNotify(process, modifierBuffer);
+    MplNotify notify = new MplNotify(process, modifierBuffer, source);
     addModifiableChainPart(notify);
 
     checkNoModifier(notify.getName(), modifierBuffer.getModeToken());
@@ -670,7 +675,8 @@ public class MplInterpreter extends MplBaseListener {
   public void enterIntercept(InterceptContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String process = identifier.getText();
-    MplIntercept intercept = new MplIntercept(process, modifierBuffer);
+    MplIntercept intercept =
+        new MplIntercept(process, modifierBuffer, toSource(identifier.getSymbol()));
     addModifiableChainPart(intercept);
 
     checkNoModifier(intercept.getName(), modifierBuffer.getModeToken());
@@ -680,8 +686,9 @@ public class MplInterpreter extends MplBaseListener {
   @Override
   public void enterBreakpoint(BreakpointContext ctx) {
     int line = ctx.BREAKPOINT().getSymbol().getLine();
-    String source = programFile.getName() + " : line " + line;
-    MplBreakpoint breakpoint = new MplBreakpoint(source, modifierBuffer);
+    String message = programFile.getName() + " : line " + line;
+    MplBreakpoint breakpoint =
+        new MplBreakpoint(message, modifierBuffer, toSource(ctx.BREAKPOINT().getSymbol()));
     addModifiableChainPart(breakpoint);
 
     checkNoModifier(breakpoint.getName(), modifierBuffer.getModeToken());
@@ -705,7 +712,7 @@ public class MplInterpreter extends MplBaseListener {
   public void enterIfDeclaration(IfDeclarationContext ctx) {
     boolean not = ctx.NOT() != null;
     String condition = ctx.COMMAND().getText();
-    chainBuffer = new MplIf(chainBuffer, not, condition);
+    chainBuffer = new MplIf(chainBuffer, not, condition, toSource(ctx.IF().getSymbol()));
   }
 
   @Override
@@ -736,7 +743,8 @@ public class MplInterpreter extends MplBaseListener {
     TerminalNode command = ctx.COMMAND();
     String condition = command != null ? command.getText() : null;
 
-    MplWhile mplWhile = new MplWhile(chainBuffer, label, not, trailing, condition);
+    MplWhile mplWhile = new MplWhile(chainBuffer, label, not, trailing, condition,
+        toSource(ctx.WHILE() != null ? ctx.WHILE().getSymbol() : ctx.REPEAT().getSymbol()));
     loops.push(mplWhile);
     chainBuffer = mplWhile;
   }
@@ -766,7 +774,8 @@ public class MplInterpreter extends MplBaseListener {
       return;
     }
 
-    MplBreak mplBreak = new MplBreak(label, loop, modifierBuffer);
+    MplBreak mplBreak =
+        new MplBreak(label, loop, modifierBuffer, toSource(ctx.BREAK().getSymbol()));
     addModifiableChainPart(mplBreak);
 
     checkNoModifier(mplBreak.getName(), modifierBuffer.getModeToken());
@@ -790,7 +799,8 @@ public class MplInterpreter extends MplBaseListener {
       return;
     }
 
-    MplContinue mplContinue = new MplContinue(label, loop, modifierBuffer);
+    MplContinue mplContinue =
+        new MplContinue(label, loop, modifierBuffer, toSource(ctx.CONTINUE().getSymbol()));
     addModifiableChainPart(mplContinue);
 
     checkNoModifier(mplContinue.getName(), modifierBuffer.getModeToken());

@@ -71,6 +71,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
@@ -84,7 +85,9 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
   protected MplAstVisitorImpl newUnderTest() {
     CompilerOptions options = new CompilerOptions(DEBUG);
     MplCompilerContext context = new MplCompilerContext(options);
-    return new MplAstVisitorImpl(context);
+    MplAstVisitorImpl result = new MplAstVisitorImpl(context);
+    result.program = new MplProgram(context);
+    return result;
   }
 
   @Override

@@ -43,12 +43,14 @@ import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.annotations.VisibleForTesting;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
@@ -73,13 +75,14 @@ public class MplIf extends ModifiableChainPart implements ChainPartBuffer {
   private Deque<ChainPart> elseParts = new ArrayDeque<>();
   private boolean inElse;
 
-  @GenerateMplPojoBuilder
-  public MplIf(boolean not, String condition) {
-    this(null, not, condition);
+  public MplIf(boolean not, String condition, @Nonnull MplSource source) {
+    this(null, not, condition, source);
   }
 
-  public MplIf(@Nullable ChainPartBuffer parent, boolean not, @Nullable String condition) {
-    super(new ModifierBuffer());
+  @GenerateMplPojoBuilder
+  public MplIf(@Nullable ChainPartBuffer parent, boolean not, @Nullable String condition,
+      @Nonnull MplSource source) {
+    super(new ModifierBuffer(), source);
     this.parent = parent;
     this.not = not;
     this.condition = condition;

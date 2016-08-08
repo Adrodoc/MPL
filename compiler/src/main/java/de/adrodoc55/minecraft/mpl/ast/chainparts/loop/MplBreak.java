@@ -49,7 +49,7 @@ import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -67,20 +67,17 @@ public class MplBreak extends ModifiableChainPart {
   private final @Nullable String label;
   private final @Nonnull MplWhile loop;
 
-  public MplBreak(@Nullable String label, MplWhile loop) {
-    this(label, loop, new ModifierBuffer());
-  }
-
-  public MplBreak(@Nullable String label, MplWhile loop, ExtendedModifiable modifier) {
-    super(modifier);
+  @GenerateMplPojoBuilder
+  public MplBreak(@Nullable String label, MplWhile loop, ExtendedModifiable modifier,
+      @Nonnull MplSource source) {
+    super(modifier, source);
     this.label = label;
     this.loop = checkNotNull(loop, "loop == null!");
   }
 
-  @GenerateMplPojoBuilder
   public MplBreak(@Nullable String label, MplWhile loop, ExtendedModifiable modifier,
-      @Nullable Dependable previous) {
-    super(modifier, previous);
+      @Nullable Dependable previous, @Nonnull MplSource source) {
+    super(modifier, previous, source);
     this.label = label;
     this.loop = checkNotNull(loop, "loop == null!");
   }

@@ -87,11 +87,11 @@ public class MplProgram implements MplNode, Named {
 
   @Getter
   @Setter
-  protected MplProcess install = new MplProcess("install");
+  protected @Nullable MplProcess install;
 
   @Getter
   @Setter
-  protected MplProcess uninstall = new MplProcess("uninstall");
+  protected @Nullable MplProcess uninstall;
 
   private final Map<String, MplProcess> processMap = new HashMap<>();
 

@@ -47,6 +47,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.commons.Named;
@@ -74,22 +75,22 @@ public class MplProcess implements MplNode, Named {
   private final List<ChainPart> chainParts = new ArrayList<>();
   private final List<String> tags = new ArrayList<>();
 
-  public MplProcess() {
-    this(null);
+  public MplProcess(@Nonnull MplSource source) {
+    this(null, source);
   }
 
-  public MplProcess(@Nullable String name) {
-    this(name, false, REMOTE, new ArrayList<>(), null);
+  public MplProcess(@Nullable String name, @Nonnull MplSource source) {
+    this(name, false, REMOTE, new ArrayList<>(), source);
   }
 
   @GenerateMplPojoBuilder
   public MplProcess(@Nullable String name, boolean repeating, ProcessType type,
-      Collection<String> tags, @Nullable MplSource source) {
+      Collection<String> tags, @Nonnull MplSource source) {
     this.name = name;
     this.repeating = repeating;
     this.type = checkNotNull(type, "type == null!");
     setTags(tags);
-    this.source = source;
+    this.source = checkNotNull(source, "source == null!");
   }
 
   /**

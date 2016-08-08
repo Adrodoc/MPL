@@ -43,6 +43,8 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 
@@ -105,12 +107,22 @@ public class MplProgramBuilder {
     }
   }
 
-  public void addToInstall(MplProcess process) {
-    program.getInstall().addAll(process);
+  public void addToInstall(@Nullable MplProcess process) {
+    MplProcess install = program.getInstall();
+    if (install == null) {
+      program.setInstall(process);
+    } else {
+      install.addAll(process);
+    }
   }
 
-  public void addToUninstall(MplProcess process) {
-    program.getUninstall().addAll(process);
+  public void addToUninstall(@Nullable MplProcess process) {
+    MplProcess uninstall = program.getUninstall();
+    if (uninstall == null) {
+      program.setUninstall(process);
+    } else {
+      uninstall.addAll(process);
+    }
   }
 
 }

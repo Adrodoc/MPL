@@ -48,6 +48,7 @@ import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -56,8 +57,8 @@ import lombok.ToString;
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode
-@ToString
+@EqualsAndHashCode(exclude = "source")
+@ToString(exclude = "source")
 @Getter
 @Setter
 public abstract class ModifiableChainPart implements ExtendedModifiable, ChainPart {
@@ -66,14 +67,17 @@ public abstract class ModifiableChainPart implements ExtendedModifiable, ChainPa
   protected boolean needsRedstone;
 
   protected @Nullable Dependable previous;
+  protected final @Nonnull MplSource source;
 
-  public ModifiableChainPart(ExtendedModifiable modifier) {
-    this(modifier, null);
+  public ModifiableChainPart(ExtendedModifiable modifier, @Nonnull MplSource source) {
+    this(modifier, null, source);
   }
 
-  public ModifiableChainPart(ExtendedModifiable modifier, @Nullable Dependable previous) {
+  public ModifiableChainPart(ExtendedModifiable modifier, @Nullable Dependable previous,
+      @Nonnull MplSource source) {
     setModifier(modifier);
     this.previous = previous;
+    this.source = checkNotNull(source, "source == null!");
   }
 
   private void setModifier(ExtendedModifiable modifier) {
@@ -94,6 +98,7 @@ public abstract class ModifiableChainPart implements ExtendedModifiable, ChainPa
     mode = original.mode;
     conditional = original.conditional;
     needsRedstone = original.needsRedstone;
+    source = original.source;
   }
 
   @Deprecated

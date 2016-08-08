@@ -44,6 +44,7 @@ import java.util.Map.Entry;
 
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
 
 import de.adrodoc55.minecraft.mpl.placement.NotEnoughSpaceException;
 
@@ -65,7 +66,7 @@ public class CompilationFailedException extends Exception {
   }
 
   public ListMultimap<File, CompilerException> getExceptions() {
-    return exceptions;
+    return Multimaps.unmodifiableListMultimap(exceptions);
   }
 
   @Override

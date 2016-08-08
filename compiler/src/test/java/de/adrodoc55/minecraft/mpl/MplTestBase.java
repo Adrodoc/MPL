@@ -49,13 +49,17 @@ import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.antlr.v4.runtime.CommonToken;
+
 import de.adrodoc55.TestBase;
 import de.adrodoc55.minecraft.coordinate.Coordinate3DBuilder;
 import de.adrodoc55.minecraft.coordinate.Orientation3DBuilder;
+import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpointBuilder;
@@ -82,6 +86,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkipBuilder;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
+import de.adrodoc55.minecraft.mpl.compilation.MplSourceBuilder;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBufferBuilder;
 import net.karneim.pojobuilder.Builder;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
@@ -145,10 +150,18 @@ public class MplTestBase extends TestBase {
         ;
   }
 
+  private static MplSourceBuilder $MplSource() {
+    return new MplSourceBuilder()//
+        .withFile(new File(""))//
+        .withToken(new CommonToken(MplLexer.PROCESS))//
+        .withLine($String());
+  }
+
   public static MplCommandBuilder $MplCommand() {
     return new MplCommandBuilder()//
         .withModifier($ModifierBuffer())//
         .withCommand($CommandString())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -171,15 +184,15 @@ public class MplTestBase extends TestBase {
         .withRepeating($boolean())//
         .withTags(new ArrayList<>())//
         .withType(REMOTE)//
+        .withSource($MplSource())//
         ;
   }
 
   public static MplCallBuilder $MplCall() {
     return new MplCallBuilder()//
-        .withMode($Mode())//
-        .withConditional($Conditional())//
-        .withNeedsRedstone($boolean())//
+        .withModifier($ModifierBuffer())//
         .withProcess($Identifier())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -187,6 +200,7 @@ public class MplTestBase extends TestBase {
     return new MplStartBuilder()//
         .withModifier($ModifierBuffer())//
         .withSelector($Selector())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -194,6 +208,7 @@ public class MplTestBase extends TestBase {
     return new MplStopBuilder()//
         .withModifier($ModifierBuffer())//
         .withSelector($Selector())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -201,6 +216,7 @@ public class MplTestBase extends TestBase {
     return new MplWaitforBuilder()//
         .withModifier($ModifierBuffer())//
         .withEvent($String())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -208,6 +224,7 @@ public class MplTestBase extends TestBase {
     return new MplNotifyBuilder()//
         .withModifier($ModifierBuffer())//
         .withProcess($String())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -215,6 +232,7 @@ public class MplTestBase extends TestBase {
     return new MplInterceptBuilder()//
         .withModifier($ModifierBuffer())//
         .withEvent($String())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -222,6 +240,7 @@ public class MplTestBase extends TestBase {
     return new MplBreakpointBuilder()//
         .withModifier($ModifierBuffer())//
         .withMessage($String())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -235,6 +254,7 @@ public class MplTestBase extends TestBase {
     return new MplIfBuilder()//
         .withNot($boolean())//
         .withCondition($CommandString())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -243,6 +263,7 @@ public class MplTestBase extends TestBase {
         .withNot($boolean())//
         .withTrailing($boolean())//
         .withCondition($CommandString())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -250,6 +271,7 @@ public class MplTestBase extends TestBase {
     return new MplBreakBuilder()//
         .withModifier($ModifierBuffer())//
         .withLabel($String())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -257,6 +279,7 @@ public class MplTestBase extends TestBase {
     return new MplContinueBuilder()//
         .withModifier($ModifierBuffer())//
         .withLabel($String())//
+        .withSource($MplSource())//
         ;
   }
 

@@ -43,8 +43,10 @@ import static de.adrodoc55.TestBase.some
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$Identifier
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER
 
+import org.antlr.v4.runtime.CommonToken
 import org.junit.Test
 
+import spock.lang.Unroll
 import de.adrodoc55.minecraft.coordinate.Orientation3D
 import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart
@@ -56,11 +58,18 @@ import de.adrodoc55.minecraft.mpl.blocks.Transmitter
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command
-import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption
 
 class MplCompilerSpec extends MplSpecBase {
 
+  File lastProgramFile
+
+  MplSource source() {
+    new MplSource(lastProgramFile, new CommonToken(0), "")
+  }
+
   private MplProgram assembleProgram(File programFile) {
+    lastProgramFile = programFile
     MplCompiler compiler = new MplCompiler(new CompilerOptions())
     MplProgram program = compiler.assemble(programFile)
     compiler.checkExceptions()
@@ -68,6 +77,7 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   private List<CommandBlockChain> place(File programFile, CompilerOption... options) {
+    lastProgramFile = programFile
     MplCompiler compiler = new MplCompiler(new CompilerOptions(options))
     MplProgram program = compiler.assemble(programFile)
     compiler.checkExceptions()
@@ -75,6 +85,11 @@ class MplCompilerSpec extends MplSpecBase {
     compiler.checkExceptions()
     List<CommandBlockChain> chains = compiler.place(container)
     return chains
+  }
+
+  private MplCompilationResult compile(File programFile, CompilerOption... options) {
+    lastProgramFile = programFile
+    return MplCompiler.compile(programFile, new CompilerOptions(options))
   }
 
   @Test
@@ -95,10 +110,10 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
 
     MplProcess other = result.processes.find { it.name == 'other' }
-    other.chainParts.contains(new MplCommand('/this is the other process'))
+    other.chainParts.contains(new MplCommand('/this is the other process', source()))
   }
 
   @Test
@@ -120,7 +135,7 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.processes.size() == 1
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
   }
 
   @Test
@@ -143,10 +158,10 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
 
     MplProcess other = result.processes.find { it.name == 'other' }
-    other.chainParts.contains(new MplCommand('/this is the other process'))
+    other.chainParts.contains(new MplCommand('/this is the other process', source()))
   }
 
   @Test
@@ -170,7 +185,7 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.processes.size() == 1
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
   }
 
   @Test
@@ -195,10 +210,10 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
 
     MplProcess other = result.processes.find { it.name == 'other' }
-    other.chainParts.contains(new MplCommand('/this is the other process'))
+    other.chainParts.contains(new MplCommand('/this is the other process', source()))
   }
 
   @Test
@@ -222,7 +237,7 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.processes.size() == 1
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
   }
 
   @Test
@@ -247,10 +262,10 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
 
     MplProcess other = result.processes.find { it.name == 'other' }
-    other.chainParts.contains(new MplCommand('/this is the other process'))
+    other.chainParts.contains(new MplCommand('/this is the other process', source()))
   }
 
   @Test
@@ -272,10 +287,10 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
 
     MplProcess other = result.processes.find { it.name == 'other' }
-    other.chainParts.contains(new MplCommand('/this is the other process'))
+    other.chainParts.contains(new MplCommand('/this is the other process', source()))
   }
 
   @Test
@@ -302,10 +317,10 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
 
     MplProcess other = result.processes.find { it.name == 'other' }
-    other.chainParts.contains(new MplCommand('/this is the other process in the same file'))
+    other.chainParts.contains(new MplCommand('/this is the other process in the same file', source()))
   }
 
   @Test
@@ -333,13 +348,13 @@ class MplCompilerSpec extends MplSpecBase {
     notThrown Exception
     result.processes.size() == 3
     MplProcess p1 = result.processes.find { it.name == 'p1' }
-    p1.chainParts.contains(new MplCommand('/this is the p1 process'))
+    p1.chainParts.contains(new MplCommand('/this is the p1 process', source()))
 
     MplProcess p2 = result.processes.find { it.name == 'p2' }
-    p2.chainParts.contains(new MplCommand('/this is the p2 process'))
+    p2.chainParts.contains(new MplCommand('/this is the p2 process', source()))
 
     MplProcess p3 = result.processes.find { it.name == 'p3' }
-    p3.chainParts.contains(new MplCommand('/this is the p3 process'))
+    p3.chainParts.contains(new MplCommand('/this is the p3 process', source()))
   }
 
   @Test
@@ -368,13 +383,13 @@ class MplCompilerSpec extends MplSpecBase {
     notThrown Exception
     result.processes.size() == 3
     MplProcess p1 = result.processes.find { it.name == 'p1' }
-    p1.chainParts.contains(new MplCommand('/this is the p1 process'))
+    p1.chainParts.contains(new MplCommand('/this is the p1 process', source()))
 
     MplProcess p2 = result.processes.find { it.name == 'p2' }
-    p2.chainParts.contains(new MplCommand('/this is the p2 process'))
+    p2.chainParts.contains(new MplCommand('/this is the p2 process', source()))
 
     MplProcess p3 = result.processes.find { it.name == 'p3' }
-    p3.chainParts.contains(new MplCommand('/this is the p3 process'))
+    p3.chainParts.contains(new MplCommand('/this is the p3 process', source()))
   }
 
   @Test
@@ -408,10 +423,10 @@ class MplCompilerSpec extends MplSpecBase {
     result.processes.size() == 2
 
     MplProcess main = result.processes.find { it.name == id2 }
-    main.chainParts.contains(new MplCommand("/this is the ${id2} process"))
+    main.chainParts.contains(new MplCommand("/this is the ${id2} process", source()))
 
     MplProcess other = result.processes.find { it.name == id3 }
-    other.chainParts.contains(new MplCommand("/this is the ${id3} process"))
+    other.chainParts.contains(new MplCommand("/this is the ${id3} process", source()))
   }
 
   @Test
@@ -488,7 +503,7 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     project ${id1} {
-    orientation "zyx"
+      orientation "zyx"
     }
     """
     when:
@@ -543,7 +558,7 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.processes.size() == 1
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
   }
 
   @Test
@@ -602,10 +617,10 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
 
     MplProcess other = result.processes.find { it.name == 'other' }
-    other.chainParts.contains(new MplCommand('/this is the other process'))
+    other.chainParts.contains(new MplCommand('/this is the other process', source()))
   }
 
   @Test
@@ -657,8 +672,8 @@ class MplCompilerSpec extends MplSpecBase {
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
-    result.install.chainParts.isEmpty()
-    result.uninstall.chainParts.isEmpty()
+    result.install == null
+    result.uninstall == null
   }
 
   @Test
@@ -674,7 +689,7 @@ class MplCompilerSpec extends MplSpecBase {
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.install.chainParts.size() == 1
-    result.uninstall.chainParts.isEmpty()
+    result.uninstall == null
     result.processes.size() == 1
     result.processes[0].chainParts.isEmpty()
   }
@@ -691,7 +706,7 @@ class MplCompilerSpec extends MplSpecBase {
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
-    result.install.chainParts.isEmpty()
+    result.install == null
     result.uninstall.chainParts.size() == 1
     result.processes.size() == 1
     result.processes[0].chainParts.isEmpty()
@@ -787,9 +802,36 @@ class MplCompilerSpec extends MplSpecBase {
     notThrown Exception
 
     List<ChainPart> install = result.install.chainParts
-    install[0] == new MplCommand("/say main install")
-    install[1] == new MplCommand("/say install 1")
-    install[2] == new MplCommand("/say install 2")
+    install[0] == new MplCommand("/say main install", source())
+    install[1] == new MplCommand("/say install 1", source())
+    install[2] == new MplCommand("/say install 2", source())
     install.size() == 3
+  }
+
+  @Test
+  @Unroll("#action an inline process results in a compiler exception")
+  public void "referencing an inline process results in a compiler exception"(String action) {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      ${action} other
+    }
+    inline process other {}
+    """
+    when:
+    compile(programFile)
+
+    then:
+    CompilationFailedException ex = thrown()
+    ex.exceptions.get(programFile)[0].message == "Cannot ${action} an inline process"
+    ex.exceptions.get(programFile)[0].source.file == programFile
+    ex.exceptions.get(programFile)[0].source.token.text == 'other'
+    ex.exceptions.get(programFile)[0].source.token.line == 3
+    ex.exceptions.size() == 1
+
+    where:
+    action << ['start', 'stop', 'waitfor', 'intercept']
   }
 }

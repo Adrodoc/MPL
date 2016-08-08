@@ -208,6 +208,9 @@ public abstract class MplAstVisitorTest {
     // given:
     MplCall mplCall = some($MplCall()//
         .withConditional(UNCONDITIONAL));
+    underTest.program = some($MplProgram().withProcesses(listOf(//
+        some($MplProcess().withName(mplCall.getProcess()))//
+    )));
 
     // when:
     mplCall.accept(underTest);
@@ -233,6 +236,9 @@ public abstract class MplAstVisitorTest {
     // given:
     MplCall mplCall = some($MplCall()//
         .withConditional(CONDITIONAL));
+    underTest.program = some($MplProgram().withProcesses(listOf(//
+        some($MplProcess().withName(mplCall.getProcess()))//
+    )));
 
     // when:
     mplCall.accept(underTest);
@@ -269,6 +275,9 @@ public abstract class MplAstVisitorTest {
             return modeForInverting;
           }
         }));
+    underTest.program = some($MplProgram().withProcesses(listOf(//
+        some($MplProcess().withName(mplCall.getProcess()))//
+    )));
 
     // when:
     mplCall.accept(underTest);
