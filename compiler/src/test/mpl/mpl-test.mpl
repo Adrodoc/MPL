@@ -454,7 +454,58 @@ remote process test_nested_continue_with_label {
   invert: start fail
 }
 
+#Test
+remote process test_calling_a_remote_process_takes_two_ticks {
+  // given:
+  /scoreboard players set MplTest MplTest 0
+  /scoreboard players set Tick MplTest 0
+  start tick_counter
+
+  // when:
+  add_one_to_MplTest_remote()
+
+  // then:
+  stop tick_counter
+  /scoreboard players test MplTest MplTest 1 1
+  conditional: /scoreboard players test Tick MplTest 2 2
+  conditional: start continue_tests
+  invert: start fail
+}
+
+#Test
+remote process test_calling_an_inline_process_is_instantanious {
+  // given:
+  /scoreboard players set MplTest MplTest 0
+  /scoreboard players set Tick MplTest 0
+  start tick_counter
+
+  // when:
+  add_one_to_MplTest_inline()
+
+  // then:
+  stop tick_counter
+  /scoreboard players test MplTest MplTest 1 1
+  conditional: /scoreboard players test Tick MplTest 0 0
+  conditional: start continue_tests
+  invert: start fail
+}
+
+
+
 // Utility Prozesse
+
+remote repeat process tick_counter {
+  /scoreboard players add Tick MplTest 1
+}
+
+remote process add_one_to_MplTest_remote {
+  /scoreboard players add MplTest MplTest 1
+  notify
+}
+
+inline process add_one_to_MplTest_inline {
+  /scoreboard players add MplTest MplTest 1
+}
 
 remote process setting_MplTest_to_5_and_calling_add_one_to_MplTest {
   // 1 tick delay
