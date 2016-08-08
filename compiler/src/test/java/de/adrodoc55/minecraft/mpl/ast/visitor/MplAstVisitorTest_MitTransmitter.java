@@ -108,68 +108,6 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
 
   // @formatter:off
   // ----------------------------------------------------------------------------------------------------
-  //    ___                          _
-  //   |_ _| _ __ __   __ ___  _ __ | |_
-  //    | | | '_ \\ \ / // _ \| '__|| __|
-  //    | | | | | |\ V /|  __/| |   | |_
-  //   |___||_| |_| \_/  \___||_|    \__|
-  //
-  // ----------------------------------------------------------------------------------------------------
-  // @formatter:on
-
-  @Test
-  public void test_invert_modifier_referenziert_den_richtigen_mode() {
-    // given:
-    MplCommand first = some($MplCommand()//
-        .withConditional(UNCONDITIONAL));
-
-    MplCommand second = some($MplCommand()//
-        .withConditional(INVERT)//
-        .withPrevious(first));
-
-    MplProcess process = some($MplProcess()//
-        .withRepeating(false)//
-        .withChainParts(listOf(first, second)));
-
-    // when:
-    process.accept(underTest);
-
-    // then:
-    assertThat(underTest.commands).containsExactly(//
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE), //
-        new Command(first.getCommand(), first), //
-        new InvertingCommand(first.getMode()), // Important line!
-        new Command(second.getCommand(), second));
-  }
-
-  @Test
-  public void test_Der_erste_invert_in_einem_repeating_process_referenziert_einen_repeating_command_block() {
-    // given:
-    MplCommand first = some($MplCommand()//
-        .withConditional(UNCONDITIONAL));
-
-    MplCommand second = some($MplCommand()//
-        .withConditional(INVERT)//
-        .withPrevious(first));
-
-    MplProcess process = some($MplProcess()//
-        .withRepeating(true)//
-        .withChainParts(listOf(first, second)));
-
-    // when:
-    process.accept(underTest);
-
-    // then:
-    assertThat(underTest.commands).containsExactly(//
-        new MplSkip(), //
-        new Command(first.getCommand(), REPEAT, false, true), //
-        new InvertingCommand(REPEAT), // Important line!
-        new Command(second.getCommand(), second));
-  }
-
-  // @formatter:off
-  // ----------------------------------------------------------------------------------------------------
   //    ____
   //   |  _ \  _ __  ___    ___  ___  ___  ___
   //   | |_) || '__|/ _ \  / __|/ _ \/ __|/ __|

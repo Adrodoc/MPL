@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 
 /**
@@ -47,13 +48,13 @@ import de.adrodoc55.minecraft.mpl.commands.Mode;
 public class InvertingCommand extends ReferencingTestforSuccessCommand {
 
   /**
-   * Constructs a Command, wich's success is always the opposite of the given command, if the
-   * constructed command is placed directly after the given command.
+   * Constructs a Command, wich's success is always the opposite of the given {@link Dependable}, if
+   * the constructed command is placed directly after the given command.
    *
-   * @param previous the {@link Command} to invert
+   * @param previous the {@link Dependable} to invert
    */
-  public InvertingCommand(Command previous) {
-    this(previous.getMode());
+  public InvertingCommand(Dependable previous) {
+    this(previous.getModeForInverting());
   }
 
   /**

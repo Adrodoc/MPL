@@ -61,15 +61,17 @@ import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStart;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStop;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWaitfor;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWhile;
+import static de.adrodoc55.minecraft.mpl.MplTestUtils.chainTogether;
 import static de.adrodoc55.minecraft.mpl.MplTestUtils.findByName;
+import static de.adrodoc55.minecraft.mpl.MplTestUtils.mapToCommands;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
-import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
+import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -135,6 +137,51 @@ public abstract class MplAstVisitorTest {
   // @formatter:on
 
   @Test
+  public void test_an_repeat_process_with_chainparts_results_in_a_chain_with_chainlinks()
+      throws Exception {
+    // given:
+    List<MplCommand> mplCommands = listOf(several(), $MplCommand());
+    mplCommands.addAll(0, some($listOf(2, $MplCommand().withConditional(UNCONDITIONAL))));
+    chainTogether(mplCommands);
+    MplProcess process = some($MplProcess()//
+        .withRepeating(true)//
+        .withChainParts(mplCommands));
+
+    // when:
+    process.accept(underTest);
+
+    // then:
+    List<ChainLink> commands = mapToCommands(mplCommands);
+    ((Command) commands.get(0)).setMode(REPEAT);
+    ((Command) commands.get(0)).setNeedsRedstone(true);
+    if (underTest.options.hasOption(TRANSMITTER)) {
+      commands.add(0, new MplSkip());
+    }
+    assertThat(underTest.chains).hasSize(1);
+    assertThat(underTest.chains.get(0).getCommands()).containsExactlyElementsOf(commands);
+  }
+
+  @Test
+  public void test_an_impulse_process_always_ends_with_notify() throws Exception {
+    // given:
+    List<MplCommand> mplCommands = chainTogether(listOf(several(), $MplCommand()));
+    MplProcess process = some($MplProcess()//
+        .withRepeating(false)//
+        .withChainParts(mplCommands));
+
+    // when:
+    process.accept(underTest);
+
+    // then:
+    assertThat(underTest.chains).hasSize(1);
+    assertThat(underTest.chains.get(0).getCommands()).endsWith(//
+        new InternalCommand(
+            "/execute @e[name=" + process.getName() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~")), //
+        new InternalCommand("/kill @e[name=" + process.getName() + NOTIFY + "]")//
+    );
+  }
+
+  @Test
   public void test_a_process_with_tags_results_in_a_chain_with_tags() throws Exception {
     // given:
     List<String> tags = some($listOf(several(), $String()));
@@ -162,6 +209,65 @@ public abstract class MplAstVisitorTest {
 
   // @formatter:off
   // ----------------------------------------------------------------------------------------------------
+  //    ___                          _
+  //   |_ _| _ __ __   __ ___  _ __ | |_
+  //    | | | '_ \\ \ / // _ \| '__|| __|
+  //    | | | | | |\ V /|  __/| |   | |_
+  //   |___||_| |_| \_/  \___||_|    \__|
+  //
+  // ----------------------------------------------------------------------------------------------------
+  // @formatter:on
+
+  @Test
+  public void test_invert_modifier_referenziert_den_richtigen_mode() {
+    // given:
+    MplCommand first = some($MplCommand()//
+        .withConditional(UNCONDITIONAL));
+
+    MplCommand second = some($MplCommand()//
+        .withConditional(INVERT)//
+        .withPrevious(first));
+
+    MplProcess process = some($MplProcess()//
+        .withRepeating(false)//
+        .withChainParts(listOf(first, second)));
+
+    // when:
+    process.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsSequence(//
+        new Command(first.getCommand(), first), //
+        new InvertingCommand(first.getMode()), // Important line!
+        new Command(second.getCommand(), second));
+  }
+
+  @Test
+  public void test_Der_erste_invert_in_einem_repeating_process_referenziert_einen_repeating_command_block() {
+    // given:
+    MplCommand first = some($MplCommand()//
+        .withConditional(UNCONDITIONAL));
+
+    MplCommand second = some($MplCommand()//
+        .withConditional(INVERT)//
+        .withPrevious(first));
+
+    MplProcess process = some($MplProcess()//
+        .withRepeating(true)//
+        .withChainParts(listOf(first, second)));
+
+    // when:
+    process.accept(underTest);
+
+    // then:
+    assertThat(underTest.commands).containsSequence(//
+        new Command(first.getCommand(), REPEAT, false, true), //
+        new InvertingCommand(REPEAT), // Important line!
+        new Command(second.getCommand(), second));
+  }
+
+  // @formatter:off
+  // ----------------------------------------------------------------------------------------------------
   //     ____        _  _
   //    / ___| __ _ | || |
   //   | |    / _` || || |
@@ -174,11 +280,9 @@ public abstract class MplAstVisitorTest {
   @Test
   public void test_calling_an_inline_process_will_inline_all_ChainParts() {
     // given:
-    List<MplCommand> mplCommands = listOf(several(), $MplCommand().withConditional(UNCONDITIONAL));
-    MplProcess other = some($MplProcess()//
-        .withType(REMOTE)//
-        .withRepeating(false)//
-        .withChainParts(mplCommands));
+    List<MplCommand> mplCommands = listOf(several(), $MplCommand());
+    mplCommands.add(0, some($MplCommand().withConditional(UNCONDITIONAL)));
+    chainTogether(mplCommands);
     MplProcess inline = some($MplProcess()//
         .withType(INLINE)//
         .withRepeating(false)//
@@ -192,15 +296,15 @@ public abstract class MplAstVisitorTest {
                 .withConditional(UNCONDITIONAL)//
                 .withNeedsRedstone(false))//
     )));
-    MplProgram program = some($MplProgram().withProcesses(listOf(main, inline, other)));
+    MplProgram program = some($MplProgram().withProcesses(listOf(main, inline)));
 
     // when:
     program.accept(underTest);
 
     // then:
     CommandChain mainChain = findByName(main.getName(), underTest.chains);
-    CommandChain otherChain = findByName(other.getName(), underTest.chains);
-    assertThat(mainChain.getCommands()).containsExactlyElementsOf(otherChain.getCommands());
+    assertThat(mainChain.getCommands())
+        .containsSequence(mapToCommands(mplCommands).toArray(new ChainLink[0]));
   }
 
   @Test
@@ -324,7 +428,8 @@ public abstract class MplAstVisitorTest {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(
             "/execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"), mode, false,
-            needsRedstone));
+            needsRedstone)//
+    );
   }
 
   @Test
@@ -373,7 +478,8 @@ public abstract class MplAstVisitorTest {
         new InvertingCommand(modeForInverting), //
         new InternalCommand(
             "/execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"), mode, true,
-            needsRedstone));
+            needsRedstone)//
+    );
   }
 
   // @formatter:off
@@ -402,7 +508,8 @@ public abstract class MplAstVisitorTest {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(
             "/execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"), mode, false,
-            needsRedstone));
+            needsRedstone)//
+    );
   }
 
   @Test
@@ -420,7 +527,8 @@ public abstract class MplAstVisitorTest {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand(
             "/execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"), mode, true,
-            needsRedstone));
+            needsRedstone)//
+    );
   }
 
   @Test
@@ -451,7 +559,8 @@ public abstract class MplAstVisitorTest {
         new InvertingCommand(modeForInvering),
         new InternalCommand(
             "/execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"), mode, true,
-            needsRedstone));
+            needsRedstone)//
+    );
   }
 
   // @formatter:off
@@ -478,7 +587,8 @@ public abstract class MplAstVisitorTest {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand("/execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ "
             + getOnCommand("~ ~ ~")), //
-        new InternalCommand("/kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]"));
+        new InternalCommand("/kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]")//
+    );
   }
 
   @Test
@@ -494,7 +604,8 @@ public abstract class MplAstVisitorTest {
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand("/execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ "
             + getOnCommand("~ ~ ~"), true), //
-        new InternalCommand("/kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]", true));
+        new InternalCommand("/kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]", true)//
+    );
   }
 
   @Test
@@ -523,7 +634,8 @@ public abstract class MplAstVisitorTest {
         new InvertingCommand(mode), //
         new InternalCommand("/execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ "
             + getOnCommand("~ ~ ~"), true), //
-        new InternalCommand("/kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]", true));
+        new InternalCommand("/kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]", true)//
+    );
   }
 
   // @formatter:off
@@ -616,7 +728,7 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InvertingCommand(mode),
-        new InternalCommand(mplIf.getCondition(), mplIf.getMode(), true, mplIf.getNeedsRedstone()) //
+        new InternalCommand(mplIf.getCondition(), mplIf.getMode(), true, mplIf.getNeedsRedstone())//
     );
   }
 

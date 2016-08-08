@@ -183,7 +183,7 @@ public class MplTestBase extends TestBase {
 
   public static MplProcessBuilder $MplProcess() {
     return new MplProcessBuilder()//
-        .withName($String())//
+        .withName($Identifier())//
         .withRepeating($boolean())//
         .withTags(new ArrayList<>())//
         .withType(REMOTE)//

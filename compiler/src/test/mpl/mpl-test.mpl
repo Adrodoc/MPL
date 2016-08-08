@@ -498,7 +498,6 @@ remote repeat process tick_counter {
 
 remote process add_one_to_MplTest_remote {
   /scoreboard players add MplTest MplTest 1
-  notify add_one_to_MplTest_remote
 }
 
 inline process add_one_to_MplTest_inline {
@@ -522,13 +521,11 @@ remote process add_one_to_MplTest {
   impulse: /setblock ${this-1} stone
   // 1 tick delay end
   /scoreboard players add MplTest MplTest 1
-  notify add_one_to_MplTest
 }
 
 remote impulse process impulse_process {
   /say impulse process
   /scoreboard players set MplTest MplTest 4
-  notify impulse_process
 }
 
 remote repeat process repeat_process {

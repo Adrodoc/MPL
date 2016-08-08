@@ -282,7 +282,8 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     List<ChainPart> chainParts = new CopyScope().copy(process.getChainParts());
     commands = new ArrayList<>(chainParts.size());
     boolean containsSkip = containsHighlevelSkip(chainParts);
-    if (process.getName() != null) {
+    String name = process.getName();
+    if (name != null) {
       if (process.isRepeating()) {
         if (options.hasOption(TRANSMITTER)) {
           commands.add(new MplSkip());
@@ -313,7 +314,11 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     if (process.isRepeating() && containsSkip) {
       addRestartBackref(commands.get(0), false);
     }
-    chains.add(new CommandChain(process.getName(), commands, process.getTags()));
+    if (!process.isRepeating() && name != null && !"install".equals(name)
+        && !"uninstall".equals(name)) {
+      new MplNotify(name, process.getSource()).accept(this);
+    }
+    chains.add(new CommandChain(name, commands, process.getTags()));
   }
 
   private boolean containsHighlevelSkip(List<ChainPart> chainParts) {
@@ -346,8 +351,8 @@ public class MplAstVisitorImpl implements MplAstVisitor {
    * does, an {@link InvertingCommand} is added to {@link #commands}. If {@code chainPart} does not
    * have predecessor an {@link IllegalStateException} is thrown.
    *
-   * @param chainPart if {@code chainPart} does not have predecessor
-   * @throws IllegalStateException
+   * @param chainPart the {@link ModifiableChainPart} to check
+   * @throws IllegalStateException if {@code chainPart} does not have predecessor
    * @see ModifiableChainPart#getPrevious()
    */
   protected void visitPossibleInvert(ModifiableChainPart chainPart) throws IllegalStateException {
@@ -355,7 +360,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       Dependable previous = chainPart.getPrevious();
       checkState(previous != null,
           "Cannot invert ChainPart; no previous command found for " + chainPart);
-      commands.add(new InvertingCommand(previous.getModeForInverting()));
+      commands.add(new InvertingCommand(previous));
     }
   }
 
