@@ -415,6 +415,12 @@ public class MplInterpreter extends MplBaseListener {
     if (ctx.REMOTE() != null) {
       type = REMOTE;
     }
+    if (type == INLINE && repeat) {
+      addException(new CompilerException(toSource(ctx.REPEAT().getSymbol()),
+          "Illegal combination of modifiers for the process " + name
+              + "; only one of inline, or repeat is permitted"));
+      repeat = false;
+    }
     Collection<String> tags = new ArrayList<>(ctx.TAG().size());
     for (TerminalNode tag : ctx.TAG()) {
       tags.add(MplLexerUtils.getTagString(tag.getSymbol()));

@@ -282,38 +282,6 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
-  public void "A process may be impulse or repeat"() {
-    given:
-    String id1 = some($Identifier())
-    String id2 = some($Identifier())
-    String id3 = some($Identifier())
-    String programString = """
-    process ${id1} {}
-
-    impulse process ${id2} {}
-
-    repeat process ${id3} {}
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-    then:
-    MplProgram program = interpreter.program
-    lastContext.exceptions.isEmpty()
-
-    Collection<MplProcess> processes = program.processes
-    processes.size() == 3
-
-    MplProcess process1 = processes.find { it.name == id1 }
-    process1.repeating == false
-
-    MplProcess process2 = processes.find { it.name == id2 }
-    process2.repeating == false
-
-    MplProcess process3 = processes.find { it.name == id3 }
-    process3.repeating == true
-  }
-
-  @Test
   public void "A process may be inline or remote"() {
     given:
     String id1 = some($Identifier())
@@ -343,6 +311,55 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     MplProcess process3 = processes.find { it.name == id3 }
     process3.type == REMOTE
+  }
+
+  @Test
+  public void "A remote process may be impulse or repeat"() {
+    given:
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
+    String id3 = some($Identifier())
+    String programString = """
+    remote process ${id1} {}
+
+    remote impulse process ${id2} {}
+
+    remote repeat process ${id3} {}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    lastContext.exceptions.isEmpty()
+
+    Collection<MplProcess> processes = program.processes
+    processes.size() == 3
+
+    MplProcess process1 = processes.find { it.name == id1 }
+    process1.repeating == false
+
+    MplProcess process2 = processes.find { it.name == id2 }
+    process2.repeating == false
+
+    MplProcess process3 = processes.find { it.name == id3 }
+    process3.repeating == true
+  }
+
+  @Test
+  public void "An inline repeat process is not allowed"() {
+    given:
+    String id1 = some($Identifier())
+    String programString = """
+    inline repeat process ${id1} {}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    lastContext.exceptions[0].message == "Illegal combination of modifiers for the process ${id1}; only one of inline, or repeat is permitted"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'repeat'
+    lastContext.exceptions[0].source.token.line == 2
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -861,7 +878,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   public void "leading skip in repeating process"() {
     given:
     String testString = """
-    repeat process main {
+    remote repeat process main {
       skip
     }
     """
@@ -1110,7 +1127,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = some($Identifier())
     String programString = """
-    repeat process ${identifier} {
+    remote repeat process ${identifier} {
       stop
     }
     """
