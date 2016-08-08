@@ -68,11 +68,11 @@ public class CommandChain implements Named {
   }
 
   @GenerateMplPojoBuilder
-  public CommandChain(@Nullable String name, Collection<ChainLink> commands) {
+  public CommandChain(@Nullable String name, Collection<? extends ChainLink> commands) {
     this(name, commands, new ArrayList<>(0));
   }
 
-  public CommandChain(@Nullable String name, Collection<ChainLink> commands,
+  public CommandChain(@Nullable String name, Collection<? extends ChainLink> commands,
       Collection<String> tags) {
     this.name = name;
     setCommands(commands);
@@ -83,7 +83,7 @@ public class CommandChain implements Named {
     return Collections.unmodifiableList(commands);
   }
 
-  public void setCommands(Collection<ChainLink> commands) {
+  public void setCommands(Collection<? extends ChainLink> commands) {
     this.commands.clear();
     this.commands.addAll(commands);
   }

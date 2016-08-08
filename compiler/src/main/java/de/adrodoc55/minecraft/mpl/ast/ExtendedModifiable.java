@@ -39,53 +39,20 @@
  */
 package de.adrodoc55.minecraft.mpl.ast;
 
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreak;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
+import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 
 /**
  * @author Adrodoc55
  */
-public interface MplAstVisitor {
-  void visitProgram(MplProgram program);
+public interface ExtendedModifiable extends Modifiable {
+  Conditional getConditional();
 
-  void visitProcess(MplProcess process);
-
-  void visitCommand(MplCommand command);
-
-  void visitStart(MplStart start);
-
-  void visitStop(MplStop stop);
-
-  void visitWaitfor(MplWaitfor waitfor);
-
-  void visitNotify(MplNotify notify);
-
-  void visitIntercept(MplIntercept intercept);
-
-  void visitBreakpoint(MplBreakpoint breakpoint);
-
-  void visitSkip(MplSkip skip);
-
-  void visitIf(MplIf mplIf);
-
-  ChainContainer getResult();
-
-  void visitWhile(MplWhile mplWhile);
-
-  void visitBreak(MplBreak mplBreak);
-
-  void visitContinue(MplContinue mplContinue);
+  @Override
+  public default Boolean isConditional() {
+    Conditional conditional = getConditional();
+    if (conditional == null) {
+      return null;
+    }
+    return conditional.isConditional();
+  }
 }

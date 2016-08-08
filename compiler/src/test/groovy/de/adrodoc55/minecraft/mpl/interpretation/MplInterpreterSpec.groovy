@@ -358,8 +358,8 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplProgram project = interpreter.project
     project.exceptions.isEmpty()
 
-    ListMultimap<String, Include> includeMap = interpreter.includes
-    List<Include> includes = includeMap.get(name)
+    ListMultimap<String, MplProcessReference> includeMap = interpreter.references
+    List<MplProcessReference> includes = includeMap.get(name)
     includes[0].processName == 'testProcess'
     includes.size() == 1
   }

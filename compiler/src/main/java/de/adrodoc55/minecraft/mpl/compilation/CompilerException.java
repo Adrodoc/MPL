@@ -39,8 +39,12 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.File;
 import java.nio.charset.CharacterCodingException;
+
+import javax.annotation.Nonnull;
 
 import de.adrodoc55.commons.FileUtils;
 
@@ -51,23 +55,23 @@ public class CompilerException extends Exception {
 
   private static final long serialVersionUID = 1L;
 
-  private MplSource source;
+  private @Nonnull MplSource source;
 
-  public CompilerException(MplSource source, String message) {
+  public CompilerException(@Nonnull MplSource source, String message) {
     super(message);
     init(source);
   }
 
-  public CompilerException(MplSource source, String message, Throwable cause) {
+  public CompilerException(@Nonnull MplSource source, String message, Throwable cause) {
     super(message, cause);
     init(source);
   }
 
   private void init(MplSource source) {
-    this.source = source;
+    this.source = checkNotNull(source, "source == null!");
   }
 
-  public MplSource getSource() {
+  public @Nonnull MplSource getSource() {
     return source;
   }
 
@@ -77,13 +81,15 @@ public class CompilerException extends Exception {
     String path = FileUtils.getCanonicalPath(source.file);
     sb.append(path).append(':').append(source.token.getLine()).append(":\n");
     sb.append(this.getLocalizedMessage()).append("\n");
-    sb.append(source.line).append("\n");
     int count = source.token.getCharPositionInLine();
-    sb.append(new String(new char[count]).replace('\0', ' '));
-    sb.append("^");
+    if (count >= 0) {
+      sb.append(source.line).append("\n");
+      sb.append(new String(new char[count]).replace('\0', ' '));
+      sb.append("^\n");
+    }
     Throwable cause = getCause();
     if (cause != null) {
-      sb.append("\npossible cause: ");
+      sb.append("possible cause: ");
       File file = null;
       if (cause instanceof FileException) {
         file = ((FileException) cause).getFile();

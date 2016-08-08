@@ -41,19 +41,23 @@ package de.adrodoc55.minecraft.mpl.interpretation
 
 import static de.adrodoc55.TestBase.some
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$Identifier
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.*
+import static de.adrodoc55.minecraft.mpl.ast.ProcessType.*
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY
-import static de.adrodoc55.minecraft.mpl.commands.Conditional.*
 import static de.adrodoc55.minecraft.mpl.commands.Mode.*
 
+import org.antlr.v4.runtime.CommonToken
 import org.junit.Test
 
 import spock.lang.Unroll
 
-import com.google.common.collect.ListMultimap
+import com.google.common.collect.SetMultimap
 
 import de.adrodoc55.minecraft.mpl.MplSpecBase
+import de.adrodoc55.minecraft.mpl.ast.Conditional
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept
@@ -66,11 +70,16 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram
-import de.adrodoc55.minecraft.mpl.commands.Conditional
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext
+import de.adrodoc55.minecraft.mpl.compilation.MplSource
 
 class MplInterpreterSpec2 extends MplSpecBase {
 
   static List commandOnlyModifier = ['impulse', 'chain', 'repeat', 'always active', 'needs redstone']
+
+  MplSource source() {
+    new MplSource(lastTempFile, new CommonToken(0), "")
+  }
 
   @Test
   public void "Each file can only define one project"() {
@@ -81,20 +90,22 @@ class MplInterpreterSpec2 extends MplSpecBase {
     project ${id1} {}
     project ${id2} {}
     """
+
     when:
     MplInterpreter interpreter = interpret(programString)
+
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "A file can only contain a single project"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'project'
-    program.exceptions[0].source.token.line == 2
-    program.exceptions[1].message == "A file can only contain a single project"
-    program.exceptions[1].source.file == lastTempFile
-    program.exceptions[1].source.token.text == 'project'
-    program.exceptions[1].source.token.line == 3
-    program.exceptions.size() == 2
+    lastContext.exceptions[0].message == "A file can only contain a single project"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'project'
+    lastContext.exceptions[0].source.token.line == 2
+    lastContext.exceptions[1].message == "A file can only contain a single project"
+    lastContext.exceptions[1].source.file == lastTempFile
+    lastContext.exceptions[1].source.token.text == 'project'
+    lastContext.exceptions[1].source.token.line == 3
+    lastContext.exceptions.size() == 2
   }
 
   @Test
@@ -110,7 +121,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
   }
 
   @Test
@@ -128,15 +139,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "A project can only have a single orientation"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'orientation'
-    program.exceptions[0].source.token.line == 3
-    program.exceptions[1].message == "A project can only have a single orientation"
-    program.exceptions[1].source.file == lastTempFile
-    program.exceptions[1].source.token.text == 'orientation'
-    program.exceptions[1].source.token.line == 4
-    program.exceptions.size() == 2
+    lastContext.exceptions[0].message == "A project can only have a single orientation"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'orientation'
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions[1].message == "A project can only have a single orientation"
+    lastContext.exceptions[1].source.file == lastTempFile
+    lastContext.exceptions[1].source.token.text == 'orientation'
+    lastContext.exceptions[1].source.token.line == 4
+    lastContext.exceptions.size() == 2
   }
 
   @Test
@@ -150,15 +161,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions[0].message == "A script can only have a single orientation"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'orientation'
-    program.exceptions[0].source.token.line == 2
-    program.exceptions[1].message == "A script can only have a single orientation"
-    program.exceptions[1].source.file == lastTempFile
-    program.exceptions[1].source.token.text == 'orientation'
-    program.exceptions[1].source.token.line == 3
-    program.exceptions.size() == 2
+    lastContext.exceptions[0].message == "A script can only have a single orientation"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'orientation'
+    lastContext.exceptions[0].source.token.line == 2
+    lastContext.exceptions[1].message == "A script can only have a single orientation"
+    lastContext.exceptions[1].source.file == lastTempFile
+    lastContext.exceptions[1].source.token.text == 'orientation'
+    lastContext.exceptions[1].source.token.line == 3
+    lastContext.exceptions.size() == 2
   }
 
   @Test
@@ -186,14 +197,14 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
-    program.install.chainParts[0] == new MplCommand('/say hi')
-    program.install.chainParts[1] == new MplCommand('/say hi2')
+    program.install.chainParts[0] == new MplCommand('/say hi', source())
+    program.install.chainParts[1] == new MplCommand('/say hi2', source())
     program.install.chainParts.size() == 2
 
-    program.uninstall.chainParts[0] == new MplCommand('/say hi3')
-    program.uninstall.chainParts[1] == new MplCommand('/say hi4')
+    program.uninstall.chainParts[0] == new MplCommand('/say hi3', source())
+    program.uninstall.chainParts[1] == new MplCommand('/say hi4', source())
     program.uninstall.chainParts.size() == 2
   }
 
@@ -225,15 +236,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions[0].message == "Duplicate process ${id}"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == id
-    program.exceptions[0].source.token.line == 2
-    program.exceptions[1].message == "Duplicate process ${id}"
-    program.exceptions[1].source.file == lastTempFile
-    program.exceptions[1].source.token.text == id
-    program.exceptions[1].source.token.line == 6
-    program.exceptions.size() == 2
+    lastContext.exceptions[0].message == "Duplicate process ${id}"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == id
+    lastContext.exceptions[0].source.token.line == 2
+    lastContext.exceptions[1].message == "Duplicate process ${id}"
+    lastContext.exceptions[1].source.file == lastTempFile
+    lastContext.exceptions[1].source.token.text == id
+    lastContext.exceptions[1].source.token.line == 6
+    lastContext.exceptions.size() == 2
   }
 
   @Test
@@ -244,41 +255,111 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String id3 = some($Identifier())
     String programString = """
     process ${id1} {
-    /say I am a default process
+      /say I am the first process
     }
-    impulse process ${id2} {
-    /say I am an impulse process, wich is actually equivalent to the default
-    }
-    repeat process ${id3} {
-    /say I am a repeating process. I am completely different :)
+    process ${id2} {
+      /say I am the second process
     }
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
+
+    Collection<MplProcess> processes = program.processes
+    processes.size() == 2
+
+    MplProcess process1 = processes.find { it.name == id1 }
+    List<ChainPart> chainParts1 = process1.chainParts
+    chainParts1[0] == new MplCommand("/say I am the first process", source())
+    chainParts1.size() == 1
+
+    MplProcess process2 = processes.find { it.name == id2 }
+    List<ChainPart> chainParts2 = process2.chainParts
+    chainParts2[0] == new MplCommand("/say I am the second process", source())
+    chainParts2.size() == 1
+  }
+
+  @Test
+  public void "A process may be inline or remote"() {
+    given:
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
+    String id3 = some($Identifier())
+    String programString = """
+    process ${id1} {}
+
+    inline process ${id2} {}
+
+    remote process ${id3} {}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    lastContext.exceptions.isEmpty()
+
+    Collection<MplProcess> processes = program.processes
+    processes.size() == 3
+
+    MplProcess process1 = processes.find { it.name == id1 }
+    process1.type == INLINE
+
+    MplProcess process2 = processes.find { it.name == id2 }
+    process2.type == INLINE
+
+    MplProcess process3 = processes.find { it.name == id3 }
+    process3.type == REMOTE
+  }
+
+  @Test
+  public void "A remote process may be impulse or repeat"() {
+    given:
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
+    String id3 = some($Identifier())
+    String programString = """
+    remote process ${id1} {}
+
+    remote impulse process ${id2} {}
+
+    remote repeat process ${id3} {}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    lastContext.exceptions.isEmpty()
 
     Collection<MplProcess> processes = program.processes
     processes.size() == 3
 
     MplProcess process1 = processes.find { it.name == id1 }
     process1.repeating == false
-    List<ChainPart> chainParts1 = process1.chainParts
-    chainParts1[0] == new MplCommand("/say I am a default process")
-    chainParts1.size() == 1
 
     MplProcess process2 = processes.find { it.name == id2 }
     process2.repeating == false
-    List<ChainPart> chainParts2 = process2.chainParts
-    chainParts2[0] == new MplCommand("/say I am an impulse process, wich is actually equivalent to the default")
-    chainParts2.size() == 1
 
     MplProcess process3 = processes.find { it.name == id3 }
     process3.repeating == true
-    List<ChainPart> chainParts3 = process3.chainParts
-    chainParts3[0] == new MplCommand("/say I am a repeating process. I am completely different :)")
-    chainParts3.size() == 1
+  }
+
+  @Test
+  public void "An inline repeat process is not allowed"() {
+    given:
+    String id1 = some($Identifier())
+    String programString = """
+    inline repeat process ${id1} {}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    lastContext.exceptions[0].message == "Illegal combination of modifiers for the process ${id1}; only one of inline, or repeat is permitted"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'repeat'
+    lastContext.exceptions[0].source.token.line == 2
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -297,15 +378,35 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
-    process.name
     process.tags[0] == 'Tag1'
     process.tags[1] == 'Test'
     process.tags[2] == 'AnotherTag'
     process.tags.size() == 3
+  }
+
+  public void "a process can be called"() {
+    given:
+    String identifier = some($Identifier())
+    String programString = """
+    process main {
+      other()
+    }
+    process other {}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    lastContext.exceptions.isEmpty()
+
+    program.processes.size() == 2
+    MplProcess process = program.processes.find { it.name == 'main' }
+    process.chainParts[0] == new MplCall('other', source())
+    process.chainParts.size() == 1
   }
 
   // ----------------------------------------------------------------------------------------------------
@@ -318,12 +419,12 @@ class MplInterpreterSpec2 extends MplSpecBase {
   // ----------------------------------------------------------------------------------------------------
 
   @Test
-  void "an interpreter will always include mpl subfiles of it's parent directory, including it's own file"() {
+  void "an interpreter will always import mpl subfiles of it's parent directory, including it's own file"() {
     given:
     File programFile = newTempFile()
     File neighbourFile = new File(programFile.parentFile, 'neighbour.mpl')
     neighbourFile.createNewFile()
-    MplInterpreter interpreter = new MplInterpreter(programFile)
+    MplInterpreter interpreter = new MplInterpreter(programFile, new MplCompilerContext())
 
     expect:
     interpreter.imports.containsAll([programFile, neighbourFile])
@@ -331,12 +432,12 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
-  void "an interpreter will not include non mpl subfiles of it's parent directory by default"() {
+  void "an interpreter will not import non mpl subfiles of it's parent directory by default"() {
     given:
     File programFile = newTempFile()
     File neighbourFile = new File(programFile.parentFile, 'neighbour.txt')
     neighbourFile.createNewFile()
-    MplInterpreter interpreter = new MplInterpreter(programFile)
+    MplInterpreter interpreter = new MplInterpreter(programFile, new MplCompilerContext())
 
     expect:
     interpreter.imports.containsAll([programFile])
@@ -350,7 +451,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     File otherFile = new File(programFile.parentFile, 'folder/other.txt')
     otherFile.parentFile.mkdirs()
     otherFile.createNewFile()
-    MplInterpreter interpreter = new MplInterpreter(programFile)
+    MplInterpreter interpreter = new MplInterpreter(programFile, new MplCompilerContext())
 
     when:
     interpreter.addFileImport(null, otherFile)
@@ -378,21 +479,19 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == 'Duplicate import'
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == '"newFolder/newFile.txt"'
-    program.exceptions[0].source.token.line == 3
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == 'Duplicate import'
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == '"newFolder/newFile.txt"'
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions.size() == 1
   }
 
   @Test
   public void "the same file cannot be included twice"() {
     given:
     String programString = """
-    project main {
-      include "newFolder/newFile.txt"
-      include "newFolder/newFile.txt"
-    }
+    include "newFolder/newFile.txt"
+    include "newFolder/newFile.txt"
     """
     File newFolder = new File(tempFolder.root, "newFolder")
     newFolder.mkdirs()
@@ -405,22 +504,19 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == 'Duplicate include'
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == '"newFolder/newFile.txt"'
-    program.exceptions[0].source.token.line == 4
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == 'Duplicate include'
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == '"newFolder/newFile.txt"'
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions.size() == 1
   }
 
   @Test
-  public void "a project can include files and directories"() {
+  public void "files and directories can be included"() {
     given:
-    String id1 = some($Identifier())
     String programString = """
-    project ${id1} {
-      include "datei1.mpl"
-      include "ordner2"
-    }
+    include "datei1.mpl"
+    include "ordner2"
     """
     File folder = tempFolder.root
     new File(folder, 'datei1.mpl').createNewFile()
@@ -433,20 +529,44 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     File parent = lastTempFile.parentFile
 
-    ListMultimap<String, Include> includeMap = interpreter.includes
-    includeMap.size() == 2
-    List<Include> includes = includeMap.get(null); // null indicates that the whole file should be included
-    includes[0].files.containsAll([new File(parent, "datei1.mpl")])
-    includes[0].files.size() == 1
-    includes[0].processName == null
-    includes[1].files.containsAll([new File(parent, "ordner2/datei4.mpl")])
-    includes[1].files.size() == 1
-    includes[1].processName == null
-    includes.size() == 2
+    lastContext.toInclude[0].processName == null
+    lastContext.toInclude[0].file == new File(parent, "datei1.mpl")
+    lastContext.toInclude[0].source.file == lastTempFile
+    lastContext.toInclude[1].processName == null
+    lastContext.toInclude[1].file == new File(parent, "ordner2/datei4.mpl")
+    lastContext.toInclude[1].source.file == lastTempFile
+    lastContext.toInclude.size() == 2
+  }
+
+  @Test
+  public void "calling a foreign process creates a reference"() {
+    given:
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
+    String programString = """
+    process ${id1} {
+      ${id2}()
+    }
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    MplProgram program = interpreter.program
+    lastContext.exceptions.isEmpty()
+
+    SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
+    referenceMap.size() == 1
+    Set<MplProcessReference> references = referenceMap.get(id1);
+    references[0].imports.containsAll([lastTempFile])
+    references[0].imports.size() == 1
+    references[0].processName == id2
+    references.size() == 1
   }
 
   @Test
@@ -465,15 +585,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
-    ListMultimap<String, Include> includeMap = interpreter.includes
-    includeMap.size() == 1
-    List<Include> includes = includeMap.get(id1);
-    includes[0].files.containsAll([lastTempFile])
-    includes[0].files.size() == 1
-    includes[0].processName == id2
-    includes.size() == 1
+    SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
+    referenceMap.size() == 1
+    Set<MplProcessReference> references = referenceMap.get(id1);
+    references[0].imports.containsAll([lastTempFile])
+    references[0].imports.size() == 1
+    references[0].processName == id2
+    references.size() == 1
   }
 
   @Test
@@ -492,10 +612,10 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
-    ListMultimap<String, Include> includeMap = interpreter.includes
-    includeMap.isEmpty()
+    SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
+    referenceMap.isEmpty()
   }
 
   @Test
@@ -508,9 +628,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
-    interpreter.includes.isEmpty()
+    interpreter.references.isEmpty()
   }
 
   @Test
@@ -535,15 +655,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
-    ListMultimap<String, Include> includeMap = interpreter.includes
-    includeMap.size() == 1
-    List<Include> includes = includeMap.get(id1);
-    includes[0].files.containsAll([lastTempFile, newFile])
-    includes[0].files.size() == 2
-    includes[0].processName == id2
-    includes.size() == 1
+    SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
+    referenceMap.size() == 1
+    Set<MplProcessReference> references = referenceMap.get(id1);
+    references[0].imports.containsAll([lastTempFile, newFile])
+    references[0].imports.size() == 2
+    references[0].processName == id2
+    references.size() == 1
   }
   @Test
   public void "the subfiles of imported directories are used for implicit includes"() {
@@ -568,15 +688,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
-    ListMultimap<String, Include> includeMap = interpreter.includes
-    includeMap.size() == 1
-    List<Include> includes = includeMap.get(id1);
-    includes[0].files.containsAll([lastTempFile, newFile])
-    includes[0].files.size() == 2
-    includes[0].processName == id2
-    includes.size() == 1
+    SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
+    referenceMap.size() == 1
+    Set<MplProcessReference> references = referenceMap.get(id1);
+    references[0].imports.containsAll([lastTempFile, newFile])
+    references[0].imports.size() == 2
+    references[0].processName == id2
+    references.size() == 1
   }
 
   /**
@@ -604,15 +724,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
-    ListMultimap<String, Include> includeMap = interpreter.includes
-    includeMap.size() == 1
-    List<Include> includes = includeMap.get(id1);
-    includes[0].files.containsAll([lastTempFile])
-    includes[0].files.size() == 1
-    includes[0].processName == id2
-    includes.size() == 1
+    SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
+    referenceMap.size() == 1
+    Set<MplProcessReference> references = referenceMap.get(id1);
+    references[0].imports.containsAll([lastTempFile])
+    references[0].imports.size() == 1
+    references[0].processName == id2
+    references.size() == 1
   }
 
   /**
@@ -640,15 +760,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
-    ListMultimap<String, Include> includeMap = interpreter.includes
-    includeMap.size() == 1
-    List<Include> includes = includeMap.get(id2);
-    includes[0].files.containsAll([lastTempFile])
-    includes[0].files.size() == 1
-    includes[0].processName == id1
-    includes.size() == 1
+    SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
+    referenceMap.size() == 1
+    Set<MplProcessReference> references = referenceMap.get(id2);
+    references[0].imports.containsAll([lastTempFile])
+    references[0].imports.size() == 1
+    references[0].processName == id1
+    references.size() == 1
   }
 
   // ----------------------------------------------------------------------------------------------------
@@ -673,11 +793,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "The first part of a chain must be unconditional"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == conditional
-    program.exceptions[0].source.token.line == 2
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "The first part of a chain must be unconditional"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == conditional
+    lastContext.exceptions[0].source.token.line == 2
+    lastContext.exceptions.size() == 1
 
     where:
     [conditional, command]<< [['conditional', 'invert'], ['start', 'stop', 'waitfor', 'intercept']].combinations()*.flatten()
@@ -698,11 +818,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "The first part of a chain must be unconditional"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == conditional
-    program.exceptions[0].source.token.line == 3
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "The first part of a chain must be unconditional"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == conditional
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions.size() == 1
 
     where:
     [conditional, command]<< [['conditional', 'invert'], ['start', 'stop', 'waitfor', 'intercept']].combinations()*.flatten()
@@ -720,22 +840,22 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "The first part of a chain must be unconditional"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == conditional
-    program.exceptions[0].source.token.line == 2
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "The first part of a chain must be unconditional"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == conditional
+    lastContext.exceptions[0].source.token.line == 2
+    lastContext.exceptions.size() == 1
 
     where:
     [conditional, command]<< [['conditional', 'invert'], ['breakpoint']].combinations()*.flatten()
   }
 
   @Test
-  @Unroll("leading #conditional #command without identifier in process")
-  public void "leading conditional/invert without identifier in process"(String conditional, String command) {
+  @Unroll("leading #conditional #command without identifier in remote process")
+  public void "leading conditional/invert without identifier in remote process"(String conditional, String command) {
     given:
     String programString = """
-    process main {
+    remote process main {
       ${conditional}: ${command}
     }
     """
@@ -744,11 +864,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "The first part of a chain must be unconditional"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == conditional
-    program.exceptions[0].source.token.line == 3
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "The first part of a chain must be unconditional"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == conditional
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions.size() == 1
 
     where:
     [conditional, command]<< [['conditional', 'invert'], ['notify', 'breakpoint']].combinations()*.flatten()
@@ -758,7 +878,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   public void "leading skip in repeating process"() {
     given:
     String testString = """
-    repeat process main {
+    remote repeat process main {
       skip
     }
     """
@@ -767,11 +887,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "skip cannot be the first command of a repeating process"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'skip'
-    program.exceptions[0].source.token.line == 3
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "skip cannot be the first command of a repeating process"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'skip'
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -786,11 +906,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "conditional cannot depend on skip"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'conditional'
-    program.exceptions[0].source.token.line == 3
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "conditional cannot depend on skip"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'conditional'
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -805,11 +925,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "invert cannot depend on skip"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'invert'
-    program.exceptions[0].source.token.line == 3
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "invert cannot depend on skip"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'invert'
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions.size() == 1
   }
 
   // ----------------------------------------------------------------------------------------------------
@@ -834,7 +954,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
@@ -846,8 +966,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
       previous = process.chainParts[0]
     }
 
-    process.chainParts[0] == new MplCommand('/say hi')
-    process.chainParts[1] == new MplStart("@e[name=${identifier}]", modifierBuffer, previous)
+    process.chainParts[0] == new MplCommand('/say hi', source())
+    process.chainParts[1] == new MplStart("@e[name=${identifier}]", modifierBuffer, previous, source())
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -870,11 +990,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "Illegal modifier for start; only unconditional, conditional and invert are permitted"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == modifier
-    program.exceptions[0].source.token.line == 2
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "Illegal modifier for start; only unconditional, conditional and invert are permitted"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == modifier
+    lastContext.exceptions[0].source.token.line == 2
+    lastContext.exceptions.size() == 1
 
     where:
     modifier << commandOnlyModifier
@@ -893,7 +1013,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
@@ -905,8 +1025,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
       previous = process.chainParts[0]
     }
 
-    process.chainParts[0] == new MplCommand('/say hi')
-    process.chainParts[1] == new MplStart("@e[name=${identifier}]", modifierBuffer, previous)
+    process.chainParts[0] == new MplCommand('/say hi', source())
+    process.chainParts[1] == new MplStart("@e[name=${identifier}]", modifierBuffer, previous, source())
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -929,11 +1049,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "Illegal modifier for start; only unconditional, conditional and invert are permitted"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == modifier
-    program.exceptions[0].source.token.line == 2
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "Illegal modifier for start; only unconditional, conditional and invert are permitted"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == modifier
+    lastContext.exceptions[0].source.token.line == 2
+    lastContext.exceptions.size() == 1
 
     where:
     modifier << commandOnlyModifier
@@ -961,7 +1081,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
@@ -973,8 +1093,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
       previous = process.chainParts[0]
     }
 
-    process.chainParts[0] == new MplCommand('/say hi')
-    process.chainParts[1] == new MplStop("@e[name=${identifier}]", modifierBuffer, previous)
+    process.chainParts[0] == new MplCommand('/say hi', source())
+    process.chainParts[1] == new MplStop("@e[name=${identifier}]", modifierBuffer, previous, source())
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -995,11 +1115,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "Missing identifier"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'stop'
-    program.exceptions[0].source.token.line == 2
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "Missing identifier"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'stop'
+    lastContext.exceptions[0].source.token.line == 2
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -1007,7 +1127,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = some($Identifier())
     String programString = """
-    repeat process ${identifier} {
+    remote repeat process ${identifier} {
       stop
     }
     """
@@ -1015,11 +1135,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplStop("@e[name=${identifier}]")
+    process.chainParts[0] == new MplStop("@e[name=${identifier}]", source())
     process.chainParts.size() == 1
   }
 
@@ -1036,11 +1156,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "An impulse process cannot be stopped"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'stop'
-    program.exceptions[0].source.token.line == 3
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "An impulse process cannot be stopped"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'stop'
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -1058,11 +1178,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "Illegal modifier for stop; only unconditional, conditional and invert are permitted"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == modifier
-    program.exceptions[0].source.token.line == 3
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "Illegal modifier for stop; only unconditional, conditional and invert are permitted"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == modifier
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions.size() == 1
 
     where:
     modifier << commandOnlyModifier
@@ -1081,7 +1201,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
@@ -1093,8 +1213,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
       previous = process.chainParts[0]
     }
 
-    process.chainParts[0] == new MplCommand('/say hi')
-    process.chainParts[1] == new MplStop("@e[name=${identifier}]", modifierBuffer, previous)
+    process.chainParts[0] == new MplCommand('/say hi', source())
+    process.chainParts[1] == new MplStop("@e[name=${identifier}]", modifierBuffer, previous, source())
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -1119,11 +1239,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "Illegal modifier for stop; only unconditional, conditional and invert are permitted"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == modifier
-    program.exceptions[0].source.token.line == 3
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "Illegal modifier for stop; only unconditional, conditional and invert are permitted"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == modifier
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions.size() == 1
 
     where:
     modifier << commandOnlyModifier
@@ -1151,7 +1271,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
@@ -1163,8 +1283,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
       previous = process.chainParts[0]
     }
 
-    process.chainParts[0] == new MplCommand('/say hi')
-    process.chainParts[1] == new MplWaitfor(identifier, modifierBuffer, previous)
+    process.chainParts[0] == new MplCommand('/say hi', source())
+    process.chainParts[1] == new MplWaitfor(identifier, modifierBuffer, previous, source())
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -1185,12 +1305,12 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplWaitfor(identifier + NOTIFY);
+    process.chainParts[0] == new MplWaitfor(identifier + NOTIFY, source());
     process.chainParts.size() == 1
   }
 
@@ -1206,13 +1326,13 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplStart("@e[name=${identifier}]")
-    process.chainParts[1] == new MplWaitfor(identifier + NOTIFY);
+    process.chainParts[0] == new MplStart("@e[name=${identifier}]", source())
+    process.chainParts[1] == new MplWaitfor(identifier + NOTIFY, source());
     process.chainParts.size() == 2
   }
 
@@ -1227,11 +1347,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "Missing identifier; no previous start was found to wait for"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'waitfor'
-    program.exceptions[0].source.token.line == 2
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "Missing identifier; no previous start was found to wait for"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'waitfor'
+    lastContext.exceptions[0].source.token.line == 2
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -1247,11 +1367,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "Illegal modifier for waitfor; only unconditional, conditional and invert are permitted"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == modifier
-    program.exceptions[0].source.token.line == 2
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "Illegal modifier for waitfor; only unconditional, conditional and invert are permitted"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == modifier
+    lastContext.exceptions[0].source.token.line == 2
+    lastContext.exceptions.size() == 1
 
     where:
     modifier << commandOnlyModifier
@@ -1267,12 +1387,12 @@ class MplInterpreterSpec2 extends MplSpecBase {
   // ----------------------------------------------------------------------------------------------------
 
   @Test
-  @Unroll("#modifier notify in process")
-  public void "notify in process"(String modifier, Conditional conditional) {
+  @Unroll("#modifier notify in remote process")
+  public void "notify in remote process"(String modifier, Conditional conditional) {
     given:
     String identifier = some($Identifier())
     String programString = """
-    process ${identifier} {
+    remote process ${identifier} {
       /say hi
       ${modifier} notify
     }
@@ -1281,7 +1401,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
@@ -1292,8 +1412,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
       previous = process.chainParts[0]
     }
 
-    process.chainParts[0] == new MplCommand('/say hi')
-    process.chainParts[1] == new MplNotify(identifier, modifierBuffer, previous)
+    process.chainParts[0] == new MplCommand('/say hi', source())
+    process.chainParts[1] == new MplNotify(identifier, modifierBuffer, previous, source())
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -1301,6 +1421,28 @@ class MplInterpreterSpec2 extends MplSpecBase {
     'unconditional:'| UNCONDITIONAL
     'conditional:'  | CONDITIONAL
     'invert:'       | INVERT
+  }
+
+  @Test
+  public void "notify in process"() {
+    given:
+    String identifier = some($Identifier())
+    String programString = """
+    process ${identifier} {
+      /say hi
+      notify
+    }
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+
+    lastContext.exceptions[0].message == "notify can only be used in a remote process"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'notify'
+    lastContext.exceptions[0].source.token.line == 4
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -1315,11 +1457,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "notify can only be used in a process"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'notify'
-    program.exceptions[0].source.token.line == 2
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "notify can only be used in a remote process"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'notify'
+    lastContext.exceptions[0].source.token.line == 2
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -1328,7 +1470,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = some($Identifier())
     String programString = """
-    process ${identifier} {
+    remote process ${identifier} {
       ${modifier}: notify
     }
     """
@@ -1337,11 +1479,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "Illegal modifier for notify; only unconditional, conditional and invert are permitted"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == modifier
-    program.exceptions[0].source.token.line == 3
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "Illegal modifier for notify; only unconditional, conditional and invert are permitted"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == modifier
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions.size() == 1
 
     where:
     modifier << commandOnlyModifier
@@ -1369,7 +1511,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
@@ -1381,8 +1523,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
       previous = process.chainParts[0]
     }
 
-    process.chainParts[0] == new MplCommand('/say hi')
-    process.chainParts[1] == new MplIntercept(identifier, modifierBuffer, previous)
+    process.chainParts[0] == new MplCommand('/say hi', source())
+    process.chainParts[1] == new MplIntercept(identifier, modifierBuffer, previous, source())
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -1405,11 +1547,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "Illegal modifier for intercept; only unconditional, conditional and invert are permitted"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == modifier
-    program.exceptions[0].source.token.line == 2
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "Illegal modifier for intercept; only unconditional, conditional and invert are permitted"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == modifier
+    lastContext.exceptions[0].source.token.line == 2
+    lastContext.exceptions.size() == 1
 
     where:
     modifier << commandOnlyModifier
@@ -1436,7 +1578,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
@@ -1448,8 +1590,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
       previous = process.chainParts[0]
     }
 
-    process.chainParts[0] == new MplCommand('/say hi')
-    process.chainParts[1] == new MplBreakpoint("${lastTempFile.name} : line 3" , modifierBuffer, previous)
+    process.chainParts[0] == new MplCommand('/say hi', source())
+    process.chainParts[1] == new MplBreakpoint("${lastTempFile.name} : line 3" , modifierBuffer, previous, source())
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -1471,11 +1613,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "Illegal modifier for breakpoint; only unconditional, conditional and invert are permitted"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == modifier
-    program.exceptions[0].source.token.line == 2
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "Illegal modifier for breakpoint; only unconditional, conditional and invert are permitted"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == modifier
+    lastContext.exceptions[0].source.token.line == 2
+    lastContext.exceptions.size() == 1
 
     where:
     modifier << commandOnlyModifier
@@ -1505,11 +1647,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "The first part of a chain must be unconditional"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'conditional'
-    program.exceptions[0].source.token.line == 4
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "The first part of a chain must be unconditional"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'conditional'
+    lastContext.exceptions[0].source.token.line == 4
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -1527,11 +1669,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "The first part of a chain must be unconditional"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'invert'
-    program.exceptions[0].source.token.line == 4
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "The first part of a chain must be unconditional"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'invert'
+    lastContext.exceptions[0].source.token.line == 4
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -1550,11 +1692,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "The first part of a chain must be unconditional"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'conditional'
-    program.exceptions[0].source.token.line == 5
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "The first part of a chain must be unconditional"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'conditional'
+    lastContext.exceptions[0].source.token.line == 5
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -1573,11 +1715,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "The first part of a chain must be unconditional"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'invert'
-    program.exceptions[0].source.token.line == 5
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "The first part of a chain must be unconditional"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'invert'
+    lastContext.exceptions[0].source.token.line == 5
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -1598,20 +1740,20 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplIf(false, '/say if')
+    process.chainParts[0] == new MplIf(false, '/say if', source())
     process.chainParts.size() == 1
 
     MplIf mplIf = process.chainParts[0]
-    mplIf.thenParts[0] == new MplCommand('/say then1')
-    mplIf.thenParts[1] == new MplCommand('/say then2')
+    mplIf.thenParts[0] == new MplCommand('/say then1', source())
+    mplIf.thenParts[1] == new MplCommand('/say then2', source())
     mplIf.thenParts.size() == 2
-    mplIf.elseParts[0] == new MplCommand('/say else1')
-    mplIf.elseParts[1] == new MplCommand('/say else2')
+    mplIf.elseParts[0] == new MplCommand('/say else1', source())
+    mplIf.elseParts[1] == new MplCommand('/say else2', source())
     mplIf.elseParts.size() == 2
   }
 
@@ -1633,20 +1775,20 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplIf(true, '/say if')
+    process.chainParts[0] == new MplIf(true, '/say if', source())
     process.chainParts.size() == 1
 
     MplIf mplIf = process.chainParts[0]
-    mplIf.thenParts[0] == new MplCommand('/say then1')
-    mplIf.thenParts[1] == new MplCommand('/say then2')
+    mplIf.thenParts[0] == new MplCommand('/say then1', source())
+    mplIf.thenParts[1] == new MplCommand('/say then2', source())
     mplIf.thenParts.size() == 2
-    mplIf.elseParts[0] == new MplCommand('/say else1')
-    mplIf.elseParts[1] == new MplCommand('/say else2')
+    mplIf.elseParts[0] == new MplCommand('/say else1', source())
+    mplIf.elseParts[1] == new MplCommand('/say else2', source())
     mplIf.elseParts.size() == 2
   }
 
@@ -1684,34 +1826,34 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplIf(false, '/outer condition')
+    process.chainParts[0] == new MplIf(false, '/outer condition', source())
     process.chainParts.size() == 1
 
     MplIf outerIf = process.chainParts[0]
-    outerIf.thenParts[0] == new MplCommand('/say outer then1')
-    outerIf.thenParts[1] == new MplIf(false, '/inner then condition')
-    outerIf.thenParts[2] == new MplCommand('/say outer then2')
+    outerIf.thenParts[0] == new MplCommand('/say outer then1', source())
+    outerIf.thenParts[1] == new MplIf(false, '/inner then condition', source())
+    outerIf.thenParts[2] == new MplCommand('/say outer then2', source())
     outerIf.thenParts.size() == 3
-    outerIf.elseParts[0] == new MplCommand('/say outer else1')
-    outerIf.elseParts[1] == new MplIf(false, '/inner else condition')
-    outerIf.elseParts[2] == new MplCommand('/say outer else2')
+    outerIf.elseParts[0] == new MplCommand('/say outer else1', source())
+    outerIf.elseParts[1] == new MplIf(false, '/inner else condition', source())
+    outerIf.elseParts[2] == new MplCommand('/say outer else2', source())
     outerIf.elseParts.size() == 3
 
     MplIf innerThenIf = outerIf.thenParts[1]
-    innerThenIf.thenParts[0] == new MplCommand('/say inner then then')
+    innerThenIf.thenParts[0] == new MplCommand('/say inner then then', source())
     innerThenIf.thenParts.size() == 1
-    innerThenIf.elseParts[0] == new MplCommand('/say inner then else')
+    innerThenIf.elseParts[0] == new MplCommand('/say inner then else', source())
     innerThenIf.elseParts.size() == 1
 
     MplIf innerElseIf = outerIf.elseParts[1]
-    innerElseIf.thenParts[0] == new MplCommand('/say inner else then')
+    innerElseIf.thenParts[0] == new MplCommand('/say inner else then', source())
     innerElseIf.thenParts.size() == 1
-    innerElseIf.elseParts[0] == new MplCommand('/say inner else else')
+    innerElseIf.elseParts[0] == new MplCommand('/say inner else else', source())
     innerElseIf.elseParts.size() == 1
   }
 
@@ -1739,11 +1881,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "The first part of a chain must be unconditional"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'conditional'
-    program.exceptions[0].source.token.line == 4
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "The first part of a chain must be unconditional"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'conditional'
+    lastContext.exceptions[0].source.token.line == 4
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -1761,11 +1903,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "The first part of a chain must be unconditional"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'invert'
-    program.exceptions[0].source.token.line == 4
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "The first part of a chain must be unconditional"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'invert'
+    lastContext.exceptions[0].source.token.line == 4
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -1782,11 +1924,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "The first part of a chain must be unconditional"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'conditional'
-    program.exceptions[0].source.token.line == 3
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "The first part of a chain must be unconditional"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'conditional'
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -1803,11 +1945,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "The first part of a chain must be unconditional"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'invert'
-    program.exceptions[0].source.token.line == 3
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "The first part of a chain must be unconditional"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'invert'
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -1823,17 +1965,17 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplWhile(false, false, null)
+    process.chainParts[0] == new MplWhile(false, false, null, source())
     process.chainParts.size() == 1
 
     MplWhile mplWhile = process.chainParts[0]
-    mplWhile.chainParts[0] == new MplCommand('/say repeat1')
-    mplWhile.chainParts[1] == new MplCommand('/say repeat2')
+    mplWhile.chainParts[0] == new MplCommand('/say repeat1', source())
+    mplWhile.chainParts[1] == new MplCommand('/say repeat2', source())
     mplWhile.chainParts.size() == 2
   }
 
@@ -1851,17 +1993,17 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplWhile(identifier, false, false, null)
+    process.chainParts[0] == new MplWhile(identifier, false, false, null, source())
     process.chainParts.size() == 1
 
     MplWhile mplWhile = process.chainParts[0]
-    mplWhile.chainParts[0] == new MplCommand('/say repeat1')
-    mplWhile.chainParts[1] == new MplCommand('/say repeat2')
+    mplWhile.chainParts[0] == new MplCommand('/say repeat1', source())
+    mplWhile.chainParts[1] == new MplCommand('/say repeat2', source())
     mplWhile.chainParts.size() == 2
   }
 
@@ -1879,17 +2021,17 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplWhile(false, false, '/say while')
+    process.chainParts[0] == new MplWhile(false, false, '/say while', source())
     process.chainParts.size() == 1
 
     MplWhile mplWhile = process.chainParts[0]
-    mplWhile.chainParts[0] == new MplCommand('/say repeat1')
-    mplWhile.chainParts[1] == new MplCommand('/say repeat2')
+    mplWhile.chainParts[0] == new MplCommand('/say repeat1', source())
+    mplWhile.chainParts[1] == new MplCommand('/say repeat2', source())
     mplWhile.chainParts.size() == 2
   }
 
@@ -1908,17 +2050,17 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplWhile(identifier, false, false, '/say while')
+    process.chainParts[0] == new MplWhile(identifier, false, false, '/say while', source())
     process.chainParts.size() == 1
 
     MplWhile mplWhile = process.chainParts[0]
-    mplWhile.chainParts[0] == new MplCommand('/say repeat1')
-    mplWhile.chainParts[1] == new MplCommand('/say repeat2')
+    mplWhile.chainParts[0] == new MplCommand('/say repeat1', source())
+    mplWhile.chainParts[1] == new MplCommand('/say repeat2', source())
     mplWhile.chainParts.size() == 2
   }
 
@@ -1936,17 +2078,17 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplWhile(true, false, '/say while')
+    process.chainParts[0] == new MplWhile(true, false, '/say while', source())
     process.chainParts.size() == 1
 
     MplWhile mplWhile = process.chainParts[0]
-    mplWhile.chainParts[0] == new MplCommand('/say repeat1')
-    mplWhile.chainParts[1] == new MplCommand('/say repeat2')
+    mplWhile.chainParts[0] == new MplCommand('/say repeat1', source())
+    mplWhile.chainParts[1] == new MplCommand('/say repeat2', source())
     mplWhile.chainParts.size() == 2
   }
 
@@ -1963,17 +2105,17 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplWhile(false, true, '/say while')
+    process.chainParts[0] == new MplWhile(false, true, '/say while', source())
     process.chainParts.size() == 1
 
     MplWhile mplWhile = process.chainParts[0]
-    mplWhile.chainParts[0] == new MplCommand('/say repeat1')
-    mplWhile.chainParts[1] == new MplCommand('/say repeat2')
+    mplWhile.chainParts[0] == new MplCommand('/say repeat1', source())
+    mplWhile.chainParts[1] == new MplCommand('/say repeat2', source())
     mplWhile.chainParts.size() == 2
   }
 
@@ -1991,17 +2133,17 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplWhile(identifier, false, true, '/say while')
+    process.chainParts[0] == new MplWhile(identifier, false, true, '/say while', source())
     process.chainParts.size() == 1
 
     MplWhile mplWhile = process.chainParts[0]
-    mplWhile.chainParts[0] == new MplCommand('/say repeat1')
-    mplWhile.chainParts[1] == new MplCommand('/say repeat2')
+    mplWhile.chainParts[0] == new MplCommand('/say repeat1', source())
+    mplWhile.chainParts[1] == new MplCommand('/say repeat2', source())
     mplWhile.chainParts.size() == 2
   }
 
@@ -2018,17 +2160,17 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplWhile(true, true, '/say while')
+    process.chainParts[0] == new MplWhile(true, true, '/say while', source())
     process.chainParts.size() == 1
 
     MplWhile mplWhile = process.chainParts[0]
-    mplWhile.chainParts[0] == new MplCommand('/say repeat1')
-    mplWhile.chainParts[1] == new MplCommand('/say repeat2')
+    mplWhile.chainParts[0] == new MplCommand('/say repeat1', source())
+    mplWhile.chainParts[1] == new MplCommand('/say repeat2', source())
     mplWhile.chainParts.size() == 2
   }
 
@@ -2053,22 +2195,22 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
-    process.chainParts[0] == new MplWhile(false, false, '/outer condition')
+    process.chainParts[0] == new MplWhile(false, false, '/outer condition', source())
     process.chainParts.size() == 1
 
     MplWhile outerWhile = process.chainParts[0]
-    outerWhile.chainParts[0] == new MplCommand('/say outer repeat1')
-    outerWhile.chainParts[1] == new MplWhile(false, false, '/inner condition')
-    outerWhile.chainParts[2] == new MplCommand('/say outer repeat2')
+    outerWhile.chainParts[0] == new MplCommand('/say outer repeat1', source())
+    outerWhile.chainParts[1] == new MplWhile(false, false, '/inner condition', source())
+    outerWhile.chainParts[2] == new MplCommand('/say outer repeat2', source())
     outerWhile.chainParts.size() == 3
 
     MplWhile innerWhile = outerWhile.chainParts[1]
-    innerWhile.chainParts[0] == new MplCommand('/say inner repeat')
+    innerWhile.chainParts[0] == new MplCommand('/say inner repeat', source())
     innerWhile.chainParts.size() == 1
   }
 
@@ -2096,7 +2238,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
@@ -2104,7 +2246,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     ModifierBuffer modifierBuffer = new ModifierBuffer()
     modifierBuffer.setConditional(conditional);
 
-    process.chainParts[0] == new MplWhile(false, false, null)
+    process.chainParts[0] == new MplWhile(false, false, null, source())
     process.chainParts.size() == 1
 
     MplWhile mplWhile = process.chainParts[0]
@@ -2114,8 +2256,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
       previous = mplWhile.chainParts[0]
     }
 
-    mplWhile.chainParts[0] == new MplCommand('/say hi')
-    mplWhile.chainParts[1] == new MplBreak(identifier, mplWhile, modifierBuffer, previous)
+    mplWhile.chainParts[0] == new MplCommand('/say hi', source())
+    mplWhile.chainParts[1] == new MplBreak(identifier, mplWhile, modifierBuffer, previous, source())
     mplWhile.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -2139,7 +2281,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
@@ -2147,7 +2289,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     ModifierBuffer modifierBuffer = new ModifierBuffer()
     modifierBuffer.setConditional(conditional);
 
-    process.chainParts[0] == new MplWhile(false, false, null)
+    process.chainParts[0] == new MplWhile(false, false, null, source())
     process.chainParts.size() == 1
 
     MplWhile mplWhile = process.chainParts[0]
@@ -2157,8 +2299,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
       previous = mplWhile.chainParts[0]
     }
 
-    mplWhile.chainParts[0] == new MplCommand('/say hi')
-    mplWhile.chainParts[1] == new MplBreak(null, mplWhile, modifierBuffer, previous)
+    mplWhile.chainParts[0] == new MplCommand('/say hi', source())
+    mplWhile.chainParts[1] == new MplBreak(null, mplWhile, modifierBuffer, previous, source())
     mplWhile.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -2179,11 +2321,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "break can only be used in a loop"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'break'
-    program.exceptions[0].source.token.line == 2
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "break can only be used in a loop"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'break'
+    lastContext.exceptions[0].source.token.line == 2
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -2200,11 +2342,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "Missing label ${identifier}"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == identifier
-    program.exceptions[0].source.token.line == 3
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "Missing label ${identifier}"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == identifier
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -2221,11 +2363,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "Illegal modifier for break; only unconditional, conditional and invert are permitted"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == modifier
-    program.exceptions[0].source.token.line == 3
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "Illegal modifier for break; only unconditional, conditional and invert are permitted"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == modifier
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions.size() == 1
 
     where:
     modifier << commandOnlyModifier
@@ -2255,7 +2397,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
@@ -2263,7 +2405,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     ModifierBuffer modifierBuffer = new ModifierBuffer()
     modifierBuffer.setConditional(conditional);
 
-    process.chainParts[0] == new MplWhile(false, false, null)
+    process.chainParts[0] == new MplWhile(false, false, null, source())
     process.chainParts.size() == 1
 
     MplWhile mplWhile = process.chainParts[0]
@@ -2273,8 +2415,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
       previous = mplWhile.chainParts[0]
     }
 
-    mplWhile.chainParts[0] == new MplCommand('/say hi')
-    mplWhile.chainParts[1] == new MplContinue(identifier, mplWhile, modifierBuffer, previous)
+    mplWhile.chainParts[0] == new MplCommand('/say hi', source())
+    mplWhile.chainParts[1] == new MplContinue(identifier, mplWhile, modifierBuffer, previous, source())
     mplWhile.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -2298,7 +2440,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
     then:
     MplProgram program = interpreter.program
-    program.exceptions.isEmpty()
+    lastContext.exceptions.isEmpty()
 
     program.processes.size() == 1
     MplProcess process = program.processes.first()
@@ -2306,7 +2448,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     ModifierBuffer modifierBuffer = new ModifierBuffer()
     modifierBuffer.setConditional(conditional);
 
-    process.chainParts[0] == new MplWhile(false, false, null)
+    process.chainParts[0] == new MplWhile(false, false, null, source())
     process.chainParts.size() == 1
 
     MplWhile mplWhile = process.chainParts[0]
@@ -2316,8 +2458,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
       previous = mplWhile.chainParts[0]
     }
 
-    mplWhile.chainParts[0] == new MplCommand('/say hi')
-    mplWhile.chainParts[1] == new MplContinue(null, mplWhile, modifierBuffer, previous)
+    mplWhile.chainParts[0] == new MplCommand('/say hi', source())
+    mplWhile.chainParts[1] == new MplContinue(null, mplWhile, modifierBuffer, previous, source())
     mplWhile.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -2338,11 +2480,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "continue can only be used in a loop"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == 'continue'
-    program.exceptions[0].source.token.line == 2
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "continue can only be used in a loop"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == 'continue'
+    lastContext.exceptions[0].source.token.line == 2
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -2359,11 +2501,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "Missing label ${identifier}"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == identifier
-    program.exceptions[0].source.token.line == 3
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "Missing label ${identifier}"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == identifier
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions.size() == 1
   }
 
   @Test
@@ -2380,11 +2522,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     MplProgram program = interpreter.program
 
-    program.exceptions[0].message == "Illegal modifier for continue; only unconditional, conditional and invert are permitted"
-    program.exceptions[0].source.file == lastTempFile
-    program.exceptions[0].source.token.text == modifier
-    program.exceptions[0].source.token.line == 3
-    program.exceptions.size() == 1
+    lastContext.exceptions[0].message == "Illegal modifier for continue; only unconditional, conditional and invert are permitted"
+    lastContext.exceptions[0].source.file == lastTempFile
+    lastContext.exceptions[0].source.token.text == modifier
+    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions.size() == 1
 
     where:
     modifier << commandOnlyModifier

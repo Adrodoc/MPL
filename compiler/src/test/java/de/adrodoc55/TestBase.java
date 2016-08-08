@@ -41,7 +41,6 @@ package de.adrodoc55;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -51,7 +50,6 @@ import java.util.Random;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import net.karneim.pojobuilder.Builder;
 
 public class TestBase {
@@ -109,26 +107,16 @@ public class TestBase {
     };
   }
 
-  public static <E extends Enum<E>> Builder<E> $Enum(Class<E> type) {
-    return new Builder<E>() {
-      @Override
-      public E build() {
-        E[] values = type.getEnumConstants();
-        return values[someInt(values.length)];
-      }
-    };
-  }
-
   public static <P> P some(Builder<P> builder) {
     return builder.build();
   }
 
   @SafeVarargs
-  public static <C> Builder<C> $oneOf(C... choices) {
+  public static <C> OneOf<C> $oneOf(C... choices) {
     return $oneOf(Arrays.asList(choices));
   }
 
-  public static <C> Builder<C> $oneOf(Iterable<C> choices) {
+  public static <C> OneOf<C> $oneOf(Iterable<C> choices) {
     return new OneOf<>(choices);
   }
 
@@ -158,23 +146,6 @@ public class TestBase {
       return next;
     }
 
-  }
-
-  /**
-   * This is a workaround for pojobuilder #100
-   *
-   * @return
-   */
-  @Deprecated
-  public static Builder<Collection<ChainLink>> $chainLinkCollectionOf(int count,
-      Builder<? extends ChainLink> prototype) {
-    return new Builder<Collection<ChainLink>>() {
-      @SuppressWarnings("unchecked")
-      @Override
-      public List<ChainLink> build() {
-        return (List<ChainLink>) listOf(count, prototype);
-      }
-    };
   }
 
   public static <P> Builder<List<P>> $listOf(int count, Builder<P> prototype) {

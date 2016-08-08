@@ -40,13 +40,14 @@
 package de.adrodoc55.minecraft.mpl.ast.chainparts.loop;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static de.adrodoc55.minecraft.mpl.commands.Conditional.CONDITIONAL;
 
 import javax.annotation.Nonnull;
 
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitorImpl;
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitorImpl;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -57,22 +58,26 @@ import lombok.ToString;
  * @author Adrodoc55
  */
 @EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true, includeFieldNames = true)
+@ToString(callSuper = true)
 @Getter
 @Setter
 public class MplBreakLoop extends ModifiableChainPart {
   private final @Nonnull MplWhile loop;
 
-  public MplBreakLoop(MplWhile loop) {
-    this(loop, false);
+  public MplBreakLoop(MplWhile loop, @Nonnull MplSource source) {
+    super(new ModifierBuffer(), source);
+    this.loop = checkNotNull(loop, "loop == null!");
   }
 
-  public MplBreakLoop(MplWhile loop, boolean conditional) {
-    super(new ModifierBuffer());
-    this.loop = checkNotNull(loop, "loop == null!");
-    if (conditional) {
-      setConditional(CONDITIONAL);
-    }
+  protected MplBreakLoop(MplBreakLoop original, CopyScope scope) {
+    super(original);
+    loop = scope.copy(original.loop);
+  }
+
+  @Deprecated
+  @Override
+  public MplBreakLoop createFlatCopy(CopyScope scope) {
+    return new MplBreakLoop(this, scope);
   }
 
   @Override

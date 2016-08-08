@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.coordinate;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.EAST;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.SOUTH;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.UP;
@@ -49,8 +50,6 @@ import java.util.List;
 import javax.annotation.concurrent.Immutable;
 
 import org.antlr.v4.runtime.Token;
-
-import com.google.common.base.Preconditions;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -75,9 +74,9 @@ public class Orientation3D {
   @GenerateMplPojoBuilder
   public Orientation3D(Direction3D a, Direction3D b, Direction3D c) {
     this.token = null;
-    Preconditions.checkNotNull(a, "a == null!");
-    Preconditions.checkNotNull(b, "b == null!");
-    Preconditions.checkNotNull(c, "c == null!");
+    checkNotNull(a, "a == null!");
+    checkNotNull(b, "b == null!");
+    checkNotNull(c, "c == null!");
     setValue(a, b, c);
   }
 
@@ -87,7 +86,7 @@ public class Orientation3D {
 
   public Orientation3D(String def, Token token) {
     this.token = token;
-    Preconditions.checkNotNull(def, "def == null!");
+    checkNotNull(def, "def == null!");
     char[] defArray = def.toCharArray();
     List<Direction3D> r = new ArrayList<>(3);
     for (int i = 0; i < defArray.length; i++) {
@@ -150,7 +149,7 @@ public class Orientation3D {
   }
 
   public Direction3D get(Axis3D axis) {
-    Preconditions.checkNotNull(axis, "axis == null!");
+    checkNotNull(axis, "axis == null!");
     if (a.getAxis() == axis)
       return a;
     if (b.getAxis() == axis)

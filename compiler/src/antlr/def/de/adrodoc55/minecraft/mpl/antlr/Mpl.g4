@@ -59,7 +59,7 @@ scriptFile
 
 projectFile
 :
-  importDeclaration*
+  include* importDeclaration*
   (
     project
     | install
@@ -76,11 +76,7 @@ importDeclaration
 project
 :
 // TODO: Prefix, Orientation, max
-  PROJECT IDENTIFIER '{'
-  (
-    orientation
-    | include
-  )* '}'
+  PROJECT IDENTIFIER '{' orientation* '}'
 ;
 
 orientation
@@ -106,6 +102,10 @@ uninstall
 process
 :
   TAG*
+  (
+    REMOTE
+    | INLINE
+  )?
   (
     IMPULSE
     | REPEAT
@@ -156,6 +156,7 @@ mplCommand
   modifierList?
   (
     command
+    | call
     | start
     | stop
     | waitfor
@@ -208,6 +209,11 @@ auto
 command
 :
   COMMAND
+;
+
+call
+:
+  IDENTIFIER '(' ')'
 ;
 
 start
@@ -424,6 +430,16 @@ BREAK
 CONTINUE
 :
   'continue'
+;
+
+REMOTE
+:
+  'remote'
+;
+
+INLINE
+:
+  'inline'
 ;
 
 UNSIGNED_INT

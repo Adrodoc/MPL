@@ -41,10 +41,14 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
+import de.adrodoc55.commons.CopyScope;
+import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -56,7 +60,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  * @author Adrodoc55
  */
 @EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true, includeFieldNames = true)
+@ToString(callSuper = true)
 @Getter
 @Setter
 public class MplNotify extends ModifiableChainPart {
@@ -64,19 +68,31 @@ public class MplNotify extends ModifiableChainPart {
 
   private final String process;
 
-  public MplNotify(String process) {
-    this(process, new ModifierBuffer());
-  }
-
-  public MplNotify(String process, ModifierBuffer modifier) {
-    super(modifier);
-    this.process = checkNotNull(process, "process == null!");
+  public MplNotify(String process, @Nonnull MplSource source) {
+    this(process, new ModifierBuffer(), source);
   }
 
   @GenerateMplPojoBuilder
-  public MplNotify(String process, ModifierBuffer modifier, @Nullable Dependable previous) {
-    super(modifier, previous);
+  public MplNotify(String process, ExtendedModifiable modifier, @Nonnull MplSource source) {
+    super(modifier, source);
     this.process = checkNotNull(process, "process == null!");
+  }
+
+  public MplNotify(String process, ExtendedModifiable modifier, @Nullable Dependable previous,
+      @Nonnull MplSource source) {
+    super(modifier, previous, source);
+    this.process = checkNotNull(process, "process == null!");
+  }
+
+  protected MplNotify(MplNotify original) {
+    super(original);
+    process = original.process;
+  }
+
+  @Deprecated
+  @Override
+  public MplNotify createFlatCopy(CopyScope scope) {
+    return new MplNotify(this);
   }
 
   @Override

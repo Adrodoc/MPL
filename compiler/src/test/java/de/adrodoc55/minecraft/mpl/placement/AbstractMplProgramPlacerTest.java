@@ -39,7 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.placement;
 
-import static de.adrodoc55.minecraft.mpl.MplTestUtils.findChain;
+import static de.adrodoc55.minecraft.mpl.MplTestUtils.findByName;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -102,7 +102,7 @@ public abstract class AbstractMplProgramPlacerTest extends MplTestBase {
     List<CommandBlockChain> chains = createPlacer(options, container).place();
 
     // then:
-    CommandBlockChain placed = findChain(chain.getName(), chains);
+    CommandBlockChain placed = findByName(chain.getName(), chains);
     List<MplBlock> blocks = placed.getBlocks();
     assertThat(blocks.get(blocks.size() - 1)).isExactlyInstanceOf(AirBlock.class);
   }
@@ -122,7 +122,7 @@ public abstract class AbstractMplProgramPlacerTest extends MplTestBase {
     List<CommandBlockChain> chains = createPlacer(options, container).place();
 
     // then:
-    CommandBlockChain placed = findChain(chain.getName(), chains);
+    CommandBlockChain placed = findByName(chain.getName(), chains);
     List<Command> actCommands = placed.getBlocks().stream().filter(b -> b instanceof CommandBlock)
         .map(c -> ((CommandBlock) c).toCommand()).collect(toList());
     List<Command> expCommand =
@@ -147,7 +147,7 @@ public abstract class AbstractMplProgramPlacerTest extends MplTestBase {
     List<CommandBlockChain> chains = createPlacer(options, container).place();
 
     // then:
-    CommandBlockChain placed = findChain(chain.getName(), chains);
+    CommandBlockChain placed = findByName(chain.getName(), chains);
 
     int z = isDebug() ? 5 : 1;
     int i = 0;
@@ -171,7 +171,7 @@ public abstract class AbstractMplProgramPlacerTest extends MplTestBase {
     List<CommandBlockChain> chains = createPlacer(options, container).place();
 
     // then:
-    CommandBlockChain install = findChain("install", chains);
+    CommandBlockChain install = findByName("install", chains);
 
     int index = options.hasOption(TRANSMITTER) ? 2 : 1;
     CommandBlock summon = (CommandBlock) install.getBlocks().get(index);
@@ -194,7 +194,7 @@ public abstract class AbstractMplProgramPlacerTest extends MplTestBase {
     List<CommandBlockChain> chains = createPlacer(options, container).place();
 
     // then:
-    CommandBlockChain install = findChain("install", chains);
+    CommandBlockChain install = findByName("install", chains);
 
     int index = options.hasOption(TRANSMITTER) ? 2 : 1;
     CommandBlock summon = (CommandBlock) install.getBlocks().get(index);

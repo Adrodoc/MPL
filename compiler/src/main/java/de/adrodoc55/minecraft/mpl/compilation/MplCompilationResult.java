@@ -39,9 +39,10 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import javax.annotation.Nonnull;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
@@ -57,8 +58,8 @@ public class MplCompilationResult {
 
   public MplCompilationResult(@Nonnull Orientation3D orientation,
       @Nonnull ImmutableMap<Coordinate3D, MplBlock> blocks) {
-    this.orientation = Preconditions.checkNotNull(orientation, "orientation == null!");
-    this.blocks = Preconditions.checkNotNull(blocks, "blocks == null!");
+    this.orientation = checkNotNull(orientation, "orientation == null!");
+    this.blocks = checkNotNull(blocks, "blocks == null!");
   }
 
   @Nonnull

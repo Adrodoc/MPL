@@ -45,17 +45,25 @@ import static de.adrodoc55.minecraft.coordinate.Direction3D.NORTH;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.SOUTH;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.UP;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.WEST;
+import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.antlr.v4.runtime.CommonToken;
+
 import de.adrodoc55.TestBase;
 import de.adrodoc55.minecraft.coordinate.Coordinate3DBuilder;
 import de.adrodoc55.minecraft.coordinate.Orientation3DBuilder;
+import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
+import de.adrodoc55.minecraft.mpl.ast.Conditional;
+import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpointBuilder;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCallBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommandBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIfBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplInterceptBuilder;
@@ -70,7 +78,6 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcessBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgramBuilder;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainerBuilder;
 import de.adrodoc55.minecraft.mpl.chain.CommandChainBuilder;
-import de.adrodoc55.minecraft.mpl.commands.Conditional;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
@@ -79,8 +86,12 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkipBuilder;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
+import de.adrodoc55.minecraft.mpl.compilation.MplSourceBuilder;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBufferBuilder;
 import net.karneim.pojobuilder.Builder;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
+import net.karneim.pojobuilder.GeneratePojoBuilder;
 
 public class MplTestBase extends TestBase {
 
@@ -111,32 +122,54 @@ public class MplTestBase extends TestBase {
     };
   }
 
+  public static OneOf<Mode> $Mode() {
+    return $oneOf(Mode.values());
+  }
+
+  public static OneOf<Conditional> $Conditional() {
+    return $oneOf(Conditional.values());
+  }
+
+  public static OneOf<ProcessType> $ProcessType() {
+    return $oneOf(ProcessType.values());
+  }
+
   public static CommandBuilder $Command() {
     return new CommandBuilder()//
         .withCommand($CommandString())//
-        .withMode($Enum(Mode.class))//
+        .withMode($Mode())//
         .withConditional($boolean())//
         .withNeedsRedstone($boolean())//
         ;
+  }
+
+  private static ModifierBufferBuilder $ModifierBuffer() {
+    return new ModifierBufferBuilder()//
+        .withMode($Mode())//
+        .withConditional($Conditional())//
+        .withNeedsRedstone($boolean())//
+        ;
+  }
+
+  private static MplSourceBuilder $MplSource() {
+    return new MplSourceBuilder()//
+        .withFile(new File(""))//
+        .withToken(new CommonToken(MplLexer.PROCESS))//
+        .withLine($String());
   }
 
   public static MplCommandBuilder $MplCommand() {
     return new MplCommandBuilder()//
         .withModifier($ModifierBuffer())//
         .withCommand($CommandString())//
-        ;
-  }
-
-  private static ModifierBufferBuilder $ModifierBuffer() {
-    return new ModifierBufferBuilder()//
-        .withMode($Enum(Mode.class))//
-        .withConditional($Enum(Conditional.class))//
-        .withNeedsRedstone($boolean())//
+        .withSource($MplSource())//
         ;
   }
 
   public static MplProgramBuilder $MplProgram() {
     return new MplProgramBuilder()//
+        .withProgramFile(new File(""))//
+        .withContext(new MplCompilerContext())//
         .withName($String())//
         .withScript($boolean())//
         .withOrientation($Orientation3D())//
@@ -153,6 +186,16 @@ public class MplTestBase extends TestBase {
         .withName($String())//
         .withRepeating($boolean())//
         .withTags(new ArrayList<>())//
+        .withType(REMOTE)//
+        .withSource($MplSource())//
+        ;
+  }
+
+  public static MplCallBuilder $MplCall() {
+    return new MplCallBuilder()//
+        .withModifier($ModifierBuffer())//
+        .withProcess($Identifier())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -160,6 +203,7 @@ public class MplTestBase extends TestBase {
     return new MplStartBuilder()//
         .withModifier($ModifierBuffer())//
         .withSelector($Selector())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -167,6 +211,7 @@ public class MplTestBase extends TestBase {
     return new MplStopBuilder()//
         .withModifier($ModifierBuffer())//
         .withSelector($Selector())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -174,6 +219,7 @@ public class MplTestBase extends TestBase {
     return new MplWaitforBuilder()//
         .withModifier($ModifierBuffer())//
         .withEvent($String())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -181,6 +227,7 @@ public class MplTestBase extends TestBase {
     return new MplNotifyBuilder()//
         .withModifier($ModifierBuffer())//
         .withProcess($String())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -188,6 +235,7 @@ public class MplTestBase extends TestBase {
     return new MplInterceptBuilder()//
         .withModifier($ModifierBuffer())//
         .withEvent($String())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -195,6 +243,7 @@ public class MplTestBase extends TestBase {
     return new MplBreakpointBuilder()//
         .withModifier($ModifierBuffer())//
         .withMessage($String())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -208,6 +257,7 @@ public class MplTestBase extends TestBase {
     return new MplIfBuilder()//
         .withNot($boolean())//
         .withCondition($CommandString())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -216,6 +266,7 @@ public class MplTestBase extends TestBase {
         .withNot($boolean())//
         .withTrailing($boolean())//
         .withCondition($CommandString())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -223,6 +274,7 @@ public class MplTestBase extends TestBase {
     return new MplBreakBuilder()//
         .withModifier($ModifierBuffer())//
         .withLabel($String())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -230,6 +282,7 @@ public class MplTestBase extends TestBase {
     return new MplContinueBuilder()//
         .withModifier($ModifierBuffer())//
         .withLabel($String())//
+        .withSource($MplSource())//
         ;
   }
 
@@ -286,54 +339,26 @@ public class MplTestBase extends TestBase {
   }
 
   public static ValidCommandChainBuilder $validChainCommands(CompilerOptions options) {
-    return new ValidCommandChainBuilder(options)//
-        .withCommands($chainLinkCollectionOf(several(),
-            $Command()//
-                .withConditional(false)//
-                .withNeedsRedstone(false)))//
-                ;
+    return new ValidCommandChainBuilder().withOptions(options);
   }
 
-  public static class ValidCommandChainBuilder implements Builder<Collection<ChainLink>> {
-    private final CompilerOptions options;
-    private Collection<ChainLink> value$commands$java$util$Collection;
-    private boolean isSet$commands$java$util$Collection;
-    private Builder<Collection<ChainLink>> builder$commands$java$util$Collection;
-
-    public ValidCommandChainBuilder(CompilerOptions options) {
-      this.options = options;
+  @GeneratePojoBuilder(intoPackage = "de.adrodoc55.minecraft.mpl",
+      withName = "ValidCommandChainBuilder")
+  @GenerateMplPojoBuilder
+  public static List<ChainLink> validChainCommands(CompilerOptions options,
+      Collection<? extends ChainLink> commands) {
+    List<ChainLink> result = new ArrayList<>();
+    if (options.hasOption(TRANSMITTER)) {
+      result.add(new MplSkip());
+      result.add(new Command("setblock ${this - 1} stone", IMPULSE));
+    } else {
+      result.add(new Command("blockdata ${this - 1} {auto:0b}", IMPULSE));
     }
-
-    public ValidCommandChainBuilder withCommands(Collection<ChainLink> value) {
-      this.value$commands$java$util$Collection = value;
-      this.isSet$commands$java$util$Collection = true;
-      return this;
+    if (commands != null && !commands.isEmpty()) {
+      result.add(new Command(some($CommandString())));
+      result.addAll(commands);
     }
-
-    public ValidCommandChainBuilder withCommands(Builder<Collection<ChainLink>> builder) {
-      this.builder$commands$java$util$Collection = builder;
-      this.isSet$commands$java$util$Collection = false;
-      return this;
-    }
-
-    @Override
-    public List<ChainLink> build() {
-      List<ChainLink> result = new ArrayList<>();
-      if (options.hasOption(TRANSMITTER)) {
-        result.add(new MplSkip());
-        result.add(new Command("setblock ${this - 1} stone", IMPULSE));
-      } else {
-        result.add(new Command("blockdata ${this - 1} {auto:0b}", IMPULSE));
-      }
-      Collection<ChainLink> _commands =
-          !isSet$commands$java$util$Collection && builder$commands$java$util$Collection != null
-              ? builder$commands$java$util$Collection.build() : value$commands$java$util$Collection;
-      if (_commands != null && !_commands.isEmpty()) {
-        result.add(new Command(some($CommandString())));
-        result.addAll(_commands);
-      }
-      return result;
-    }
+    return result;
   }
 
 }

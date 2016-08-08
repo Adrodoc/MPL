@@ -41,9 +41,10 @@ package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import javax.annotation.concurrent.Immutable;
 
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
 import lombok.EqualsAndHashCode;
@@ -55,7 +56,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  */
 @Immutable
 @EqualsAndHashCode
-@ToString(includeFieldNames = true)
+@ToString
 public class MplSkip implements ChainPart, ChainLink {
   private final boolean internal;
 
@@ -66,6 +67,16 @@ public class MplSkip implements ChainPart, ChainLink {
   @GenerateMplPojoBuilder
   public MplSkip(boolean internal) {
     this.internal = internal;
+  }
+
+  protected MplSkip(MplSkip original) {
+    internal = original.internal;
+  }
+
+  @Deprecated
+  @Override
+  public MplSkip createFlatCopy(CopyScope scope) {
+    return new MplSkip(this);
   }
 
   public boolean isInternal() {

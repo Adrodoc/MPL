@@ -39,19 +39,25 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.chainparts.program;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.commons.Named;
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.ast.MplNode;
+import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
@@ -59,46 +65,32 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  * @author Adrodoc55
  */
 @EqualsAndHashCode(exclude = "source")
-@ToString(includeFieldNames = true, exclude = "source")
+@ToString(exclude = "source")
+@Getter
 public class MplProcess implements MplNode, Named {
   private final String name;
   private final boolean repeating;
+  private final ProcessType type;
   private final MplSource source;
   private final List<ChainPart> chainParts = new ArrayList<>();
   private final List<String> tags = new ArrayList<>();
 
-  public MplProcess() {
-    this(null);
+  public MplProcess(@Nonnull MplSource source) {
+    this(null, source);
   }
 
-  public MplProcess(@Nullable String name) {
-    this(name, null);
-  }
-
-  public MplProcess(@Nullable String name, @Nullable MplSource source) {
-    this(name, false, new ArrayList<>(), source);
+  public MplProcess(@Nullable String name, @Nonnull MplSource source) {
+    this(name, false, REMOTE, new ArrayList<>(), source);
   }
 
   @GenerateMplPojoBuilder
-  public MplProcess(@Nullable String name, boolean repeating, Collection<String> tags,
-      @Nullable MplSource source) {
+  public MplProcess(@Nullable String name, boolean repeating, ProcessType type,
+      Collection<String> tags, @Nonnull MplSource source) {
     this.name = name;
     this.repeating = repeating;
+    this.type = checkNotNull(type, "type == null!");
     setTags(tags);
-    this.source = source;
-  }
-
-  @Override
-  public @Nullable String getName() {
-    return name;
-  }
-
-  public boolean isRepeating() {
-    return repeating;
-  }
-
-  public @Nullable MplSource getSource() {
-    return source;
+    this.source = checkNotNull(source, "source == null!");
   }
 
   /**
@@ -110,7 +102,7 @@ public class MplProcess implements MplNode, Named {
     return Collections.unmodifiableList(chainParts);
   }
 
-  public void setChainParts(Collection<ChainPart> chainParts) {
+  public void setChainParts(Collection<? extends ChainPart> chainParts) {
     this.chainParts.clear();
     addAll(chainParts);
   }
@@ -119,7 +111,7 @@ public class MplProcess implements MplNode, Named {
     this.chainParts.add(chainPart);
   }
 
-  public void addAll(Collection<ChainPart> chainParts) {
+  public void addAll(Collection<? extends ChainPart> chainParts) {
     this.chainParts.addAll(chainParts);
   }
 
@@ -132,6 +124,7 @@ public class MplProcess implements MplNode, Named {
   }
 
   public void setTags(Collection<String> tags) {
+    checkNotNull(tags, "tags == null!");
     this.tags.clear();
     this.tags.addAll(tags);
   }

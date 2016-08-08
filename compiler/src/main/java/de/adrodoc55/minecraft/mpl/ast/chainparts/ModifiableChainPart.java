@@ -44,9 +44,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.adrodoc55.minecraft.mpl.commands.Conditional;
+import de.adrodoc55.commons.CopyScope;
+import de.adrodoc55.minecraft.mpl.ast.Conditional;
+import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
-import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -55,22 +57,30 @@ import lombok.ToString;
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode
-@ToString(includeFieldNames = true)
+@EqualsAndHashCode(exclude = "source")
+@ToString(exclude = "source")
 @Getter
 @Setter
-public abstract class ModifiableChainPart implements Modifiable, ChainPart {
+public abstract class ModifiableChainPart implements ExtendedModifiable, ChainPart {
   protected @Nonnull Mode mode;
   protected @Nonnull Conditional conditional;
   protected boolean needsRedstone;
 
   protected @Nullable Dependable previous;
+  protected final @Nonnull MplSource source;
 
-  public ModifiableChainPart(ModifierBuffer modifier) {
-    this(modifier, null);
+  public ModifiableChainPart(ExtendedModifiable modifier, @Nonnull MplSource source) {
+    this(modifier, null, source);
   }
 
-  public ModifiableChainPart(ModifierBuffer modifier, @Nullable Dependable previous) {
+  public ModifiableChainPart(ExtendedModifiable modifier, @Nullable Dependable previous,
+      @Nonnull MplSource source) {
+    setModifier(modifier);
+    this.previous = previous;
+    this.source = checkNotNull(source, "source == null!");
+  }
+
+  private void setModifier(ExtendedModifiable modifier) {
     Mode mode = modifier.getMode();
     Conditional conditional = modifier.getConditional();
     Boolean needsRedstone = modifier.getNeedsRedstone();
@@ -82,7 +92,20 @@ public abstract class ModifiableChainPart implements Modifiable, ChainPart {
     } else {
       this.needsRedstone = (this.mode == Mode.CHAIN) ? false : true;
     }
-    this.previous = previous;
+  }
+
+  protected ModifiableChainPart(ModifiableChainPart original) {
+    mode = original.mode;
+    conditional = original.conditional;
+    needsRedstone = original.needsRedstone;
+    source = original.source;
+  }
+
+  @Deprecated
+  @Override
+  public void completeDeepCopy(CopyScope scope) throws NullPointerException {
+    ModifiableChainPart original = scope.getCache().getOriginal(this);
+    previous = scope.copyObject(original.previous);
   }
 
   @Override
@@ -98,14 +121,14 @@ public abstract class ModifiableChainPart implements Modifiable, ChainPart {
   /*
    * Kann sonst nicht aus javadoc referenziert werden
    */
-  public Dependable getPrevious() {
+  public @Nullable Dependable getPrevious() {
     return previous;
   }
 
   /*
    * see https://github.com/mkarneim/pojobuilder/issues/86
    */
-  public void setPrevious(Dependable previous) {
+  public void setPrevious(@Nullable Dependable previous) {
     this.previous = previous;
   }
 

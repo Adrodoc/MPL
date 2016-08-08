@@ -39,24 +39,29 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.chainparts.program;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Nullable;
 
 import org.antlr.v4.runtime.Token;
 
-import com.google.common.base.Preconditions;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Maps;
 
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.commons.Named;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.ast.MplNode;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import lombok.Getter;
 import lombok.Setter;
@@ -65,15 +70,16 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 /**
  * @author Adrodoc55
  */
-@GenerateMplPojoBuilder
 public class MplProgram implements MplNode, Named {
-
+  private final MplCompilerContext context;
+  @Getter
+  private final File programFile;
   @Getter
   @Setter
-  private Token token;
+  private @Nullable Token token;
 
   @Getter
-  private String name;
+  private @Nullable String name;
 
   @Getter
   private boolean script;
@@ -84,18 +90,21 @@ public class MplProgram implements MplNode, Named {
 
   @Getter
   @Setter
-  protected MplProcess install = new MplProcess("install");
+  protected @Nullable MplProcess install;
 
   @Getter
   @Setter
-  protected MplProcess uninstall = new MplProcess("uninstall");
-
-  @Getter
-  protected final List<CompilerException> exceptions = new LinkedList<>();
+  protected @Nullable MplProcess uninstall;
 
   private final Map<String, MplProcess> processMap = new HashMap<>();
 
-  protected Coordinate3D max;
+  protected @Nullable Coordinate3D max;
+
+  @GenerateMplPojoBuilder
+  public MplProgram(File programFile, MplCompilerContext context) {
+    this.programFile = checkNotNull(programFile, "programFile == null");
+    this.context = checkNotNull(context, "context == null!");
+  }
 
   public Coordinate3D getMax() {
     if (max != null) {
@@ -106,7 +115,7 @@ public class MplProgram implements MplNode, Named {
   }
 
   public void addProcess(MplProcess process) {
-    Preconditions.checkNotNull(process, "process == null!");
+    checkNotNull(process, "process == null!");
     String name = process.getName();
     MplProcess previous = processMap.get(name);
     if (previous == null) {
@@ -122,9 +131,9 @@ public class MplProgram implements MplNode, Named {
       newMessage += "; was also found in " + FileUtils.getCanonicalPath(oldSource.file);
     }
     CompilerException ex1 = new CompilerException(oldSource, oldMessage);
-    exceptions.add(ex1);
+    context.addException(ex1);
     CompilerException ex2 = new CompilerException(newSource, newMessage);
-    exceptions.add(ex2);
+    context.addException(ex2);
   }
 
   public boolean containsProcess(String name) {
@@ -145,6 +154,13 @@ public class MplProgram implements MplNode, Named {
     return Collections.unmodifiableCollection(processMap.values());
   }
 
+  @Deprecated
+  @VisibleForTesting
+  void setProcesses(Collection<MplProcess> processes) {
+    processMap.clear();
+    processMap.putAll(Maps.uniqueIndex(processes, p -> p.getName()));
+  }
+
   @Override
   public void accept(MplAstVisitor visitor) {
     visitor.visitProgram(this);
@@ -154,7 +170,7 @@ public class MplProgram implements MplNode, Named {
     return "MPL" + hashCode();
   }
 
-  public void setName(String name) {
+  public void setName(@Nullable String name) {
     this.name = name;
   }
 
@@ -162,7 +178,7 @@ public class MplProgram implements MplNode, Named {
     this.script = script;
   }
 
-  public void setMax(Coordinate3D max) {
+  public void setMax(@Nullable Coordinate3D max) {
     this.max = max;
   }
 

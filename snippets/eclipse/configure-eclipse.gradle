@@ -1,0 +1,10 @@
+if (project != rootProject) {
+  eclipse.project.name = rootProject.name + '-' + project.name
+}
+
+tasks.eclipse.dependsOn cleanEclipse
+apply from: rootProject.file('snippets/eclipse/full-clean-eclipse.gradle')
+apply from: rootProject.file('snippets/eclipse/use-encoding-in-eclipse.gradle')
+pluginManager.withPlugin('java') {
+  apply from: rootProject.file('snippets/eclipse/exclude-sourceSet-outputs-from-eclipse.gradle')
+}

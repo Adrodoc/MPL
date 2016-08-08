@@ -39,11 +39,11 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.awt.Dimension;
 import java.awt.Window;
 import java.util.Collection;
-
-import com.google.common.base.Preconditions;
 
 import de.adrodoc55.minecraft.mpl.ide.autocompletion.AutoCompletionAction;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowControler;
@@ -57,7 +57,7 @@ public class AutoCompletionDialogControler
   private final Context context;
 
   public AutoCompletionDialogControler(Context context) {
-    this.context = Preconditions.checkNotNull(context, "context == null!");
+    this.context = checkNotNull(context, "context == null!");
   }
 
   public void setOptions(Collection<AutoCompletionAction> options) {

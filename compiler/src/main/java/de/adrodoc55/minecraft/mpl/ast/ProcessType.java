@@ -37,45 +37,12 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.interpretation;
-
-import java.io.File;
-import java.util.Collection;
-
-import de.adrodoc55.minecraft.mpl.compilation.MplSource;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+package de.adrodoc55.minecraft.mpl.ast;
 
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode(of = {"processName", "files"})
-@ToString(of = {"processName"})
-public class Include {
-  private final MplSource source;
-  private final String processName;
-  private final Collection<File> files;
-
-  public Include(MplSource source, Collection<File> imports) {
-    this(source, null, imports);
-  }
-
-  public Include(MplSource source, String processName, Collection<File> imports) {
-    this.source = source;
-    this.processName = processName;
-    files = imports;
-  }
-
-  public MplSource getSource() {
-    return source;
-  }
-
-  public String getProcessName() {
-    return processName;
-  }
-
-  public Collection<File> getFiles() {
-    return files;
-  }
-
+public enum ProcessType {
+  INLINE, REMOTE;
+  public static final ProcessType DEFAULT = INLINE;
 }

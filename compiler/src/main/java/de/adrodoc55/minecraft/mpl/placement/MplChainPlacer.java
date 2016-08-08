@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.placement;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.coordinate.Axis3D.Y;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
@@ -59,7 +60,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 
 import de.adrodoc55.minecraft.coordinate.Axis3D;
@@ -342,7 +342,7 @@ public abstract class MplChainPlacer {
   }
 
   public static int getLongestSuccessiveConditionalCount(List<? extends ChainLink> chainLinks) {
-    Preconditions.checkNotNull(chainLinks, "chainLinks == null!");
+    checkNotNull(chainLinks, "chainLinks == null!");
     int result = 0;
     int successiveConditionalCount = 0;
     for (ChainLink chainLink : chainLinks) {

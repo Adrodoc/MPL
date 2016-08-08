@@ -43,8 +43,10 @@ import static de.adrodoc55.TestBase.some
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$Identifier
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER
 
+import org.antlr.v4.runtime.CommonToken
 import org.junit.Test
 
+import spock.lang.Unroll
 import de.adrodoc55.minecraft.coordinate.Orientation3D
 import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart
@@ -56,31 +58,88 @@ import de.adrodoc55.minecraft.mpl.blocks.Transmitter
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption
 
 class MplCompilerSpec extends MplSpecBase {
+
+  File lastProgramFile
+
+  MplSource source() {
+    new MplSource(lastProgramFile, new CommonToken(0), "")
+  }
+
+  private MplProgram assembleProgram(File programFile) {
+    lastProgramFile = programFile
+    MplCompiler compiler = new MplCompiler(new CompilerOptions())
+    MplProgram program = compiler.assemble(programFile)
+    compiler.checkExceptions()
+    return program
+  }
+
+  private List<CommandBlockChain> place(File programFile, CompilerOption... options) {
+    lastProgramFile = programFile
+    MplCompiler compiler = new MplCompiler(new CompilerOptions(options))
+    MplProgram program = compiler.assemble(programFile)
+    compiler.checkExceptions()
+    ChainContainer container = compiler.materialize(program)
+    compiler.checkExceptions()
+    List<CommandBlockChain> chains = compiler.place(container)
+    return chains
+  }
+
+  private MplCompilationResult compile(File programFile, CompilerOption... options) {
+    lastProgramFile = programFile
+    return MplCompiler.compile(programFile, new CompilerOptions(options))
+  }
+
+  @Test
+  public void "compiling a program without any remote processes throws an exception"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    process main {
+      /this is the main process
+    }
+
+    process other {
+      /this is the other process
+    }
+    """
+    when:
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
+    then:
+    CompilationFailedException ex = thrown()
+    Collection<CompilerException> exs = ex.exceptions.values()
+    exs[0].source.file == new File(folder, 'main.mpl')
+    exs[0].source.token.line == 0
+    exs[0].source.token.text == null
+    exs[0].message == "This file does not include any remote processes"
+    exs.size() == 1
+  }
 
   @Test
   public void "a process from the same file will be included by default"() {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    process main {
-    /this is the main process
+    remote process main {
+      /this is the main process
     }
 
-    process other {
-    /this is the other process
+    remote process other {
+      /this is the other process
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
 
     MplProcess other = result.processes.find { it.name == 'other' }
-    other.chainParts.contains(new MplCommand('/this is the other process'))
+    other.chainParts.contains(new MplCommand('/this is the other process', source()))
   }
 
   @Test
@@ -88,21 +147,21 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    process main {
-    /this is the main process
+    remote process main {
+      /this is the main process
     }
     """
     new File(folder, 'second.mpl').text = """
-    process other {
-    /this is the other process
+    remote process other {
+      /this is the other process
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.processes.size() == 1
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
   }
 
   @Test
@@ -110,25 +169,25 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    process main {
-    /this is the main process
-    start other
+    remote process main {
+      /this is the main process
+      start other
     }
     """
     new File(folder, 'second.mpl').text = """
-    process other {
-    /this is the other process
+    remote process other {
+      /this is the other process
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
 
     MplProcess other = result.processes.find { it.name == 'other' }
-    other.chainParts.contains(new MplCommand('/this is the other process'))
+    other.chainParts.contains(new MplCommand('/this is the other process', source()))
   }
 
   @Test
@@ -137,22 +196,23 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder/newFile.mpl"
-    process main {
-    /this is the main process
+
+    remote process main {
+      /this is the main process
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process other {
-    /this is the other process
+    remote process other {
+      /this is the other process
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.processes.size() == 1
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
   }
 
   @Test
@@ -161,26 +221,27 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder/newFile.mpl"
-    process main {
-    /this is the main process
-    start other
+
+    remote process main {
+      /this is the main process
+      start other
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process other {
-    /this is the other process
+    remote process other {
+      /this is the other process
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
 
     MplProcess other = result.processes.find { it.name == 'other' }
-    other.chainParts.contains(new MplCommand('/this is the other process'))
+    other.chainParts.contains(new MplCommand('/this is the other process', source()))
   }
 
   @Test
@@ -189,22 +250,23 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder"
-    process main {
-    /this is the main process
+
+    remote process main {
+      /this is the main process
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process other {
-    /this is the other process
+    remote process other {
+      /this is the other process
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.processes.size() == 1
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
   }
 
   @Test
@@ -213,26 +275,28 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder"
-    process main {
-    /this is the main process
-    start other
+
+    remote process main {
+      /this is the main process
+      start other
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process other {
-    /this is the other process
+    remote process other {
+      /this is the other process
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
 
     MplProcess other = result.processes.find { it.name == 'other' }
-    other.chainParts.contains(new MplCommand('/this is the other process'))
+    other.chainParts.contains(new MplCommand('/this is the other process', source()))
   }
 
   @Test
@@ -240,24 +304,24 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    process main {
-    /this is the main process
-    start other
+    remote process main {
+      /this is the main process
+      start other
     }
 
-    process other {
+    remote process other {
     /this is the other process
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
 
     MplProcess other = result.processes.find { it.name == 'other' }
-    other.chainParts.contains(new MplCommand('/this is the other process'))
+    other.chainParts.contains(new MplCommand('/this is the other process', source()))
   }
 
   @Test
@@ -265,29 +329,29 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    process main {
-    /this is the main process
-    start other
+    remote process main {
+      /this is the main process
+      start other
     }
 
-    process other {
-    /this is the other process in the same file
+    remote process other {
+      /this is the other process in the same file
     }
     """
     new File(folder, 'other.mpl').text = """
-    process other {
-    /this is the other process from the other file
+    remote process other {
+      /this is the other process from the other file
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
 
     MplProcess other = result.processes.find { it.name == 'other' }
-    other.chainParts.contains(new MplCommand('/this is the other process in the same file'))
+    other.chainParts.contains(new MplCommand('/this is the other process in the same file', source()))
   }
 
   @Test
@@ -295,33 +359,33 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    process p1 {
-    /this is the p1 process
-    start p3
+    remote process p1 {
+      /this is the p1 process
+      start p3
     }
 
-    process p2 {
-    /this is the p2 process
-    start p3
+    remote process p2 {
+      /this is the p2 process
+      start p3
     }
 
-    process p3 {
-    /this is the p3 process
+    remote process p3 {
+      /this is the p3 process
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     notThrown Exception
     result.processes.size() == 3
     MplProcess p1 = result.processes.find { it.name == 'p1' }
-    p1.chainParts.contains(new MplCommand('/this is the p1 process'))
+    p1.chainParts.contains(new MplCommand('/this is the p1 process', source()))
 
     MplProcess p2 = result.processes.find { it.name == 'p2' }
-    p2.chainParts.contains(new MplCommand('/this is the p2 process'))
+    p2.chainParts.contains(new MplCommand('/this is the p2 process', source()))
 
     MplProcess p3 = result.processes.find { it.name == 'p3' }
-    p3.chainParts.contains(new MplCommand('/this is the p3 process'))
+    p3.chainParts.contains(new MplCommand('/this is the p3 process', source()))
   }
 
   @Test
@@ -329,71 +393,172 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'p1.mpl').text = """
-    process p1 {
-    /this is the p1 process
-    start p2
+    remote process p1 {
+      /this is the p1 process
+      start p2
     }
 
-    process p3 {
-    /this is the p3 process
+    remote process p3 {
+      /this is the p3 process
     }
     """
     new File(folder, 'p2.mpl').text = """
-    process p2 {
-    /this is the p2 process
-    start p3
+    remote process p2 {
+      /this is the p2 process
+      start p3
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'p1.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'p1.mpl'))
     then:
     notThrown Exception
     result.processes.size() == 3
     MplProcess p1 = result.processes.find { it.name == 'p1' }
-    p1.chainParts.contains(new MplCommand('/this is the p1 process'))
+    p1.chainParts.contains(new MplCommand('/this is the p1 process', source()))
 
     MplProcess p2 = result.processes.find { it.name == 'p2' }
-    p2.chainParts.contains(new MplCommand('/this is the p2 process'))
+    p2.chainParts.contains(new MplCommand('/this is the p2 process', source()))
 
     MplProcess p3 = result.processes.find { it.name == 'p3' }
-    p3.chainParts.contains(new MplCommand('/this is the p3 process'))
+    p3.chainParts.contains(new MplCommand('/this is the p3 process', source()))
   }
 
   @Test
-  public void "project includes are processed correctly"() {
+  public void "a process from an included file will be included"() {
     given:
-    String id1 = some($Identifier())
-    String id2 = some($Identifier())
-    String id3 = some($Identifier())
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project ${id1} {
     include "newFolder/newFile.mpl"
-    include "newFolder2"
+
+    remote process main {
+      /this is the main process
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process ${id2} {
-    /this is the ${id2} process
-    }
-    """
-    new File(folder, 'newFolder2').mkdirs()
-    new File(folder, 'newFolder2/newFile2.mpl').text = """
-    process ${id3} {
-    /this is the ${id3} process
+    remote process other {
+      /this is the other process
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.processes.size() == 2
+    MplProcess main = result.processes.find { it.name == 'main' }
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
 
-    MplProcess main = result.processes.find { it.name == id2 }
-    main.chainParts.contains(new MplCommand("/this is the ${id2} process"))
+    MplProcess other = result.processes.find { it.name == 'other' }
+    other.chainParts.contains(new MplCommand('/this is the other process', source()))
+  }
 
-    MplProcess other = result.processes.find { it.name == id3 }
-    other.chainParts.contains(new MplCommand("/this is the ${id3} process"))
+  @Test
+  public void "a process from an included dir will be included"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    include "newFolder"
+
+    remote process main {
+      /this is the main process
+    }
+    """
+    new File(folder, 'newFolder').mkdirs()
+    new File(folder, 'newFolder/newFile.mpl').text = """
+    remote process other {
+      /this is the other process
+    }
+    """
+    new File(folder, 'newFolder/newFile.txt').text = """
+    remote process irrelevant {
+      /this is the irrelevant process
+    }
+    """
+    when:
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+    then:
+    result.processes.size() == 2
+    MplProcess main = result.processes.find { it.name == 'main' }
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
+
+    MplProcess other = result.processes.find { it.name == 'other' }
+    other.chainParts.contains(new MplCommand('/this is the other process', source()))
+  }
+
+  @Test
+  public void "the includes of an included file are processed"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    include "newFolder/newFile1.mpl"
+
+    remote process main {
+      /this is the main process
+    }
+    """
+    new File(folder, 'newFolder').mkdirs()
+    new File(folder, 'newFolder/newFile1.mpl').text = """
+    include "newFile2.mpl"
+
+    remote process other1 {
+      /this is the other1 process
+    }
+    """
+    new File(folder, 'newFolder/newFile2.mpl').text = """
+    remote process other2 {
+      /this is the other2 process
+    }
+    """
+    when:
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+    then:
+    result.processes.size() == 3
+    MplProcess main = result.processes.find { it.name == 'main' }
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
+
+    MplProcess other1 = result.processes.find { it.name == 'other1' }
+    other1.chainParts.contains(new MplCommand('/this is the other1 process', source()))
+
+    MplProcess other2 = result.processes.find { it.name == 'other2' }
+    other2.chainParts.contains(new MplCommand('/this is the other2 process', source()))
+  }
+
+  @Test
+  public void "the includes of a referenced imported file are processed"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    import "newFolder/newFile1.mpl"
+
+    remote process main {
+      /this is the main process
+      start other1
+    }
+    """
+    new File(folder, 'newFolder').mkdirs()
+    new File(folder, 'newFolder/newFile1.mpl').text = """
+    include "newFile2.mpl"
+
+    remote process other1 {
+      /this is the other1 process
+    }
+    """
+    new File(folder, 'newFolder/newFile2.mpl').text = """
+    remote process other2 {
+      /this is the other2 process
+    }
+    """
+    when:
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+    then:
+    result.processes.size() == 3
+    MplProcess main = result.processes.find { it.name == 'main' }
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
+
+    MplProcess other1 = result.processes.find { it.name == 'other1' }
+    other1.chainParts.contains(new MplCommand('/this is the other1 process', source()))
+
+    MplProcess other2 = result.processes.find { it.name == 'other2' }
+    other2.chainParts.contains(new MplCommand('/this is the other2 process', source()))
   }
 
   @Test
@@ -403,23 +568,22 @@ class MplCompilerSpec extends MplSpecBase {
     String id2 = some($Identifier())
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project ${id1} {
     include "other1.mpl"
     include "other2.mpl"
-    }
     """
     new File(folder, 'other1.mpl').text = """
-    process ${id2} {
-    /this is the ${id2} process
+    remote process ${id2} {
+      /this is the ${id2} process
     }
     """
     new File(folder, 'other2.mpl').text = """
-    process ${id2} {
-    /this is the second ${id2} process
+    remote process ${id2} {
+      /this is the second ${id2} process
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     CompilationFailedException ex = thrown()
     Collection<CompilerException> exs = ex.exceptions.values()
@@ -442,59 +606,59 @@ class MplCompilerSpec extends MplSpecBase {
     String id3 = some($Identifier())
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project ${id1} {
     include "newFolder/scriptFile.mpl"
-    }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/scriptFile.mpl').text = """
     /this is a script
-    / really !
+    /really !
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     CompilationFailedException ex = thrown()
     List<CompilerException> exs = ex.exceptions.get(new File(folder, 'main.mpl'))
     exs[0].source.file == new File(folder, 'main.mpl')
-    exs[0].source.token.line == 3
+    exs[0].source.token.line == 2
     exs[0].source.token.text == '"newFolder/scriptFile.mpl"'
     exs[0].message == "Can't include script 'scriptFile.mpl'. Scripts may not be included."
     exs.size() == 1
   }
 
   @Test
-  public void "Eine Projekt mit Orientation erzeugt ein Projekt mit Orientation"() {
+  public void "orientation of main projects is processed"() {
     given:
     String id1 = some($Identifier())
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     project ${id1} {
-    orientation "zyx"
+      orientation "zyx"
     }
+
+    remote process main {}
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.orientation == new Orientation3D('zyx')
   }
 
   @Test
-  public void "Projekteinstellungen gelten nur, wenn die Datei direkt compiliert wird"() {
+  public void "orientation of included projects is ignored"() {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project ${some($Identifier())} {
     include "other.mpl"
-    }
+
+    remote process main {}
     """
     new File(folder, 'other.mpl').text = """
-    project ${some($Identifier())} {
-    orientation "z-yx"
+    project other {
+      orientation "z-yx"
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.orientation == new Orientation3D()
   }
@@ -505,27 +669,27 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder"
-    process main {
+    remote process main {
     /this is the main process
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process other {
+    remote process other {
     /this is the other process
     }
     """
     new File(folder, 'newFolder/newFile2.mpl').text = """
-    process other {
+    remote process other {
     /this is the second other process
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.processes.size() == 1
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
   }
 
   @Test
@@ -534,7 +698,7 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder"
-    process main {
+    remote process main {
     /this is the main process
     start other
     }
@@ -542,18 +706,18 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'newFolder').mkdirs()
     File newFile = new File(folder, 'newFolder/newFile.mpl')
     newFile.text = """
-    process other {
+    remote process other {
     /this is the other process
     }
     """
     File newFile2 = new File(folder, 'newFolder/newFile2.mpl')
     newFile2.text = """
-    process other {
+    remote process other {
     /this is the second other process
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     CompilationFailedException ex = thrown()
     List<CompilerException> exs = ex.exceptions.get(new File(folder, 'main.mpl'))
@@ -566,28 +730,26 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project main {
     include "newFolder/newFile.mpl"
-    }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process main {
-    /this is the main process
+    remote process main {
+      /this is the main process
     }
-    process other {
-    /this is the other process
+    remote process other {
+      /this is the other process
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
-    main.chainParts.contains(new MplCommand('/this is the main process'))
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
 
     MplProcess other = result.processes.find { it.name == 'other' }
-    other.chainParts.contains(new MplCommand('/this is the other process'))
+    other.chainParts.contains(new MplCommand('/this is the other process', source()))
   }
 
   @Test
@@ -637,10 +799,10 @@ class MplCompilerSpec extends MplSpecBase {
     /say hi
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
-    result.install.chainParts.isEmpty()
-    result.uninstall.chainParts.isEmpty()
+    result.install == null
+    result.uninstall == null
   }
 
   @Test
@@ -653,10 +815,10 @@ class MplCompilerSpec extends MplSpecBase {
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.install.chainParts.size() == 1
-    result.uninstall.chainParts.isEmpty()
+    result.uninstall == null
     result.processes.size() == 1
     result.processes[0].chainParts.isEmpty()
   }
@@ -671,9 +833,9 @@ class MplCompilerSpec extends MplSpecBase {
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
-    result.install.chainParts.isEmpty()
+    result.install == null
     result.uninstall.chainParts.size() == 1
     result.processes.size() == 1
     result.processes[0].chainParts.isEmpty()
@@ -688,14 +850,12 @@ class MplCompilerSpec extends MplSpecBase {
       /say install
     }
 
-    process main { // If there is no process, there are no generated commands
+    remote process main { // If there is no process, there are no generated commands
       /say hi
     }
     """
     when:
-    MplProgram program = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
-    ChainContainer container = MplCompiler.materialize(program, new CompilerOptions(TRANSMITTER))
-    List<CommandBlockChain> chains = MplCompiler.place(container, new CompilerOptions(TRANSMITTER))
+    List<CommandBlockChain> chains = place(new File(folder, 'main.mpl'), TRANSMITTER)
     then:
     CommandBlockChain installation = chains.find { it.name == 'install' }
     installation.blocks.size() == 5
@@ -720,17 +880,15 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     uninstall {
-    /say uninstall
+      /say uninstall
     }
 
-    process main { // If there is no process, there are no generated commands
+    remote process main { // If there is no process, there are no generated commands
       /say hi
     }
     """
     when:
-    MplProgram program = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
-    ChainContainer container = MplCompiler.materialize(program, new CompilerOptions(TRANSMITTER))
-    List<CommandBlockChain> chains = MplCompiler.place(container, new CompilerOptions(TRANSMITTER))
+    List<CommandBlockChain> chains = place(new File(folder, 'main.mpl'), TRANSMITTER)
     then:
     CommandBlockChain uninstallation = chains.find { it.name == 'uninstall' }
     uninstallation.blocks.size() == 5
@@ -746,14 +904,14 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project main {
-      include "install1.mpl"
-      include "install2.mpl"
-    }
+    include "install1.mpl"
+    include "install2.mpl"
 
     install {
       /say main install
     }
+
+    remote process main {}
     """
     new File(folder, 'install1.mpl').text = """
     project p {}
@@ -768,14 +926,41 @@ class MplCompilerSpec extends MplSpecBase {
     }
     """
     when:
-    MplProgram result = MplCompiler.assembleProgram(new File(folder, 'main.mpl'))
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     notThrown Exception
 
     List<ChainPart> install = result.install.chainParts
-    install[0] == new MplCommand("/say main install")
-    install[1] == new MplCommand("/say install 1")
-    install[2] == new MplCommand("/say install 2")
+    install[0] == new MplCommand("/say main install", source())
+    install[1] == new MplCommand("/say install 1", source())
+    install[2] == new MplCommand("/say install 2", source())
     install.size() == 3
+  }
+
+  @Test
+  @Unroll("#action an inline process results in a compiler exception")
+  public void "referencing an inline process results in a compiler exception"(String action) {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      ${action} other
+    }
+    inline process other {}
+    """
+    when:
+    compile(programFile)
+
+    then:
+    CompilationFailedException ex = thrown()
+    ex.exceptions.get(programFile)[0].message == "Cannot ${action} an inline process"
+    ex.exceptions.get(programFile)[0].source.file == programFile
+    ex.exceptions.get(programFile)[0].source.token.text == 'other'
+    ex.exceptions.get(programFile)[0].source.token.line == 3
+    ex.exceptions.size() == 1
+
+    where:
+    action << ['start', 'stop', 'waitfor', 'intercept']
   }
 }

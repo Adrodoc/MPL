@@ -40,13 +40,25 @@
 package de.adrodoc55.minecraft.mpl;
 
 import java.util.Collection;
+import java.util.NoSuchElementException;
 
-import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
+import de.adrodoc55.commons.Named;
 
 public class MplTestUtils extends MplTestBase {
 
-  public static CommandBlockChain findChain(String name, Collection<CommandBlockChain> chains) {
-    return chains.stream().filter(c -> name.equals(c.getName())).findFirst().get();
+  /**
+   * Finds the first {@link Named} element in the given {@code collection}. If no element with the
+   * given {@code name} can be found a {@link NoSuchElementException} will be thrown.
+   *
+   * @param name to search by
+   * @param collection the {@link Collection} to search in
+   * @return the found element
+   * @throws NoSuchElementException if the collection does not contain an element with the given
+   *         name
+   */
+  public static <N extends Named> N findByName(String name, Collection<N> collection)
+      throws NoSuchElementException {
+    return collection.stream().filter(c -> name.equals(c.getName())).findFirst().get();
   }
 
 }

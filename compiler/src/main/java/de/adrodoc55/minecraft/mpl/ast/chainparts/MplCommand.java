@@ -41,8 +41,13 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
+import javax.annotation.Nonnull;
+
+import de.adrodoc55.commons.CopyScope;
+import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -54,20 +59,31 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  * @author Adrodoc55
  */
 @EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true, includeFieldNames = true)
+@ToString(callSuper = true)
 @Getter
 @Setter
 public class MplCommand extends ModifiableChainPart {
   private String command;
 
-  public MplCommand(String command) {
-    this(command, new ModifierBuffer());
+  public MplCommand(String command, @Nonnull MplSource source) {
+    this(command, new ModifierBuffer(), source);
   }
 
   @GenerateMplPojoBuilder
-  public MplCommand(String command, ModifierBuffer modifier) {
-    super(modifier);
+  public MplCommand(String command, ExtendedModifiable modifier, @Nonnull MplSource source) {
+    super(modifier, source);
     this.command = checkNotNull(command, "command == null!");
+  }
+
+  protected MplCommand(MplCommand original) {
+    super(original);
+    command = original.command;
+  }
+
+  @Deprecated
+  @Override
+  public MplCommand createFlatCopy(CopyScope scope) {
+    return new MplCommand(this);
   }
 
   @Override

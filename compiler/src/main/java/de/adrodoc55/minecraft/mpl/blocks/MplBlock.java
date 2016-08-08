@@ -39,7 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.blocks;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import lombok.EqualsAndHashCode;
@@ -62,7 +62,7 @@ public abstract class MplBlock {
   }
 
   public void setCoordinate(Coordinate3D coordinate) {
-    this.coordinate = Preconditions.checkNotNull(coordinate, "coordinate == null!");
+    this.coordinate = checkNotNull(coordinate, "coordinate == null!");
   }
 
   public int getX() {

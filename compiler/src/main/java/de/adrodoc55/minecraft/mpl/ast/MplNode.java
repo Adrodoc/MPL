@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.ast;
 
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
+
 /**
  * @author Adrodoc55
  */

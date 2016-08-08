@@ -39,7 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.placement;
 
-import static de.adrodoc55.minecraft.mpl.MplTestUtils.findChain;
+import static de.adrodoc55.minecraft.mpl.MplTestUtils.findByName;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -78,7 +78,7 @@ public class MplProgramPlacerTest extends AbstractMplProgramPlacerTest {
     List<CommandBlockChain> placed = createPlacer(options, container).place();
 
     // then:
-    CommandBlockChain install = findChain("install", placed);
+    CommandBlockChain install = findByName("install", placed);
     List<MplBlock> blocks = install.getBlocks();
     assertThat(blocks).hasSize(3);
     CommandBlock block = (CommandBlock) blocks.get(1);

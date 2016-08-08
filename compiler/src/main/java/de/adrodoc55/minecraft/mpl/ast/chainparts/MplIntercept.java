@@ -41,9 +41,13 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
+import de.adrodoc55.commons.CopyScope;
+import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -55,7 +59,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  * @author Adrodoc55
  */
 @EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true, includeFieldNames = true)
+@ToString(callSuper = true)
 @Getter
 @Setter
 public class MplIntercept extends ModifiableChainPart {
@@ -63,19 +67,31 @@ public class MplIntercept extends ModifiableChainPart {
 
   private final String event;
 
-  public MplIntercept(String event) {
-    this(event, new ModifierBuffer());
-  }
-
-  public MplIntercept(String event, ModifierBuffer modifier) {
-    super(modifier);
-    this.event = checkNotNull(event, "event == null!");
+  public MplIntercept(String event, @Nonnull MplSource source) {
+    this(event, new ModifierBuffer(), source);
   }
 
   @GenerateMplPojoBuilder
-  public MplIntercept(String event, ModifierBuffer modifier, @Nullable Dependable previous) {
-    super(modifier, previous);
+  public MplIntercept(String event, ExtendedModifiable modifier, @Nonnull MplSource source) {
+    super(modifier, source);
     this.event = checkNotNull(event, "event == null!");
+  }
+
+  public MplIntercept(String event, ExtendedModifiable modifier, @Nullable Dependable previous,
+      @Nonnull MplSource source) {
+    super(modifier, previous, source);
+    this.event = checkNotNull(event, "event == null!");
+  }
+
+  protected MplIntercept(MplIntercept original) {
+    super(original);
+    event = original.event;
+  }
+
+  @Deprecated
+  @Override
+  public MplIntercept createFlatCopy(CopyScope scope) {
+    return new MplIntercept(this);
   }
 
   @Override

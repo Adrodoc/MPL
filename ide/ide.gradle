@@ -18,8 +18,8 @@ dependencies {
   compile libs.beanfabrics
   compileOnly libs.lombok
 
-  testCompile libs.spock
   testCompile project(':compiler').sourceSets.test.output
+  testCompile libs.spock
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ jar {
         'Specification-Version':    version,
         'Implementation-Title':     productName,
         'Implementation-Version':   version,
-        'Main-Class':               'de.adrodoc55.minecraft.mpl.ide.main.MplIdeMainLauncher',
+        'Main-Class':               'de.adrodoc55.minecraft.mpl.ide.main.MplIdeMain',
         )
   }
 }

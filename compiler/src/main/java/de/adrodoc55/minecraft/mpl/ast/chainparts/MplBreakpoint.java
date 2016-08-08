@@ -41,9 +41,13 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
+import de.adrodoc55.commons.CopyScope;
+import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -55,25 +59,37 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  * @author Adrodoc55
  */
 @EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true, includeFieldNames = true)
+@ToString(callSuper = true)
 @Getter
 @Setter
 public class MplBreakpoint extends ModifiableChainPart {
   private final String message;
 
-  public MplBreakpoint(String message) {
-    this(message, new ModifierBuffer());
-  }
-
-  public MplBreakpoint(String message, ModifierBuffer modifier) {
-    super(modifier);
-    this.message = checkNotNull(message, "message == null!");
+  public MplBreakpoint(String message, @Nonnull MplSource source) {
+    this(message, new ModifierBuffer(), source);
   }
 
   @GenerateMplPojoBuilder
-  public MplBreakpoint(String message, ModifierBuffer modifier, @Nullable Dependable previous) {
-    super(modifier, previous);
+  public MplBreakpoint(String message, ExtendedModifiable modifier, @Nonnull MplSource source) {
+    super(modifier, source);
     this.message = checkNotNull(message, "message == null!");
+  }
+
+  public MplBreakpoint(String message, ExtendedModifiable modifier, @Nullable Dependable previous,
+      @Nonnull MplSource source) {
+    super(modifier, previous, source);
+    this.message = checkNotNull(message, "message == null!");
+  }
+
+  protected MplBreakpoint(MplBreakpoint original) {
+    super(original);
+    message = original.message;
+  }
+
+  @Deprecated
+  @Override
+  public MplBreakpoint createFlatCopy(CopyScope scope) {
+    return new MplBreakpoint(this);
   }
 
   @Override

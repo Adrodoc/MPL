@@ -1,0 +1,7 @@
+eclipseProject << {
+  logger.lifecycle "[eclipse] Using encoding '${encoding}' for project '${project.path}'"
+  File f = file('.settings/org.eclipse.core.resources.prefs')
+  f.parentFile.mkdir()
+  f.write('eclipse.preferences.version=1\n')
+  f.append('encoding/<project>=' + encoding)
+}

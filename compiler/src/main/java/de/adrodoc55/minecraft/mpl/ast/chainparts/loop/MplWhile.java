@@ -43,13 +43,16 @@ import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import de.adrodoc55.minecraft.mpl.ast.MplAstVisitor;
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
@@ -61,7 +64,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  * @author Adrodoc55
  */
 @EqualsAndHashCode(callSuper = true, of = {"trailing", "condition"})
-@ToString(includeFieldNames = true, of = {"trailing", "condition"})
+@ToString(callSuper = true, of = {"trailing", "condition"})
 public class MplWhile extends ModifiableChainPart implements ChainPartBuffer {
   private final @Nullable ChainPartBuffer parent;
 
@@ -76,24 +79,48 @@ public class MplWhile extends ModifiableChainPart implements ChainPartBuffer {
 
   private final Deque<ChainPart> chainParts = new ArrayDeque<>();
 
-  public MplWhile(boolean not, boolean trailing, @Nullable String condition) {
-    this(null, not, trailing, condition);
+  public MplWhile(boolean not, boolean trailing, @Nullable String condition,
+      @Nonnull MplSource source) {
+    this(null, not, trailing, condition, source);
+  }
+
+  public MplWhile(@Nullable String label, boolean not, boolean trailing, @Nullable String condition,
+      @Nonnull MplSource source) {
+    this(null, label, not, trailing, condition, source);
   }
 
   @GenerateMplPojoBuilder
-  public MplWhile(@Nullable String label, boolean not, boolean trailing,
-      @Nullable String condition) {
-    this(null, label, not, trailing, condition);
-  }
-
   public MplWhile(@Nullable ChainPartBuffer parent, @Nullable String label, boolean not,
-      boolean trailing, @Nullable String condition) {
-    super(new ModifierBuffer());
+      boolean trailing, @Nullable String condition, @Nonnull MplSource source) {
+    super(new ModifierBuffer(), source);
     this.parent = parent;
     this.label = label;
     this.not = not;
     this.trailing = trailing;
     this.condition = condition;
+  }
+
+  protected MplWhile(MplWhile original) {
+    super(original);
+    parent = original.parent;
+    label = original.label;
+    not = original.not;
+    trailing = original.trailing;
+    condition = original.condition;
+  }
+
+  @Deprecated
+  @Override
+  public MplWhile createFlatCopy(CopyScope scope) {
+    return new MplWhile(this);
+  }
+
+  @Deprecated
+  @Override
+  public void completeDeepCopy(CopyScope scope) throws NullPointerException {
+    super.completeDeepCopy(scope);
+    MplWhile original = scope.getCache().getOriginal(this);
+    chainParts.addAll(scope.copy(original.chainParts));
   }
 
   @Override
