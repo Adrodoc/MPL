@@ -66,27 +66,27 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 public class MplNotify extends ModifiableChainPart {
   public static final String NOTIFY = "_NOTIFY";
 
-  private final String process;
+  private final String event;
 
-  public MplNotify(String process, @Nonnull MplSource source) {
-    this(process, new ModifierBuffer(), source);
+  public MplNotify(String event, @Nonnull MplSource source) {
+    this(event, new ModifierBuffer(), source);
   }
 
   @GenerateMplPojoBuilder
-  public MplNotify(String process, ExtendedModifiable modifier, @Nonnull MplSource source) {
+  public MplNotify(String event, ExtendedModifiable modifier, @Nonnull MplSource source) {
     super(modifier, source);
-    this.process = checkNotNull(process, "process == null!");
+    this.event = checkNotNull(event, "event == null!");
   }
 
-  public MplNotify(String process, ExtendedModifiable modifier, @Nullable Dependable previous,
+  public MplNotify(String event, ExtendedModifiable modifier, @Nullable Dependable previous,
       @Nonnull MplSource source) {
     super(modifier, previous, source);
-    this.process = checkNotNull(process, "process == null!");
+    this.event = checkNotNull(event, "event == null!");
   }
 
   protected MplNotify(MplNotify original) {
     super(original);
-    process = original.process;
+    event = original.event;
   }
 
   @Deprecated

@@ -382,7 +382,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     MplStart mplStart = new MplStart("@e[name=" + processName + "]", mplCall, mplCall.getPrevious(),
         mplCall.getSource());
 
-    MplWaitfor mplWaitfor = new MplWaitfor(processName + NOTIFY, modifier, mplCall.getSource());
+    MplWaitfor mplWaitfor = new MplWaitfor(processName, modifier, mplCall.getSource());
     mplStart.accept(this);
     mplWaitfor.accept(this);
   }
@@ -413,7 +413,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     checkInlineProcess(waitfor, event);
 
     ReferencingCommand summon = new ReferencingCommand("summon ArmorStand " + REF + " {CustomName:"
-        + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
+        + event + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
 
     if (waitfor.getConditional() == UNCONDITIONAL) {
       summon.setRelative(1);
@@ -442,12 +442,11 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   public void visitNotify(MplNotify notify) {
     visitPossibleInvert(notify);
 
-    String process = notify.getProcess();
+    String event = notify.getEvent();
     boolean conditional = notify.isConditional();
     commands.add(new InternalCommand(
-        "execute @e[name=" + process + NOTIFY + "] ~ ~ ~ " + getStartCommand("~ ~ ~"),
-        conditional));
-    commands.add(new Command("kill @e[name=" + process + NOTIFY + "]", conditional));
+        "execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + getStartCommand("~ ~ ~"), conditional));
+    commands.add(new Command("kill @e[name=" + event + NOTIFY + "]", conditional));
   }
 
   @Override
@@ -506,7 +505,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     modifier.setConditional(mplBreakpoint.isConditional() ? CONDITIONAL : UNCONDITIONAL);
     // new MplCall("breakpoint", modifier, mplBreakpoint.getSource()).accept(this);
     new MplStart("@e[name=breakpoint]", modifier, mplBreakpoint.getSource()).accept(this);
-    new MplWaitfor("breakpoint" + NOTIFY, modifier, mplBreakpoint.getSource()).accept(this);
+    new MplWaitfor("breakpoint", modifier, mplBreakpoint.getSource()).accept(this);
   }
 
   @Override

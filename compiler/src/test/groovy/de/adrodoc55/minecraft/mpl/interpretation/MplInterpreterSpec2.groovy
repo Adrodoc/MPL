@@ -800,7 +800,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     lastContext.exceptions.size() == 1
 
     where:
-    [conditional, command]<< [['conditional', 'invert'], ['start', 'stop', 'waitfor', 'intercept']].combinations()*.flatten()
+    [conditional, command]<< [['conditional', 'invert'], ['start', 'stop', 'waitfor', 'notify', 'intercept']].combinations()*.flatten()
   }
 
   @Test
@@ -825,7 +825,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     lastContext.exceptions.size() == 1
 
     where:
-    [conditional, command]<< [['conditional', 'invert'], ['start', 'stop', 'waitfor', 'intercept']].combinations()*.flatten()
+    [conditional, command]<< [['conditional', 'invert'], ['start', 'stop', 'waitfor', 'notify', 'intercept']].combinations()*.flatten()
   }
 
   @Test
@@ -871,7 +871,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     lastContext.exceptions.size() == 1
 
     where:
-    [conditional, command]<< [['conditional', 'invert'], ['notify', 'breakpoint']].combinations()*.flatten()
+    [conditional, command]<< [['conditional', 'invert'], ['breakpoint']].combinations()*.flatten()
   }
 
   @Test
@@ -1295,26 +1295,6 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
-  public void "waitfor notify with identifier"() {
-    given:
-    String identifier = some($Identifier())
-    String programString = """
-    waitfor notify ${identifier}
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-    then:
-    MplProgram program = interpreter.program
-    lastContext.exceptions.isEmpty()
-
-    program.processes.size() == 1
-    MplProcess process = program.processes.first()
-
-    process.chainParts[0] == new MplWaitfor(identifier + NOTIFY, source());
-    process.chainParts.size() == 1
-  }
-
-  @Test
   public void "waitfor without identifier after start"() {
     given:
     String identifier = some($Identifier())
@@ -1332,7 +1312,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplProcess process = program.processes.first()
 
     process.chainParts[0] == new MplStart("@e[name=${identifier}]", source())
-    process.chainParts[1] == new MplWaitfor(identifier + NOTIFY, source());
+    process.chainParts[1] == new MplWaitfor(identifier, source());
     process.chainParts.size() == 2
   }
 
@@ -1388,14 +1368,12 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
   @Test
   @Unroll("#modifier notify in remote process")
-  public void "notify in remote process"(String modifier, Conditional conditional) {
+  public void "notify with identifer"(String modifier, Conditional conditional) {
     given:
     String identifier = some($Identifier())
     String programString = """
-    remote process ${identifier} {
-      /say hi
-      ${modifier} notify
-    }
+    /say hi
+    ${modifier} notify ${identifier}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1424,55 +1402,12 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
-  public void "notify in process"() {
-    given:
-    String identifier = some($Identifier())
-    String programString = """
-    process ${identifier} {
-      /say hi
-      notify
-    }
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-    then:
-    MplProgram program = interpreter.program
-
-    lastContext.exceptions[0].message == "notify can only be used in a remote process"
-    lastContext.exceptions[0].source.file == lastTempFile
-    lastContext.exceptions[0].source.token.text == 'notify'
-    lastContext.exceptions[0].source.token.line == 4
-    lastContext.exceptions.size() == 1
-  }
-
-  @Test
-  public void "notify in script"() {
-    given:
-    String identifier = some($Identifier())
-    String programString = """
-    notify
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-    then:
-    MplProgram program = interpreter.program
-
-    lastContext.exceptions[0].message == "notify can only be used in a remote process"
-    lastContext.exceptions[0].source.file == lastTempFile
-    lastContext.exceptions[0].source.token.text == 'notify'
-    lastContext.exceptions[0].source.token.line == 2
-    lastContext.exceptions.size() == 1
-  }
-
-  @Test
   @Unroll("notify with illegal modifier: '#modifier'")
   public void "notify with illegal modifier"(String modifier) {
     given:
     String identifier = some($Identifier())
     String programString = """
-    remote process ${identifier} {
-      ${modifier}: notify
-    }
+    ${modifier}: notify ${identifier}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -1482,7 +1417,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     lastContext.exceptions[0].message == "Illegal modifier for notify; only unconditional, conditional and invert are permitted"
     lastContext.exceptions[0].source.file == lastTempFile
     lastContext.exceptions[0].source.token.text == modifier
-    lastContext.exceptions[0].source.token.line == 3
+    lastContext.exceptions[0].source.token.line == 2
     lastContext.exceptions.size() == 1
 
     where:

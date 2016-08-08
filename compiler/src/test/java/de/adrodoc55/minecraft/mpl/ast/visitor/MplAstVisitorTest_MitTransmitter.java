@@ -55,6 +55,7 @@ import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept.INTERCEPTED;
+import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
@@ -245,7 +246,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplWaitfor.getEvent()
-            + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
+            + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
         new MplSkip(), //
         new InternalCommand(getOffCommand("${this - 1}"), IMPULSE));
   }
@@ -262,7 +263,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InternalCommand("/summon ArmorStand ${this + 3} {CustomName:" + mplWaitfor.getEvent()
-            + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
+            + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
         new InvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true), //
         new MplSkip(), //
@@ -283,7 +284,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         new InternalCommand(getOnCommand("${this + 3}"), true), //
         new InvertingCommand(CHAIN), //
         new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplWaitfor.getEvent()
-            + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
+            + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
         new MplSkip(), //
         new InternalCommand(getOffCommand("${this - 1}"), IMPULSE));
   }

@@ -236,15 +236,12 @@ stop
 
 waitfor
 :
-  WAITFOR
-  (
-    NOTIFY? IDENTIFIER
-  )?
+  WAITFOR IDENTIFIER?
 ;
 
 notifyDeclaration
 :
-  NOTIFY
+  NOTIFY IDENTIFIER
 ;
 
 intercept

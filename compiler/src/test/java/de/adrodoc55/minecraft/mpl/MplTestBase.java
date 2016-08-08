@@ -226,7 +226,7 @@ public class MplTestBase extends TestBase {
   public static MplNotifyBuilder $MplNotify() {
     return new MplNotifyBuilder()//
         .withModifier($ModifierBuffer())//
-        .withProcess($String())//
+        .withEvent($String())//
         .withSource($MplSource())//
         ;
   }

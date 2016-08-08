@@ -222,7 +222,7 @@ public abstract class MplAstVisitorTest {
         .withModifier(mplCall));
     mplStart.accept(underTest2);
     MplWaitfor mplWaitfor = some($MplWaitfor()//
-        .withEvent(mplCall.getProcess() + NOTIFY)//
+        .withEvent(mplCall.getProcess())//
         .withMode(CHAIN)//
         .withConditional(UNCONDITIONAL)//
         .withNeedsRedstone(false));
@@ -250,7 +250,7 @@ public abstract class MplAstVisitorTest {
         .withModifier(mplCall));
     mplStart.accept(underTest2);
     MplWaitfor mplWaitfor = some($MplWaitfor()//
-        .withEvent(mplCall.getProcess() + NOTIFY)//
+        .withEvent(mplCall.getProcess())//
         .withMode(CHAIN)//
         .withConditional(CONDITIONAL)//
         .withNeedsRedstone(false));
@@ -289,7 +289,7 @@ public abstract class MplAstVisitorTest {
         .withModifier(mplCall));
     mplStart.accept(underTest2);
     MplWaitfor mplWaitfor = some($MplWaitfor()//
-        .withEvent(mplCall.getProcess() + NOTIFY)//
+        .withEvent(mplCall.getProcess())//
         .withMode(CHAIN)//
         .withConditional(CONDITIONAL)//
         .withNeedsRedstone(false));
@@ -476,9 +476,9 @@ public abstract class MplAstVisitorTest {
 
     // then:
     assertThat(underTest.commands).containsExactly(//
-        new InternalCommand("/execute @e[name=" + mplNotify.getProcess() + NOTIFY + "] ~ ~ ~ "
+        new InternalCommand("/execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ "
             + getOnCommand("~ ~ ~")), //
-        new InternalCommand("/kill @e[name=" + mplNotify.getProcess() + NOTIFY + "]"));
+        new InternalCommand("/kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]"));
   }
 
   @Test
@@ -492,9 +492,9 @@ public abstract class MplAstVisitorTest {
 
     // then:
     assertThat(underTest.commands).containsExactly(//
-        new InternalCommand("/execute @e[name=" + mplNotify.getProcess() + NOTIFY + "] ~ ~ ~ "
+        new InternalCommand("/execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ "
             + getOnCommand("~ ~ ~"), true), //
-        new InternalCommand("/kill @e[name=" + mplNotify.getProcess() + NOTIFY + "]", true));
+        new InternalCommand("/kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]", true));
   }
 
   @Test
@@ -521,9 +521,9 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(underTest.commands).containsExactly(//
         new InvertingCommand(mode), //
-        new InternalCommand("/execute @e[name=" + mplNotify.getProcess() + NOTIFY + "] ~ ~ ~ "
+        new InternalCommand("/execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ "
             + getOnCommand("~ ~ ~"), true), //
-        new InternalCommand("/kill @e[name=" + mplNotify.getProcess() + NOTIFY + "]", true));
+        new InternalCommand("/kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]", true));
   }
 
   // @formatter:off

@@ -41,7 +41,6 @@ package de.adrodoc55.minecraft.mpl.interpretation;
 
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
-import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 
 import java.io.File;
 import java.io.IOException;
@@ -642,12 +641,9 @@ public class MplInterpreter extends MplBaseListener {
     MplSource source = toSource(ctx.WAITFOR().getSymbol());
     if (identifier != null) {
       event = identifier.getText();
-      if (ctx.NOTIFY() != null) {
-        event += NOTIFY;
-      }
       source = toSource(identifier.getSymbol());
     } else if (lastStartIdentifier != null) {
-      event = lastStartIdentifier += NOTIFY;
+      event = lastStartIdentifier;
       lastStartIdentifier = null;
     } else {
       addException(new CompilerException(source,
@@ -663,14 +659,9 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterNotifyDeclaration(NotifyDeclarationContext ctx) {
-    Token token = ctx.NOTIFY().getSymbol();
-    MplSource source = toSource(token);
-    if (process == null || process.getType() != REMOTE) {
-      addException(new CompilerException(source, "notify can only be used in a remote process"));
-      return;
-    }
-    String process = this.process.getName();
-    MplNotify notify = new MplNotify(process, modifierBuffer, source);
+    TerminalNode identifier = ctx.IDENTIFIER();
+    String event = identifier.getText();
+    MplNotify notify = new MplNotify(event, modifierBuffer, toSource(identifier.getSymbol()));
     addModifiableChainPart(notify);
 
     checkNoModifier(notify.getName(), modifierBuffer.getModeToken());
