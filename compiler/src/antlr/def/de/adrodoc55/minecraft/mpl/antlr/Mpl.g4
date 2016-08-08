@@ -277,6 +277,11 @@ COMMENT
   '//' ~( '\r' | '\n' )* -> channel ( HIDDEN )
 ;
 
+MULTILINE_COMMENT
+:
+  '/*' .*? '*/' -> channel ( HIDDEN )
+;
+
 COMMAND
 :
   '/' ~( '\r' | '\n' )*

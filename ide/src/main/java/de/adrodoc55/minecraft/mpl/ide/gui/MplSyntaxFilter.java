@@ -266,6 +266,7 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
           }
           break;
         case MplLexer.COMMENT:
+        case MplLexer.MULTILINE_COMMENT:
           styleToken(token, getCommentStyle());
           break;
         default:
