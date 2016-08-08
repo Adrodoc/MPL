@@ -98,11 +98,11 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     process main {
-    /this is the main process
+      /this is the main process
     }
 
     process other {
-    /this is the other process
+      /this is the other process
     }
     """
     when:
@@ -122,12 +122,12 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     process main {
-    /this is the main process
+      /this is the main process
     }
     """
     new File(folder, 'second.mpl').text = """
     process other {
-    /this is the other process
+      /this is the other process
     }
     """
     when:
@@ -144,13 +144,13 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     process main {
-    /this is the main process
-    start other
+      /this is the main process
+      start other
     }
     """
     new File(folder, 'second.mpl').text = """
     process other {
-    /this is the other process
+      /this is the other process
     }
     """
     when:
@@ -170,14 +170,15 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder/newFile.mpl"
+
     process main {
-    /this is the main process
+      /this is the main process
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
     process other {
-    /this is the other process
+      /this is the other process
     }
     """
     when:
@@ -194,15 +195,16 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder/newFile.mpl"
+
     process main {
-    /this is the main process
-    start other
+      /this is the main process
+      start other
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
     process other {
-    /this is the other process
+      /this is the other process
     }
     """
     when:
@@ -222,14 +224,15 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder"
+
     process main {
-    /this is the main process
+      /this is the main process
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
     process other {
-    /this is the other process
+      /this is the other process
     }
     """
     when:
@@ -246,19 +249,21 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder"
+
     process main {
-    /this is the main process
-    start other
+      /this is the main process
+      start other
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
     process other {
-    /this is the other process
+      /this is the other process
     }
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
@@ -274,8 +279,8 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     process main {
-    /this is the main process
-    start other
+      /this is the main process
+      start other
     }
 
     process other {
@@ -329,17 +334,17 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     process p1 {
-    /this is the p1 process
-    start p3
+      /this is the p1 process
+      start p3
     }
 
     process p2 {
-    /this is the p2 process
-    start p3
+      /this is the p2 process
+      start p3
     }
 
     process p3 {
-    /this is the p3 process
+      /this is the p3 process
     }
     """
     when:
@@ -363,18 +368,18 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'p1.mpl').text = """
     process p1 {
-    /this is the p1 process
-    start p2
+      /this is the p1 process
+      start p2
     }
 
     process p3 {
-    /this is the p3 process
+      /this is the p3 process
     }
     """
     new File(folder, 'p2.mpl').text = """
     process p2 {
-    /this is the p2 process
-    start p3
+      /this is the p2 process
+      start p3
     }
     """
     when:
@@ -393,40 +398,141 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
-  public void "project includes are processed correctly"() {
+  public void "a process from an included file will be included"() {
     given:
-    String id1 = some($Identifier())
-    String id2 = some($Identifier())
-    String id3 = some($Identifier())
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project ${id1} {
     include "newFolder/newFile.mpl"
-    include "newFolder2"
+
+    process main {
+      /this is the main process
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    process ${id2} {
-    /this is the ${id2} process
-    }
-    """
-    new File(folder, 'newFolder2').mkdirs()
-    new File(folder, 'newFolder2/newFile2.mpl').text = """
-    process ${id3} {
-    /this is the ${id3} process
+    process other {
+      /this is the other process
     }
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     result.processes.size() == 2
+    MplProcess main = result.processes.find { it.name == 'main' }
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
 
-    MplProcess main = result.processes.find { it.name == id2 }
-    main.chainParts.contains(new MplCommand("/this is the ${id2} process", source()))
+    MplProcess other = result.processes.find { it.name == 'other' }
+    other.chainParts.contains(new MplCommand('/this is the other process', source()))
+  }
 
-    MplProcess other = result.processes.find { it.name == id3 }
-    other.chainParts.contains(new MplCommand("/this is the ${id3} process", source()))
+  @Test
+  public void "a process from an included dir will be included"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    include "newFolder"
+
+    process main {
+      /this is the main process
+    }
+    """
+    new File(folder, 'newFolder').mkdirs()
+    new File(folder, 'newFolder/newFile.mpl').text = """
+    process other {
+      /this is the other process
+    }
+    """
+    new File(folder, 'newFolder/newFile.txt').text = """
+    process irrelevant {
+      /this is the irrelevant process
+    }
+    """
+    when:
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+    then:
+    result.processes.size() == 2
+    MplProcess main = result.processes.find { it.name == 'main' }
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
+
+    MplProcess other = result.processes.find { it.name == 'other' }
+    other.chainParts.contains(new MplCommand('/this is the other process', source()))
+  }
+
+  @Test
+  public void "the includes of an included file are processed"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    include "newFolder/newFile1.mpl"
+
+    process main {
+      /this is the main process
+    }
+    """
+    new File(folder, 'newFolder').mkdirs()
+    new File(folder, 'newFolder/newFile1.mpl').text = """
+    include "newFile2.mpl"
+
+    process other1 {
+      /this is the other1 process
+    }
+    """
+    new File(folder, 'newFolder/newFile2.mpl').text = """
+    process other2 {
+      /this is the other2 process
+    }
+    """
+    when:
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+    then:
+    result.processes.size() == 3
+    MplProcess main = result.processes.find { it.name == 'main' }
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
+
+    MplProcess other1 = result.processes.find { it.name == 'other1' }
+    other1.chainParts.contains(new MplCommand('/this is the other1 process', source()))
+
+    MplProcess other2 = result.processes.find { it.name == 'other2' }
+    other2.chainParts.contains(new MplCommand('/this is the other2 process', source()))
+  }
+
+  @Test
+  public void "the includes of a referenced imported file are processed"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    import "newFolder/newFile1.mpl"
+
+    process main {
+      /this is the main process
+      start other1
+    }
+    """
+    new File(folder, 'newFolder').mkdirs()
+    new File(folder, 'newFolder/newFile1.mpl').text = """
+    include "newFile2.mpl"
+
+    process other1 {
+      /this is the other1 process
+    }
+    """
+    new File(folder, 'newFolder/newFile2.mpl').text = """
+    process other2 {
+      /this is the other2 process
+    }
+    """
+    when:
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+    then:
+    result.processes.size() == 3
+    MplProcess main = result.processes.find { it.name == 'main' }
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
+
+    MplProcess other1 = result.processes.find { it.name == 'other1' }
+    other1.chainParts.contains(new MplCommand('/this is the other1 process', source()))
+
+    MplProcess other2 = result.processes.find { it.name == 'other2' }
+    other2.chainParts.contains(new MplCommand('/this is the other2 process', source()))
   }
 
   @Test
@@ -436,23 +542,22 @@ class MplCompilerSpec extends MplSpecBase {
     String id2 = some($Identifier())
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project ${id1} {
     include "other1.mpl"
     include "other2.mpl"
-    }
     """
     new File(folder, 'other1.mpl').text = """
     process ${id2} {
-    /this is the ${id2} process
+      /this is the ${id2} process
     }
     """
     new File(folder, 'other2.mpl').text = """
     process ${id2} {
-    /this is the second ${id2} process
+      /this is the second ${id2} process
     }
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     CompilationFailedException ex = thrown()
     Collection<CompilerException> exs = ex.exceptions.values()
@@ -475,14 +580,12 @@ class MplCompilerSpec extends MplSpecBase {
     String id3 = some($Identifier())
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project ${id1} {
     include "newFolder/scriptFile.mpl"
-    }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/scriptFile.mpl').text = """
     /this is a script
-    / really !
+    /really !
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
@@ -490,14 +593,14 @@ class MplCompilerSpec extends MplSpecBase {
     CompilationFailedException ex = thrown()
     List<CompilerException> exs = ex.exceptions.get(new File(folder, 'main.mpl'))
     exs[0].source.file == new File(folder, 'main.mpl')
-    exs[0].source.token.line == 3
+    exs[0].source.token.line == 2
     exs[0].source.token.text == '"newFolder/scriptFile.mpl"'
     exs[0].message == "Can't include script 'scriptFile.mpl'. Scripts may not be included."
     exs.size() == 1
   }
 
   @Test
-  public void "Eine Projekt mit Orientation erzeugt ein Projekt mit Orientation"() {
+  public void "orientation of main projects is processed"() {
     given:
     String id1 = some($Identifier())
     File folder = tempFolder.root
@@ -513,17 +616,15 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
-  public void "Projekteinstellungen gelten nur, wenn die Datei direkt compiliert wird"() {
+  public void "orientation of included projects is ignored"() {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project ${some($Identifier())} {
     include "other.mpl"
-    }
     """
     new File(folder, 'other.mpl').text = """
-    project ${some($Identifier())} {
-    orientation "z-yx"
+    project other {
+      orientation "z-yx"
     }
     """
     when:
@@ -599,17 +700,15 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project main {
     include "newFolder/newFile.mpl"
-    }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
     process main {
-    /this is the main process
+      /this is the main process
     }
     process other {
-    /this is the other process
+      /this is the other process
     }
     """
     when:
@@ -775,10 +874,8 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    project main {
-      include "install1.mpl"
-      include "install2.mpl"
-    }
+    include "install1.mpl"
+    include "install2.mpl"
 
     install {
       /say main install

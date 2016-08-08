@@ -402,7 +402,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   // ----------------------------------------------------------------------------------------------------
 
   @Test
-  void "an interpreter will always include mpl subfiles of it's parent directory, including it's own file"() {
+  void "an interpreter will always import mpl subfiles of it's parent directory, including it's own file"() {
     given:
     File programFile = newTempFile()
     File neighbourFile = new File(programFile.parentFile, 'neighbour.mpl')
@@ -415,7 +415,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
-  void "an interpreter will not include non mpl subfiles of it's parent directory by default"() {
+  void "an interpreter will not import non mpl subfiles of it's parent directory by default"() {
     given:
     File programFile = newTempFile()
     File neighbourFile = new File(programFile.parentFile, 'neighbour.txt')
@@ -473,10 +473,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
   public void "the same file cannot be included twice"() {
     given:
     String programString = """
-    project main {
-      include "newFolder/newFile.txt"
-      include "newFolder/newFile.txt"
-    }
+    include "newFolder/newFile.txt"
+    include "newFolder/newFile.txt"
     """
     File newFolder = new File(tempFolder.root, "newFolder")
     newFolder.mkdirs()
@@ -492,19 +490,16 @@ class MplInterpreterSpec2 extends MplSpecBase {
     lastContext.exceptions[0].message == 'Duplicate include'
     lastContext.exceptions[0].source.file == lastTempFile
     lastContext.exceptions[0].source.token.text == '"newFolder/newFile.txt"'
-    lastContext.exceptions[0].source.token.line == 4
+    lastContext.exceptions[0].source.token.line == 3
     lastContext.exceptions.size() == 1
   }
 
   @Test
-  public void "a project can include files and directories"() {
+  public void "files and directories can be included"() {
     given:
-    String id1 = some($Identifier())
     String programString = """
-    project ${id1} {
-      include "datei1.mpl"
-      include "ordner2"
-    }
+    include "datei1.mpl"
+    include "ordner2"
     """
     File folder = tempFolder.root
     new File(folder, 'datei1.mpl').createNewFile()

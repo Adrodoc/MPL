@@ -59,7 +59,7 @@ scriptFile
 
 projectFile
 :
-  importDeclaration*
+  include* importDeclaration*
   (
     project
     | install
@@ -76,11 +76,7 @@ importDeclaration
 project
 :
 // TODO: Prefix, Orientation, max
-  PROJECT IDENTIFIER '{'
-  (
-    orientation
-    | include
-  )* '}'
+  PROJECT IDENTIFIER '{' orientation* '}'
 ;
 
 orientation
