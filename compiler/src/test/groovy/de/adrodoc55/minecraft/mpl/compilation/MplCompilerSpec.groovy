@@ -999,7 +999,7 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
-  @Unroll("#action an unknown process results in a compiler exception")
+  @Unroll("#action an unknown process results in a compiler warning")
   public void "referencing an unknown process results in a compiler exception"(String action) {
     given:
     File folder = tempFolder.root
@@ -1010,15 +1010,14 @@ class MplCompilerSpec extends MplSpecBase {
     }
     """
     when:
-    compile(programFile)
+    MplCompilationResult result = compile(programFile)
 
     then:
-    CompilationFailedException ex = thrown()
-    ex.errors.get(programFile)[0].message == "Could not resolve process other"
-    ex.errors.get(programFile)[0].source.file == programFile
-    ex.errors.get(programFile)[0].source.token.text == 'other'
-    ex.errors.get(programFile)[0].source.token.line == 3
-    ex.errors.size() == 1
+    result.warnings.get(programFile)[0].message == "Could not resolve process other"
+    result.warnings.get(programFile)[0].source.file == programFile
+    result.warnings.get(programFile)[0].source.token.text == 'other'
+    result.warnings.get(programFile)[0].source.token.line == 3
+    result.warnings.size() == 1
 
     where:
     action << ['start', 'stop', 'waitfor', 'intercept']

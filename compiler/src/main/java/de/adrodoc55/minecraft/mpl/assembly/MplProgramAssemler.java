@@ -169,7 +169,7 @@ public class MplProgramAssemler {
     }
 
     if (found.isEmpty()) {
-      context.addError(new CompilerException(reference.getSource(),
+      context.addWarning(new CompilerException(reference.getSource(),
           "Could not resolve process " + processName, lastException));
     } else if (found.size() > 1) {
       context.addError(createAmbigiousProcessException(reference, found));
