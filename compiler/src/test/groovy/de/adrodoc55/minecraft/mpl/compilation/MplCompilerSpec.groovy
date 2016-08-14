@@ -1000,27 +1000,109 @@ class MplCompilerSpec extends MplSpecBase {
 
   @Test
   @Unroll("#action an unknown process results in a compiler warning")
-  public void "referencing an unknown process results in a compiler exception"(String action) {
+  public void "referencing an unknown process results in a compiler warning"(String action) {
     given:
     File folder = tempFolder.root
     File programFile = new File(folder, 'main.mpl')
     programFile.text = """
     remote process main {
-      ${action} other
+      ${action} unknown
     }
     """
     when:
     MplCompilationResult result = compile(programFile)
 
     then:
-    result.warnings.get(programFile)[0].message == "Could not resolve process other"
+    result.warnings.get(programFile)[0].message == "Could not resolve process unknown"
     result.warnings.get(programFile)[0].source.file == programFile
-    result.warnings.get(programFile)[0].source.token.text == 'other'
+    result.warnings.get(programFile)[0].source.token.text == 'unknown'
     result.warnings.get(programFile)[0].source.token.line == 3
     result.warnings.size() == 1
 
     where:
-    action << ['start', 'stop', 'waitfor', 'intercept']
+    action << ['start', 'stop', 'intercept']
+  }
+
+  @Test
+  public void "waiting for a process is fine"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      waitfor other
+    }
+
+    remote process other {}
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.isEmpty()
+  }
+
+  @Test
+  public void "waiting for a notify is fine"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      waitfor event
+    }
+
+    remote process other {
+      notify event
+    }
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.isEmpty()
+  }
+
+  @Test
+  public void "waiting for an unknown event results in a compiler warning"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      waitfor unknown
+    }
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.get(programFile)[0].message == "The event unknown is never triggered"
+    result.warnings.get(programFile)[0].source.file == programFile
+    result.warnings.get(programFile)[0].source.token.text == 'other'
+    result.warnings.get(programFile)[0].source.token.line == 3
+    result.warnings.size() == 1
+  }
+
+  @Test
+  public void "notifying an unknown event results in a compiler warning"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      notify unknown
+    }
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.get(programFile)[0].message == "The event unknown is never used"
+    result.warnings.get(programFile)[0].source.file == programFile
+    result.warnings.get(programFile)[0].source.token.text == 'other'
+    result.warnings.get(programFile)[0].source.token.line == 3
+    result.warnings.size() == 1
   }
 
   @Test

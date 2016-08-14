@@ -130,7 +130,7 @@ public class MplProgramAssemler {
     }
   }
 
-  public void resolveReferences(Collection<MplProcessReference> references) {
+  protected void resolveReferences(Collection<MplProcessReference> references) {
     for (MplProcessReference reference : references) {
       resolveReference(reference);
     }
