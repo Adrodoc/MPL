@@ -963,4 +963,52 @@ class MplCompilerSpec extends MplSpecBase {
     where:
     action << ['start', 'stop', 'waitfor', 'intercept']
   }
+
+  @Test
+  @Unroll("#action an unknown process results in a compiler exception")
+  public void "referencing an unknown process results in a compiler exception"(String action) {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      ${action} other
+    }
+    """
+    when:
+    compile(programFile)
+
+    then:
+    CompilationFailedException ex = thrown()
+    ex.exceptions.get(programFile)[0].message == "Could not resolve process other"
+    ex.exceptions.get(programFile)[0].source.file == programFile
+    ex.exceptions.get(programFile)[0].source.token.text == 'other'
+    ex.exceptions.get(programFile)[0].source.token.line == 3
+    ex.exceptions.size() == 1
+
+    where:
+    action << ['start', 'stop', 'waitfor', 'intercept']
+  }
+
+  @Test
+  @Unroll("#action a selector is fine")
+  public void "referencing a selector is fine"(String action) {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      ${action} @e[name=other]
+    }
+    """
+    when:
+    compile(programFile)
+
+    then:
+    notThrown Exception
+
+    where:
+    action << ['start', 'stop']
+  }
+
 }

@@ -608,13 +608,15 @@ public class MplInterpreter extends MplBaseListener {
     Token token = ctx.STOP().getSymbol();
     MplSource source = toSource(token);
 
+    TerminalNode identifier = ctx.IDENTIFIER();
+
     String selector;
     if (ctx.SELECTOR() != null) {
       selector = ctx.SELECTOR().getText();
       source = toSource(ctx.SELECTOR().getSymbol());
-    } else if (ctx.IDENTIFIER() != null) {
-      selector = toSelector(ctx.IDENTIFIER().getText());
-      source = toSource(ctx.IDENTIFIER().getSymbol());
+    } else if (identifier != null) {
+      selector = toSelector(identifier.getText());
+      source = toSource(identifier.getSymbol());
     } else if (this.process != null) {
       if (this.process.isRepeating()) {
         selector = toSelector(this.process.getName());
@@ -632,6 +634,12 @@ public class MplInterpreter extends MplBaseListener {
 
     checkNoModifier(stop.getName(), modifierBuffer.getModeToken());
     checkNoModifier(stop.getName(), modifierBuffer.getNeedsRedstoneToken());
+
+    if (identifier != null) {
+      String process = identifier.getText();
+      String srcProcess = this.process != null ? this.process.getName() : null;
+      references.put(srcProcess, new MplProcessReference(process, imports, source));
+    }
   }
 
   @Override
@@ -655,6 +663,12 @@ public class MplInterpreter extends MplBaseListener {
 
     checkNoModifier(waitfor.getName(), modifierBuffer.getModeToken());
     checkNoModifier(waitfor.getName(), modifierBuffer.getNeedsRedstoneToken());
+
+    if (identifier != null) {
+      String process = identifier.getText();
+      String srcProcess = this.process != null ? this.process.getName() : null;
+      references.put(srcProcess, new MplProcessReference(process, imports, source));
+    }
   }
 
   @Override
@@ -672,12 +686,15 @@ public class MplInterpreter extends MplBaseListener {
   public void enterIntercept(InterceptContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String process = identifier.getText();
-    MplIntercept intercept =
-        new MplIntercept(process, modifierBuffer, toSource(identifier.getSymbol()));
+    MplSource source = toSource(identifier.getSymbol());
+    MplIntercept intercept = new MplIntercept(process, modifierBuffer, source);
     addModifiableChainPart(intercept);
 
     checkNoModifier(intercept.getName(), modifierBuffer.getModeToken());
     checkNoModifier(intercept.getName(), modifierBuffer.getNeedsRedstoneToken());
+
+    String srcProcess = this.process != null ? this.process.getName() : null;
+    references.put(srcProcess, new MplProcessReference(process, imports, source));
   }
 
   @Override
