@@ -523,6 +523,40 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
+  public void "the includes of an imported file are not processed"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    import "newFolder/newFile1.mpl"
+
+    remote process main {
+      /this is the main process
+      start unknownProcess
+    }
+    """
+    new File(folder, 'newFolder').mkdirs()
+    new File(folder, 'newFolder/newFile1.mpl').text = """
+    include "newFile2.mpl"
+
+    remote process other1 {
+      /this is the other1 process
+    }
+    """
+    new File(folder, 'newFolder/newFile2.mpl').text = """
+    remote process other2 {
+      /this is the other2 process
+    }
+    """
+    when:
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
+    then:
+    result.processes.size() == 1
+    MplProcess main = result.processes.find { it.name == 'main' }
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
+  }
+
+  @Test
   public void "the includes of a referenced imported file are processed"() {
     given:
     File folder = tempFolder.root

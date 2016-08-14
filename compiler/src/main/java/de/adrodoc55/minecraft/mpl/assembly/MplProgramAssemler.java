@@ -77,6 +77,7 @@ public class MplProgramAssemler {
     MplInterpreter interpreter = interpreterCache.get(file);
     if (interpreter == null) {
       interpreter = MplInterpreter.interpret(file, context);
+      interpreterCache.put(file, interpreter);
     }
     return interpreter;
   }
@@ -149,7 +150,7 @@ public class MplProgramAssemler {
     for (File file : reference.getImports()) {
       MplInterpreter interpreter = null;
       try {
-        interpreter = interpret(file, context);
+        interpreter = interpret(file, new MplCompilerContext(context.getOptions()));
       } catch (IOException ex) {
         lastException = new FileException(ex, file);
         continue;
@@ -174,6 +175,7 @@ public class MplProgramAssemler {
       context.addError(createAmbigiousProcessException(reference, found));
     } else {
       MplInterpreter interpreter = found.get(0);
+      context.addContext(interpreter.getContext());
       context.addInclude(
           new MplInclude(processName, interpreter.getProgramFile(), reference.getSource()));
     }

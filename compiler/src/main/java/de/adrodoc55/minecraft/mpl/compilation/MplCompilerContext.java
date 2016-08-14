@@ -65,6 +65,13 @@ public class MplCompilerContext {
     this.options = options;
   }
 
+  public void addContext(MplCompilerContext context) {
+    errors.addAll(context.errors);
+    warnings.addAll(context.warnings);
+    included.addAll(context.included);
+    toInclude.addAll(context.toInclude);
+  }
+
   public CompilerOptions getOptions() {
     return options;
   }
