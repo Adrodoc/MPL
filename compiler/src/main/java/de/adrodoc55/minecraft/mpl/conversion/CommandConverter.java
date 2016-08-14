@@ -71,14 +71,21 @@ public class CommandConverter implements MplConverter {
     out.close();
   }
 
+  /**
+   * Instead of the literal "replace" a setblock command can contain any character and even an empty
+   * String. See <a href="https://github.com/Adrodoc55/MPL/issues/48">#48</a>
+   */
+  private static final String REPLACE = "";
   public static final int MAX_COMMAND_LENGTH = 32500;
 
   private static final String HEADER =
       "summon FallingSand ~ ~1 ~ {Block:redstone_block,Time:1,Passengers:["
           + "{id:FallingSand,Block:activator_rail,Time:1,Passengers:[";
+
   private static final String TAIL =
       "{id:MinecartCommandBlock,Command:setblock ~ ~-2 ~ command_block},"
-          + "{id:MinecartCommandBlock,Command:setblock ~ ~2 ~ command_block 0 replace {Command:fill ~ ~-3 ~ ~ ~ ~ air}},"
+          + "{id:MinecartCommandBlock,Command:setblock ~ ~2 ~ command_block 0 " + REPLACE
+          + " {Command:fill ~ ~-3 ~ ~ ~ ~ air}},"
           + "{id:MinecartCommandBlock,Command:setblock ~ ~1 ~ redstone_block},"
           + "{id:MinecartCommandBlock,Command:kill @e[type=MinecartCommandBlock,r=0]}]}]}";
   private static final String COMMAND_HEADER = "{id:MinecartCommandBlock,Command:";
@@ -143,7 +150,7 @@ public class CommandConverter implements MplConverter {
     sb.append(coordinate).append(' ');
     sb.append(blockId).append(' ');
     sb.append(damage).append(' ');
-    sb.append("replace").append(' ');
+    sb.append(REPLACE).append(' ');
     sb.append('{');
     if (!block.getNeedsRedstone()) {
       sb.append("auto:1,");
