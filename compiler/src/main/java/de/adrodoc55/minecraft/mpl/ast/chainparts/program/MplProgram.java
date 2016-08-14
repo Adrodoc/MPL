@@ -130,10 +130,8 @@ public class MplProgram implements MplNode, Named {
       oldMessage += "; was also found in " + FileUtils.getCanonicalPath(newSource.file);
       newMessage += "; was also found in " + FileUtils.getCanonicalPath(oldSource.file);
     }
-    CompilerException ex1 = new CompilerException(oldSource, oldMessage);
-    context.addException(ex1);
-    CompilerException ex2 = new CompilerException(newSource, newMessage);
-    context.addException(ex2);
+    context.addError(new CompilerException(oldSource, oldMessage));
+    context.addError(new CompilerException(newSource, newMessage));
   }
 
   public boolean containsProcess(String name) {

@@ -72,7 +72,7 @@ class MplCompilerSpec extends MplSpecBase {
     lastProgramFile = programFile
     MplCompiler compiler = new MplCompiler(new CompilerOptions())
     MplProgram program = compiler.assemble(programFile)
-    compiler.checkExceptions()
+    compiler.checkErrors()
     return program
   }
 
@@ -80,9 +80,9 @@ class MplCompilerSpec extends MplSpecBase {
     lastProgramFile = programFile
     MplCompiler compiler = new MplCompiler(new CompilerOptions(options))
     MplProgram program = compiler.assemble(programFile)
-    compiler.checkExceptions()
+    compiler.checkErrors()
     ChainContainer container = compiler.materialize(program)
-    compiler.checkExceptions()
+    compiler.checkErrors()
     List<CommandBlockChain> chains = compiler.place(container)
     return chains
   }
@@ -110,7 +110,7 @@ class MplCompilerSpec extends MplSpecBase {
 
     then:
     CompilationFailedException ex = thrown()
-    Collection<CompilerException> exs = ex.exceptions.values()
+    Collection<CompilerException> exs = ex.errors.values()
     exs[0].source.file == new File(folder, 'main.mpl')
     exs[0].source.token.line == 0
     exs[0].source.token.text == null
@@ -586,7 +586,7 @@ class MplCompilerSpec extends MplSpecBase {
 
     then:
     CompilationFailedException ex = thrown()
-    Collection<CompilerException> exs = ex.exceptions.values()
+    Collection<CompilerException> exs = ex.errors.values()
     exs[0].source.file == new File(folder, 'other1.mpl')
     exs[0].source.token.line == 2
     exs[0].source.token.text == id2
@@ -617,7 +617,7 @@ class MplCompilerSpec extends MplSpecBase {
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     CompilationFailedException ex = thrown()
-    List<CompilerException> exs = ex.exceptions.get(new File(folder, 'main.mpl'))
+    List<CompilerException> exs = ex.errors.get(new File(folder, 'main.mpl'))
     exs[0].source.file == new File(folder, 'main.mpl')
     exs[0].source.token.line == 2
     exs[0].source.token.text == '"newFolder/scriptFile.mpl"'
@@ -720,7 +720,7 @@ class MplCompilerSpec extends MplSpecBase {
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     CompilationFailedException ex = thrown()
-    List<CompilerException> exs = ex.exceptions.get(new File(folder, 'main.mpl'))
+    List<CompilerException> exs = ex.errors.get(new File(folder, 'main.mpl'))
     exs.size() == 1
     exs.first().message.startsWith "Process other is ambigious. It was found in "//'${newFile}' and '${newFile2}'"
   }
@@ -954,11 +954,11 @@ class MplCompilerSpec extends MplSpecBase {
 
     then:
     CompilationFailedException ex = thrown()
-    ex.exceptions.get(programFile)[0].message == "Cannot ${action} an inline process"
-    ex.exceptions.get(programFile)[0].source.file == programFile
-    ex.exceptions.get(programFile)[0].source.token.text == 'other'
-    ex.exceptions.get(programFile)[0].source.token.line == 3
-    ex.exceptions.size() == 1
+    ex.errors.get(programFile)[0].message == "Cannot ${action} an inline process"
+    ex.errors.get(programFile)[0].source.file == programFile
+    ex.errors.get(programFile)[0].source.token.text == 'other'
+    ex.errors.get(programFile)[0].source.token.line == 3
+    ex.errors.size() == 1
 
     where:
     action << ['start', 'stop', 'waitfor', 'intercept']
@@ -980,11 +980,11 @@ class MplCompilerSpec extends MplSpecBase {
 
     then:
     CompilationFailedException ex = thrown()
-    ex.exceptions.get(programFile)[0].message == "Could not resolve process other"
-    ex.exceptions.get(programFile)[0].source.file == programFile
-    ex.exceptions.get(programFile)[0].source.token.text == 'other'
-    ex.exceptions.get(programFile)[0].source.token.line == 3
-    ex.exceptions.size() == 1
+    ex.errors.get(programFile)[0].message == "Could not resolve process other"
+    ex.errors.get(programFile)[0].source.file == programFile
+    ex.errors.get(programFile)[0].source.token.text == 'other'
+    ex.errors.get(programFile)[0].source.token.line == 3
+    ex.errors.size() == 1
 
     where:
     action << ['start', 'stop', 'waitfor', 'intercept']
@@ -1010,5 +1010,4 @@ class MplCompilerSpec extends MplSpecBase {
     where:
     action << ['start', 'stop']
   }
-
 }

@@ -124,6 +124,8 @@ public class BnJaggedEditorKit extends BnStyledEditorKit {
    * @author Adrodoc55
    */
   public static class JaggedLabelView extends LabelView {
+    public static final Object UnderlineColor = "UnderlineColor";
+
     public JaggedLabelView(Element elem) {
       super(elem);
     }
@@ -135,17 +137,24 @@ public class BnJaggedEditorKit extends BnStyledEditorKit {
       }
       super.paint(g, allocation);
       if (underline) {
-        paintJaggedLine(g, allocation);
+        Object attribute = getAttributes().getAttribute(UnderlineColor);
+        Color color;
+        if (attribute instanceof Color) {
+          color = (Color) attribute;
+        } else {
+          color = Color.BLACK;
+        }
+        paintJaggedLine(g, allocation, color);
         setUnderline(true);
       }
     }
 
-    public void paintJaggedLine(Graphics g, Shape a) {
+    public void paintJaggedLine(Graphics g, Shape a, Color color) {
       int y = (int) (a.getBounds().getY() + a.getBounds().getHeight());
       int x1 = (int) a.getBounds().getX();
       int x2 = (int) (a.getBounds().getX() + a.getBounds().getWidth());
       Color old = g.getColor();
-      g.setColor(Color.RED);
+      g.setColor(color);
 
       for (int x = x1; x <= x2; x++) {
         if (x % 2 == 0) {

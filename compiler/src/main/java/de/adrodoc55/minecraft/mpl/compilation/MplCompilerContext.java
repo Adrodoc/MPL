@@ -52,7 +52,8 @@ import de.adrodoc55.minecraft.mpl.interpretation.MplInclude;
  */
 public class MplCompilerContext {
   private final CompilerOptions options;
-  private final Set<CompilerException> exceptions = new LinkedHashSet<>();
+  private final Set<CompilerException> errors = new LinkedHashSet<>();
+  private final Set<CompilerException> warnings = new LinkedHashSet<>();
   private final Set<MplInclude> included = new LinkedHashSet<>();
   private final Set<MplInclude> toInclude = new LinkedHashSet<>();
 
@@ -68,19 +69,34 @@ public class MplCompilerContext {
     return options;
   }
 
-  // TODO: Warnings
   /**
-   * Adds a {@link CompilerException} that occured during compilation.
+   * Adds a {@link CompilerException} wich occured during compilation and should be treated as an
+   * error.
    *
    * @param ex the exception that occured
    * @return true if the instance had not yet been posted
    */
-  public boolean addException(CompilerException ex) {
-    return exceptions.add(ex);
+  public boolean addError(CompilerException ex) {
+    return errors.add(ex);
   }
 
-  public Set<CompilerException> getExceptions() {
-    return Collections.unmodifiableSet(exceptions);
+  public Set<CompilerException> getErrors() {
+    return Collections.unmodifiableSet(errors);
+  }
+
+  /**
+   * Adds a {@link CompilerException} wich occured during compilation and should be treated as a
+   * warning.
+   *
+   * @param ex the exception that occured
+   * @return true if the instance had not yet been posted
+   */
+  public boolean addWarning(CompilerException ex) {
+    return warnings.add(ex);
+  }
+
+  public Set<CompilerException> getWarnings() {
+    return Collections.unmodifiableSet(warnings);
   }
 
   public void addInclude(MplInclude include) {

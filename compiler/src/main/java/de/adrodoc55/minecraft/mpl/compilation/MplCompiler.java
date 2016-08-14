@@ -49,10 +49,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimaps;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
@@ -103,9 +101,9 @@ public class MplCompiler {
       throws IOException, CompilationFailedException {
     resetContext();
     MplProgram program = assemble(programFile);
-    checkExceptions();
+    checkErrors();
     ChainContainer container = materialize(program);
-    checkExceptions();
+    checkErrors();
     List<CommandBlockChain> chains = place(container);
     Orientation3D orientation = program.getOrientation();
     insertRelativeCoordinates(orientation, chains);
@@ -118,12 +116,10 @@ public class MplCompiler {
    *
    * @throws CompilationFailedException if at least one {@link CompilerException} ocurred
    */
-  protected void checkExceptions() throws CompilationFailedException {
-    Set<CompilerException> exceptions = provideContext().getExceptions();
-    if (!exceptions.isEmpty()) {
-      ImmutableListMultimap<File, CompilerException> index =
-          Multimaps.index(exceptions, ex -> ex.getSource().file);
-      throw new CompilationFailedException(index);
+  protected void checkErrors() throws CompilationFailedException {
+    Set<CompilerException> errors = provideContext().getErrors();
+    if (!errors.isEmpty()) {
+      throw new CompilationFailedException(errors);
     }
   }
 
@@ -164,7 +160,7 @@ public class MplCompiler {
         .collect(toList());
 
     ImmutableMap<Coordinate3D, MplBlock> result = Maps.uniqueIndex(blocks, b -> b.getCoordinate());
-    return new MplCompilationResult(orientation, result);
+    return new MplCompilationResult(orientation, result, context.getWarnings());
   }
 
   private static final Pattern thisPattern =

@@ -340,7 +340,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     checkNotNull(processName, "processName == null!");
     MplProcess process = program.getProcess(processName);
     if (process != null && process.getType() == ProcessType.INLINE) {
-      context.addException(new CompilerException(chainpart.getSource(),
+      context.addError(new CompilerException(chainpart.getSource(),
           "Cannot " + chainpart.getName() + " an inline process"));
     }
     System.out.println();

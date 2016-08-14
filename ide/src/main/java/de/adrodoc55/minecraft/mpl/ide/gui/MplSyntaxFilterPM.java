@@ -39,7 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.antlr.v4.runtime.Token;
@@ -54,23 +55,35 @@ import lombok.Getter;
  */
 public class MplSyntaxFilterPM extends AbstractPM {
 
-  private List<CompilerExceptionWrapper> exceptions;
+  private final List<CompilerExceptionWrapper> errors = new ArrayList<>();
+  private final List<CompilerExceptionWrapper> warnings = new ArrayList<>();
 
   public MplSyntaxFilterPM() {
     PMManager.setup(this);
   }
 
-  List<CompilerExceptionWrapper> getExceptions() {
-    return exceptions;
+  public List<CompilerExceptionWrapper> getErrors() {
+    return Collections.unmodifiableList(errors);
   }
 
-  public void setExceptions(List<CompilerException> newExceptions) {
-    List<CompilerExceptionWrapper> oldExceptions = exceptions;
-    exceptions = new LinkedList<CompilerExceptionWrapper>();
-    for (CompilerException ex : newExceptions) {
-      exceptions.add(new CompilerExceptionWrapper(ex));
+  public void setErrors(List<CompilerException> errors) {
+    this.errors.clear();
+    for (CompilerException ex : errors) {
+      this.errors.add(new CompilerExceptionWrapper(ex));
     }
-    getPropertyChangeSupport().firePropertyChange("exceptions", oldExceptions, newExceptions);
+    getPropertyChangeSupport().firePropertyChange("exceptions", null, null);
+  }
+
+  public List<CompilerExceptionWrapper> getWarnings() {
+    return Collections.unmodifiableList(warnings);
+  }
+
+  public void setWarnings(List<CompilerException> warnings) {
+    this.warnings.clear();
+    for (CompilerException ex : warnings) {
+      this.warnings.add(new CompilerExceptionWrapper(ex));
+    }
+    getPropertyChangeSupport().firePropertyChange("warnings", null, null);
   }
 
   /**

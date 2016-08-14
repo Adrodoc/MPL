@@ -73,7 +73,7 @@ public class MplProgramAssemler {
     this.context = context;
   }
 
-  protected MplInterpreter interpret(File file) throws IOException {
+  protected MplInterpreter interpret(File file, MplCompilerContext context) throws IOException {
     MplInterpreter interpreter = interpreterCache.get(file);
     if (interpreter == null) {
       interpreter = MplInterpreter.interpret(file, context);
@@ -82,7 +82,7 @@ public class MplProgramAssemler {
   }
 
   public MplProgram assemble(File programFile) throws IOException {
-    MplInterpreter main = interpret(programFile);
+    MplInterpreter main = interpret(programFile, context);
     MplProgram program = main.getProgram();
     programBuilder = new MplProgramBuilder(program, programFile);
     resolveReferences(main.getReferences().values());
@@ -92,8 +92,8 @@ public class MplProgramAssemler {
     MplProgram result = programBuilder.getProgram();
     boolean containsRemoteProcess = result.getProcesses().stream()//
         .anyMatch(p -> p.getType() == ProcessType.REMOTE);
-    if (context.getExceptions().isEmpty() && !containsRemoteProcess) {
-      context.addException(
+    if (context.getErrors().isEmpty() && !containsRemoteProcess) {
+      context.addError(
           new CompilerException(new MplSource(programFile, new CommonToken(MplLexer.PROCESS), ""),
               "This file does not include any remote processes"));
     }
@@ -106,15 +106,15 @@ public class MplProgramAssemler {
       File file = include.getFile();
       MplInterpreter interpreter = null;
       try {
-        interpreter = interpret(file);
+        interpreter = interpret(file, context);
       } catch (IOException ex) {
-        context.addException(new CompilerException(include.getSource(),
+        context.addError(new CompilerException(include.getSource(),
             "Couldn't include '" + FileUtils.getCanonicalPath(file) + "'", ex));
         continue;
       }
       MplProgram program = interpreter.getProgram();
       if (program.isScript()) {
-        context.addException(new CompilerException(include.getSource(),
+        context.addError(new CompilerException(include.getSource(),
             "Can't include script '" + file.getName() + "'. Scripts may not be included."));
         continue;
       }
@@ -149,7 +149,7 @@ public class MplProgramAssemler {
     for (File file : reference.getImports()) {
       MplInterpreter interpreter = null;
       try {
-        interpreter = interpret(file);
+        interpreter = interpret(file, context);
       } catch (IOException ex) {
         lastException = new FileException(ex, file);
         continue;
@@ -168,10 +168,10 @@ public class MplProgramAssemler {
     }
 
     if (found.isEmpty()) {
-      context.addException(new CompilerException(reference.getSource(),
+      context.addError(new CompilerException(reference.getSource(),
           "Could not resolve process " + processName, lastException));
     } else if (found.size() > 1) {
-      context.addException(createAmbigiousProcessException(reference, found));
+      context.addError(createAmbigiousProcessException(reference, found));
     } else {
       MplInterpreter interpreter = found.get(0);
       context.addInclude(
