@@ -39,17 +39,25 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import com.google.common.base.Joiner;
+
 import de.adrodoc55.commons.FileUtils;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
+import de.adrodoc55.minecraft.mpl.compilation.FileException;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -61,7 +69,7 @@ import lombok.ToString;
 @EqualsAndHashCode(of = {"processName"})
 @ToString(of = {"processName"})
 @Getter
-public class MplProcessReference {
+public class MplProcessReference implements MplReference {
   private final @Nonnull String processName;
   private final @Nonnull Set<File> imports = new HashSet<>();
   private final @Nonnull MplSource source;
@@ -94,6 +102,32 @@ public class MplProcessReference {
     }
     this.imports.clear();
     this.imports.addAll(imports);
+  }
+
+  @Override
+  public boolean isContainedIn(MplProgram program) {
+    return program.containsProcess(processName);
+  }
+
+  @Override
+  public MplProcess getProcess(MplProgram program) {
+    return program.getProcess(processName);
+  }
+
+  @Override
+  public CompilerException createNotFoundException(FileException possibleCause) {
+    return new CompilerException(source, "Could not resolve process " + processName, possibleCause);
+  }
+
+  @Override
+  public CompilerException createAmbigiousException(List<File> files) {
+    checkArgument(!files.isEmpty(), "files is empty!");
+    int lastIndex = files.size() - 1;
+    List<File> view = files.subList(0, lastIndex);
+    String first = Joiner.on(", ").join(view);
+    File last = files.get(lastIndex);
+    return new CompilerException(source, "Process " + processName
+        + " is ambigious. It was found in '" + first + " and " + last + "!");
   }
 
 }

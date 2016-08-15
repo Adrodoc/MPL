@@ -39,11 +39,13 @@
  */
 package de.adrodoc55.minecraft.mpl.assembly;
 
+import static java.util.stream.Collectors.toList;
+
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -52,6 +54,7 @@ import org.antlr.v4.runtime.CommonToken;
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.FileException;
@@ -60,6 +63,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInclude;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter;
 import de.adrodoc55.minecraft.mpl.interpretation.MplProcessReference;
+import de.adrodoc55.minecraft.mpl.interpretation.MplReference;
 
 /**
  * @author Adrodoc55
@@ -130,8 +134,8 @@ public class MplProgramAssemler {
     }
   }
 
-  protected void resolveReferences(Collection<MplProcessReference> references) {
-    for (MplProcessReference reference : references) {
+  protected void resolveReferences(Collection<? extends MplReference> references) {
+    for (MplReference reference : references) {
       resolveReference(reference);
     }
   }
@@ -143,20 +147,20 @@ public class MplProgramAssemler {
    *
    * @param reference
    */
-  protected void resolveReference(MplProcessReference reference) {
-    String processName = reference.getProcessName();
-    FileException lastException = null;
-    List<MplInterpreter> found = new LinkedList<>();
-    for (File file : reference.getImports()) {
+  protected void resolveReference(MplReference reference) {
+    FileException possibleCause = null;
+    Collection<File> imports = reference.getImports();
+    List<MplInterpreter> found = new ArrayList<>(imports.size());
+    for (File file : imports) {
       MplInterpreter interpreter = null;
       try {
         interpreter = interpret(file, new MplCompilerContext(context.getOptions()));
       } catch (IOException ex) {
-        lastException = new FileException(ex, file);
+        possibleCause = new FileException(ex, file);
         continue;
       }
       MplProgram program = interpreter.getProgram();
-      if (program.containsProcess(processName)) {
+      if (reference.isContainedIn(program)) {
         // Referencing a process in the same file is never ambigious
         if (file.equals(reference.getSource().file)) {
           found.clear();
@@ -169,34 +173,22 @@ public class MplProgramAssemler {
     }
 
     if (found.isEmpty()) {
-      context.addWarning(new CompilerException(reference.getSource(),
-          "Could not resolve process " + processName, lastException));
+      context.addWarning(reference.createNotFoundException(possibleCause));
     } else if (found.size() > 1) {
-      context.addError(createAmbigiousProcessException(reference, found));
+      List<File> files = found.stream().map(i -> i.getProgramFile()).collect(toList());
+      context.addError(reference.createAmbigiousException(files));
     } else {
       MplInterpreter interpreter = found.get(0);
       context.addContext(interpreter.getContext());
-      context.addInclude(
-          new MplInclude(processName, interpreter.getProgramFile(), reference.getSource()));
+      File programFile = interpreter.getProgramFile();
+      MplProgram program = interpreter.getProgram();
+      MplProcess process = reference.getProcess(program);
+      context.addInclude(new MplInclude(process.getName(), programFile, reference.getSource()));
     }
   }
 
-  protected CompilerException createAmbigiousProcessException(MplProcessReference reference,
-      List<MplInterpreter> found) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < found.size() - 1; i++) {
-      MplInterpreter interpreter = found.get(i);
-      File programFile = interpreter.getProgramFile();
-      sb.append(programFile);
-      if (i + 1 < found.size() - 1) {
-        sb.append(", ");
-      }
-    }
-    sb.append(" and ");
-    sb.append(found.get(found.size() - 1).getProgramFile());
-    CompilerException ex = new CompilerException(reference.getSource(),
-        "Process " + reference.getProcessName() + " is ambigious. It was found in '" + sb + "!");
-    return ex;
+  public boolean refIsContained(MplProcessReference reference, MplProgram program) {
+    return program.containsProcess(reference.getProcessName());
   }
 
 }
