@@ -57,7 +57,6 @@ import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
-import de.adrodoc55.minecraft.mpl.compilation.FileException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInclude;
@@ -109,27 +108,25 @@ public class MplProgramAssemler {
     MplInclude include;
     while ((include = context.getNextInclude()) != null) {
       File file = include.getFile();
-      MplInterpreter interpreter = null;
       try {
-        interpreter = interpret(file, context);
+        MplInterpreter interpreter = interpret(file, context);
+        MplProgram program = interpreter.getProgram();
+        if (program.isScript()) {
+          context.addError(new CompilerException(include.getSource(),
+              "Can't include script '" + file.getName() + "'. Scripts may not be included."));
+          continue;
+        }
+        String processName = include.getProcessName();
+        if (processName != null) {
+          programBuilder.addProcess(interpreter, processName);
+          resolveReferences(interpreter.getReferences().get(processName));
+        } else {
+          programBuilder.addAllProcesses(interpreter);
+          resolveReferences(interpreter.getReferences().values());
+        }
       } catch (IOException ex) {
         context.addError(new CompilerException(include.getSource(),
-            "Couldn't include '" + FileUtils.getCanonicalPath(file) + "'", ex));
-        continue;
-      }
-      MplProgram program = interpreter.getProgram();
-      if (program.isScript()) {
-        context.addError(new CompilerException(include.getSource(),
-            "Can't include script '" + file.getName() + "'. Scripts may not be included."));
-        continue;
-      }
-      String processName = include.getProcessName();
-      if (processName != null) {
-        programBuilder.addProcess(interpreter, processName);
-        resolveReferences(interpreter.getReferences().get(processName));
-      } else {
-        programBuilder.addAllProcesses(interpreter);
-        resolveReferences(interpreter.getReferences().values());
+            "Cannot include file '" + FileUtils.getCanonicalPath(file) + "'", ex));
       }
     }
   }
@@ -148,42 +145,39 @@ public class MplProgramAssemler {
    * @param reference
    */
   protected void resolveReference(MplReference reference) {
-    FileException possibleCause = null;
+    MplSource source = reference.getSource();
     Collection<File> imports = reference.getImports();
     List<MplInterpreter> found = new ArrayList<>(imports.size());
     for (File file : imports) {
-      MplInterpreter interpreter = null;
       try {
-        interpreter = interpret(file, new MplCompilerContext(context.getOptions()));
-      } catch (IOException ex) {
-        possibleCause = new FileException(ex, file);
-        continue;
-      }
-      MplProgram program = interpreter.getProgram();
-      if (reference.isContainedIn(program)) {
-        // Referencing a process in the same file is never ambigious
-        if (file.equals(reference.getSource().file)) {
-          found.clear();
-          found.add(interpreter);
-          break;
-        } else {
-          found.add(interpreter);
+        MplInterpreter interpreter = interpret(file, new MplCompilerContext(context.getOptions()));
+        MplProgram program = interpreter.getProgram();
+        if (reference.isContainedIn(program)) {
+          // Referencing a process in the same file is never ambigious
+          if (file.equals(source.file)) {
+            found.clear();
+            found.add(interpreter);
+            break;
+          } else {
+            found.add(interpreter);
+          }
         }
+      } catch (IOException ex) {
+        context.addError(new CompilerException(source,
+            "Cannot read file '" + FileUtils.getCanonicalPath(file) + "'", ex));
       }
     }
 
-    if (found.isEmpty()) {
-      context.addWarning(reference.createNotFoundException(possibleCause));
-    } else if (found.size() > 1) {
-      List<File> files = found.stream().map(i -> i.getProgramFile()).collect(toList());
-      context.addError(reference.createAmbigiousException(files));
-    } else {
+    if (found.size() == 1) {
       MplInterpreter interpreter = found.get(0);
       context.addContext(interpreter.getContext());
       File programFile = interpreter.getProgramFile();
       MplProgram program = interpreter.getProgram();
       MplProcess process = reference.getProcess(program);
-      context.addInclude(new MplInclude(process.getName(), programFile, reference.getSource()));
+      context.addInclude(new MplInclude(process.getName(), programFile, source));
+    } else if (found.size() > 1) {
+      List<File> files = found.stream().map(i -> i.getProgramFile()).collect(toList());
+      context.addError(reference.createAmbigiousException(files));
     }
   }
 

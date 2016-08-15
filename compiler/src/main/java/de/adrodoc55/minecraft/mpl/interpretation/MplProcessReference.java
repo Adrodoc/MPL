@@ -44,20 +44,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.Nonnull;
 
 import com.google.common.base.Joiner;
 
-import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
-import de.adrodoc55.minecraft.mpl.compilation.FileException;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -66,13 +61,11 @@ import lombok.ToString;
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode(of = {"processName"})
-@ToString(of = {"processName"})
+@EqualsAndHashCode(of = {"processName"}, callSuper = false)
+@ToString(of = {"processName"}, callSuper = false)
 @Getter
-public class MplProcessReference implements MplReference {
+public class MplProcessReference extends MplReference {
   private final @Nonnull String processName;
-  private final @Nonnull Set<File> imports = new HashSet<>();
-  private final @Nonnull MplSource source;
 
   /**
    * Constructs a reference to a process.
@@ -84,24 +77,8 @@ public class MplProcessReference implements MplReference {
    */
   public MplProcessReference(@Nonnull String processName, @Nonnull Collection<File> imports,
       @Nonnull MplSource source) throws IllegalArgumentException {
+    super(imports, source);
     this.processName = checkNotNull(processName, "processName == null!");
-    setImports(imports);
-    this.source = checkNotNull(source, "source == null!");
-  }
-
-  public @Nonnull Set<File> getImports() {
-    return Collections.unmodifiableSet(imports);
-  }
-
-  private void setImports(Collection<File> imports) throws IllegalArgumentException {
-    for (File file : imports) {
-      if (!file.isFile()) {
-        throw new IllegalArgumentException(
-            "The import '" + FileUtils.getCanonicalPath(file) + "' is not a file!");
-      }
-    }
-    this.imports.clear();
-    this.imports.addAll(imports);
   }
 
   @Override
@@ -112,11 +89,6 @@ public class MplProcessReference implements MplReference {
   @Override
   public MplProcess getProcess(MplProgram program) {
     return program.getProcess(processName);
-  }
-
-  @Override
-  public CompilerException createNotFoundException(FileException possibleCause) {
-    return new CompilerException(source, "Could not resolve process " + processName, possibleCause);
   }
 
   @Override

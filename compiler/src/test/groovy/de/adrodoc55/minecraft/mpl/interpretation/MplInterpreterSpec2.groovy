@@ -561,16 +561,16 @@ class MplInterpreterSpec2 extends MplSpecBase {
     lastContext.errors.isEmpty()
 
     SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
-    referenceMap.size() == 1
     Set<MplProcessReference> references = referenceMap.get(id1);
     references[0].imports.containsAll([lastTempFile])
     references[0].imports.size() == 1
     references[0].processName == id2
     references.size() == 1
+    referenceMap.size() == 1
   }
 
   @Test
-  public void "starting a foreign process creates an include"() {
+  public void "starting a foreign process creates a reference"() {
     given:
     String id1 = some($Identifier())
     String id2 = some($Identifier())
@@ -588,16 +588,16 @@ class MplInterpreterSpec2 extends MplSpecBase {
     lastContext.errors.isEmpty()
 
     SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
-    referenceMap.size() == 1
     Set<MplProcessReference> references = referenceMap.get(id1);
     references[0].imports.containsAll([lastTempFile])
     references[0].imports.size() == 1
     references[0].processName == id2
     references.size() == 1
+    referenceMap.size() == 1
   }
 
   @Test
-  public void "dynamically starting a foreign process does not create an include"() {
+  public void "dynamically starting a foreign process does not create a reference"() {
     given:
     String id1 = some($Identifier())
     String id2 = some($Identifier())
@@ -614,12 +614,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplProgram program = interpreter.program
     lastContext.errors.isEmpty()
 
-    SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
-    referenceMap.isEmpty()
+    interpreter.references.isEmpty()
   }
 
   @Test
-  public void "starting a foreign process from a script does not create an include"() {
+  public void "starting a foreign process from a script does not create a reference"() {
     given:
     String programString = """
     start other
@@ -634,7 +633,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
-  public void "imported files are used for implicit includes"() {
+  public void "imported files are used for references"() {
     given:
     String id1 = some($Identifier())
     String id2 = some($Identifier())
@@ -658,15 +657,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
     lastContext.errors.isEmpty()
 
     SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
-    referenceMap.size() == 1
     Set<MplProcessReference> references = referenceMap.get(id1);
     references[0].imports.containsAll([lastTempFile, newFile])
     references[0].imports.size() == 2
     references[0].processName == id2
     references.size() == 1
+    referenceMap.size() == 1
   }
   @Test
-  public void "the subfiles of imported directories are used for implicit includes"() {
+  public void "the subfiles of imported directories are used for references"() {
     given:
     String id1 = some($Identifier())
     String id2 = some($Identifier())
@@ -691,21 +690,21 @@ class MplInterpreterSpec2 extends MplSpecBase {
     lastContext.errors.isEmpty()
 
     SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
-    referenceMap.size() == 1
     Set<MplProcessReference> references = referenceMap.get(id1);
     references[0].imports.containsAll([lastTempFile, newFile])
     references[0].imports.size() == 2
     references[0].processName == id2
     references.size() == 1
+    referenceMap.size() == 1
   }
 
   /**
-   * Grund hierfür ist: die Abhängigkeiten eines jeden Prozesses müssen durch die Includes
+   * Grund hierfür ist: die Abhängigkeiten eines jeden Prozesses müssen durch die Referenzen
    * dokumentiert werden, da bei imports nur einzelne Prozesse includiert werden und deren
    * Abhängigkeiten sonst verloren gehen würden.
    */
   @Test
-  public void "starting a process in the same file creates an include (process definition after call)"() {
+  public void "starting a process in the same file creates a reference (process definition after call)"() {
     given:
     String id1 = some($Identifier())
     String id2 = some($Identifier())
@@ -727,21 +726,21 @@ class MplInterpreterSpec2 extends MplSpecBase {
     lastContext.errors.isEmpty()
 
     SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
-    referenceMap.size() == 1
     Set<MplProcessReference> references = referenceMap.get(id1);
     references[0].imports.containsAll([lastTempFile])
     references[0].imports.size() == 1
     references[0].processName == id2
     references.size() == 1
+    referenceMap.size() == 1
   }
 
   /**
-   * Grund hierfür ist: die Abhängigkeiten eines jeden Prozesses müssen durch die Includes
+   * Grund hierfür ist: die Abhängigkeiten eines jeden Prozesses müssen durch die Referenzen
    * dokumentiert werden, da bei imports nur einzelne Prozesse includiert werden und deren
    * Abhängigkeiten sonst verloren gehen würden.
    */
   @Test
-  public void "starting a process in the same file creates an include (process definition before call)"() {
+  public void "starting a process in the same file creates a reference (process definition before call)"() {
     given:
     String id1 = some($Identifier())
     String id2 = some($Identifier())
@@ -763,12 +762,12 @@ class MplInterpreterSpec2 extends MplSpecBase {
     lastContext.errors.isEmpty()
 
     SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
-    referenceMap.size() == 1
     Set<MplProcessReference> references = referenceMap.get(id2);
     references[0].imports.containsAll([lastTempFile])
     references[0].imports.size() == 1
     references[0].processName == id1
     references.size() == 1
+    referenceMap.size() == 1
   }
 
   // ----------------------------------------------------------------------------------------------------

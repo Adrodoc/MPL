@@ -634,12 +634,6 @@ public class MplInterpreter extends MplBaseListener {
 
     checkNoModifier(stop.getName(), modifierBuffer.getModeToken());
     checkNoModifier(stop.getName(), modifierBuffer.getNeedsRedstoneToken());
-
-    if (identifier != null) {
-      String process = identifier.getText();
-      String srcProcess = this.process != null ? this.process.getName() : null;
-      references.put(srcProcess, new MplProcessReference(process, imports, source));
-    }
   }
 
   @Override
@@ -663,19 +657,14 @@ public class MplInterpreter extends MplBaseListener {
 
     checkNoModifier(waitfor.getName(), modifierBuffer.getModeToken());
     checkNoModifier(waitfor.getName(), modifierBuffer.getNeedsRedstoneToken());
-
-    if (identifier != null) {
-      String process = identifier.getText();
-      String srcProcess = this.process != null ? this.process.getName() : null;
-      references.put(srcProcess, new MplProcessReference(process, imports, source));
-    }
   }
 
   @Override
   public void enterNotifyDeclaration(NotifyDeclarationContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String event = identifier.getText();
-    MplNotify notify = new MplNotify(event, modifierBuffer, toSource(identifier.getSymbol()));
+    MplSource source = toSource(identifier.getSymbol());
+    MplNotify notify = new MplNotify(event, modifierBuffer, source);
     addModifiableChainPart(notify);
 
     checkNoModifier(notify.getName(), modifierBuffer.getModeToken());
@@ -692,9 +681,6 @@ public class MplInterpreter extends MplBaseListener {
 
     checkNoModifier(intercept.getName(), modifierBuffer.getModeToken());
     checkNoModifier(intercept.getName(), modifierBuffer.getNeedsRedstoneToken());
-
-    String srcProcess = this.process != null ? this.process.getName() : null;
-    references.put(srcProcess, new MplProcessReference(process, imports, source));
   }
 
   @Override
@@ -707,8 +693,6 @@ public class MplInterpreter extends MplBaseListener {
 
     checkNoModifier(breakpoint.getName(), modifierBuffer.getModeToken());
     checkNoModifier(breakpoint.getName(), modifierBuffer.getNeedsRedstoneToken());
-
-    // getProject().setHasBreakpoint(true);
   }
 
   @Override

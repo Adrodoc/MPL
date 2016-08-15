@@ -46,6 +46,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -157,6 +158,17 @@ public class MplProgram implements MplNode, Named {
   void setProcesses(Collection<MplProcess> processes) {
     processMap.clear();
     processMap.putAll(Maps.uniqueIndex(processes, p -> p.getName()));
+  }
+
+  /**
+   * Opens a {@link Stream} containing all processes of {@code this} program including install and
+   * uninstall. The returned stream will not contain any {@code null} values.
+   *
+   * @return a new {@link Stream} of all processes.
+   */
+  public Stream<MplProcess> streamProcesses() {
+    return Stream.concat(Stream.of(install, uninstall), getProcesses().stream())
+        .filter(p -> p != null);
   }
 
   @Override

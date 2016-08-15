@@ -1024,6 +1024,27 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
+  public void "calling an unknown process results in a compiler warning"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      unknown()
+    }
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.get(programFile)[0].message == "Could not resolve process unknown"
+    result.warnings.get(programFile)[0].source.file == programFile
+    result.warnings.get(programFile)[0].source.token.text == 'unknown'
+    result.warnings.get(programFile)[0].source.token.line == 3
+    result.warnings.size() == 1
+  }
+
+  @Test
   public void "waiting for a process is fine"() {
     given:
     File folder = tempFolder.root

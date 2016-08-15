@@ -336,14 +336,42 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     return false;
   }
 
-  private void checkInlineProcess(ModifiableChainPart chainpart, String processName) {
+  /**
+   * Checks if a process with the specified {@code processName} is part of the program. If there is
+   * such a process, this method returns true, otherwise returns false and adds a compiler warning.
+   *
+   * @param chainpart where to display the warning
+   * @param processName the required process
+   * @return true if the process was found, false otherwise
+   */
+  private boolean checkProcessExists(ModifiableChainPart chainpart, String processName) {
+    checkNotNull(processName, "processName == null!");
+    if (!program.containsProcess(processName)) {
+      context.addWarning(
+          new CompilerException(chainpart.getSource(), "Could not resolve process " + processName));
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks if the process with the specified {@code processName} is an inline process. If there is
+   * such a process and it is inline, this method returns true, otherwise returns false and adds a
+   * compiler exception.
+   *
+   * @param chainpart
+   * @param processName
+   * @return
+   */
+  private boolean checkNotInlineProcess(ModifiableChainPart chainpart, String processName) {
     checkNotNull(processName, "processName == null!");
     MplProcess process = program.getProcess(processName);
     if (process != null && process.getType() == ProcessType.INLINE) {
       context.addError(new CompilerException(chainpart.getSource(),
           "Cannot " + chainpart.getName() + " an inline process"));
+      return false;
     }
-    System.out.println();
+    return true;
   }
 
   /**
@@ -375,12 +403,14 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   @Override
   public void visitCall(MplCall mplCall) {
     String processName = mplCall.getProcess();
-    MplProcess process = program.getProcess(processName);
-    if (process.getType() == INLINE) {
-      for (ChainPart cp : process.getChainParts()) {
-        cp.accept(this);
+    if (checkProcessExists(mplCall, processName)) {
+      MplProcess process = program.getProcess(processName);
+      if (process.getType() == INLINE) {
+        for (ChainPart cp : process.getChainParts()) {
+          cp.accept(this);
+        }
+        return;
       }
-      return;
     }
     ModifierBuffer modifier = new ModifierBuffer();
     modifier.setConditional(mplCall.isConditional() ? CONDITIONAL : UNCONDITIONAL);
@@ -395,7 +425,9 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   @Override
   public void visitStart(MplStart start) {
     String selector = start.getSelector();
-    checkInlineProcess(start, selector.substring(8, selector.length() - 1));
+    String processName = selector.substring(8, selector.length() - 1);
+    checkProcessExists(start, processName);
+    checkNotInlineProcess(start, processName);
     visitPossibleInvert(start);
 
     String command = "execute " + selector + " ~ ~ ~ " + getStartCommand("~ ~ ~");
@@ -405,7 +437,9 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   @Override
   public void visitStop(MplStop stop) {
     String selector = stop.getSelector();
-    checkInlineProcess(stop, selector.substring(8, selector.length() - 1));
+    String processName = selector.substring(8, selector.length() - 1);
+    checkProcessExists(stop, processName);
+    checkNotInlineProcess(stop, processName);
     visitPossibleInvert(stop);
 
     String command = "execute " + selector + " ~ ~ ~ " + getStopCommand("~ ~ ~");
@@ -415,7 +449,22 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   @Override
   public void visitWaitfor(MplWaitfor waitfor) {
     String event = waitfor.getEvent();
-    checkInlineProcess(waitfor, event);
+    // boolean triggeredByProcess = program.streamProcesses()//
+    // .anyMatch(p -> event.equals(p.getName()));
+    // if (!triggeredByProcess) {
+    // boolean triggeredByNotify = program.streamProcesses()//
+    // .flatMap(p -> p.getChainParts().stream())//
+    // .anyMatch(c -> {
+    // if (c instanceof MplNotify)
+    // return event.equals(((MplNotify) c).getEvent());
+    // return false;
+    // });
+    // if (!triggeredByNotify) {
+    // context.addWarning(new CompilerException(waitfor.getSource(),
+    // "The event " + event + " is never triggered"));
+    // }
+    // }
+    checkNotInlineProcess(waitfor, event);
 
     ReferencingCommand summon = new ReferencingCommand("summon ArmorStand " + REF + " {CustomName:"
         + event + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
@@ -445,9 +494,20 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public void visitNotify(MplNotify notify) {
+    String event = notify.getEvent();
+    // boolean used = program.streamProcesses()//
+    // .flatMap(p -> p.getChainParts().stream())//
+    // .anyMatch(c -> {
+    // if (c instanceof MplWaitfor)
+    // return event.equals(((MplWaitfor) c).getEvent());
+    // return false;
+    // });
+    // if (!used) {
+    // context.addWarning(
+    // new CompilerException(notify.getSource(), "The event " + event + " is never used"));
+    // }
     visitPossibleInvert(notify);
 
-    String event = notify.getEvent();
     boolean conditional = notify.isConditional();
     commands.add(new InternalCommand(
         "execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + getStartCommand("~ ~ ~"), conditional));
@@ -457,7 +517,8 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   @Override
   public void visitIntercept(MplIntercept intercept) {
     String event = intercept.getEvent();
-    checkInlineProcess(intercept, event);
+    checkProcessExists(intercept, event);
+    checkNotInlineProcess(intercept, event);
     boolean conditional = intercept.isConditional();
 
     InternalCommand entitydata = new InternalCommand(

@@ -41,7 +41,6 @@ package de.adrodoc55.minecraft.mpl.compilation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.File;
 import java.nio.charset.CharacterCodingException;
 
 import javax.annotation.Nonnull;
@@ -52,7 +51,6 @@ import de.adrodoc55.commons.FileUtils;
  * @author Adrodoc55
  */
 public class CompilerException extends Exception {
-
   private static final long serialVersionUID = 1L;
 
   private @Nonnull MplSource source;
@@ -89,21 +87,57 @@ public class CompilerException extends Exception {
     }
     Throwable cause = getCause();
     if (cause != null) {
-      sb.append("possible cause: ");
-      File file = null;
-      if (cause instanceof FileException) {
-        file = ((FileException) cause).getFile();
-        cause = cause.getCause();
-      }
-      if (cause != null && cause instanceof CharacterCodingException) {
+      sb.append("caused by: ");
+      if (cause instanceof CharacterCodingException) {
         sb.append("Invalid file encoding, must be UTF-8!");
       } else {
         sb.append(cause.toString());
       }
-      if (file != null) {
-        sb.append("\nin file: ").append(FileUtils.getCanonicalPath(file));
-      }
     }
     return sb.toString();
   }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    Throwable cause = getCause();
+    result = prime * result + ((cause == null) ? 0 : cause.hashCode());
+    String message = getMessage();
+    result = prime * result + ((message == null) ? 0 : message.hashCode());
+    result = prime * result + ((source == null) ? 0 : source.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    CompilerException other = (CompilerException) obj;
+    Throwable cause = getCause();
+    Throwable otherCause = other.getCause();
+    if (cause == null) {
+      if (otherCause != null)
+        return false;
+    } else if (!cause.equals(otherCause))
+      return false;
+    String message = getMessage();
+    String otherMessage = other.getMessage();
+    if (message == null) {
+      if (otherMessage != null)
+        return false;
+    } else if (!message.equals(otherMessage))
+      return false;
+    if (source == null) {
+      if (other.source != null)
+        return false;
+    } else if (!source.equals(other.source))
+      return false;
+    return true;
+  }
+
 }
