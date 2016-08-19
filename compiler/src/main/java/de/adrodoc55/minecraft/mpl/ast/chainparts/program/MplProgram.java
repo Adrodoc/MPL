@@ -61,6 +61,7 @@ import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.ast.MplNode;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
@@ -71,7 +72,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 /**
  * @author Adrodoc55
  */
-public class MplProgram implements MplNode, Named {
+public class MplProgram implements MplNode<ChainContainer>, Named {
   private final MplCompilerContext context;
   @Getter
   private final File programFile;
@@ -172,8 +173,8 @@ public class MplProgram implements MplNode, Named {
   }
 
   @Override
-  public void accept(MplAstVisitor visitor) {
-    visitor.visitProgram(this);
+  public ChainContainer accept(MplAstVisitor visitor) {
+    return visitor.visitProgram(this);
   }
 
   public String getHash() {

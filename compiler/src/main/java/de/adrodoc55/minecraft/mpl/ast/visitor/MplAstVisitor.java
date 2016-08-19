@@ -39,6 +39,11 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.visitor;
 
+import java.util.List;
+
+import javax.annotation.Nullable;
+
+import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
@@ -54,41 +59,48 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
+import de.adrodoc55.minecraft.mpl.chain.CommandChain;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 
 /**
  * @author Adrodoc55
  */
 public interface MplAstVisitor {
-  void visitProgram(MplProgram program);
+  ChainContainer visitProgram(MplProgram program);
 
-  void visitProcess(MplProcess process);
+  /**
+   * Returns null if the specified {@code process} is of type {@link ProcessType#INLINE}.
+   *
+   * @param process the {@link MplProcess} to convert
+   * @return result
+   */
+  @Nullable
+  CommandChain visitProcess(MplProcess process);
 
-  void visitCommand(MplCommand command);
+  List<ChainLink> visitCommand(MplCommand command);
 
-  void visitCall(MplCall mplCall);
+  List<ChainLink> visitCall(MplCall mplCall);
 
-  void visitStart(MplStart start);
+  List<ChainLink> visitStart(MplStart start);
 
-  void visitStop(MplStop stop);
+  List<ChainLink> visitStop(MplStop stop);
 
-  void visitWaitfor(MplWaitfor waitfor);
+  List<ChainLink> visitWaitfor(MplWaitfor waitfor);
 
-  void visitNotify(MplNotify notify);
+  List<ChainLink> visitNotify(MplNotify notify);
 
-  void visitIntercept(MplIntercept intercept);
+  List<ChainLink> visitIntercept(MplIntercept intercept);
 
-  void visitBreakpoint(MplBreakpoint breakpoint);
+  List<ChainLink> visitBreakpoint(MplBreakpoint breakpoint);
 
-  void visitSkip(MplSkip skip);
+  List<ChainLink> visitSkip(MplSkip skip);
 
-  void visitIf(MplIf mplIf);
+  List<ChainLink> visitIf(MplIf mplIf);
 
-  ChainContainer getResult();
+  List<ChainLink> visitWhile(MplWhile mplWhile);
 
-  void visitWhile(MplWhile mplWhile);
+  List<ChainLink> visitBreak(MplBreak mplBreak);
 
-  void visitBreak(MplBreak mplBreak);
-
-  void visitContinue(MplContinue mplContinue);
+  List<ChainLink> visitContinue(MplContinue mplContinue);
 }

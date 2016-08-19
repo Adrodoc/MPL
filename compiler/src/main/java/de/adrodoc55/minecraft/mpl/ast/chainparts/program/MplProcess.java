@@ -55,6 +55,7 @@ import de.adrodoc55.minecraft.mpl.ast.MplNode;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -67,7 +68,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @EqualsAndHashCode(exclude = "source")
 @ToString(exclude = "source")
 @Getter
-public class MplProcess implements MplNode, Named {
+public class MplProcess implements MplNode<CommandChain>, Named {
   private final String name;
   private final boolean repeating;
   private final ProcessType type;
@@ -130,8 +131,8 @@ public class MplProcess implements MplNode, Named {
   }
 
   @Override
-  public void accept(MplAstVisitor visitor) {
-    visitor.visitProcess(this);
+  public @Nullable CommandChain accept(MplAstVisitor visitor) {
+    return visitor.visitProcess(this);
   }
 
 }

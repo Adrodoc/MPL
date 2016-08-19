@@ -57,11 +57,11 @@ import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOpt
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.antlr.v4.runtime.CommonToken;
@@ -101,18 +101,13 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.NormalizingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingTestforSuccessCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 /**
  * @author Adrodoc55
@@ -123,22 +118,16 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   final CompilerOptions options;
   @VisibleForTesting
   MplProgram program;
-  @VisibleForTesting
-  List<CommandChain> chains = new ArrayList<>();
-  @VisibleForTesting
-  List<ChainLink> commands = new ArrayList<>();
-  private ChainContainer container;
+  // @VisibleForTesting
+  // List<CommandChain> chains = new ArrayList<>();
+  // @VisibleForTesting
+  // List<ChainLink> commands = new ArrayList<>();
 
   private MplSource breakpoint;
 
   public MplAstVisitorImpl(MplCompilerContext context) {
     this.context = checkNotNull(context, "context == null!");
     this.options = context.getOptions();
-  }
-
-  @Override
-  public ChainContainer getResult() {
-    return container;
   }
 
   /**
@@ -188,12 +177,13 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     return new ReferencingCommand(getStopCommand(REF), conditional, relative);
   }
 
-  private void addRestartBackref(ChainLink chainLink, boolean conditional) {
+  private void addRestartBackref(List<ChainLink> commands, ChainLink chainLink,
+      boolean conditional) {
     commands.add(newReferencingStopCommand(conditional, getCountToRef(chainLink)));
     commands.add(newReferencingStartCommand(true, getCountToRef(chainLink)));
   }
 
-  private void addTransmitterReceiverCombo(boolean internal) {
+  private void addTransmitterReceiverCombo(List<ChainLink> commands, boolean internal) {
     if (options.hasOption(TRANSMITTER)) {
       commands.add(new MplSkip(internal));
       commands.add(new InternalCommand(getStopCommand("${this - 1}"), Mode.IMPULSE));
@@ -203,23 +193,25 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   }
 
   @Override
-  public void visitProgram(MplProgram program) {
+  public ChainContainer visitProgram(MplProgram program) {
     this.program = program;
-    chains = new ArrayList<>(1);
     Orientation3D orientation = program.getOrientation();
     Coordinate3D max = program.getMax();
     File file = program.getProgramFile();
     CommandChain install = visitUnInstall("install", file, program.getInstall());
     CommandChain uninstall = visitUnInstall("uninstall", file, program.getUninstall());
 
-    chains = new ArrayList<>(program.getProcesses().size());
+    List<CommandChain> chains = new ArrayList<>(program.getProcesses().size());
     for (MplProcess process : program.getProcesses()) {
-      process.accept(this);
+      CommandChain chain = process.accept(this);
+      if (chain != null) {
+        chains.add(chain);
+      }
     }
     if (breakpoint != null) {
       addBreakpointProcess(program);
     }
-    container = new ChainContainer(orientation, max, install, uninstall, chains, program.getHash());
+    return new ChainContainer(orientation, max, install, uninstall, chains, program.getHash());
   }
 
   private @Nullable CommandChain visitUnInstall(String name, File programFile,
@@ -228,10 +220,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       process =
           new MplProcess(name, new MplSource(programFile, new CommonToken(MplLexer.PROCESS), ""));
     }
-    process.accept(this);
-    CommandChain chain = chains.get(0);
-    chains.remove(0);
-    return chain;
+    return process.accept(this);
   }
 
   private void addBreakpointProcess(MplProgram program) {
@@ -275,12 +264,12 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   }
 
   @Override
-  public void visitProcess(MplProcess process) {
+  public @Nullable CommandChain visitProcess(MplProcess process) {
     if (process.getType() == INLINE) {
-      return;
+      return null;
     }
     List<ChainPart> chainParts = new CopyScope().copy(process.getChainParts());
-    commands = new ArrayList<>(chainParts.size());
+    List<ChainLink> commands = new ArrayList<>(chainParts.size());
     boolean containsSkip = containsHighlevelSkip(chainParts);
     String name = process.getName();
     if (name != null) {
@@ -303,22 +292,22 @@ public class MplAstVisitorImpl implements MplAstVisitor {
           throw new IllegalStateException(ex.getMessage(), ex);
         }
       } else {
-        addTransmitterReceiverCombo(false);
+        addTransmitterReceiverCombo(commands, false);
       }
     } else if (options.hasOption(TRANSMITTER)) {
       commands.add(new MplSkip());
     }
     for (ChainPart chainPart : chainParts) {
-      chainPart.accept(this);
+      commands.addAll(chainPart.accept(this));
     }
     if (process.isRepeating() && containsSkip) {
-      addRestartBackref(commands.get(0), false);
+      addRestartBackref(commands, commands.get(0), false);
     }
     if (!process.isRepeating() && name != null && !"install".equals(name)
         && !"uninstall".equals(name)) {
       new MplNotify(name, process.getSource()).accept(this);
     }
-    chains.add(new CommandChain(name, commands, process.getTags()));
+    return new CommandChain(name, commands, process.getTags());
   }
 
   private boolean containsHighlevelSkip(List<ChainPart> chainParts) {
@@ -383,7 +372,8 @@ public class MplAstVisitorImpl implements MplAstVisitor {
    * @throws IllegalStateException if {@code chainPart} does not have predecessor
    * @see ModifiableChainPart#getPrevious()
    */
-  protected void visitPossibleInvert(ModifiableChainPart chainPart) throws IllegalStateException {
+  public static void visitPossibleInvert(List<? super InvertingCommand> commands,
+      ModifiableChainPart chainPart) throws IllegalStateException {
     if (chainPart.getConditional() == Conditional.INVERT) {
       Dependable previous = chainPart.getPrevious();
       checkState(previous != null,
@@ -393,23 +383,26 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   }
 
   @Override
-  public void visitCommand(MplCommand command) {
-    visitPossibleInvert(command);
+  public List<ChainLink> visitCommand(MplCommand command) {
+    List<ChainLink> result = new ArrayList<>(2);
+    visitPossibleInvert(result, command);
 
     String cmd = command.getCommand();
-    commands.add(new Command(cmd, command));
+    result.add(new Command(cmd, command));
+    return result;
   }
 
   @Override
-  public void visitCall(MplCall mplCall) {
+  public List<ChainLink> visitCall(MplCall mplCall) {
+    List<ChainLink> result = new ArrayList<>();
     String processName = mplCall.getProcess();
     if (checkProcessExists(mplCall, processName)) {
       MplProcess process = program.getProcess(processName);
       if (process.getType() == INLINE) {
         for (ChainPart cp : process.getChainParts()) {
-          cp.accept(this);
+          result.addAll(cp.accept(this));
         }
-        return;
+        return result;
       }
     }
     ModifierBuffer modifier = new ModifierBuffer();
@@ -418,36 +411,42 @@ public class MplAstVisitorImpl implements MplAstVisitor {
         mplCall.getSource());
 
     MplWaitfor mplWaitfor = new MplWaitfor(processName, modifier, mplCall.getSource());
-    mplStart.accept(this);
-    mplWaitfor.accept(this);
+    result.addAll(mplStart.accept(this));
+    result.addAll(mplWaitfor.accept(this));
+    return result;
   }
 
   @Override
-  public void visitStart(MplStart start) {
+  public List<ChainLink> visitStart(MplStart start) {
+    List<ChainLink> result = new ArrayList<>(2);
     String selector = start.getSelector();
     String processName = selector.substring(8, selector.length() - 1);
     checkProcessExists(start, processName);
     checkNotInlineProcess(start, processName);
-    visitPossibleInvert(start);
+    visitPossibleInvert(result, start);
 
     String command = "execute " + selector + " ~ ~ ~ " + getStartCommand("~ ~ ~");
-    commands.add(new Command(command, start));
+    result.add(new Command(command, start));
+    return result;
   }
 
   @Override
-  public void visitStop(MplStop stop) {
+  public List<ChainLink> visitStop(MplStop stop) {
+    List<ChainLink> result = new ArrayList<>(2);
     String selector = stop.getSelector();
     String processName = selector.substring(8, selector.length() - 1);
     checkProcessExists(stop, processName);
     checkNotInlineProcess(stop, processName);
-    visitPossibleInvert(stop);
+    visitPossibleInvert(result, stop);
 
     String command = "execute " + selector + " ~ ~ ~ " + getStopCommand("~ ~ ~");
-    commands.add(new Command(command, stop));
+    result.add(new Command(command, stop));
+    return result;
   }
 
   @Override
-  public void visitWaitfor(MplWaitfor waitfor) {
+  public List<ChainLink> visitWaitfor(MplWaitfor waitfor) {
+    List<ChainLink> result = new ArrayList<>();
     String event = waitfor.getEvent();
     // boolean triggeredByProcess = program.streamProcesses()//
     // .anyMatch(p -> event.equals(p.getName()));
@@ -471,29 +470,31 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
     if (waitfor.getConditional() == UNCONDITIONAL) {
       summon.setRelative(1);
-      commands.add(summon);
+      result.add(summon);
     } else {
       summon.setConditional(true);
       ReferencingCommand jump = new ReferencingCommand(getStartCommand(REF), true);
       if (waitfor.getConditional() == CONDITIONAL) {
         summon.setRelative(3);
         jump.setRelative(1);
-        commands.add(summon);
-        commands.add(new InvertingCommand(CHAIN));
-        commands.add(jump);
+        result.add(summon);
+        result.add(new InvertingCommand(CHAIN));
+        result.add(jump);
       } else { // conditional == INVERT
         jump.setRelative(3);
         summon.setRelative(1);
-        commands.add(jump);
-        commands.add(new InvertingCommand(CHAIN));
-        commands.add(summon);
+        result.add(jump);
+        result.add(new InvertingCommand(CHAIN));
+        result.add(summon);
       }
     }
-    addTransmitterReceiverCombo(false);
+    addTransmitterReceiverCombo(result, false);
+    return result;
   }
 
   @Override
-  public void visitNotify(MplNotify notify) {
+  public List<ChainLink> visitNotify(MplNotify notify) {
+    List<ChainLink> result = new ArrayList<>(3);
     String event = notify.getEvent();
     // boolean used = program.streamProcesses()//
     // .flatMap(p -> p.getChainParts().stream())//
@@ -506,16 +507,18 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     // context.addWarning(
     // new CompilerException(notify.getSource(), "The event " + event + " is never used"));
     // }
-    visitPossibleInvert(notify);
+    visitPossibleInvert(result, notify);
 
     boolean conditional = notify.isConditional();
-    commands.add(new InternalCommand(
+    result.add(new InternalCommand(
         "execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + getStartCommand("~ ~ ~"), conditional));
-    commands.add(new Command("kill @e[name=" + event + NOTIFY + "]", conditional));
+    result.add(new Command("kill @e[name=" + event + NOTIFY + "]", conditional));
+    return result;
   }
 
   @Override
-  public void visitIntercept(MplIntercept intercept) {
+  public List<ChainLink> visitIntercept(MplIntercept intercept) {
+    List<ChainLink> result = new ArrayList<>();
     String event = intercept.getEvent();
     checkProcessExists(intercept, event);
     checkNotInlineProcess(intercept, event);
@@ -530,223 +533,71 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
     if (intercept.getConditional() == UNCONDITIONAL) {
       summon.setRelative(1);
-      commands.add(entitydata);
-      commands.add(summon);
+      result.add(entitydata);
+      result.add(summon);
     } else {
       ReferencingCommand jump = new ReferencingCommand(getStartCommand(REF), true);
       if (intercept.getConditional() == CONDITIONAL) {
         summon.setRelative(3);
         jump.setRelative(1);
-        commands.add(entitydata);
-        commands.add(summon);
-        commands.add(new InvertingCommand(CHAIN));
-        commands.add(jump);
+        result.add(entitydata);
+        result.add(summon);
+        result.add(new InvertingCommand(CHAIN));
+        result.add(jump);
       } else { // conditional == INVERT
         jump.setRelative(4);
         summon.setRelative(1);
-        commands.add(jump);
-        commands.add(new InvertingCommand(CHAIN));
-        commands.add(entitydata);
-        commands.add(summon);
+        result.add(jump);
+        result.add(new InvertingCommand(CHAIN));
+        result.add(entitydata);
+        result.add(summon);
       }
     }
-    addTransmitterReceiverCombo(false);
-    commands.add(new InternalCommand("kill @e[name=" + event + ",r=2]"));
-    commands.add(new InternalCommand(
+    addTransmitterReceiverCombo(result, false);
+    result.add(new InternalCommand("kill @e[name=" + event + ",r=2]"));
+    result.add(new InternalCommand(
         "entitydata @e[name=" + event + INTERCEPTED + "] {CustomName:" + event + "}"));
+    return result;
   }
 
   @Override
-  public void visitBreakpoint(MplBreakpoint mplBreakpoint) {
+  public List<ChainLink> visitBreakpoint(MplBreakpoint mplBreakpoint) {
     if (!options.hasOption(DEBUG)) {
-      return;
+      return Collections.emptyList();
     }
+    List<ChainLink> result = new ArrayList<>();
     this.breakpoint = mplBreakpoint.getSource();
 
-    visitPossibleInvert(mplBreakpoint);
+    visitPossibleInvert(result, mplBreakpoint);
 
-    commands.add(new InternalCommand("say " + mplBreakpoint.getMessage(), mplBreakpoint));
+    result.add(new InternalCommand("say " + mplBreakpoint.getMessage(), mplBreakpoint));
 
     ModifierBuffer modifier = new ModifierBuffer();
     modifier.setConditional(mplBreakpoint.isConditional() ? CONDITIONAL : UNCONDITIONAL);
     // new MplCall("breakpoint", modifier, mplBreakpoint.getSource()).accept(this);
-    new MplStart("@e[name=breakpoint]", modifier, mplBreakpoint.getSource()).accept(this);
-    new MplWaitfor("breakpoint", modifier, mplBreakpoint.getSource()).accept(this);
+    MplStart mplStart = new MplStart("@e[name=breakpoint]", modifier, mplBreakpoint.getSource());
+    MplWaitfor mplWaitfor = new MplWaitfor("breakpoint", modifier, mplBreakpoint.getSource());
+    result.addAll(mplStart.accept(this));
+    result.addAll(mplWaitfor.accept(this));
+    return result;
   }
 
   @Override
-  public void visitSkip(MplSkip skip) {
-    commands.add(skip);
+  public List<ChainLink> visitSkip(MplSkip skip) {
+    List<ChainLink> result = new ArrayList<>(1);
+    result.add(skip);
+    return result;
   }
-
-  @RequiredArgsConstructor
-  @Getter
-  @Setter
-  private static class IfNestingLayer {
-    private final boolean not;
-    private final @Nonnull Command ref;
-    private boolean inElse;
-  }
-
-  private Deque<IfNestingLayer> ifNestingLayers = new ArrayDeque<>();
 
   @Override
-  public void visitIf(MplIf mplIf) {
-    visitPossibleInvert(mplIf);
-
-    String condition = mplIf.getCondition();
-    Command ref;
-    if (condition != null) {
-      ref = new InternalCommand(condition, mplIf);
-      commands.add(ref);
-    } else {
-      ref = (Command) commands.get(commands.size() - 1);
-    }
-    if (needsNormalizer(mplIf)) {
-      ref = new NormalizingCommand();
-      commands.add(ref);
-    }
-    IfNestingLayer layer = new IfNestingLayer(mplIf.isNot(), ref);
-    ifNestingLayers.push(layer);
-
-    // then
-    layer.setInElse(false);
-    Deque<ChainPart> thenParts = mplIf.getThenParts();
-    boolean emptyThen = thenParts.isEmpty();
-    if (!mplIf.isNot() && !emptyThen) {
-      // First then does not need a reference
-      addAsConditional(thenParts.pop());
-    }
-    addAllWithRef(thenParts);
-
-    // else
-    layer.setInElse(true);
-    Deque<ChainPart> elseParts = mplIf.getElseParts();
-    boolean emptyElse = elseParts.isEmpty();
-    if (mplIf.isNot() && emptyThen && !emptyElse) {
-      // First else does not need a reference, if there is no then part
-      addAsConditional(elseParts.pop());
-    }
-    addAllWithRef(elseParts);
-
-    ifNestingLayers.pop();
-  }
-
-  private void addAllWithRef(Iterable<ChainPart> chainParts) {
-    for (ChainPart chainPart : chainParts) {
-      addWithRef(cast(chainPart));
-    }
-  }
-
-  private void addWithRef(ModifiableChainPart chainPart) {
-    visitPossibleInvert(chainPart);
-    if (chainPart.getConditional() != CONDITIONAL) {
-      addConditionReferences(chainPart);
-    }
-    addAsConditional(chainPart);
-  }
-
-  /**
-   * Add's all references to required {@link MplIf}s. If the chainPart depends on the parent's
-   * failure a reference to the grandparent is also added. This method is recursive and will add
-   * parent references, until the root is reached or until a layer depends on it's parent's success
-   * rather that failure.
-   */
-  private void addConditionReferences(ModifiableChainPart chainPart) {
-    Deque<IfNestingLayer> requiredReferences = new ArrayDeque<>();
-    for (IfNestingLayer layer : ifNestingLayers) {
-      requiredReferences.push(layer);
-      boolean dependingOnFailure = layer.isNot() ^ layer.isInElse();
-      if (!dependingOnFailure) {
-        break;
-      }
-    }
-    if (chainPart.getConditional() == UNCONDITIONAL) {
-      IfNestingLayer first = requiredReferences.pop();
-      commands.add(getConditionReference(first));
-    }
-    for (IfNestingLayer layer : requiredReferences) {
-      ReferencingTestforSuccessCommand ref = getConditionReference(layer);
-      ref.setConditional(true);
-      commands.add(ref);
-    }
-  }
-
-  private ReferencingTestforSuccessCommand getConditionReference(IfNestingLayer layer) {
-    Command ref = layer.getRef();
-    int relative = getCountToRef(ref);
-    boolean dependingOnFailure = layer.isNot() ^ layer.isInElse();
-    return new ReferencingTestforSuccessCommand(relative, ref.getMode(), !dependingOnFailure);
-  }
-
-  private void addAsConditional(ChainPart chainPart) {
-    cast(chainPart).setConditional(CONDITIONAL);
-    chainPart.accept(this);
-  }
-
-  private static ModifiableChainPart cast(ChainPart chainPart) {
-    try {
-      return (ModifiableChainPart) chainPart;
-    } catch (ClassCastException ex) {
-      throw new IllegalStateException("If cannot contain skip", ex);
-    }
-  }
-
-  public static boolean needsNormalizer(MplIf mplIf) {
-    if (!mplIf.isNot()) {
-      return containsConditionReferenceIgnoringFirstNonIf(mplIf.getThenParts());
-    } else {
-      if (!mplIf.getThenParts().isEmpty()) {
-        if (!mplIf.getElseParts().isEmpty())
-          return true;
-        else
-          return false;
-      }
-      return containsConditionReferenceIgnoringFirstNonIf(mplIf.getElseParts());
-    }
-  }
-
-  private static boolean containsConditionReferenceIgnoringFirstNonIf(
-      Iterable<ChainPart> iterable) {
-    Iterator<ChainPart> it = iterable.iterator();
-    if (it.hasNext()) {
-      ChainPart first = it.next(); // Ignore the first element.
-      if (first instanceof MplIf) {
-        it = iterable.iterator(); // Only if it is not a nested if
-      }
-    }
-    return containsConditionReference(it);
-  }
-
-  private static boolean containsConditionReference(Iterator<ChainPart> it) {
-    while (it.hasNext()) {
-      ChainPart chainPart = it.next();
-      if (chainPart instanceof MplIf) {
-        if (needsParentNormalizer((MplIf) chainPart)) {
-          return true;
-        }
-      } else if (chainPart instanceof ModifiableChainPart) {
-        ModifiableChainPart cp = (ModifiableChainPart) chainPart;
-        if (!cp.isConditional()) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  private static boolean needsParentNormalizer(MplIf mplIf) {
-    if (mplIf.isNot()) {
-      return containsConditionReference(mplIf.getThenParts().iterator());
-    } else {
-      return containsConditionReference(mplIf.getElseParts().iterator());
-    }
+  public List<ChainLink> visitIf(MplIf mplIf) {
+    return new MplIfVisitor(context).visitIf(mplIf);
   }
 
   private Deque<MplWhile> loops = new ArrayDeque<>();
 
   @Override
-  public void visitWhile(MplWhile mplWhile) {
+  public List<ChainLink> visitWhile(MplWhile mplWhile) {
     loops.push(mplWhile);
 
     String condition = mplWhile.getCondition();
@@ -871,7 +722,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   }
 
   @Override
-  public void visitBreak(MplBreak mplBreak) {
+  public List<ChainLink> visitBreak(MplBreak mplBreak) {
     MplWhile loop = mplBreak.getLoop();
     // FIXME: ein command von break MUSS nicht internal sein (bei unconditional)
     Conditional conditional = mplBreak.getConditional();
@@ -896,7 +747,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   }
 
   @Override
-  public void visitContinue(MplContinue mplContinue) {
+  public List<ChainLink> visitContinue(MplContinue mplContinue) {
     MplWhile loop = mplContinue.getLoop();
     // FIXME: ein command von continue MUSS nicht internal sein (bei unconditional)
     Conditional conditional = mplContinue.getConditional();

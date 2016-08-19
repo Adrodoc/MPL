@@ -64,6 +64,7 @@ import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOpt
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -76,7 +77,9 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
@@ -129,10 +132,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         .withChainParts(listOf(first, second)));
 
     // when:
-    mplProcess.accept(underTest);
+    CommandChain result = mplProcess.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result.getCommands()).containsExactly(//
         new MplSkip(), //
         new Command(first.getCommand(), REPEAT), //
         new Command(second.getCommand(), second)//
@@ -151,10 +154,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         .withChainParts(listOf(first, second)));
 
     // when:
-    mplProcess.accept(underTest);
+    CommandChain result = mplProcess.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result.getCommands()).containsExactly(//
         new MplSkip(), //
         new Command(first.getCommand(), first), //
         new Command(second.getCommand(), second)//
@@ -179,10 +182,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         .withConditional(UNCONDITIONAL));
 
     // when:
-    mplWaitfor.accept(underTest);
+    List<ChainLink> result = mplWaitfor.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplWaitfor.getEvent()
             + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
         new MplSkip(), //
@@ -196,10 +199,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         .withConditional(CONDITIONAL));
 
     // when:
-    mplWaitfor.accept(underTest);
+    List<ChainLink> result = mplWaitfor.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand("/summon ArmorStand ${this + 3} {CustomName:" + mplWaitfor.getEvent()
             + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
         new InvertingCommand(CHAIN), //
@@ -215,10 +218,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         .withConditional(INVERT));
 
     // when:
-    mplWaitfor.accept(underTest);
+    List<ChainLink> result = mplWaitfor.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(getOnCommand("${this + 3}"), true), //
         new InvertingCommand(CHAIN), //
         new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplWaitfor.getEvent()
@@ -245,10 +248,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         .withConditional(UNCONDITIONAL));
 
     // when:
-    mplIntercept.accept(underTest);
+    List<ChainLink> result = mplIntercept.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + "] {CustomName:"
             + mplIntercept.getEvent() + INTERCEPTED + "}"), //
         new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplIntercept.getEvent()
@@ -279,10 +282,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         }));
 
     // when:
-    mplIntercept.accept(underTest);
+    List<ChainLink> result = mplIntercept.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + "] {CustomName:"
             + mplIntercept.getEvent() + INTERCEPTED + "}", true), //
         new InternalCommand("/summon ArmorStand ${this + 3} {CustomName:" + mplIntercept.getEvent()
@@ -315,10 +318,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         }));
 
     // when:
-    mplIntercept.accept(underTest);
+    List<ChainLink> result = mplIntercept.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(getOnCommand("${this + 4}"), true), //
         new InvertingCommand(CHAIN), //
         new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + "] {CustomName:"
@@ -350,10 +353,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         .withConditional(UNCONDITIONAL));
 
     // when:
-    mplBreakpoint.accept(underTest);
+    List<ChainLink> result = mplBreakpoint.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand("/say " + mplBreakpoint.getMessage(), mplBreakpoint), //
         new InternalCommand("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~")), //
         new InternalCommand(
@@ -369,10 +372,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         .withConditional(CONDITIONAL));
 
     // when:
-    mplBreakpoint.accept(underTest);
+    List<ChainLink> result = mplBreakpoint.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand("/say " + mplBreakpoint.getMessage(), mplBreakpoint), //
         new InternalCommand("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~"), true), //
         new InternalCommand(
@@ -403,10 +406,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         }));
 
     // when:
-    mplBreakpoint.accept(underTest);
+    List<ChainLink> result = mplBreakpoint.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InvertingCommand(mode), //
         new InternalCommand("/say " + mplBreakpoint.getMessage(), mplBreakpoint), //
         new InternalCommand("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~"), true), //
@@ -445,10 +448,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         .withChainParts(listOf(mplIf)));
 
     // when:
-    process.accept(underTest);
+    CommandChain result = process.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result.getCommands()).containsExactly(//
         new MplSkip(), //
         new InternalCommand(mplIf.getCondition(), REPEAT), //
         // then
@@ -481,10 +484,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         .withChainParts(listOf(repeat1, repeat2)));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(getOnCommand("${this + 1}")), //
         new MplSkip(true), //
         new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
@@ -509,10 +512,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         .withChainParts(listOf(repeat1, repeat2)));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(getOnCommand("${this + 1}")), //
         new MplSkip(true), //
         new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
@@ -541,10 +544,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         .withChainParts(listOf(repeat1, repeat2)));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(getOnCommand("${this + 1}")), //
         new MplSkip(true), //
         new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
@@ -573,10 +576,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         .withChainParts(listOf(repeat1, repeat2)));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new Command(mplWhile.getCondition()), //
         new InternalCommand(getOnCommand("${this + 3}"), true), //
         new InvertingCommand(CHAIN), //
@@ -608,10 +611,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         .withChainParts(listOf(repeat1, repeat2)));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new Command(mplWhile.getCondition()), //
         new InternalCommand(getOnCommand("${this + 12}"), true), //
         new InvertingCommand(CHAIN), //
@@ -646,10 +649,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     ))));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).startsWith(//
+    assertThat(result).startsWith(//
         new InternalCommand(getOnCommand("${this + 1}")), //
         new MplSkip(true), //
         new NoOperationCommand(IMPULSE), //

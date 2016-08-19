@@ -76,6 +76,7 @@ import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.assertj.core.api.Condition;
@@ -98,6 +99,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
@@ -148,7 +150,7 @@ public abstract class MplAstVisitorTest {
         .withChainParts(mplCommands));
 
     // when:
-    process.accept(underTest);
+    CommandChain result = process.accept(underTest);
 
     // then:
     List<ChainLink> commands = mapToCommands(mplCommands);
@@ -157,8 +159,7 @@ public abstract class MplAstVisitorTest {
     if (underTest.options.hasOption(TRANSMITTER)) {
       commands.add(0, new MplSkip());
     }
-    assertThat(underTest.chains).hasSize(1);
-    assertThat(underTest.chains.get(0).getCommands()).containsExactlyElementsOf(commands);
+    assertThat(result.getCommands()).containsExactlyElementsOf(commands);
   }
 
   @Test
@@ -170,11 +171,10 @@ public abstract class MplAstVisitorTest {
         .withChainParts(mplCommands));
 
     // when:
-    process.accept(underTest);
+    CommandChain result = process.accept(underTest);
 
     // then:
-    assertThat(underTest.chains).hasSize(1);
-    assertThat(underTest.chains.get(0).getCommands()).endsWith(//
+    assertThat(result.getCommands()).endsWith(//
         new InternalCommand(
             "/execute @e[name=" + process.getName() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~")), //
         new InternalCommand("/kill @e[name=" + process.getName() + NOTIFY + "]")//
@@ -188,11 +188,10 @@ public abstract class MplAstVisitorTest {
     MplProcess process = some($MplProcess().withTags(tags));
 
     // when:
-    process.accept(underTest);
+    CommandChain result = process.accept(underTest);
 
     // then:
-    assertThat(underTest.chains).hasSize(1);
-    assertThat(underTest.chains.get(0).getTags()).containsExactlyElementsOf(tags);
+    assertThat(result.getTags()).containsExactlyElementsOf(tags);
   }
 
   @Test
@@ -201,10 +200,10 @@ public abstract class MplAstVisitorTest {
     MplProcess process = some($MplProcess().withType(INLINE));
 
     // when:
-    process.accept(underTest);
+    CommandChain result = process.accept(underTest);
 
     // then:
-    assertThat(underTest.chains).isEmpty();
+    assertThat(result).isNull();
   }
 
   // @formatter:off
@@ -233,10 +232,10 @@ public abstract class MplAstVisitorTest {
         .withChainParts(listOf(first, second)));
 
     // when:
-    process.accept(underTest);
+    CommandChain result = process.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsSequence(//
+    assertThat(result.getCommands()).containsSequence(//
         new Command(first.getCommand(), first), //
         new InvertingCommand(first.getMode()), // Important line!
         new Command(second.getCommand(), second));
@@ -257,10 +256,10 @@ public abstract class MplAstVisitorTest {
         .withChainParts(listOf(first, second)));
 
     // when:
-    process.accept(underTest);
+    CommandChain result = process.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsSequence(//
+    assertThat(result.getCommands()).containsSequence(//
         new Command(first.getCommand(), REPEAT, false, true), //
         new InvertingCommand(REPEAT), // Important line!
         new Command(second.getCommand(), second));
@@ -299,10 +298,12 @@ public abstract class MplAstVisitorTest {
     MplProgram program = some($MplProgram().withProcesses(listOf(main, inline)));
 
     // when:
-    program.accept(underTest);
+    ChainContainer result = program.accept(underTest);
 
     // then:
-    CommandChain mainChain = findByName(main.getName(), underTest.chains);
+    List<CommandChain> chains = result.getChains();
+    assertThat(chains).hasSize(1);
+    CommandChain mainChain = findByName(main.getName(), chains);
     assertThat(mainChain.getCommands())
         .containsSequence(mapToCommands(mplCommands).toArray(new ChainLink[0]));
   }
@@ -317,22 +318,22 @@ public abstract class MplAstVisitorTest {
     )));
 
     // when:
-    mplCall.accept(underTest);
+    List<ChainLink> result = mplCall.accept(underTest);
 
     // then:
-    MplAstVisitorImpl underTest2 = newUnderTest();
+    List<ChainLink> expected = new ArrayList<>();
     MplStart mplStart = some($MplStart()//
         .withSelector("@e[name=" + mplCall.getProcess() + "]")//
         .withModifier(mplCall));
-    mplStart.accept(underTest2);
+    expected.addAll(mplStart.accept(underTest));
     MplWaitfor mplWaitfor = some($MplWaitfor()//
         .withEvent(mplCall.getProcess())//
         .withMode(CHAIN)//
         .withConditional(UNCONDITIONAL)//
         .withNeedsRedstone(false));
-    mplWaitfor.accept(underTest2);
+    expected.addAll(mplWaitfor.accept(underTest));
 
-    assertThat(underTest.commands).containsExactlyElementsOf(underTest2.commands);
+    assertThat(result).containsExactlyElementsOf(expected);
   }
 
   @Test
@@ -345,22 +346,22 @@ public abstract class MplAstVisitorTest {
     )));
 
     // when:
-    mplCall.accept(underTest);
+    List<ChainLink> result = mplCall.accept(underTest);
 
     // then:
-    MplAstVisitorImpl underTest2 = newUnderTest();
+    List<ChainLink> expected = new ArrayList<>();
     MplStart mplStart = some($MplStart()//
         .withSelector("@e[name=" + mplCall.getProcess() + "]")//
         .withModifier(mplCall));
-    mplStart.accept(underTest2);
+    expected.addAll(mplStart.accept(underTest));
     MplWaitfor mplWaitfor = some($MplWaitfor()//
         .withEvent(mplCall.getProcess())//
         .withMode(CHAIN)//
         .withConditional(CONDITIONAL)//
         .withNeedsRedstone(false));
-    mplWaitfor.accept(underTest2);
+    expected.addAll(mplWaitfor.accept(underTest));
 
-    assertThat(underTest.commands).containsExactlyElementsOf(underTest2.commands);
+    assertThat(result).containsExactlyElementsOf(expected);
   }
 
   @Test
@@ -384,22 +385,22 @@ public abstract class MplAstVisitorTest {
     )));
 
     // when:
-    mplCall.accept(underTest);
+    List<ChainLink> result = mplCall.accept(underTest);
 
     // then:
-    MplAstVisitorImpl underTest2 = newUnderTest();
+    List<ChainLink> expected = new ArrayList<>();
     MplStart mplStart = some($MplStart()//
         .withSelector("@e[name=" + mplCall.getProcess() + "]")//
         .withModifier(mplCall));
-    mplStart.accept(underTest2);
+    expected.addAll(mplStart.accept(underTest));
     MplWaitfor mplWaitfor = some($MplWaitfor()//
         .withEvent(mplCall.getProcess())//
         .withMode(CHAIN)//
         .withConditional(CONDITIONAL)//
         .withNeedsRedstone(false));
-    mplWaitfor.accept(underTest2);
+    expected.addAll(mplWaitfor.accept(underTest));
 
-    assertThat(underTest.commands).containsExactlyElementsOf(underTest2.commands);
+    assertThat(result).containsExactlyElementsOf(expected);
   }
 
   // @formatter:off
@@ -422,10 +423,10 @@ public abstract class MplAstVisitorTest {
     boolean needsRedstone = mplStart.getNeedsRedstone();
 
     // when:
-    mplStart.accept(underTest);
+    List<ChainLink> result = mplStart.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(
             "/execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"), mode, false,
             needsRedstone)//
@@ -441,10 +442,10 @@ public abstract class MplAstVisitorTest {
     boolean needsRedstone = mplStart.getNeedsRedstone();
 
     // when:
-    mplStart.accept(underTest);
+    List<ChainLink> result = mplStart.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(
             "/execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"), mode, true,
             needsRedstone));
@@ -471,10 +472,10 @@ public abstract class MplAstVisitorTest {
     boolean needsRedstone = mplStart.getNeedsRedstone();
 
     // when:
-    mplStart.accept(underTest);
+    List<ChainLink> result = mplStart.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InvertingCommand(modeForInverting), //
         new InternalCommand(
             "/execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"), mode, true,
@@ -502,10 +503,10 @@ public abstract class MplAstVisitorTest {
     boolean needsRedstone = mplStop.getNeedsRedstone();
 
     // when:
-    mplStop.accept(underTest);
+    List<ChainLink> result = mplStop.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(
             "/execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"), mode, false,
             needsRedstone)//
@@ -521,10 +522,10 @@ public abstract class MplAstVisitorTest {
     boolean needsRedstone = mplStop.getNeedsRedstone();
 
     // when:
-    mplStop.accept(underTest);
+    List<ChainLink> result = mplStop.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(
             "/execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"), mode, true,
             needsRedstone)//
@@ -552,10 +553,10 @@ public abstract class MplAstVisitorTest {
     boolean needsRedstone = mplStop.getNeedsRedstone();
 
     // when:
-    mplStop.accept(underTest);
+    List<ChainLink> result = mplStop.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InvertingCommand(modeForInvering),
         new InternalCommand(
             "/execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"), mode, true,
@@ -581,10 +582,10 @@ public abstract class MplAstVisitorTest {
         .withConditional(UNCONDITIONAL));
 
     // when:
-    mplNotify.accept(underTest);
+    List<ChainLink> result = mplNotify.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand("/execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ "
             + getOnCommand("~ ~ ~")), //
         new InternalCommand("/kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]")//
@@ -598,10 +599,10 @@ public abstract class MplAstVisitorTest {
         .withConditional(CONDITIONAL));
 
     // when:
-    mplNotify.accept(underTest);
+    List<ChainLink> result = mplNotify.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand("/execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ "
             + getOnCommand("~ ~ ~"), true), //
         new InternalCommand("/kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]", true)//
@@ -627,10 +628,10 @@ public abstract class MplAstVisitorTest {
         }));
 
     // when:
-    mplNotify.accept(underTest);
+    List<ChainLink> result = mplNotify.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InvertingCommand(mode), //
         new InternalCommand("/execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ "
             + getOnCommand("~ ~ ~"), true), //
@@ -660,7 +661,7 @@ public abstract class MplAstVisitorTest {
         .withChainParts(listOf(mplBreakpoint))));
 
     // when:
-    program.accept(underTest);
+    ChainContainer result = program.accept(underTest);
 
     // then:
     Condition<CommandChain> condition = new Condition<CommandChain>() {
@@ -669,7 +670,7 @@ public abstract class MplAstVisitorTest {
         return "breakpoint".equals(value.getName());
       }
     };
-    assertThat(underTest.chains).haveExactly(1, condition);
+    assertThat(result.getChains()).haveExactly(1, condition);
   }
 
   // @formatter:off
@@ -692,10 +693,10 @@ public abstract class MplAstVisitorTest {
         .withNeedsRedstone($boolean()));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition(), mplIf.getMode(), mplIf.isConditional(),
             mplIf.getNeedsRedstone()) //
     );
@@ -723,10 +724,10 @@ public abstract class MplAstVisitorTest {
         }));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InvertingCommand(mode),
         new InternalCommand(mplIf.getCondition(), mplIf.getMode(), true, mplIf.getNeedsRedstone())//
     );
@@ -781,10 +782,10 @@ public abstract class MplAstVisitorTest {
         .withThenParts(listOf(then1)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone())//
     );
@@ -799,10 +800,10 @@ public abstract class MplAstVisitorTest {
         .withElseParts(listOf(else1)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InvertingCommand(CHAIN), //
         new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone())//
@@ -818,10 +819,10 @@ public abstract class MplAstVisitorTest {
         .withThenParts(listOf(then1)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InvertingCommand(CHAIN), //
         new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone())//
@@ -837,10 +838,10 @@ public abstract class MplAstVisitorTest {
         .withElseParts(listOf(else1)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone())//
     );
@@ -857,10 +858,10 @@ public abstract class MplAstVisitorTest {
         .withElseParts(listOf(else1)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:0}"), //
@@ -879,10 +880,10 @@ public abstract class MplAstVisitorTest {
         .withThenParts(listOf(then1, then2, then3)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
         new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
@@ -904,10 +905,10 @@ public abstract class MplAstVisitorTest {
         .withThenParts(listOf(then1, then2, then3)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
         new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
@@ -929,10 +930,10 @@ public abstract class MplAstVisitorTest {
         .withElseParts(listOf(else1, else2, else3)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
         new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
@@ -954,10 +955,10 @@ public abstract class MplAstVisitorTest {
         .withElseParts(listOf(else1, else2, else3)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
         new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
@@ -983,10 +984,10 @@ public abstract class MplAstVisitorTest {
         .withElseParts(listOf(else1, else2, else3)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
         // then
@@ -1020,10 +1021,10 @@ public abstract class MplAstVisitorTest {
         .withElseParts(listOf(else1, else2, else3)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
         // then
@@ -1054,10 +1055,10 @@ public abstract class MplAstVisitorTest {
         .withThenParts(listOf(then1, then2, then3)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
         new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
@@ -1077,10 +1078,10 @@ public abstract class MplAstVisitorTest {
         .withThenParts(listOf(then1, then2)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
         new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone())//
@@ -1105,10 +1106,10 @@ public abstract class MplAstVisitorTest {
         .withThenParts(listOf(then1, then2, then3)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
         new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
@@ -1132,10 +1133,10 @@ public abstract class MplAstVisitorTest {
         .withElseParts(listOf(else1, else2, else3)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
         new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
@@ -1163,10 +1164,10 @@ public abstract class MplAstVisitorTest {
         .withElseParts(listOf(else1, else2, else3)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
         new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
@@ -1190,10 +1191,10 @@ public abstract class MplAstVisitorTest {
         .withThenParts(listOf(then1, then2, then3)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
         new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
@@ -1220,10 +1221,10 @@ public abstract class MplAstVisitorTest {
         .withThenParts(listOf(then1, then2, then3)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
         new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
@@ -1247,10 +1248,10 @@ public abstract class MplAstVisitorTest {
         .withElseParts(listOf(else1, else2, else3)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
         new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
@@ -1270,10 +1271,10 @@ public abstract class MplAstVisitorTest {
         .withElseParts(listOf(else1, else2)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
         new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone())//
@@ -1298,10 +1299,10 @@ public abstract class MplAstVisitorTest {
         .withElseParts(listOf(else1, else2, else3)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
         new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
@@ -1343,10 +1344,10 @@ public abstract class MplAstVisitorTest {
         .withThenParts(listOf(outer)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
         new InternalCommand(outer.getCondition(), true), //
@@ -1394,10 +1395,10 @@ public abstract class MplAstVisitorTest {
         .withThenParts(listOf(outer1, outer2, outer3)));
 
     // when:
-    mplIf.accept(underTest);
+    List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).containsExactly(//
+    assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
         new NormalizingCommand(), //
         new InternalCommand(outer1.getCommand(), outer1.getMode(), true, outer1.getNeedsRedstone()), //
@@ -1455,10 +1456,10 @@ public abstract class MplAstVisitorTest {
         .withNeedsRedstone($boolean()));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).startsWith(//
+    assertThat(result).startsWith(//
         new Command(mplWhile.getCondition(), mplWhile)//
     );
   }
@@ -1486,10 +1487,10 @@ public abstract class MplAstVisitorTest {
         }));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).startsWith(//
+    assertThat(result).startsWith(//
         new InvertingCommand(mode), //
         new Command(mplWhile.getCondition(), mplWhile)//
     );
@@ -1505,10 +1506,10 @@ public abstract class MplAstVisitorTest {
         .withNeedsRedstone($boolean()));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).startsWith(//
+    assertThat(result).startsWith(//
         new InternalCommand(getOnCommand("${this + 1}"), mplWhile)//
     );
   }
@@ -1523,14 +1524,14 @@ public abstract class MplAstVisitorTest {
         .withNeedsRedstone($boolean()));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    int ref = underTest.commands.size() - 3;
+    int ref = result.size() - 3;
     if (underTest.options.hasOption(TRANSMITTER)) {
       ref--;
     }
-    assertThat(underTest.commands).startsWith(//
+    assertThat(result).startsWith(//
         new InternalCommand(getOnCommand("${this + 3}"), mplWhile), //
         new InvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + " + ref + "}"), true)//
@@ -1560,14 +1561,14 @@ public abstract class MplAstVisitorTest {
         }));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    int ref = underTest.commands.size() - 1;
+    int ref = result.size() - 1;
     if (underTest.options.hasOption(TRANSMITTER)) {
       ref--;
     }
-    assertThat(underTest.commands).startsWith(//
+    assertThat(result).startsWith(//
         new InternalCommand(getOnCommand("${this + " + ref + "}"), mplWhile), //
         new InvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true)//
@@ -1586,10 +1587,10 @@ public abstract class MplAstVisitorTest {
         .withNeedsRedstone($boolean()));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(underTest.commands).startsWith(//
+    assertThat(result).startsWith(//
         new InternalCommand(getOnCommand("${this + 1}"), mplWhile)//
     );
   }
@@ -1606,14 +1607,14 @@ public abstract class MplAstVisitorTest {
         .withNeedsRedstone($boolean()));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    int ref = underTest.commands.size() - 3;
+    int ref = result.size() - 3;
     if (underTest.options.hasOption(TRANSMITTER)) {
       ref--;
     }
-    assertThat(underTest.commands).startsWith(//
+    assertThat(result).startsWith(//
         new InternalCommand(getOnCommand("${this + 3}"), mplWhile), //
         new InvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + " + ref + "}"), true)//
@@ -1645,14 +1646,14 @@ public abstract class MplAstVisitorTest {
         }));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    int ref = underTest.commands.size() - 1;
+    int ref = result.size() - 1;
     if (underTest.options.hasOption(TRANSMITTER)) {
       ref--;
     }
-    assertThat(underTest.commands).startsWith(//
+    assertThat(result).startsWith(//
         new InternalCommand(getOnCommand("${this + " + ref + "}"), mplWhile), //
         new InvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true)//
@@ -1669,15 +1670,15 @@ public abstract class MplAstVisitorTest {
         .withChainParts(listOf(some($MplWaitfor()))));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    int ref = underTest.commands.size() - 1;
+    int ref = result.size() - 1;
     if (underTest.options.hasOption(TRANSMITTER)) {
       ref--;
     }
     int jumpIndex = 3;
-    ReferencingCommand jump = (ReferencingCommand) underTest.commands.get(jumpIndex);
+    ReferencingCommand jump = (ReferencingCommand) result.get(jumpIndex);
     assertThat(jumpIndex + jump.getRelative()).isEqualTo(ref);
   }
 
@@ -1747,10 +1748,10 @@ public abstract class MplAstVisitorTest {
     mplWhile.setChainParts(listOf(command, mplBreak));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    List<ChainLink> commands = underTest.commands;
+    List<ChainLink> commands = result;
     int entry = findFirstReciever(commands);
     int exit = findLastReciever(commands);
     int beforeBreak = commands.indexOf(new Command(command.getCommand(), command));
@@ -1775,10 +1776,10 @@ public abstract class MplAstVisitorTest {
     mplWhile.setChainParts(listOf(command, mplBreak));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    List<ChainLink> commands = underTest.commands;
+    List<ChainLink> commands = result;
     int entry = findFirstReciever(commands);
     int exit = findLastReciever(commands);
     int beforeBreak = commands.indexOf(new Command(command.getCommand(), command));
@@ -1805,10 +1806,10 @@ public abstract class MplAstVisitorTest {
     mplWhile.setChainParts(listOf(command, mplBreak));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    List<ChainLink> commands = underTest.commands;
+    List<ChainLink> commands = result;
     int entry = findFirstReciever(commands);
     int exit = findLastReciever(commands);
     int beforeBreak = commands.indexOf(new Command(command.getCommand(), command));
@@ -1843,10 +1844,10 @@ public abstract class MplAstVisitorTest {
     innerWhile.setChainParts(listOf(command, mplBreak));
 
     // when:
-    outerWhile.accept(underTest);
+    List<ChainLink> result = outerWhile.accept(underTest);
 
     // then:
-    List<ChainLink> commands = underTest.commands;
+    List<ChainLink> commands = result;
     int outerEntry = findFirstReciever(commands);
     int innerEntry = findSecondReciever(commands);
     int outerExit = findLastReciever(commands);
@@ -1884,10 +1885,10 @@ public abstract class MplAstVisitorTest {
     mplWhile.setChainParts(listOf(command, mplContinue));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    List<ChainLink> commands = underTest.commands;
+    List<ChainLink> commands = result;
     int entry = findFirstReciever(commands);
     int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
     commands = commands.subList(beforeContinue + 1, commands.size());
@@ -1911,10 +1912,10 @@ public abstract class MplAstVisitorTest {
     mplWhile.setChainParts(listOf(command, mplContinue));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    List<ChainLink> commands = underTest.commands;
+    List<ChainLink> commands = result;
     int entry = findFirstReciever(commands);
     int exit = findLastReciever(commands);
     int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
@@ -1943,10 +1944,10 @@ public abstract class MplAstVisitorTest {
     mplWhile.setChainParts(listOf(command, mplContinue));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    List<ChainLink> commands = underTest.commands;
+    List<ChainLink> commands = result;
     int entry = findFirstReciever(commands);
     int doNothing = findSecondReciever(commands);
     int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
@@ -1971,10 +1972,10 @@ public abstract class MplAstVisitorTest {
     mplWhile.setChainParts(listOf(command, mplContinue));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    List<ChainLink> commands = underTest.commands;
+    List<ChainLink> commands = result;
     int entry = findFirstReciever(commands);
     int exit = findLastReciever(commands);
     int doNothing = findSecondReciever(commands);
@@ -2008,10 +2009,10 @@ public abstract class MplAstVisitorTest {
     mplWhile.setChainParts(listOf(command, mplContinue));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    List<ChainLink> commands = underTest.commands;
+    List<ChainLink> commands = result;
     int entry = findFirstReciever(commands);
     int doNothing = findSecondReciever(commands);
     int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
@@ -2037,10 +2038,10 @@ public abstract class MplAstVisitorTest {
     mplWhile.setChainParts(listOf(command, mplContinue));
 
     // when:
-    mplWhile.accept(underTest);
+    List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    List<ChainLink> commands = underTest.commands;
+    List<ChainLink> commands = result;
     int entry = findFirstReciever(commands);
     int exit = findLastReciever(commands);
     int doNothing = findSecondReciever(commands);
@@ -2080,14 +2081,13 @@ public abstract class MplAstVisitorTest {
     innerWhile.setChainParts(listOf(command, mplContinue));
 
     // when:
-    outerWhile.accept(underTest);
+    List<ChainLink> result = outerWhile.accept(underTest);
 
     // then:
-    List<ChainLink> commands = underTest.commands;
-    int outerEntry = findFirstReciever(commands);
-    int innerEntry = findSecondReciever(commands);
-    int beforeContinue = commands.indexOf(new Command(command.getCommand(), command));
-    commands = commands.subList(beforeContinue + 1, commands.size());
+    int outerEntry = findFirstReciever(result);
+    int innerEntry = findSecondReciever(result);
+    int beforeContinue = result.indexOf(new Command(command.getCommand(), command));
+    List<ChainLink> commands = result.subList(beforeContinue + 1, result.size());
 
     assertThat(commands).startsWith(//
         new ReferencingCommand(getOffCommand(REF), mplContinue.getMode(), false,
