@@ -410,14 +410,14 @@ public class MplInterpreter extends MplBaseListener {
     ProcessType type = ProcessType.DEFAULT;
     if (ctx.INLINE() != null) {
       type = INLINE;
-    }
-    if (ctx.REMOTE() != null) {
+    } else if (ctx.REMOTE() != null || ctx.IMPULSE() != null || repeat) {
       type = REMOTE;
     }
-    if (type == INLINE && repeat) {
-      context.addError(new CompilerException(toSource(ctx.REPEAT().getSymbol()),
+    if (type == INLINE && (ctx.IMPULSE() != null || repeat)) {
+      TerminalNode terminal = repeat ? ctx.REPEAT() : ctx.IMPULSE();
+      context.addError(new CompilerException(toSource(terminal.getSymbol()),
           "Illegal combination of modifiers for the process " + name
-              + "; only one of inline, or repeat is permitted"));
+              + "; only one of inline, impulse, or repeat is permitted"));
       repeat = false;
     }
     Collection<String> tags = new ArrayList<>(ctx.TAG().size());

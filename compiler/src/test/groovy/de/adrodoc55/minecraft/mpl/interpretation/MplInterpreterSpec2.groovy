@@ -322,9 +322,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
     String programString = """
     remote process ${id1} {}
 
-    remote impulse process ${id2} {}
+    impulse process ${id2} {}
 
-    remote repeat process ${id3} {}
+    repeat process ${id3} {}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -346,20 +346,24 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
-  public void "An inline repeat process is not allowed"() {
+  @Unroll("An inline #repeat process is not allowed")
+  public void "An inline repeat process is not allowed"(String repeat) {
     given:
     String id1 = some($Identifier())
     String programString = """
-    inline repeat process ${id1} {}
+    inline ${repeat} process ${id1} {}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
     then:
-    lastContext.errors[0].message == "Illegal combination of modifiers for the process ${id1}; only one of inline, or repeat is permitted"
+    lastContext.errors[0].message == "Illegal combination of modifiers for the process ${id1}; only one of inline, impulse, or repeat is permitted"
     lastContext.errors[0].source.file == lastTempFile
-    lastContext.errors[0].source.token.text == 'repeat'
+    lastContext.errors[0].source.token.text == repeat
     lastContext.errors[0].source.token.line == 2
     lastContext.errors.size() == 1
+
+    where:
+    repeat << ['impulse', 'repeat']
   }
 
   @Test
