@@ -67,6 +67,7 @@ import javax.annotation.Nullable;
 import org.antlr.v4.runtime.CommonToken;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
@@ -98,6 +99,7 @@ import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.CommandReferencingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
@@ -591,7 +593,17 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public List<ChainLink> visitIf(MplIf mplIf) {
-    return new MplIfVisitor(context).visitIf(mplIf);
+    List<ChainLink> result = new MplIfVisitor(context).visitIf(mplIf);
+    return resolveReferences(result);
+  }
+
+  private List<ChainLink> resolveReferences(List<ChainLink> chainLinks) {
+    return Lists.transform(chainLinks, it -> {
+      if (it instanceof CommandReferencingCommand) {
+        return ((CommandReferencingCommand) it).resolve(chainLinks);
+      }
+      return it;
+    });
   }
 
   private Deque<MplWhile> loops = new ArrayDeque<>();
