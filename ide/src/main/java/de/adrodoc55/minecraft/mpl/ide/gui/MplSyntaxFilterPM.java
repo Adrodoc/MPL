@@ -71,7 +71,7 @@ public class MplSyntaxFilterPM extends AbstractPM {
     for (CompilerException ex : errors) {
       this.errors.add(new CompilerExceptionWrapper(ex));
     }
-    getPropertyChangeSupport().firePropertyChange("exceptions", null, null);
+    getPropertyChangeSupport().firePropertyChange("errors", null, null);
   }
 
   public List<CompilerExceptionWrapper> getWarnings() {

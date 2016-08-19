@@ -158,8 +158,9 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
     }
     resetStyling();
     colorTokens(text);
-    colorErrors();
+    // Color warnings first, so that errors override them
     colorWarnings();
+    colorErrors();
   }
 
   private void resetStyling() {

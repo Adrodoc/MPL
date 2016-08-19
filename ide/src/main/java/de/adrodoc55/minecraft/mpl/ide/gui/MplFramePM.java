@@ -341,6 +341,7 @@ public class MplFramePM extends AbstractPM {
       MplCompilationResult result = selected.compile(new CompilerOptions(options));
       for (MplEditorPM editor : editors) {
         editor.setErrors(Collections.emptyList());
+        editor.setWarnings(Collections.emptyList());
       }
       ImmutableListMultimap<File, CompilerException> warnings = result.getWarnings();
       for (File programFile : warnings.keySet()) {
