@@ -141,7 +141,9 @@ public class MplAstVisitorImpl implements MplAstVisitor {
    * @throws IllegalArgumentException if {@code ref} is not found
    * @throws NullPointerException if {@code ref} is null
    */
-  private int getCountToRef(ChainLink ref) throws IllegalArgumentException, NullPointerException {
+  @Deprecated
+  private int getCountToRef(List<ChainLink> commands, ChainLink ref)
+      throws IllegalArgumentException, NullPointerException {
     checkNotNull(ref, "ref == null!");
     for (int i = commands.size() - 1; i >= 0; i--) {
       if (ref == commands.get(i)) {
@@ -181,8 +183,8 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   private void addRestartBackref(List<ChainLink> commands, ChainLink chainLink,
       boolean conditional) {
-    commands.add(newReferencingStopCommand(conditional, getCountToRef(chainLink)));
-    commands.add(newReferencingStartCommand(true, getCountToRef(chainLink)));
+    commands.add(newReferencingStopCommand(conditional, getCountToRef(commands, chainLink)));
+    commands.add(newReferencingStartCommand(true, getCountToRef(commands, chainLink)));
   }
 
   private void addTransmitterReceiverCombo(List<ChainLink> commands, boolean internal) {
@@ -597,6 +599,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     return resolveReferences(result);
   }
 
+  // TODO: Alles auf solche Referenzen umstellen
   private List<ChainLink> resolveReferences(List<ChainLink> chainLinks) {
     return Lists.transform(chainLinks, it -> {
       if (it instanceof CommandReferencingCommand) {
@@ -610,51 +613,52 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public List<ChainLink> visitWhile(MplWhile mplWhile) {
+    List<ChainLink> result = new ArrayList<>();
     loops.push(mplWhile);
 
     String condition = mplWhile.getCondition();
     boolean hasInitialCondition = condition != null && !mplWhile.isTrailing();
     if (hasInitialCondition) {
-      visitPossibleInvert(mplWhile);
+      visitPossibleInvert(result, mplWhile);
     }
 
-    Deque<ChainPart> chainParts = mplWhile.getChainParts();
+    Deque<ChainPart> chainParts = new ArrayDeque<>(mplWhile.getChainParts());
     if (chainParts.isEmpty()) {
       chainParts.add(new MplCommand("", mplWhile.getSource()));
     }
 
-    int firstIndex = commands.size();
+    int firstIndex = result.size();
     if (hasInitialCondition) {
-      commands.add(new Command(condition));
+      result.add(new Command(condition));
     }
 
     ReferencingCommand init = new ReferencingCommand(getStartCommand(REF));
     ReferencingCommand skip = new ReferencingCommand(getStartCommand(REF), true);
 
     if (!hasInitialCondition && !mplWhile.isConditional()) {
-      commands.add(init);
+      result.add(init);
     } else {
       init.setConditional(true);
 
       boolean isNormal = hasInitialCondition && !mplWhile.isNot();
       if (isNormal || !hasInitialCondition && mplWhile.getConditional() == CONDITIONAL) {
-        commands.add(init);
-        commands.add(new InvertingCommand(CHAIN));
-        commands.add(skip);
+        result.add(init);
+        result.add(new InvertingCommand(CHAIN));
+        result.add(skip);
       } else {
-        commands.add(skip);
-        commands.add(new InvertingCommand(CHAIN));
-        commands.add(init);
+        result.add(skip);
+        result.add(new InvertingCommand(CHAIN));
+        result.add(init);
       }
     }
-    ((Command) commands.get(firstIndex)).setModifier(mplWhile);
+    ((Command) result.get(firstIndex)).setModifier(mplWhile);
 
     // From here the next command will be the entry point for the loop
-    init.setRelative(-getCountToRef(init));
-    int entryIndex = commands.size();
+    init.setRelative(-getCountToRef(result, init));
+    int entryIndex = result.size();
 
     if (options.hasOption(TRANSMITTER)) {
-      commands.add(new MplSkip(true));
+      result.add(new MplSkip(true));
     }
     try {
       ChainPart first = chainParts.peek();
@@ -671,7 +675,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     }
     boolean dontRestart = false;
     for (ChainPart chainPart : chainParts) {
-      chainPart.accept(this);
+      result.addAll(chainPart.accept(this));
       if (chainPart instanceof MplBreak || chainPart instanceof MplContinue) {
         if (!((ModifiableChainPart) chainPart).isConditional()) {
           dontRestart = true;
@@ -679,44 +683,45 @@ public class MplAstVisitorImpl implements MplAstVisitor {
         }
       }
     }
-    ChainLink entryPoint = commands.get(entryIndex);
+    ChainLink entryPoint = result.get(entryIndex);
 
     if (!dontRestart) {
       if (condition == null) {
-        addRestartBackref(entryPoint, false);
+        addRestartBackref(result, entryPoint, false);
       } else {
-        commands.add(new Command(condition));
+        result.add(new Command(condition));
         if (!mplWhile.isNot()) {
-          addContinueLoop(mplWhile).setConditional(true);
-          commands.add(new InvertingCommand(CHAIN));
-          addBreakLoop(mplWhile).setConditional(true);
+          addContinueLoop(result, mplWhile).setConditional(true);
+          result.add(new InvertingCommand(CHAIN));
+          addBreakLoop(result, mplWhile).setConditional(true);
         } else {
-          addBreakLoop(mplWhile).setConditional(true);
-          commands.add(new InvertingCommand(CHAIN));
-          addContinueLoop(mplWhile).setConditional(true);
+          addBreakLoop(result, mplWhile).setConditional(true);
+          result.add(new InvertingCommand(CHAIN));
+          addContinueLoop(result, mplWhile).setConditional(true);
         }
       }
     }
     // From here the next command will be the exit point of the loop
-    int exitIndex = commands.size();
+    int exitIndex = result.size();
     try {
-      skip.setRelative(-getCountToRef(skip));
+      skip.setRelative(-getCountToRef(result, skip));
     } catch (IllegalArgumentException ex) {
       // If skip was not added the reference does not have to be set
     }
-    addTransmitterReceiverCombo(true);
-    ChainLink exitPoint = commands.get(exitIndex);
+    addTransmitterReceiverCombo(result, true);
+    ChainLink exitPoint = result.get(exitIndex);
 
     for (Iterator<LoopRef> it = loopRefs.iterator(); it.hasNext();) {
       LoopRef loopRef = it.next();
       if (loopRef.getLoop() == mplWhile) {
-        loopRef.setEntryPoint(entryPoint);
-        loopRef.setExitPoint(exitPoint);
+        loopRef.setEntryPoint(result, entryPoint);
+        loopRef.setExitPoint(result, exitPoint);
         it.remove();
       }
     }
 
     loops.pop();
+    return result;
   }
 
   private List<LoopRef> loopRefs = new ArrayList<>();
@@ -724,56 +729,59 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   private interface LoopRef {
     MplWhile getLoop();
 
-    default void setEntryPoint(ChainLink entryPoint) {}
+    default void setEntryPoint(List<ChainLink> commands, ChainLink entryPoint) {}
 
-    default void setExitPoint(ChainLink exitPoint) {}
+    default void setExitPoint(List<ChainLink> commands, ChainLink exitPoint) {}
   }
 
-  public void setRef(ReferencingCommand command, ChainLink reference) {
-    command.setRelative(getCountToRef(reference) - getCountToRef(command));
+  public void setRef(List<ChainLink> commands, ReferencingCommand command, ChainLink reference) {
+    command.setRelative(getCountToRef(commands, reference) - getCountToRef(commands, command));
   }
 
   @Override
   public List<ChainLink> visitBreak(MplBreak mplBreak) {
+    List<ChainLink> result = new ArrayList<>();
     MplWhile loop = mplBreak.getLoop();
     // FIXME: ein command von break MUSS nicht internal sein (bei unconditional)
     Conditional conditional = mplBreak.getConditional();
     if (conditional == UNCONDITIONAL) {
-      addBreakLoop(loop).setModifier(mplBreak);
-      return;
+      addBreakLoop(result, loop).setModifier(mplBreak);
+      return result;
     }
     ReferencingCommand dontBreak = new ReferencingCommand(getStartCommand(REF), true);
     if (conditional == CONDITIONAL) {
-      addBreakLoop(loop).setModifier(mplBreak);
-      commands.add(new InvertingCommand(CHAIN));
-      commands.add(dontBreak);
+      addBreakLoop(result, loop).setModifier(mplBreak);
+      result.add(new InvertingCommand(CHAIN));
+      result.add(dontBreak);
     } else {
       dontBreak.setModifier(mplBreak);
-      commands.add(dontBreak);
-      commands.add(new InvertingCommand(CHAIN));
-      addBreakLoop(loop).setConditional(true);
+      result.add(dontBreak);
+      result.add(new InvertingCommand(CHAIN));
+      addBreakLoop(result, loop).setConditional(true);
     }
-    dontBreak.setRelative(-getCountToRef(dontBreak));
-    addTransmitterReceiverCombo(false);
+    dontBreak.setRelative(-getCountToRef(result, dontBreak));
+    addTransmitterReceiverCombo(result, false);
+    return result;
 
   }
 
   @Override
   public List<ChainLink> visitContinue(MplContinue mplContinue) {
+    List<ChainLink> result = new ArrayList<>();
     MplWhile loop = mplContinue.getLoop();
     // FIXME: ein command von continue MUSS nicht internal sein (bei unconditional)
     Conditional conditional = mplContinue.getConditional();
     String condition = loop.getCondition();
     if (conditional == UNCONDITIONAL) {
       if (condition != null) {
-        commands.add(new InternalCommand(condition, mplContinue));
-        addContinueLoop(loop).setConditional(true);
-        commands.add(new InvertingCommand(CHAIN));
-        addBreakLoop(loop).setConditional(true);
+        result.add(new InternalCommand(condition, mplContinue));
+        addContinueLoop(result, loop).setConditional(true);
+        result.add(new InvertingCommand(CHAIN));
+        addBreakLoop(result, loop).setConditional(true);
       } else {
-        addContinueLoop(loop).setModifier(mplContinue);
+        addContinueLoop(result, loop).setModifier(mplContinue);
       }
-      return;
+      return result;
     }
     MplSource source = mplContinue.getSource();
     MplIf outerIf = new MplIf(false, null, source);
@@ -799,26 +807,29 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     }
     outerIf.accept(this);
 
-    for (int i = commands.size() - 1; i >= 0; i--) {
-      ChainLink chainLink = commands.get(i);
+    for (int i = result.size() - 1; i >= 0; i--) {
+      ChainLink chainLink = result.get(i);
       if (chainLink instanceof Command) {
         if ("/".equals(((Command) chainLink).getCommand())) {
-          commands.set(i, new ReferencingCommand(getStartCommand(REF), true, commands.size() - i));
+          result.set(i, new ReferencingCommand(getStartCommand(REF), true, result.size() - i));
           break;
         }
       }
     }
-    addTransmitterReceiverCombo(false);
+    addTransmitterReceiverCombo(result, false);
+    return result;
   }
 
-  public void visitBreakLoop(MplBreakLoop mplBreakLoop) {
-    addBreakLoop(mplBreakLoop.getLoop()).setModifier(mplBreakLoop);
+  public List<ChainLink> visitBreakLoop(MplBreakLoop mplBreakLoop) {
+    List<ChainLink> result = new ArrayList<>();
+    addBreakLoop(result, mplBreakLoop.getLoop()).setModifier(mplBreakLoop);
+    return result;
   }
 
-  private ReferencingCommand addBreakLoop(MplWhile loop) {
-    ReferencingCommand result = addSkipLoop(loop);
+  private ReferencingCommand addBreakLoop(List<ChainLink> commands, MplWhile loop) {
+    ReferencingCommand result = addSkipLoop(commands, loop);
     for (MplWhile innerLoop : loops) {
-      addStopLoop(innerLoop).setConditional(true);
+      addStopLoop(commands, innerLoop).setConditional(true);
       if (innerLoop == loop) {
         break;
       }
@@ -826,30 +837,32 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     return result;
   }
 
-  public void visitContinueLoop(MplContinueLoop mplContinueLoop) {
-    addContinueLoop(mplContinueLoop.getLoop()).setModifier(mplContinueLoop);
+  public List<ChainLink> visitContinueLoop(MplContinueLoop mplContinueLoop) {
+    List<ChainLink> result = new ArrayList<>();
+    addContinueLoop(result, mplContinueLoop.getLoop()).setModifier(mplContinueLoop);
+    return result;
   }
 
-  private ReferencingCommand addContinueLoop(MplWhile loop) {
+  private ReferencingCommand addContinueLoop(List<ChainLink> commands, MplWhile loop) {
     Iterator<MplWhile> it = loops.iterator();
     MplWhile innerestLoop = it.next();
-    ReferencingCommand result = addStopLoop(innerestLoop);
+    ReferencingCommand result = addStopLoop(commands, innerestLoop);
     if (innerestLoop != loop) {
       while (it.hasNext()) {
         MplWhile innerLoop = it.next();
-        addStopLoop(innerLoop).setConditional(true);
+        addStopLoop(commands, innerLoop).setConditional(true);
         if (innerLoop == loop) {
           break;
         }
       }
     }
-    addStartLoop(loop).setConditional(true);
+    addStartLoop(commands, loop).setConditional(true);
     return result;
   }
 
-  private ReferencingCommand addStartLoop(MplWhile loop) {
+  private ReferencingCommand addStartLoop(List<ChainLink> result, MplWhile loop) {
     ReferencingCommand startLoop = new ReferencingCommand(getStartCommand(REF));
-    commands.add(startLoop);
+    result.add(startLoop);
     loopRefs.add(new LoopRef() {
       @Override
       public MplWhile getLoop() {
@@ -857,16 +870,16 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       }
 
       @Override
-      public void setEntryPoint(ChainLink entryPoint) {
-        setRef(startLoop, entryPoint);
+      public void setEntryPoint(List<ChainLink> commands, ChainLink entryPoint) {
+        setRef(commands, startLoop, entryPoint);
       }
     });
     return startLoop;
   }
 
-  private ReferencingCommand addStopLoop(MplWhile loop) {
+  private ReferencingCommand addStopLoop(List<ChainLink> result, MplWhile loop) {
     ReferencingCommand stopLoop = new ReferencingCommand(getStopCommand(REF));
-    commands.add(stopLoop);
+    result.add(stopLoop);
     loopRefs.add(new LoopRef() {
       @Override
       public MplWhile getLoop() {
@@ -874,16 +887,16 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       }
 
       @Override
-      public void setEntryPoint(ChainLink entryPoint) {
-        setRef(stopLoop, entryPoint);
+      public void setEntryPoint(List<ChainLink> commands, ChainLink entryPoint) {
+        setRef(commands, stopLoop, entryPoint);
       }
     });
     return stopLoop;
   }
 
-  private ReferencingCommand addSkipLoop(MplWhile loop) {
+  private ReferencingCommand addSkipLoop(List<ChainLink> result, MplWhile loop) {
     ReferencingCommand skipLoop = new ReferencingCommand(getStartCommand(REF));
-    commands.add(skipLoop);
+    result.add(skipLoop);
     loopRefs.add(new LoopRef() {
       @Override
       public MplWhile getLoop() {
@@ -891,8 +904,8 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       }
 
       @Override
-      public void setExitPoint(ChainLink exitPoint) {
-        setRef(skipLoop, exitPoint);
+      public void setExitPoint(List<ChainLink> commands, ChainLink exitPoint) {
+        setRef(commands, skipLoop, exitPoint);
       }
     });
     return skipLoop;

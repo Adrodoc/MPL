@@ -50,6 +50,7 @@ import javax.annotation.Nullable;
 import com.google.common.annotations.VisibleForTesting;
 
 import de.adrodoc55.commons.CopyScope;
+import de.adrodoc55.commons.collections.Deques;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
@@ -132,7 +133,7 @@ public class MplWhile extends ModifiableChainPart implements ChainPartBuffer {
 
   @Override
   public Deque<ChainPart> getChainParts() {
-    return new ArrayDeque<>(chainParts);
+    return Deques.unmodifiableDeque(chainParts);
   }
 
   @VisibleForTesting
