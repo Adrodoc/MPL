@@ -59,6 +59,7 @@ import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -81,7 +82,6 @@ import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 
@@ -199,7 +199,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     assertThat(result).containsExactly(//
         new InternalCommand("/summon ArmorStand ${this + 3} {CustomName:" + mplWaitfor.getEvent()
             + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true), //
         new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE));
   }
@@ -216,7 +216,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     // then:
     assertThat(result).containsExactly(//
         new InternalCommand(getOnCommand("${this + 3}"), true), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplWaitfor.getEvent()
             + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
         new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE));
@@ -281,7 +281,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
             + mplIntercept.getEvent() + INTERCEPTED + "}", true), //
         new InternalCommand("/summon ArmorStand ${this + 3} {CustomName:" + mplIntercept.getEvent()
             + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true), //
         new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE), //
         new InternalCommand("/kill @e[name=" + mplIntercept.getEvent() + ",r=2]"), //
@@ -313,7 +313,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     // then:
     assertThat(result).containsExactly(//
         new InternalCommand(getOnCommand("${this + 4}"), true), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + "] {CustomName:"
             + mplIntercept.getEvent() + INTERCEPTED + "}", true), //
         new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplIntercept.getEvent()
@@ -369,7 +369,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
         new InternalCommand(
             "/summon ArmorStand ${this + 3} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
             true), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true), //
         new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE));
   }
@@ -397,13 +397,13 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
 
     // then:
     assertThat(result).containsExactly(//
-        new InvertingCommand(mode), //
+        newInvertingCommand(mode), //
         new InternalCommand("/say " + mplBreakpoint.getMessage(), mplBreakpoint), //
         new InternalCommand("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~"), true), //
         new InternalCommand(
             "/summon ArmorStand ${this + 3} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
             true), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true), //
         new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE));
   }
@@ -507,7 +507,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
         new Command(mplWhile.getCondition()), //
         new InternalCommand(getOffCommand("${this - 3}"), true), //
         new InternalCommand(getOnCommand("${this - 4}"), true), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 2}"), true), //
         new InternalCommand(getOffCommand("${this - 7}"), true), //
         new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE)//
@@ -537,7 +537,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
         new Command(mplWhile.getCondition()), //
         new InternalCommand(getOnCommand("${this + 5}"), true), //
         new InternalCommand(getOffCommand("${this - 4}"), true), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand(getOffCommand("${this - 6}"), true), //
         new InternalCommand(getOnCommand("${this - 7}"), true), //
         new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE)//
@@ -561,7 +561,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     assertThat(result).containsExactly(//
         new Command(mplWhile.getCondition()), //
         new InternalCommand(getOnCommand("${this + 3}"), true), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 9}"), true), //
         new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
             repeat1.getNeedsRedstone()), //
@@ -570,7 +570,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
         new InternalCommand(mplWhile.getCondition()), //
         new InternalCommand(getOffCommand("${this - 3}"), true), //
         new InternalCommand(getOnCommand("${this - 4}"), true), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 2}"), true), //
         new InternalCommand(getOffCommand("${this - 7}"), true), //
         new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE)//
@@ -594,7 +594,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     assertThat(result).containsExactly(//
         new Command(mplWhile.getCondition()), //
         new InternalCommand(getOnCommand("${this + 11}"), true), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true), //
         new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
             repeat1.getNeedsRedstone()), //
@@ -603,7 +603,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
         new Command(mplWhile.getCondition()), //
         new InternalCommand(getOnCommand("${this + 5}"), true), //
         new InternalCommand(getOffCommand("${this - 4}"), true), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand(getOffCommand("${this - 6}"), true), //
         new InternalCommand(getOnCommand("${this - 7}"), true), //
         new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE)//

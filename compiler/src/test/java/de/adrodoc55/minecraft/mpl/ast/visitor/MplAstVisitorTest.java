@@ -72,6 +72,9 @@ import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNormalizingCommand;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newTestforSuccessCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -82,6 +85,7 @@ import java.util.List;
 import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
@@ -104,12 +108,10 @@ import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.NormalizingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingTestforSuccessCommand;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class MplAstVisitorTest {
@@ -237,7 +239,7 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(result.getCommands()).containsSequence(//
         new Command(first.getCommand(), first), //
-        new InvertingCommand(first.getMode()), // Important line!
+        newInvertingCommand(first.getMode()), // Important line!
         new Command(second.getCommand(), second));
   }
 
@@ -261,7 +263,7 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(result.getCommands()).containsSequence(//
         new Command(first.getCommand(), REPEAT, false, true), //
-        new InvertingCommand(REPEAT), // Important line!
+        newInvertingCommand(REPEAT), // Important line!
         new Command(second.getCommand(), second));
   }
 
@@ -476,7 +478,7 @@ public abstract class MplAstVisitorTest {
 
     // then:
     assertThat(result).containsExactly(//
-        new InvertingCommand(modeForInverting), //
+        newInvertingCommand(modeForInverting), //
         new InternalCommand(
             "/execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"), mode, true,
             needsRedstone)//
@@ -557,7 +559,7 @@ public abstract class MplAstVisitorTest {
 
     // then:
     assertThat(result).containsExactly(//
-        new InvertingCommand(modeForInvering),
+        newInvertingCommand(modeForInvering),
         new InternalCommand(
             "/execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"), mode, true,
             needsRedstone)//
@@ -632,7 +634,7 @@ public abstract class MplAstVisitorTest {
 
     // then:
     assertThat(result).containsExactly(//
-        new InvertingCommand(mode), //
+        newInvertingCommand(mode), //
         new InternalCommand("/execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ "
             + getOnCommand("~ ~ ~"), true), //
         new InternalCommand("/kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]", true)//
@@ -728,7 +730,7 @@ public abstract class MplAstVisitorTest {
 
     // then:
     assertThat(result).containsExactly(//
-        new InvertingCommand(mode),
+        newInvertingCommand(mode),
         new InternalCommand(mplIf.getCondition(), mplIf.getMode(), true, mplIf.getNeedsRedstone())//
     );
   }
@@ -805,7 +807,7 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone())//
     );
   }
@@ -824,7 +826,7 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone())//
     );
   }
@@ -885,7 +887,7 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new NormalizingCommand(), //
+        newNormalizingCommand(), //
         new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}"), //
         new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
@@ -960,7 +962,7 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new NormalizingCommand(), //
+        newNormalizingCommand(), //
         new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}"), //
         new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
@@ -989,7 +991,7 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new NormalizingCommand(), //
+        newNormalizingCommand(), //
         // then
         new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}"), //
@@ -1026,7 +1028,7 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new NormalizingCommand(), //
+        newNormalizingCommand(), //
         // then
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
         new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
@@ -1060,7 +1062,7 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new NormalizingCommand(), //
+        newNormalizingCommand(), //
         new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
         new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}"), //
@@ -1111,9 +1113,9 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new NormalizingCommand(), //
+        newNormalizingCommand(), //
         new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
-        new InvertingCommand(then1.getMode()), //
+        newInvertingCommand(then1.getMode()), //
         new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}",
             true), //
         new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
@@ -1171,7 +1173,7 @@ public abstract class MplAstVisitorTest {
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
         new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
-        new InvertingCommand(else1.getMode()), //
+        newInvertingCommand(else1.getMode()), //
         new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}",
             true), //
         new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
@@ -1228,7 +1230,7 @@ public abstract class MplAstVisitorTest {
         new InternalCommand(mplIf.getCondition()), //
         new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
         new InternalCommand(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
-        new InvertingCommand(then1.getMode()), //
+        newInvertingCommand(then1.getMode()), //
         new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}",
             true), //
         new InternalCommand(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
@@ -1253,7 +1255,7 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new NormalizingCommand(), //
+        newNormalizingCommand(), //
         new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
         new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}"), //
@@ -1304,9 +1306,9 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new NormalizingCommand(), //
+        newNormalizingCommand(), //
         new InternalCommand(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
-        new InvertingCommand(else1.getMode()), //
+        newInvertingCommand(else1.getMode()), //
         new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}",
             true), //
         new InternalCommand(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
@@ -1349,7 +1351,7 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new NormalizingCommand(), //
+        newNormalizingCommand(), //
         new InternalCommand(outer.getCondition(), true), //
         new InternalCommand(innerThen.getCommand(), innerThen.getMode(), true,
             innerThen.getNeedsRedstone()), //
@@ -1400,7 +1402,7 @@ public abstract class MplAstVisitorTest {
     // then:
     assertThat(result).containsExactly(//
         new InternalCommand(mplIf.getCondition()), //
-        new NormalizingCommand(), //
+        newNormalizingCommand(), //
         new InternalCommand(outer1.getCommand(), outer1.getMode(), true, outer1.getNeedsRedstone()), //
         new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}"), //
         new InternalCommand(outer2.getCondition(), true), //
@@ -1465,6 +1467,7 @@ public abstract class MplAstVisitorTest {
   }
 
   @Test
+  @Ignore("While can't be invert")
   public void test_While_repeat_modifier_mit_invert_gelten_fuer_condition() {
     // given:
     Mode mode = some($Mode());
@@ -1491,7 +1494,7 @@ public abstract class MplAstVisitorTest {
 
     // then:
     assertThat(result).startsWith(//
-        new InvertingCommand(mode), //
+        newInvertingCommand(mode), //
         new Command(mplWhile.getCondition(), mplWhile)//
     );
   }
@@ -1533,7 +1536,7 @@ public abstract class MplAstVisitorTest {
     }
     assertThat(result).startsWith(//
         new InternalCommand(getOnCommand("${this + 3}"), mplWhile), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + " + ref + "}"), true)//
     );
   }
@@ -1570,7 +1573,7 @@ public abstract class MplAstVisitorTest {
     }
     assertThat(result).startsWith(//
         new InternalCommand(getOnCommand("${this + " + ref + "}"), mplWhile), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true)//
     );
   }
@@ -1616,7 +1619,7 @@ public abstract class MplAstVisitorTest {
     }
     assertThat(result).startsWith(//
         new InternalCommand(getOnCommand("${this + 3}"), mplWhile), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + " + ref + "}"), true)//
     );
   }
@@ -1655,7 +1658,7 @@ public abstract class MplAstVisitorTest {
     }
     assertThat(result).startsWith(//
         new InternalCommand(getOnCommand("${this + " + ref + "}"), mplWhile), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true)//
     );
   }
@@ -1789,7 +1792,7 @@ public abstract class MplAstVisitorTest {
         new ReferencingCommand(getOnCommand(REF), mplBreak.getMode(), true,
             mplBreak.getNeedsRedstone(), exit - (beforeBreak + 1)), //
         new ReferencingCommand(getOffCommand(REF), true, entry - (beforeBreak + 2)), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new ReferencingCommand(getOnCommand(REF), true, 1)//
     );
   }
@@ -1818,7 +1821,7 @@ public abstract class MplAstVisitorTest {
     assertThat(commands).startsWith(//
         new ReferencingCommand(getOnCommand(REF), mplBreak.getMode(), true,
             mplBreak.getNeedsRedstone(), 4), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new ReferencingCommand(getOnCommand(REF), true, exit - (beforeBreak + 3)), //
         new ReferencingCommand(getOffCommand(REF), true, entry - (beforeBreak + 4))//
     );
@@ -1925,7 +1928,7 @@ public abstract class MplAstVisitorTest {
         new Command(mplWhile.getCondition(), mplContinue), //
         new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 2)), //
         new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 3)), //
-        new InvertingCommand(CHAIN), //
+        newInvertingCommand(CHAIN), //
         new ReferencingCommand(getOnCommand(REF), true, exit - (beforeContinue + 5)), //
         new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 6))//
     );
@@ -1956,7 +1959,7 @@ public abstract class MplAstVisitorTest {
     assertThat(commands).startsWith(//
         new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 1)), //
         new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 2)), //
-        new ReferencingTestforSuccessCommand(-3, IMPULSE, false), //
+        newTestforSuccessCommand(-3, IMPULSE, false), //
         new ReferencingCommand(getOnCommand(REF), true, doNothing - (beforeContinue + 4))//
     );
   }
@@ -1983,15 +1986,15 @@ public abstract class MplAstVisitorTest {
     commands = commands.subList(beforeContinue + 1, commands.size());
 
     assertThat(commands).startsWith(//
-        new NormalizingCommand(), //
+        newNormalizingCommand(), //
         new Command(mplWhile.getCondition(), true), //
         new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 3)), //
         new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 4)), //
-        new ReferencingTestforSuccessCommand(-4, CHAIN, true), //
-        new ReferencingTestforSuccessCommand(-4, CHAIN, false, true), //
+        newTestforSuccessCommand(-4, CHAIN, true), //
+        Commands.newTestforSuccessCommand(-4, CHAIN, false, true), //
         new ReferencingCommand(getOnCommand(REF), true, exit - (beforeContinue + 7)), //
         new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 8)), //
-        new ReferencingTestforSuccessCommand(-8, CHAIN, false), //
+        newTestforSuccessCommand(-8, CHAIN, false), //
         new ReferencingCommand(getOnCommand(REF), true, doNothing - (beforeContinue + 10))//
     );
   }
@@ -2020,7 +2023,7 @@ public abstract class MplAstVisitorTest {
 
     assertThat(commands).startsWith(//
         new ReferencingCommand(getOnCommand(REF), true, doNothing - (beforeContinue + 1)), //
-        new ReferencingTestforSuccessCommand(-2, IMPULSE, false), //
+        newTestforSuccessCommand(-2, IMPULSE, false), //
         new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 3)), //
         new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 4))//
     );
@@ -2050,12 +2053,12 @@ public abstract class MplAstVisitorTest {
 
     assertThat(commands).startsWith(//
         new ReferencingCommand(getOnCommand(REF), true, doNothing - (beforeContinue + 1)), //
-        new ReferencingTestforSuccessCommand(-2, IMPULSE, false), //
+        newTestforSuccessCommand(-2, IMPULSE, false), //
         new Command(mplWhile.getCondition(), true), //
         new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 4)), //
         new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 5)), //
-        new ReferencingTestforSuccessCommand(-6, IMPULSE, false), //
-        new ReferencingTestforSuccessCommand(-4, CHAIN, false, true), //
+        newTestforSuccessCommand(-6, IMPULSE, false), //
+        newTestforSuccessCommand(-4, CHAIN, false, true), //
         new ReferencingCommand(getOnCommand(REF), true, exit - (beforeContinue + 8)), //
         new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 9))//
     );

@@ -41,6 +41,8 @@ package de.adrodoc55.minecraft.mpl.interpretation
 
 import static de.adrodoc55.TestBase.someString
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$Identifier
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNormalizingCommand
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newTestforSuccessCommand
 import static org.assertj.core.api.Assertions.assertThat
 
 import org.junit.Test
@@ -53,8 +55,6 @@ import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram
 import de.adrodoc55.minecraft.mpl.chain.CommandChain
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.NormalizingCommand
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingTestforSuccessCommand
 
 @Ignore // Legacy
 public class MplInterpreterSpec extends MplSpecBase {
@@ -208,17 +208,17 @@ public class MplInterpreterSpec extends MplSpecBase {
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands[0] == new Command('outer condition')
-    commands[1] == new NormalizingCommand()
+    commands[1] == newNormalizingCommand()
     commands[2] == new Command('say outer then1', true)
-    commands[3] == new ReferencingTestforSuccessCommand(-2, 'chain_command_block', true)
+    commands[3] == newTestforSuccessCommand(-2, 'chain_command_block', true)
     commands[4] == new Command('inner condition', true)
     commands[5] == new Command('say inner then', true)
-    commands[6] == new ReferencingTestforSuccessCommand(-5, 'chain_command_block', true)
-    commands[7] == new ReferencingTestforSuccessCommand(-3, 'chain_command_block', false, true)
+    commands[6] == newTestforSuccessCommand(-5, 'chain_command_block', true)
+    commands[7] == newTestforSuccessCommand(-3, 'chain_command_block', false, true)
     commands[8] == new Command('say inner else', true)
-    commands[9] == new ReferencingTestforSuccessCommand(-8, 'chain_command_block', true)
+    commands[9] == newTestforSuccessCommand(-8, 'chain_command_block', true)
     commands[10] == new Command('say outer then2', true)
-    commands[11] == new ReferencingTestforSuccessCommand(-10, 'chain_command_block', false)
+    commands[11] == newTestforSuccessCommand(-10, 'chain_command_block', false)
     commands[12] == new Command('say outer else', true)
     commands.size() == 13
   }
@@ -257,26 +257,26 @@ public class MplInterpreterSpec extends MplSpecBase {
     CommandChain chain = script.chain
     List<Command> commands = chain.commands
     commands[0] == new Command('outer condition')
-    commands[1] == new NormalizingCommand()
+    commands[1] == newNormalizingCommand()
     commands[2] == new Command('say outer then1', true)
-    commands[3] == new ReferencingTestforSuccessCommand(-2, 'chain_command_block', true)
+    commands[3] == newTestforSuccessCommand(-2, 'chain_command_block', true)
     commands[4] == new Command('middle condition', true)
-    commands[5] == new NormalizingCommand()
+    commands[5] == newNormalizingCommand()
     commands[6] == new Command('say middle then1', true)
-    commands[7] == new ReferencingTestforSuccessCommand(-2, 'chain_command_block', true)
+    commands[7] == newTestforSuccessCommand(-2, 'chain_command_block', true)
     commands[8] == new Command('inner condition', true)
     commands[9] == new Command('say inner then', true)
-    commands[10] == new ReferencingTestforSuccessCommand(-5, 'chain_command_block', true)
-    commands[11] == new ReferencingTestforSuccessCommand(-3, 'chain_command_block', false, true)
+    commands[10] == newTestforSuccessCommand(-5, 'chain_command_block', true)
+    commands[11] == newTestforSuccessCommand(-3, 'chain_command_block', false, true)
     commands[12] == new Command('say inner else', true)
-    commands[13] == new ReferencingTestforSuccessCommand(-8, 'chain_command_block', true)
+    commands[13] == newTestforSuccessCommand(-8, 'chain_command_block', true)
     commands[14] == new Command('say middle then2', true)
-    commands[15] == new ReferencingTestforSuccessCommand(-14, 'chain_command_block', true)
-    commands[16] == new ReferencingTestforSuccessCommand(-11, 'chain_command_block', false, true)
+    commands[15] == newTestforSuccessCommand(-14, 'chain_command_block', true)
+    commands[16] == newTestforSuccessCommand(-11, 'chain_command_block', false, true)
     commands[17] == new Command('say middle else', true)
-    commands[18] == new ReferencingTestforSuccessCommand(-17, 'chain_command_block', true)
+    commands[18] == newTestforSuccessCommand(-17, 'chain_command_block', true)
     commands[19] == new Command('say outer then2', true)
-    commands[20] == new ReferencingTestforSuccessCommand(-19, 'chain_command_block', false)
+    commands[20] == newTestforSuccessCommand(-19, 'chain_command_block', false)
     commands[21] == new Command('say outer else', true)
     commands.size() == 22
   }
@@ -316,26 +316,26 @@ public class MplInterpreterSpec extends MplSpecBase {
     List<Command> commands = chain.commands
     commands[0] == new Command('outer condition')
     commands[1] == new Command('say outer then', true)
-    commands[2] == new ReferencingTestforSuccessCommand(-2, 'chain_command_block', false)
+    commands[2] == newTestforSuccessCommand(-2, 'chain_command_block', false)
     commands[3]== new Command('say outer else1', true)
-    commands[4] == new ReferencingTestforSuccessCommand(-4, 'chain_command_block', false)
+    commands[4] == newTestforSuccessCommand(-4, 'chain_command_block', false)
     commands[5] == new Command('middle condition', true)
     commands[6] == new Command('say middle then', true)
-    commands[7] == new ReferencingTestforSuccessCommand(-7, 'chain_command_block', false)
-    commands[8] == new ReferencingTestforSuccessCommand(-3, 'chain_command_block', false, true)
+    commands[7] == newTestforSuccessCommand(-7, 'chain_command_block', false)
+    commands[8] == newTestforSuccessCommand(-3, 'chain_command_block', false, true)
     commands[9] == new Command('say middle else1', true)
-    commands[10] == new ReferencingTestforSuccessCommand(-10, 'chain_command_block', false)
-    commands[11] == new ReferencingTestforSuccessCommand(-6, 'chain_command_block', false, true)
+    commands[10] == newTestforSuccessCommand(-10, 'chain_command_block', false)
+    commands[11] == newTestforSuccessCommand(-6, 'chain_command_block', false, true)
     commands[12] == new Command('inner condition', true)
     commands[13] == new Command('say inner then', true)
-    commands[14] == new ReferencingTestforSuccessCommand(-14, 'chain_command_block', false)
-    commands[15] == new ReferencingTestforSuccessCommand(-10, 'chain_command_block', false, true)
-    commands[16] == new ReferencingTestforSuccessCommand(-4, 'chain_command_block', false, true)
+    commands[14] == newTestforSuccessCommand(-14, 'chain_command_block', false)
+    commands[15] == newTestforSuccessCommand(-10, 'chain_command_block', false, true)
+    commands[16] == newTestforSuccessCommand(-4, 'chain_command_block', false, true)
     commands[17] == new Command('say inner else', true)
-    commands[18] == new ReferencingTestforSuccessCommand(-18, 'chain_command_block', false)
-    commands[19] == new ReferencingTestforSuccessCommand(-14, 'chain_command_block', false, true)
+    commands[18] == newTestforSuccessCommand(-18, 'chain_command_block', false)
+    commands[19] == newTestforSuccessCommand(-14, 'chain_command_block', false, true)
     commands[20] == new Command('say middle else2', true)
-    commands[21] == new ReferencingTestforSuccessCommand(-21, 'chain_command_block', false)
+    commands[21] == newTestforSuccessCommand(-21, 'chain_command_block', false)
     commands[22] == new Command('say outer else2', true)
     commands.size() == 23
   }

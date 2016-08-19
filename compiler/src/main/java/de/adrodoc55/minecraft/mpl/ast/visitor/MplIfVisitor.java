@@ -41,6 +41,8 @@ package de.adrodoc55.minecraft.mpl.ast.visitor;
 
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNormalizingCommand;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newTestforSuccessCommand;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -55,9 +57,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.CommandReferencingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.NormalizingCommand;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -100,7 +100,7 @@ public class MplIfVisitor extends MplAstVisitorImpl {
       ref = (Command) result.get(result.size() - 1);
     }
     if (needsNormalizer(mplIf)) {
-      ref = new NormalizingCommand();
+      ref = newNormalizingCommand();
       result.add(ref);
     }
     IfNestingLayer layer = new IfNestingLayer(mplIf.isNot(), ref);
@@ -171,17 +171,17 @@ public class MplIfVisitor extends MplAstVisitorImpl {
       result.add(getConditionReference(first));
     }
     for (IfNestingLayer layer : requiredReferences) {
-      CommandReferencingCommand ref = getConditionReference(layer);
+      Command ref = getConditionReference(layer);
       ref.setConditional(true);
       result.add(ref);
     }
     return result;
   }
 
-  private CommandReferencingCommand getConditionReference(IfNestingLayer layer) {
+  private Command getConditionReference(IfNestingLayer layer) {
     Command referenced = layer.getRef();
     boolean success = !layer.isDependingOnFailure();
-    return new CommandReferencingCommand(referenced, success);
+    return newTestforSuccessCommand(referenced, success);
   }
 
   private List<ChainLink> getAsConditional(ChainPart chainPart) {

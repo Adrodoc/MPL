@@ -49,6 +49,7 @@ import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitorImpl;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplWhileVisitor;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
@@ -91,7 +92,7 @@ public class MplBreakLoop extends ModifiableChainPart {
   @Override
   public List<ChainLink> accept(MplAstVisitor visitor) {
     if (visitor instanceof MplAstVisitorImpl) {
-      return ((MplAstVisitorImpl) visitor).visitBreakLoop(this);
+      return ((MplWhileVisitor) visitor).visitBreakLoop(this);
     }
     return null;
   }

@@ -45,6 +45,7 @@ import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 /**
  * @author Adrodoc55
  */
+@Deprecated
 public class InternalCommand extends Command {
 
   public InternalCommand() {
