@@ -57,20 +57,22 @@ public class Commands {
   }
 
   /**
-   * Constructs a Command, wich's success is always the opposite of the given {@link Dependable}, if
-   * the constructed command is placed directly after the given command.
+   * Constructs a {@link Command}, wich's success is always the opposite of the specified
+   * {@link Dependable}, if the constructed command is placed directly after the given command.
    *
    * @param previous the {@link Dependable} to invert
+   * @return a new inverting {@link Command}
    */
   public static Command newInvertingCommand(Dependable previous) {
     return newInvertingCommand(previous.getModeForInverting());
   }
 
   /**
-   * Constructs a Command, wich's success is always the opposite of the previous command, if the
-   * previous command has the given mode.
+   * Constructs a {@link Command}, wich's success is always the opposite of the previous command, if
+   * the previous command has the specified {@link Mode}.
    *
    * @param previousMode the {@link Mode} to invert
+   * @return a new inverting {@link Command}
    */
   public static Command newInvertingCommand(Mode previousMode) {
     return newTestforSuccessCommand(-1, previousMode, false);

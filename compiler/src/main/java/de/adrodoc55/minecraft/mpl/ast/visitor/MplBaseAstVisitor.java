@@ -124,6 +124,7 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor {
    * {@code commands}. If {@code chainPart} does not have predecessor an
    * {@link IllegalStateException} is thrown.
    *
+   * @param commands the list to add to
    * @param chainPart the {@link ModifiableChainPart} to check
    * @throws IllegalStateException if {@code chainPart} does not have predecessor
    * @see ModifiableChainPart#getPrevious()
