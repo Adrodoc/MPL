@@ -395,8 +395,7 @@ public class MplInterpreter extends MplBaseListener {
   @Override
   public void exitScriptFile(ScriptFileContext ctx) {
     process = new MplProcess(toSource(new CommonToken(MplLexer.PROCESS)));
-    Deque<ChainPart> chainParts = chainBuffer.getChainParts();
-    process.setChainParts(chainParts);
+    process.setChainParts(chainBuffer.getChainParts());
     program.addProcess(process);
     process = null;
 
@@ -431,8 +430,7 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void exitProcess(ProcessContext ctx) {
-    Deque<ChainPart> chainParts = chainBuffer.getChainParts();
-    process.setChainParts(chainParts);
+    process.setChainParts(chainBuffer.getChainParts());
     program.addProcess(process);
     process = null;
 

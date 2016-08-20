@@ -39,12 +39,13 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import de.adrodoc55.commons.CopyScope.Copyable;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 
 /**
  * @author Adrodoc55
  */
-public interface ChainLink {
+public interface ChainLink extends Copyable {
   MplBlock toBlock(Coordinate3D coordinate);
 }

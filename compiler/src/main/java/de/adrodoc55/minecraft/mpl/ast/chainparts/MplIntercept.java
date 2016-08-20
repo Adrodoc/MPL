@@ -41,12 +41,15 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
@@ -83,6 +86,7 @@ public class MplIntercept extends ModifiableChainPart {
     this.event = checkNotNull(event, "event == null!");
   }
 
+  @Deprecated
   protected MplIntercept(MplIntercept original) {
     super(original);
     event = original.event;
@@ -100,7 +104,7 @@ public class MplIntercept extends ModifiableChainPart {
   }
 
   @Override
-  public void accept(MplAstVisitor visitor) {
-    visitor.visitIntercept(this);
+  public List<ChainLink> accept(MplAstVisitor visitor) {
+    return visitor.visitIntercept(this);
   }
 }

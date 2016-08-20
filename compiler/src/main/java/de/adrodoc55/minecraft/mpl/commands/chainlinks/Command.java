@@ -43,6 +43,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nonnull;
 
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
@@ -58,13 +59,13 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode(doNotUseGetters = false)
+@EqualsAndHashCode
 @ToString
 @Getter
 @Setter
 public class Command implements ChainLink, Modifiable {
-  protected String command;
-  protected Mode mode;
+  protected @Nonnull String command;
+  protected @Nonnull Mode mode;
   protected boolean conditional;
   protected boolean needsRedstone;
 
@@ -85,7 +86,7 @@ public class Command implements ChainLink, Modifiable {
   }
 
   public Command(String command, Mode mode, boolean conditional) {
-    this(command, mode, conditional, (mode == null || mode == Mode.CHAIN) ? false : true);
+    this(command, mode, conditional, Mode.nonNull(mode).getNeedsRedstoneByDefault());
   }
 
   @GenerateMplPojoBuilder
@@ -94,13 +95,23 @@ public class Command implements ChainLink, Modifiable {
     setModifier(mode, conditional, needsRedstone);
   }
 
-  public Command(Command command) {
-    this(command.getCommand(), command);
+  public Command(String command, Modifiable modifier) {
+    setCommand(command);
+    setModifier(modifier);
   }
 
-  public Command(String command, Modifiable modifier) {
-    this(command);
-    setModifier(modifier);
+  @Deprecated
+  protected Command(Command original) {
+    command = original.command;
+    mode = original.mode;
+    conditional = original.conditional;
+    needsRedstone = original.needsRedstone;
+  }
+
+  @Deprecated
+  @Override
+  public Command createFlatCopy(CopyScope scope) {
+    return new Command(this);
   }
 
   public void setModifier(Modifiable modifier) {
@@ -108,7 +119,7 @@ public class Command implements ChainLink, Modifiable {
   }
 
   public void setModifier(Mode mode, boolean conditional, boolean needsRedstone) {
-    this.mode = (mode != null) ? mode : Mode.CHAIN;
+    this.mode = Mode.nonNull(mode);
     this.conditional = conditional;
     this.needsRedstone = needsRedstone;
   }
@@ -138,4 +149,7 @@ public class Command implements ChainLink, Modifiable {
     return new CommandBlock(this, Direction3D.UP, coordinate);
   }
 
+  public boolean isInternal() {
+    return false;
+  }
 }

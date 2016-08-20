@@ -59,8 +59,6 @@ import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.commons.Named;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
-import de.adrodoc55.minecraft.mpl.ast.MplNode;
-import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
@@ -71,7 +69,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 /**
  * @author Adrodoc55
  */
-public class MplProgram implements MplNode, Named {
+public class MplProgram implements Named {
   private final MplCompilerContext context;
   @Getter
   private final File programFile;
@@ -169,11 +167,6 @@ public class MplProgram implements MplNode, Named {
   public Stream<MplProcess> streamProcesses() {
     return Stream.concat(Stream.of(install, uninstall), getProcesses().stream())
         .filter(p -> p != null);
-  }
-
-  @Override
-  public void accept(MplAstVisitor visitor) {
-    visitor.visitProgram(this);
   }
 
   public String getHash() {

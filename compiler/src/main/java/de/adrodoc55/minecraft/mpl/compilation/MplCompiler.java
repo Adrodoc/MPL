@@ -56,15 +56,13 @@ import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.assembly.MplProgramAssemler;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitorImpl;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplMainAstVisitor;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.placement.MplDebugProgramPlacer;
 import de.adrodoc55.minecraft.mpl.placement.MplProgramPlacer;
@@ -128,9 +126,7 @@ public class MplCompiler {
   }
 
   public ChainContainer materialize(MplProgram program) {
-    MplAstVisitor visitor = new MplAstVisitorImpl(provideContext());
-    program.accept(visitor);
-    return visitor.getResult();
+    return new MplMainAstVisitor(provideContext()).visitProgram(program);
   }
 
   public List<CommandBlockChain> place(ChainContainer container) throws CompilationFailedException {
@@ -239,7 +235,7 @@ public class MplCompiler {
     if (block instanceof CommandBlock) {
       CommandBlock commandBlock = (CommandBlock) block;
       Command command = commandBlock.toCommand();
-      return command instanceof InternalCommand;
+      return command.isInternal();
     }
     return false;
   }

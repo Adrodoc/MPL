@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import java.util.List;
+
 import javax.annotation.concurrent.Immutable;
 
 import de.adrodoc55.commons.CopyScope;
@@ -69,6 +71,7 @@ public class MplSkip implements ChainPart, ChainLink {
     this.internal = internal;
   }
 
+  @Deprecated
   protected MplSkip(MplSkip original) {
     internal = original.internal;
   }
@@ -94,8 +97,8 @@ public class MplSkip implements ChainPart, ChainLink {
   }
 
   @Override
-  public void accept(MplAstVisitor visitor) {
-    visitor.visitSkip(this);
+  public List<ChainLink> accept(MplAstVisitor visitor) {
+    return visitor.visitSkip(this);
   }
 
 }

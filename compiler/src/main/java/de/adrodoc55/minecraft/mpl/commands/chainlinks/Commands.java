@@ -39,13 +39,22 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;
+
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 
 /**
  * @author Adrodoc55
  */
-public class InvertingCommand extends ReferencingTestforSuccessCommand {
+public class Commands {
+  protected Commands() throws Exception {
+    throw new Exception("Utils Classes cannot be instantiated!");
+  }
+
+  public static Command newNormalizingCommand() {
+    return new InternalCommand("testforblock ~ ~ ~ chain_command_block", true);
+  }
 
   /**
    * Constructs a Command, wich's success is always the opposite of the given {@link Dependable}, if
@@ -53,8 +62,8 @@ public class InvertingCommand extends ReferencingTestforSuccessCommand {
    *
    * @param previous the {@link Dependable} to invert
    */
-  public InvertingCommand(Dependable previous) {
-    this(previous.getModeForInverting());
+  public static Command newInvertingCommand(Dependable previous) {
+    return newInvertingCommand(previous.getModeForInverting());
   }
 
   /**
@@ -63,8 +72,26 @@ public class InvertingCommand extends ReferencingTestforSuccessCommand {
    *
    * @param previousMode the {@link Mode} to invert
    */
-  public InvertingCommand(Mode previousMode) {
-    super(-1, previousMode, false);
+  public static Command newInvertingCommand(Mode previousMode) {
+    return newTestforSuccessCommand(-1, previousMode, false);
+  }
+
+  public static Command newTestforSuccessCommand(int relative, Mode referencedMode,
+      boolean success) {
+    return newTestforSuccessCommand(relative, referencedMode, success, false);
+  }
+
+  public static Command newTestforSuccessCommand(int relative, Mode referencedMode, boolean success,
+      boolean conditional) {
+    String command = "testforblock " + REF + " " + referencedMode.getStringBlockId()
+        + " -1 {SuccessCount:" + (success ? 1 : 0) + "}";
+    return new ReferencingCommand(command, Mode.DEFAULT, conditional, false, relative);
+  }
+
+  public static Command newTestforSuccessCommand(Command referenced, boolean success) {
+    String command = "testforblock " + REF + " " + referenced.getMode().getStringBlockId()
+        + " -1 {SuccessCount:" + (success ? 1 : 0) + "}";
+    return new ResolveableCommand(command, referenced);
   }
 
 }

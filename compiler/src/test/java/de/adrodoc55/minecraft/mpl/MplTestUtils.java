@@ -40,6 +40,8 @@
 package de.adrodoc55.minecraft.mpl;
 
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,7 +52,6 @@ import de.adrodoc55.commons.Named;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.InvertingCommand;
 
 public class MplTestUtils extends MplTestBase {
 
@@ -74,12 +75,24 @@ public class MplTestUtils extends MplTestBase {
     List<ChainLink> result = new ArrayList<>(commands.size());
     for (MplCommand command : commands) {
       if (command.getConditional() == INVERT) {
-        result.add(new InvertingCommand(command.getPrevious()));
+        result.add(newInvertingCommand(command.getPrevious()));
       }
       String cmd = command.getCommand();
       result.add(new Command(cmd, command));
     }
     return result;
+  }
+
+  /**
+   * Add an unconditional {@link MplCommand} at the start and then chain all {@code commands}
+   * together.
+   *
+   * @param commands to make valid
+   * @return a valid list of commands
+   */
+  public static List<MplCommand> makeValid(List<MplCommand> commands) {
+    commands.add(0, some($MplCommand().withConditional(UNCONDITIONAL)));
+    return chainTogether(commands);
   }
 
   public static List<MplCommand> chainTogether(List<MplCommand> commands) {
