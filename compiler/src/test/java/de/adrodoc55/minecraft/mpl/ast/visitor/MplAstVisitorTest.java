@@ -140,7 +140,7 @@ public abstract class MplAstVisitorTest {
   // @formatter:on
 
   @Test
-  public void test_an_repeat_process_with_chainparts_results_in_a_chain_with_chainlinks()
+  public void test_a_repeat_process_with_chainparts_results_in_a_chain_with_chainlinks()
       throws Exception {
     // given:
     List<MplCommand> mplCommands = makeValid(listOf(several(), $MplCommand()));
@@ -152,9 +152,9 @@ public abstract class MplAstVisitorTest {
     CommandChain result = underTest.visitProcess(process);
 
     // then:
+    mplCommands.get(0).setMode(REPEAT);
+    mplCommands.get(0).setNeedsRedstone(true);
     List<ChainLink> commands = mapToCommands(mplCommands);
-    ((Command) commands.get(0)).setMode(REPEAT);
-    ((Command) commands.get(0)).setNeedsRedstone(true);
     if (underTest.options.hasOption(TRANSMITTER)) {
       commands.add(0, new MplSkip());
     }
