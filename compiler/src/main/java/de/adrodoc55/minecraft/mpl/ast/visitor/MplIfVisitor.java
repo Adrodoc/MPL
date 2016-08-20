@@ -43,6 +43,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.visitor.MplMainAstVisitor.addInvertingCommandIfInvert;
+import static de.adrodoc55.minecraft.mpl.ast.visitor.MplMainAstVisitor.resolveReferences;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNormalizingCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newTestforSuccessCommand;
 
@@ -105,14 +106,8 @@ public class MplIfVisitor implements MplAstVisitor {
     List<ChainLink> result = new ArrayList<>();
     addInvertingCommandIfInvert(result, mplIf);
 
-    String condition = mplIf.getCondition();
-    Command ref;
-    if (condition != null) {
-      ref = new Command(condition, mplIf);
-      result.add(ref);
-    } else {
-      ref = (Command) result.get(result.size() - 1);
-    }
+    Command ref = new Command(mplIf.getCondition(), mplIf);
+    result.add(ref);
     if (needsNormalizer(mplIf)) {
       ref = newNormalizingCommand();
       result.add(ref);
@@ -122,7 +117,7 @@ public class MplIfVisitor implements MplAstVisitor {
 
     // then
     layer.setInElse(false);
-    Deque<ChainPart> thenParts = mplIf.getThenParts();
+    Deque<ChainPart> thenParts = new ArrayDeque<>(mplIf.getThenParts());
     boolean emptyThen = thenParts.isEmpty();
     if (!mplIf.isNot() && !emptyThen) {
       // First then does not need a reference
@@ -132,7 +127,7 @@ public class MplIfVisitor implements MplAstVisitor {
 
     // else
     layer.setInElse(true);
-    Deque<ChainPart> elseParts = mplIf.getElseParts();
+    Deque<ChainPart> elseParts = new ArrayDeque<>(mplIf.getElseParts());
     boolean emptyElse = elseParts.isEmpty();
     if (mplIf.isNot() && emptyThen && !emptyElse) {
       // First else does not need a reference, if there is no then part
@@ -141,7 +136,7 @@ public class MplIfVisitor implements MplAstVisitor {
     result.addAll(getAllWithRef(elseParts));
 
     ifNestingLayers.pop();
-    return result;
+    return resolveReferences(result);
   }
 
   private List<ChainLink> getAllWithRef(Iterable<ChainPart> chainParts) {
@@ -207,7 +202,7 @@ public class MplIfVisitor implements MplAstVisitor {
     try {
       return (ModifiableChainPart) chainPart;
     } catch (ClassCastException ex) {
-      throw new IllegalStateException("If cannot contain skip", ex);
+      throw new IllegalStateException("If cannot contain " + chainPart.getName(), ex);
     }
   }
 

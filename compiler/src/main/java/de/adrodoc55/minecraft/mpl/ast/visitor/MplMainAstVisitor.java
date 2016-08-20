@@ -301,6 +301,7 @@ public class MplMainAstVisitor implements MplAstVisitor {
     }
     if (process.isRepeating() && containsSkip) {
       result.addAll(getRestartBackref(result.get(0), false));
+      resolveReferences(result);
     }
     if (!process.isRepeating() && name != null && !"install".equals(name)
         && !"uninstall".equals(name)) {
@@ -363,9 +364,10 @@ public class MplMainAstVisitor implements MplAstVisitor {
   }
 
   /**
-   * Checks if the given {@link ChainPart} has the {@link Conditional#INVERT INVERT} modifier. If it
-   * does, an {@link Commands#newInvertingCommand inverting command} is added to {@link #commands}.
-   * If {@code chainPart} does not have predecessor an {@link IllegalStateException} is thrown.
+   * Checks if the given {@link ModifiableChainPart} has the {@link Conditional#INVERT INVERT}
+   * modifier. If it does, an {@link Commands#newInvertingCommand inverting command} is added to
+   * {@code commands}. If {@code chainPart} does not have predecessor an
+   * {@link IllegalStateException} is thrown.
    *
    * @param chainPart the {@link ModifiableChainPart} to check
    * @throws IllegalStateException if {@code chainPart} does not have predecessor
@@ -589,24 +591,26 @@ public class MplMainAstVisitor implements MplAstVisitor {
 
   @Override
   public List<ChainLink> visitIf(MplIf mplIf) {
-    List<ChainLink> result = new MplIfVisitor(this).visitIf(mplIf);
-    return resolveReferences(result);
+    return new MplIfVisitor(this).visitIf(mplIf);
   }
 
   // TODO: Alles auf solche Referenzen umstellen
-  private List<ChainLink> resolveReferences(List<ChainLink> chainLinks) {
-    return Lists.transform(chainLinks, it -> {
+  protected static List<ChainLink> resolveReferences(List<ChainLink> chainLinks) {
+    return new ArrayList<>(Lists.transform(chainLinks, it -> {
       if (it instanceof ResolveableCommand) {
-        return ((ResolveableCommand) it).resolve(chainLinks);
+        try {
+          return ((ResolveableCommand) it).resolve(chainLinks);
+        } catch (IllegalArgumentException ex) {
+          return it;
+        }
       }
       return it;
-    });
+    }));
   }
 
   @Override
   public List<ChainLink> visitWhile(MplWhile mplWhile) {
-    List<ChainLink> result = new MplWhileVisitor(context, program).visitWhile(mplWhile);
-    return resolveReferences(result);
+    return new MplWhileVisitor(context, program).visitWhile(mplWhile);
   }
 
   @Override

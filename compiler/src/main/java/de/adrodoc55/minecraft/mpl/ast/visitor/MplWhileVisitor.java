@@ -52,6 +52,7 @@ import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOpt
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.CheckReturnValue;
@@ -132,18 +133,18 @@ public class MplWhileVisitor extends MplMainAstVisitor {
     if (chainParts.isEmpty()) {
       chainParts.add(new MplCommand("", mplWhile.getSource()));
     }
-    try {
-      ChainPart first = chainParts.peek();
-      if (options.hasOption(TRANSMITTER) && first instanceof MplWhile) {
-        if (((MplWhile) first).getCondition() == null) {
-          first = new MplCommand("", mplWhile.getSource());
-          chainParts.push(first);
-        }
+    ChainPart first = chainParts.peek();
+    if (options.hasOption(TRANSMITTER) && first instanceof MplWhile) {
+      if (((MplWhile) first).getCondition() == null) {
+        first = new MplCommand("", mplWhile.getSource());
+        chainParts.push(first);
       }
+    }
+    try {
       first.setMode(IMPULSE);
       first.setNeedsRedstone(true);
     } catch (IllegalModifierException ex) {
-      throw new IllegalStateException("while cannot start with skip", ex);
+      throw new IllegalStateException("while cannot start with " + first.getName(), ex);
     }
     boolean dontRestart = false;
     for (ChainPart chainPart : chainParts) {
@@ -179,16 +180,17 @@ public class MplWhileVisitor extends MplMainAstVisitor {
     ChainLink exitLink = exit.get(0);
     skip.setReferenced(exitLink);
 
-    while (!loopRefs.isEmpty()) {
-      LoopRef ref = loopRefs.pop();
+    for (Iterator<LoopRef> it = loopRefs.iterator(); it.hasNext();) {
+      LoopRef ref = it.next();
       if (ref.getLoop() == mplWhile) {
         ref.setEntryLink(entryLink);
         ref.setExitLink(exitLink);
+        it.remove();
       }
     }
 
     loops.pop();
-    return result;
+    return resolveReferences(result);
   }
 
   private Deque<LoopRef> loopRefs = new ArrayDeque<>();
@@ -234,8 +236,7 @@ public class MplWhileVisitor extends MplMainAstVisitor {
     List<ChainLink> trc = getTransmitterReceiverCombo(false);
     dontBreak.setReferenced(trc.get(0));
     result.addAll(trc);
-    return result;
-
+    return resolveReferences(result);
   }
 
   @Override
@@ -259,32 +260,37 @@ public class MplWhileVisitor extends MplMainAstVisitor {
       return result;
     }
     MplSource source = mplContinue.getSource();
-    MplIf outerIf = new MplIf(false, null, source);
+    MplIf outerIf = new MplIf(false, "//", source);
+    outerIf.setMode(mplContinue.getPrevious().getModeForInverting());
     outerIf.setConditional(mplContinue.isConditional() ? CONDITIONAL : UNCONDITIONAL);
     outerIf.setPrevious(mplContinue.getPrevious());
     outerIf.enterThen();
     if (condition != null) {
       MplIf innerIf = new MplIf(false, condition, source);
       innerIf.enterThen();
-      innerIf.add(newMplContinueLoop(loop));
+      innerIf.add(newMplContinueLoop(loop, source));
       innerIf.enterElse();
-      innerIf.add(newMplBreakLoop(loop));
+      innerIf.add(newMplBreakLoop(loop, source));
       outerIf.add(innerIf);
     } else {
-      outerIf.add(newMplContinueLoop(loop));
+      outerIf.add(newMplContinueLoop(loop, source));
     }
     outerIf.enterElse();
     ResolveableCommand exit = new ResolveableCommand(getStartCommand(REF), true);
-    outerIf.add(new InternalMplCommand(exit));
+    outerIf.add(new InternalMplCommand(source, exit));
 
     if (conditional == INVERT) {
       outerIf.switchThenAndElse();
     }
-    outerIf.accept(this);
+    List<ChainLink> ifResult = outerIf.accept(this);
+    result.addAll(ifResult);
 
     List<ChainLink> end = getTransmitterReceiverCombo(false);
     exit.setReferenced(end.get(0));
     result.addAll(end);
+    resolveReferences(result);
+    // FIXME: Dirty Hack
+    result.removeIf(it -> it == ifResult.get(0));
     return result;
   }
 
@@ -294,8 +300,8 @@ public class MplWhileVisitor extends MplMainAstVisitor {
    * @param loop the loop to break
    * @return a wrapper to break the loop
    */
-  private InternalMplCommand newMplBreakLoop(MplWhile loop) {
-    return new InternalMplCommand(getBreakLoop(loop));
+  private InternalMplCommand newMplBreakLoop(MplWhile loop, MplSource source) {
+    return new InternalMplCommand(source, getBreakLoop(loop));
   }
 
   /**
@@ -343,8 +349,8 @@ public class MplWhileVisitor extends MplMainAstVisitor {
    * @param loop the loop to continue
    * @return a wrapper to continue the loop
    */
-  private InternalMplCommand newMplContinueLoop(MplWhile loop) {
-    return new InternalMplCommand(getContinueLoop(loop));
+  private InternalMplCommand newMplContinueLoop(MplWhile loop, MplSource source) {
+    return new InternalMplCommand(source, getContinueLoop(loop));
   }
 
   /**

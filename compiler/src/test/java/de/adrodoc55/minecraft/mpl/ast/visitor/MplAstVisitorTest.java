@@ -108,7 +108,6 @@ import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
@@ -1932,7 +1931,8 @@ public abstract class MplAstVisitorTest {
         .withCondition((String) null));
     MplContinue mplContinue = some($MplContinue()//
         .withLoop(mplWhile)//
-        .withConditional(CONDITIONAL));
+        .withConditional(CONDITIONAL)//
+        .withPrevious(command));
     mplWhile.setChainParts(listOf(command, mplContinue));
 
     // when:
@@ -1960,7 +1960,8 @@ public abstract class MplAstVisitorTest {
     MplWhile mplWhile = some($MplWhile());
     MplContinue mplContinue = some($MplContinue()//
         .withLoop(mplWhile)//
-        .withConditional(CONDITIONAL));
+        .withConditional(CONDITIONAL)//
+        .withPrevious(command));
     mplWhile.setChainParts(listOf(command, mplContinue));
 
     // when:
@@ -1980,7 +1981,7 @@ public abstract class MplAstVisitorTest {
         new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 3)), //
         new ReferencingCommand(getOnCommand(REF), true, entry - (beforeContinue + 4)), //
         newTestforSuccessCommand(-4, CHAIN, true), //
-        Commands.newTestforSuccessCommand(-4, CHAIN, false, true), //
+        newTestforSuccessCommand(-4, CHAIN, false, true), //
         new ReferencingCommand(getOnCommand(REF), true, exit - (beforeContinue + 7)), //
         new ReferencingCommand(getOffCommand(REF), true, entry - (beforeContinue + 8)), //
         newTestforSuccessCommand(-8, CHAIN, false), //

@@ -8,24 +8,31 @@ import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.commons.CopyScope.Copyable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 
-public class InternalMplCommand implements ChainPart {
+public class InternalMplCommand extends ModifiableChainPart {
 
-  private final ImmutableList<ChainLink> chainLinks;
+  private final ImmutableList<Command> chainLinks;
 
-  public InternalMplCommand(List<? extends ChainLink> chainLinks) {
+  public InternalMplCommand(MplSource source, List<? extends Command> chainLinks) {
+    super(new ModifierBuffer(), source);
     this.chainLinks = ImmutableList.copyOf(chainLinks);
   }
 
-  public InternalMplCommand(ChainLink... chainLinks) {
+  public InternalMplCommand(MplSource source, Command... chainLinks) {
+    super(new ModifierBuffer(), source);
     this.chainLinks = ImmutableList.copyOf(chainLinks);
   }
 
   @Deprecated
   protected InternalMplCommand(InternalMplCommand original) {
+    super(original);
     chainLinks = original.chainLinks;
   }
 
+  @Deprecated
   @Override
   public Copyable createFlatCopy(CopyScope scope) throws NullPointerException {
     return new InternalMplCommand(this);
@@ -38,7 +45,9 @@ public class InternalMplCommand implements ChainPart {
 
   @Override
   public ImmutableList<ChainLink> accept(MplAstVisitor visitor) {
-    return chainLinks;
+    Command first = chainLinks.get(0);
+    first.setModifier(this);
+    return ImmutableList.copyOf(chainLinks);
   }
 
 }

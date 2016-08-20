@@ -43,6 +43,7 @@ import java.util.List;
 
 import de.adrodoc55.commons.CopyScope.Copyable;
 import de.adrodoc55.commons.Named;
+import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.MplNode;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
@@ -69,7 +70,26 @@ public interface ChainPart extends MplNode<List<ChainLink>>, Named, Copyable, De
   }
 
   /**
+   * Set the conditionality of this {@link ChainPart} (optional operation).
+   * <p>
+   * Using {@link #setConditional(Conditional)} primarily affects the first of the generated
+   * {@link ChainLink}s.
+   * <p>
+   * Subclasses should override this method if they support beeing conditional.
+   *
+   * @param conditional {@link Conditional}
+   * @throws IllegalModifierException if this {@link ChainPart} cannot be conditional
+   */
+  default void setConditional(Conditional conditional) throws IllegalModifierException {
+    throw new IllegalModifierException(
+        "The class " + getClass() + " does not support beeing conditional");
+  }
+
+  /**
    * Set whether this {@link ChainPart} needs redstone (optional operation).
+   * <p>
+   * Using {@link #setNeedsRedstone(boolean)} primarily affects the first of the generated
+   * {@link ChainLink}s.
    * <p>
    * Subclasses should override this method if they support the need for a redstone signal.
    *

@@ -85,7 +85,7 @@ public class Commands {
       boolean conditional) {
     String command = "testforblock " + REF + " " + referencedMode.getStringBlockId()
         + " -1 {SuccessCount:" + (success ? 1 : 0) + "}";
-    return new ReferencingCommand(command, referencedMode, conditional, success, relative);
+    return new ReferencingCommand(command, Mode.DEFAULT, conditional, false, relative);
   }
 
   public static Command newTestforSuccessCommand(Command referenced, boolean success) {

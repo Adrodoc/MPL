@@ -6,9 +6,13 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.commons.CopyScope;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Getter
 @Setter
 public class ResolveableCommand extends InternalCommand {
