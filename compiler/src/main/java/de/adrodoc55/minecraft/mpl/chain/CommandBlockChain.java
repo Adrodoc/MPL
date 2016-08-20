@@ -66,6 +66,7 @@ public class CommandBlockChain implements Named {
     setTags(tags);
   }
 
+  @Override
   public String getName() {
     return name;
   }

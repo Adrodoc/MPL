@@ -133,10 +133,4 @@ public abstract class ModifiableChainPart implements ExtendedModifiable, ChainPa
     this.previous = previous;
   }
 
-  /*
-   * see https://github.com/mkarneim/pojobuilder/issues/86
-   */
-  public void setConditional(Conditional conditional) {
-    this.conditional = checkNotNull(conditional, "conditional == null!");
-  }
 }

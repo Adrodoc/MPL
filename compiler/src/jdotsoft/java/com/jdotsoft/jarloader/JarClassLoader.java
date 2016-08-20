@@ -313,6 +313,7 @@ public class JarClassLoader extends ClassLoader {
 
     checkShading();
     Runtime.getRuntime().addShutdownHook(new Thread() {
+      @Override
       public void run() {
         shutdown();
       }
