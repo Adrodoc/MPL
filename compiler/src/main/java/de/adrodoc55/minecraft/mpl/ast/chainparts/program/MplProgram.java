@@ -46,6 +46,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -58,8 +59,6 @@ import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.commons.Named;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
-import de.adrodoc55.minecraft.mpl.ast.MplNode;
-import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
@@ -70,7 +69,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 /**
  * @author Adrodoc55
  */
-public class MplProgram implements MplNode, Named {
+public class MplProgram implements Named {
   private final MplCompilerContext context;
   @Getter
   private final File programFile;
@@ -130,10 +129,8 @@ public class MplProgram implements MplNode, Named {
       oldMessage += "; was also found in " + FileUtils.getCanonicalPath(newSource.file);
       newMessage += "; was also found in " + FileUtils.getCanonicalPath(oldSource.file);
     }
-    CompilerException ex1 = new CompilerException(oldSource, oldMessage);
-    context.addException(ex1);
-    CompilerException ex2 = new CompilerException(newSource, newMessage);
-    context.addException(ex2);
+    context.addError(new CompilerException(oldSource, oldMessage));
+    context.addError(new CompilerException(newSource, newMessage));
   }
 
   public boolean containsProcess(String name) {
@@ -161,9 +158,15 @@ public class MplProgram implements MplNode, Named {
     processMap.putAll(Maps.uniqueIndex(processes, p -> p.getName()));
   }
 
-  @Override
-  public void accept(MplAstVisitor visitor) {
-    visitor.visitProgram(this);
+  /**
+   * Opens a {@link Stream} containing all processes of {@code this} program including install and
+   * uninstall. The returned stream will not contain any {@code null} values.
+   *
+   * @return a new {@link Stream} of all processes.
+   */
+  public Stream<MplProcess> streamProcesses() {
+    return Stream.concat(Stream.of(install, uninstall), getProcesses().stream())
+        .filter(p -> p != null);
   }
 
   public String getHash() {

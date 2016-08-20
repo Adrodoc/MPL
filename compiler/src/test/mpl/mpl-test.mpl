@@ -42,12 +42,10 @@ remote process mpl_tests {
   }
 }
 
-remote process continue_tests {}
-
 remote process fail {
   /say TEST FAILED
   /scoreboard players set MplTestFailed MplTest 1
-  start continue_tests
+  notify continue_tests
 }
 
 #Test
@@ -61,7 +59,7 @@ remote process test_invert_with_true {
 
   // then:
   /scoreboard players test MplTest MplTest 0 0
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -76,7 +74,7 @@ remote process test_invert_with_false {
 
   // then:
   /scoreboard players test MplTest MplTest 1 1
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -91,7 +89,7 @@ remote process test_waitfor_impulse {
 
   // then:
   /scoreboard players test MplTest MplTest 4 4
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -106,7 +104,7 @@ remote process test_waitfor_repeat {
 
   // then:
   /scoreboard players test MplTest MplTest 3 3
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -122,7 +120,7 @@ remote process test_conditional_waitfor_with_true {
 
   // then:
   /scoreboard players test MplTest MplTest 1 1
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -138,7 +136,7 @@ remote process test_conditional_waitfor_with_false {
 
   // then:
   /scoreboard players test MplTest MplTest 0 0
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -153,7 +151,7 @@ remote process test_intercept {
 
   // then:
   /scoreboard players test MplTest MplTest 5 5
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -169,7 +167,7 @@ remote process test_conditional_intercept_with_true {
 
   // then:
   /scoreboard players test MplTest MplTest 5 5
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -185,7 +183,7 @@ remote process test_conditional_intercept_with_false {
 
   // then:
   /scoreboard players test MplTest MplTest 0 0
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -201,7 +199,7 @@ remote process test_invert_intercept_with_true {
 
   // then:
   /scoreboard players test MplTest MplTest 0 0
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -217,7 +215,7 @@ remote process test_invert_intercept_with_false {
 
   // then:
   /scoreboard players test MplTest MplTest 5 5
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -234,7 +232,7 @@ remote process test_while_repeat_with_false {
 
   // then:
   /scoreboard players test MplTest MplTest 1 1
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -251,7 +249,7 @@ remote process test_while_repeat_with_5_iterations {
 
   // then:
   /scoreboard players test MplTest MplTest 6 6
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -267,7 +265,7 @@ remote process test_repeat_while_with_false {
 
   // then:
   /scoreboard players test MplTest MplTest 2 2
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -283,7 +281,7 @@ remote process test_repeat_while_with_5_iterations {
 
   // then:
   /scoreboard players test MplTest MplTest 6 6
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -300,7 +298,7 @@ remote process test_repeat_with_unconditional_break {
 
   // then:
   /scoreboard players test MplTest MplTest 2 2
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -318,7 +316,7 @@ remote process test_repeat_with_conditional_break_after_5_iterations {
 
   // then:
   /scoreboard players test MplTest MplTest 6 6
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -336,7 +334,7 @@ remote process test_repeat_with_invert_break_after_5_iterations {
 
   // then:
   /scoreboard players test MplTest MplTest 6 6
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -355,7 +353,7 @@ remote process test_nested_break_with_label {
 
   // then:
   /scoreboard players test MplTest MplTest 1 1
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -373,7 +371,7 @@ remote process test_conditional_continue_checks_the_condition {
 
   // then:
   /scoreboard players test MplTest MplTest 2 2
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -391,7 +389,7 @@ remote process test_invert_continue_checks_the_condition {
 
   // then:
   /scoreboard players test MplTest MplTest 2 2
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -410,7 +408,7 @@ remote process test_repeat_with_conditional_continue_for_5_iterations {
 
   // then:
   /scoreboard players test MplTest MplTest 6 6
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -429,7 +427,7 @@ remote process test_repeat_with_invert_continue_for_5_iterations {
 
   // then:
   /scoreboard players test MplTest MplTest 6 6
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -450,7 +448,7 @@ remote process test_nested_continue_with_label {
 
   // then:
   /scoreboard players test MplTest MplTest 2 2
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -468,7 +466,7 @@ remote process test_calling_a_remote_process_takes_two_ticks {
   stop tick_counter
   /scoreboard players test MplTest MplTest 1 1
   conditional: /scoreboard players test Tick MplTest 2 2
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -486,7 +484,7 @@ remote process test_calling_an_inline_process_is_instantanious {
   stop tick_counter
   /scoreboard players test MplTest MplTest 1 1
   conditional: /scoreboard players test Tick MplTest 0 0
-  conditional: start continue_tests
+  conditional: notify continue_tests
   invert: start fail
 }
 
@@ -500,7 +498,6 @@ remote repeat process tick_counter {
 
 remote process add_one_to_MplTest_remote {
   /scoreboard players add MplTest MplTest 1
-  notify
 }
 
 inline process add_one_to_MplTest_inline {
@@ -524,18 +521,16 @@ remote process add_one_to_MplTest {
   impulse: /setblock ${this-1} stone
   // 1 tick delay end
   /scoreboard players add MplTest MplTest 1
-  notify
 }
 
 remote impulse process impulse_process {
   /say impulse process
   /scoreboard players set MplTest MplTest 4
-  notify
 }
 
 remote repeat process repeat_process {
   /say repeat process
   /scoreboard players set MplTest MplTest 3
-  notify
+  notify repeat_process
   stop
 }

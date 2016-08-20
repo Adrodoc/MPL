@@ -39,11 +39,13 @@
  */
 package de.adrodoc55.minecraft.mpl.assembly;
 
+import static java.util.stream.Collectors.toList;
+
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -52,14 +54,15 @@ import org.antlr.v4.runtime.CommonToken;
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
-import de.adrodoc55.minecraft.mpl.compilation.FileException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInclude;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter;
 import de.adrodoc55.minecraft.mpl.interpretation.MplProcessReference;
+import de.adrodoc55.minecraft.mpl.interpretation.MplReference;
 
 /**
  * @author Adrodoc55
@@ -73,16 +76,17 @@ public class MplProgramAssemler {
     this.context = context;
   }
 
-  protected MplInterpreter interpret(File file) throws IOException {
+  protected MplInterpreter interpret(File file, MplCompilerContext context) throws IOException {
     MplInterpreter interpreter = interpreterCache.get(file);
     if (interpreter == null) {
       interpreter = MplInterpreter.interpret(file, context);
+      interpreterCache.put(file, interpreter);
     }
     return interpreter;
   }
 
   public MplProgram assemble(File programFile) throws IOException {
-    MplInterpreter main = interpret(programFile);
+    MplInterpreter main = interpret(programFile, context);
     MplProgram program = main.getProgram();
     programBuilder = new MplProgramBuilder(program, programFile);
     resolveReferences(main.getReferences().values());
@@ -92,8 +96,8 @@ public class MplProgramAssemler {
     MplProgram result = programBuilder.getProgram();
     boolean containsRemoteProcess = result.getProcesses().stream()//
         .anyMatch(p -> p.getType() == ProcessType.REMOTE);
-    if (context.getExceptions().isEmpty() && !containsRemoteProcess) {
-      context.addException(
+    if (context.getErrors().isEmpty() && !containsRemoteProcess) {
+      context.addError(
           new CompilerException(new MplSource(programFile, new CommonToken(MplLexer.PROCESS), ""),
               "This file does not include any remote processes"));
     }
@@ -104,33 +108,31 @@ public class MplProgramAssemler {
     MplInclude include;
     while ((include = context.getNextInclude()) != null) {
       File file = include.getFile();
-      MplInterpreter interpreter = null;
       try {
-        interpreter = interpret(file);
+        MplInterpreter interpreter = interpret(file, context);
+        MplProgram program = interpreter.getProgram();
+        if (program.isScript()) {
+          context.addError(new CompilerException(include.getSource(),
+              "Can't include script '" + file.getName() + "'. Scripts may not be included."));
+          continue;
+        }
+        String processName = include.getProcessName();
+        if (processName != null) {
+          programBuilder.addProcess(interpreter, processName);
+          resolveReferences(interpreter.getReferences().get(processName));
+        } else {
+          programBuilder.addAllProcesses(interpreter);
+          resolveReferences(interpreter.getReferences().values());
+        }
       } catch (IOException ex) {
-        context.addException(new CompilerException(include.getSource(),
-            "Couldn't include '" + FileUtils.getCanonicalPath(file) + "'", ex));
-        continue;
-      }
-      MplProgram program = interpreter.getProgram();
-      if (program.isScript()) {
-        context.addException(new CompilerException(include.getSource(),
-            "Can't include script '" + file.getName() + "'. Scripts may not be included."));
-        continue;
-      }
-      String processName = include.getProcessName();
-      if (processName != null) {
-        programBuilder.addProcess(interpreter, processName);
-        resolveReferences(interpreter.getReferences().get(processName));
-      } else {
-        programBuilder.addAllProcesses(interpreter);
-        resolveReferences(interpreter.getReferences().values());
+        context.addError(new CompilerException(include.getSource(),
+            "Cannot include file '" + FileUtils.getCanonicalPath(file) + "'", ex));
       }
     }
   }
 
-  public void resolveReferences(Collection<MplProcessReference> references) {
-    for (MplProcessReference reference : references) {
+  protected void resolveReferences(Collection<? extends MplReference> references) {
+    for (MplReference reference : references) {
       resolveReference(reference);
     }
   }
@@ -142,59 +144,45 @@ public class MplProgramAssemler {
    *
    * @param reference
    */
-  protected void resolveReference(MplProcessReference reference) {
-    String processName = reference.getProcessName();
-    FileException lastException = null;
-    List<MplInterpreter> found = new LinkedList<>();
-    for (File file : reference.getImports()) {
-      MplInterpreter interpreter = null;
+  protected void resolveReference(MplReference reference) {
+    MplSource source = reference.getSource();
+    Collection<File> imports = reference.getImports();
+    List<MplInterpreter> found = new ArrayList<>(imports.size());
+    for (File file : imports) {
       try {
-        interpreter = interpret(file);
-      } catch (IOException ex) {
-        lastException = new FileException(ex, file);
-        continue;
-      }
-      MplProgram program = interpreter.getProgram();
-      if (program.containsProcess(processName)) {
-        // Referencing a process in the same file is never ambigious
-        if (file.equals(reference.getSource().file)) {
-          found.clear();
-          found.add(interpreter);
-          break;
-        } else {
-          found.add(interpreter);
+        MplInterpreter interpreter = interpret(file, new MplCompilerContext(context.getOptions()));
+        MplProgram program = interpreter.getProgram();
+        if (reference.isContainedIn(program)) {
+          // Referencing a process in the same file is never ambigious
+          if (file.equals(source.file)) {
+            found.clear();
+            found.add(interpreter);
+            break;
+          } else {
+            found.add(interpreter);
+          }
         }
+      } catch (IOException ex) {
+        context.addError(new CompilerException(source,
+            "Cannot read file '" + FileUtils.getCanonicalPath(file) + "'", ex));
       }
     }
 
-    if (found.isEmpty()) {
-      context.addException(new CompilerException(reference.getSource(),
-          "Could not resolve process " + processName, lastException));
-    } else if (found.size() > 1) {
-      context.addException(createAmbigiousProcessException(reference, found));
-    } else {
+    if (found.size() == 1) {
       MplInterpreter interpreter = found.get(0);
-      context.addInclude(
-          new MplInclude(processName, interpreter.getProgramFile(), reference.getSource()));
+      context.addContext(interpreter.getContext());
+      File programFile = interpreter.getProgramFile();
+      MplProgram program = interpreter.getProgram();
+      MplProcess process = reference.getProcess(program);
+      context.addInclude(new MplInclude(process.getName(), programFile, source));
+    } else if (found.size() > 1) {
+      List<File> files = found.stream().map(i -> i.getProgramFile()).collect(toList());
+      context.addError(reference.createAmbigiousException(files));
     }
   }
 
-  protected CompilerException createAmbigiousProcessException(MplProcessReference reference,
-      List<MplInterpreter> found) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < found.size() - 1; i++) {
-      MplInterpreter interpreter = found.get(i);
-      File programFile = interpreter.getProgramFile();
-      sb.append(programFile);
-      if (i + 1 < found.size() - 1) {
-        sb.append(", ");
-      }
-    }
-    sb.append(" and ");
-    sb.append(found.get(found.size() - 1).getProgramFile());
-    CompilerException ex = new CompilerException(reference.getSource(),
-        "Process " + reference.getProcessName() + " is ambigious. It was found in '" + sb + "!");
-    return ex;
+  public boolean refIsContained(MplProcessReference reference, MplProgram program) {
+    return program.containsProcess(reference.getProcessName());
   }
 
 }

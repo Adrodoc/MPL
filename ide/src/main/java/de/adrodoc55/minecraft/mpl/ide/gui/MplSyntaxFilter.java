@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui;
 
+import static de.adrodoc55.minecraft.mpl.ide.gui.utils.BnJaggedEditorKit.JaggedLabelView.UnderlineColor;
+
 import java.awt.Color;
 import java.beans.PropertyChangeEvent;
 import java.util.EventObject;
@@ -50,7 +52,6 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
-import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
@@ -95,7 +96,8 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
         if (!(cause instanceof PropertyChangeEvent)) {
           return;
         }
-        if (!"exceptions".equals(((PropertyChangeEvent) cause).getPropertyName())) {
+        String propertyName = ((PropertyChangeEvent) cause).getPropertyName();
+        if (!"errors".equals(propertyName) && !"warnings".equals(propertyName)) {
           return;
         }
         recolor();
@@ -156,7 +158,9 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
     }
     resetStyling();
     colorTokens(text);
-    colorExceptions();
+    // Color warnings first, so that errors override them
+    colorWarnings();
+    colorErrors();
   }
 
   private void resetStyling() {
@@ -168,7 +172,7 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
     if (pModel == null) {
       return;
     }
-    List<CompilerExceptionWrapper> exceptions = pModel.getExceptions();
+    List<CompilerExceptionWrapper> exceptions = pModel.getErrors();
     if (exceptions == null) {
       return;
     }
@@ -182,17 +186,23 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
     }
   }
 
-  private void colorExceptions() {
+  private void colorErrors() {
     MplSyntaxFilterPM pModel = getPresentationModel();
-    if (pModel == null) {
-      return;
+    if (pModel != null) {
+      List<CompilerExceptionWrapper> errors = pModel.getErrors();
+      for (CompilerExceptionWrapper ex : errors) {
+        styleToken(ex.getStartIndex(), ex.getStopIndex(), getErrorAttributes(), false);
+      }
     }
-    List<CompilerExceptionWrapper> exceptions = pModel.getExceptions();
-    if (exceptions == null) {
-      return;
-    }
-    for (CompilerExceptionWrapper ex : exceptions) {
-      styleToken(ex.getStartIndex(), ex.getStopIndex(), getErrorAttributes(), false);
+  }
+
+  private void colorWarnings() {
+    MplSyntaxFilterPM pModel = getPresentationModel();
+    if (pModel != null) {
+      List<CompilerExceptionWrapper> warnings = pModel.getWarnings();
+      for (CompilerExceptionWrapper ex : warnings) {
+        styleToken(ex.getStartIndex(), ex.getStopIndex(), getWarningAttributes(), false);
+      }
     }
   }
 
@@ -385,10 +395,24 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
     return insertStyle;
   }
 
-  private SimpleAttributeSet getErrorAttributes() {
-    SimpleAttributeSet errorAttributes = new SimpleAttributeSet();
-    StyleConstants.setUnderline(errorAttributes, true);
-    return errorAttributes;
+  private Style getErrorAttributes() {
+    Style errorStyle = doc.getStyle("error");
+    if (errorStyle == null) {
+      errorStyle = doc.addStyle("error", getDefaultStyle());
+      StyleConstants.setUnderline(errorStyle, true);
+      errorStyle.addAttribute(UnderlineColor, Color.RED);
+    }
+    return errorStyle;
+  }
+
+  private Style getWarningAttributes() {
+    Style warningStyle = doc.getStyle("warning");
+    if (warningStyle == null) {
+      warningStyle = doc.addStyle("warning", getDefaultStyle());
+      StyleConstants.setUnderline(warningStyle, true);
+      warningStyle.addAttribute(UnderlineColor, new Color(255, 215, 0));
+    }
+    return warningStyle;
   }
 
   /**

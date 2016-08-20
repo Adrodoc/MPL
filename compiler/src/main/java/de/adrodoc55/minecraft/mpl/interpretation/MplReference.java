@@ -37,58 +37,65 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.chainparts.loop;
+package de.adrodoc55.minecraft.mpl.interpretation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import javax.annotation.Nonnull;
 
-import de.adrodoc55.commons.CopyScope;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
-import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitorImpl;
+import de.adrodoc55.commons.FileUtils;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
-import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
 @Getter
-@Setter
-public class MplContinueLoop extends ModifiableChainPart {
-  private final @Nonnull MplWhile loop;
+public abstract class MplReference {
+  protected final @Nonnull Set<File> imports = new HashSet<>();
+  protected final @Nonnull MplSource source;
 
-  public MplContinueLoop(MplWhile loop, @Nonnull MplSource source) {
-    super(new ModifierBuffer(), source);
-    this.loop = checkNotNull(loop, "loop == null!");
+  /**
+   * Constructs a reference.
+   *
+   * @param imports the imported files that are expected to contain the reference
+   * @param source the source that requires {@code this} reference
+   * @throws IllegalArgumentException if one of the {@code imports} is not a file
+   */
+  public MplReference(@Nonnull Collection<File> imports, @Nonnull MplSource source)
+      throws IllegalArgumentException {
+    setImports(imports);
+    this.source = checkNotNull(source, "source == null!");
   }
 
-  protected MplContinueLoop(MplContinueLoop original, CopyScope scope) {
-    super(original);
-    loop = scope.copy(original.loop);
+  public @Nonnull Set<File> getImports() {
+    return Collections.unmodifiableSet(imports);
   }
 
-  @Deprecated
-  @Override
-  public MplContinueLoop createFlatCopy(CopyScope scope) {
-    return new MplContinueLoop(this, scope);
-  }
-
-  @Override
-  public String getName() {
-    return "breakcontinue";
-  }
-
-  @Override
-  public void accept(MplAstVisitor visitor) {
-    if (visitor instanceof MplAstVisitorImpl) {
-      ((MplAstVisitorImpl) visitor).visitContinueLoop(this);
+  private void setImports(Collection<File> imports) throws IllegalArgumentException {
+    for (File file : imports) {
+      if (!file.isFile()) {
+        throw new IllegalArgumentException(
+            "The import '" + FileUtils.getCanonicalPath(file) + "' is not a file!");
+      }
     }
+    this.imports.clear();
+    this.imports.addAll(imports);
   }
+
+  public abstract boolean isContainedIn(MplProgram program);
+
+  public abstract MplProcess getProcess(MplProgram program);
+
+  public abstract CompilerException createAmbigiousException(List<File> found);
 }

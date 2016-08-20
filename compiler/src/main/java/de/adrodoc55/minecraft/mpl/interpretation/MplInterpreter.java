@@ -41,7 +41,6 @@ package de.adrodoc55.minecraft.mpl.interpretation;
 
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
-import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 
 import java.io.File;
 import java.io.IOException;
@@ -139,7 +138,7 @@ public class MplInterpreter extends MplBaseListener {
       throws IOException {
     MplInterpreter interpreter = new MplInterpreter(programFile, context);
     FileContext ctx = interpreter.parse();
-    if (context.getExceptions().isEmpty()) {
+    if (context.getErrors().isEmpty()) {
       new ParseTreeWalker().walk(interpreter, ctx);
     }
     return interpreter;
@@ -157,7 +156,7 @@ public class MplInterpreter extends MplBaseListener {
       public void syntaxError(Recognizer<?, ?> recognizer, Object token, int line,
           int charPositionInLine, String message, RecognitionException cause) {
         MplSource source = toSource((Token) token);
-        addException(new CompilerException(source, message));
+        context.addError(new CompilerException(source, message));
       }
     });
     FileContext context = parser.file();
@@ -179,6 +178,10 @@ public class MplInterpreter extends MplBaseListener {
     addFileImport(null, programFile.getParentFile());
   }
 
+  public MplCompilerContext getContext() {
+    return context;
+  }
+
   public File getProgramFile() {
     return programFile;
   }
@@ -187,10 +190,6 @@ public class MplInterpreter extends MplBaseListener {
 
   public MplProgram getProgram() {
     return program;
-  }
-
-  private void addException(CompilerException ex) {
-    context.addException(ex);
   }
 
   /**
@@ -231,9 +230,9 @@ public class MplInterpreter extends MplBaseListener {
     if (oldToken != null) {
       String message = "A file can only contain a single project";
       MplSource oldSource = toSource(oldToken);
-      addException(new CompilerException(oldSource, message));
+      context.addError(new CompilerException(oldSource, message));
       MplSource newSource = toSource(newToken);
-      addException(new CompilerException(newSource, message));
+      context.addError(new CompilerException(newSource, message));
       return;
     }
     String name = ctx.IDENTIFIER().getText();
@@ -253,9 +252,9 @@ public class MplInterpreter extends MplBaseListener {
       String message = "A " + type + " can only have a single orientation";
       Token oldToken = oldOrientation.getToken();
       MplSource oldSource = toSource(oldToken);
-      addException(new CompilerException(oldSource, message));
+      context.addError(new CompilerException(oldSource, message));
       MplSource newSource = toSource(newToken);
-      addException(new CompilerException(newSource, message));
+      context.addError(new CompilerException(newSource, message));
       return;
     }
 
@@ -272,7 +271,7 @@ public class MplInterpreter extends MplBaseListener {
     File includeFile = new File(programFile.getParentFile(), includePath);
     MplSource source = toSource(token);
     if (!included.add(includeFile)) {
-      context.addException(new CompilerException(source, "Duplicate include"));
+      context.addError(new CompilerException(source, "Duplicate include"));
     }
     List<File> files = new ArrayList<File>();
     if (!addFile(files, includeFile, token)) {
@@ -294,7 +293,7 @@ public class MplInterpreter extends MplBaseListener {
     Token token = ctx != null ? ctx.STRING().getSymbol() : null;
     if (imports.contains(file)) {
       MplSource source = toSource(token);
-      addException(new CompilerException(source, "Duplicate import"));
+      context.addError(new CompilerException(source, "Duplicate import"));
       return;
     }
     addFile(imports, file, token);
@@ -325,11 +324,11 @@ public class MplInterpreter extends MplBaseListener {
     } else if (!file.exists()) {
       String path = FileUtils.getCanonicalPath(file);
       MplSource source = toSource(token);
-      addException(new CompilerException(source, "Could not find '" + path + "'"));
+      context.addError(new CompilerException(source, "Could not find '" + path + "'"));
       return false;
     } else {
       MplSource source = toSource(token);
-      addException(new CompilerException(source,
+      context.addError(new CompilerException(source,
           "Can only import Files and Directories, not: '" + file + "'"));
       return false;
     }
@@ -396,8 +395,7 @@ public class MplInterpreter extends MplBaseListener {
   @Override
   public void exitScriptFile(ScriptFileContext ctx) {
     process = new MplProcess(toSource(new CommonToken(MplLexer.PROCESS)));
-    Deque<ChainPart> chainParts = chainBuffer.getChainParts();
-    process.setChainParts(chainParts);
+    process.setChainParts(chainBuffer.getChainParts());
     program.addProcess(process);
     process = null;
 
@@ -411,14 +409,14 @@ public class MplInterpreter extends MplBaseListener {
     ProcessType type = ProcessType.DEFAULT;
     if (ctx.INLINE() != null) {
       type = INLINE;
-    }
-    if (ctx.REMOTE() != null) {
+    } else if (ctx.REMOTE() != null || ctx.IMPULSE() != null || repeat) {
       type = REMOTE;
     }
-    if (type == INLINE && repeat) {
-      addException(new CompilerException(toSource(ctx.REPEAT().getSymbol()),
+    if (type == INLINE && (ctx.IMPULSE() != null || repeat)) {
+      TerminalNode terminal = repeat ? ctx.REPEAT() : ctx.IMPULSE();
+      context.addError(new CompilerException(toSource(terminal.getSymbol()),
           "Illegal combination of modifiers for the process " + name
-              + "; only one of inline, or repeat is permitted"));
+              + "; only one of inline, impulse, or repeat is permitted"));
       repeat = false;
     }
     Collection<String> tags = new ArrayList<>(ctx.TAG().size());
@@ -432,8 +430,7 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void exitProcess(ProcessContext ctx) {
-    Deque<ChainPart> chainParts = chainBuffer.getChainParts();
-    process.setChainParts(chainParts);
+    process.setChainParts(chainBuffer.getChainParts());
     program.addProcess(process);
     process = null;
 
@@ -515,7 +512,7 @@ public class MplInterpreter extends MplBaseListener {
       return;
     }
     MplSource source = toSource(token);
-    addException(new CompilerException(source, "Illegal modifier for " + part
+    context.addError(new CompilerException(source, "Illegal modifier for " + part
         + "; only unconditional, conditional and invert are permitted"));
   }
 
@@ -529,7 +526,7 @@ public class MplInterpreter extends MplBaseListener {
     if (prev == null) {
       Token token = modifierBuffer.getConditionalToken();
       MplSource source = toSource(token);
-      addException(
+      context.addError(
           new CompilerException(source, "The first part of a chain must be unconditional"));
       return;
     }
@@ -539,7 +536,7 @@ public class MplInterpreter extends MplBaseListener {
     } else {
       Token token = modifierBuffer.getConditionalToken();
       MplSource source = toSource(token);
-      addException(new CompilerException(source,
+      context.addError(new CompilerException(source,
           conditional.name().toLowerCase() + " cannot depend on " + prev.getName()));
     }
   }
@@ -609,22 +606,24 @@ public class MplInterpreter extends MplBaseListener {
     Token token = ctx.STOP().getSymbol();
     MplSource source = toSource(token);
 
+    TerminalNode identifier = ctx.IDENTIFIER();
+
     String selector;
     if (ctx.SELECTOR() != null) {
       selector = ctx.SELECTOR().getText();
       source = toSource(ctx.SELECTOR().getSymbol());
-    } else if (ctx.IDENTIFIER() != null) {
-      selector = toSelector(ctx.IDENTIFIER().getText());
-      source = toSource(ctx.IDENTIFIER().getSymbol());
+    } else if (identifier != null) {
+      selector = toSelector(identifier.getText());
+      source = toSource(identifier.getSymbol());
     } else if (this.process != null) {
       if (this.process.isRepeating()) {
         selector = toSelector(this.process.getName());
       } else {
-        addException(new CompilerException(source, "An impulse process cannot be stopped"));
+        context.addError(new CompilerException(source, "An impulse process cannot be stopped"));
         return;
       }
     } else {
-      addException(new CompilerException(source, "Missing identifier"));
+      context.addError(new CompilerException(source, "Missing identifier"));
       return;
     }
 
@@ -642,15 +641,12 @@ public class MplInterpreter extends MplBaseListener {
     MplSource source = toSource(ctx.WAITFOR().getSymbol());
     if (identifier != null) {
       event = identifier.getText();
-      if (ctx.NOTIFY() != null) {
-        event += NOTIFY;
-      }
       source = toSource(identifier.getSymbol());
     } else if (lastStartIdentifier != null) {
-      event = lastStartIdentifier += NOTIFY;
+      event = lastStartIdentifier;
       lastStartIdentifier = null;
     } else {
-      addException(new CompilerException(source,
+      context.addError(new CompilerException(source,
           "Missing identifier; no previous start was found to wait for"));
       return;
     }
@@ -663,14 +659,10 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterNotifyDeclaration(NotifyDeclarationContext ctx) {
-    Token token = ctx.NOTIFY().getSymbol();
-    MplSource source = toSource(token);
-    if (process == null || process.getType() != REMOTE) {
-      addException(new CompilerException(source, "notify can only be used in a remote process"));
-      return;
-    }
-    String process = this.process.getName();
-    MplNotify notify = new MplNotify(process, modifierBuffer, source);
+    TerminalNode identifier = ctx.IDENTIFIER();
+    String event = identifier.getText();
+    MplSource source = toSource(identifier.getSymbol());
+    MplNotify notify = new MplNotify(event, modifierBuffer, source);
     addModifiableChainPart(notify);
 
     checkNoModifier(notify.getName(), modifierBuffer.getModeToken());
@@ -681,8 +673,8 @@ public class MplInterpreter extends MplBaseListener {
   public void enterIntercept(InterceptContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String process = identifier.getText();
-    MplIntercept intercept =
-        new MplIntercept(process, modifierBuffer, toSource(identifier.getSymbol()));
+    MplSource source = toSource(identifier.getSymbol());
+    MplIntercept intercept = new MplIntercept(process, modifierBuffer, source);
     addModifiableChainPart(intercept);
 
     checkNoModifier(intercept.getName(), modifierBuffer.getModeToken());
@@ -699,15 +691,13 @@ public class MplInterpreter extends MplBaseListener {
 
     checkNoModifier(breakpoint.getName(), modifierBuffer.getModeToken());
     checkNoModifier(breakpoint.getName(), modifierBuffer.getNeedsRedstoneToken());
-
-    // getProject().setHasBreakpoint(true);
   }
 
   @Override
   public void enterSkipDeclaration(SkipDeclarationContext ctx) {
     if (process != null && process.isRepeating() && chainBuffer.getChainParts().isEmpty()) {
       MplSource source = toSource(ctx.SKIP_TOKEN().getSymbol());
-      addException(
+      context.addError(
           new CompilerException(source, "skip cannot be the first command of a repeating process"));
       return;
     }
@@ -817,7 +807,7 @@ public class MplInterpreter extends MplBaseListener {
     MplWhile loop;
     loop = loops.peek();
     if (loop == null) {
-      addException(
+      context.addError(
           new CompilerException(source, source.token.getText() + " can only be used in a loop"));
     }
     return loop;
@@ -832,7 +822,7 @@ public class MplInterpreter extends MplBaseListener {
       }
     }
     if (loop == null) {
-      addException(new CompilerException(source, "Missing label " + label));
+      context.addError(new CompilerException(source, "Missing label " + label));
     }
     return loop;
   }

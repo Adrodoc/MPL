@@ -42,8 +42,9 @@ package de.adrodoc55.minecraft.mpl.compilation;
 import java.io.File;
 import java.util.Map.Entry;
 
+import javax.annotation.concurrent.Immutable;
+
 import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 
 import de.adrodoc55.minecraft.mpl.placement.NotEnoughSpaceException;
@@ -51,22 +52,23 @@ import de.adrodoc55.minecraft.mpl.placement.NotEnoughSpaceException;
 /**
  * @author Adrodoc55
  */
+@Immutable
 public class CompilationFailedException extends Exception {
   private static final long serialVersionUID = 1L;
 
-  private final ListMultimap<File, CompilerException> exceptions;
+  private final ImmutableListMultimap<File, CompilerException> errors;
 
-  public CompilationFailedException(ListMultimap<File, CompilerException> exceptions) {
-    this.exceptions = exceptions;
+  public CompilationFailedException(Iterable<CompilerException> errors) {
+    this.errors = Multimaps.index(errors, e -> e.getSource().file);
   }
 
   public CompilationFailedException(String message, NotEnoughSpaceException ex) {
     super(message, ex);
-    exceptions = ImmutableListMultimap.of();
+    errors = ImmutableListMultimap.of();
   }
 
-  public ListMultimap<File, CompilerException> getExceptions() {
-    return Multimaps.unmodifiableListMultimap(exceptions);
+  public ImmutableListMultimap<File, CompilerException> getErrors() {
+    return errors;
   }
 
   @Override
@@ -76,7 +78,7 @@ public class CompilationFailedException extends Exception {
     if (message != null) {
       sb.append(message).append("\n\n");
     }
-    for (Entry<File, CompilerException> it : exceptions.entries()) {
+    for (Entry<File, CompilerException> it : errors.entries()) {
       sb.append(it.getValue().toString());
       sb.append("\n\n");
     }

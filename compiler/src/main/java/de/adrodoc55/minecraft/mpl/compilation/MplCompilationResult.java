@@ -41,9 +41,13 @@ package de.adrodoc55.minecraft.mpl.compilation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.File;
+
 import javax.annotation.Nonnull;
 
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimaps;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
@@ -55,11 +59,14 @@ import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 public class MplCompilationResult {
   private final Orientation3D orientation;
   private final ImmutableMap<Coordinate3D, MplBlock> blocks;
+  private final ImmutableListMultimap<File, CompilerException> warnings;
 
   public MplCompilationResult(@Nonnull Orientation3D orientation,
-      @Nonnull ImmutableMap<Coordinate3D, MplBlock> blocks) {
+      @Nonnull ImmutableMap<Coordinate3D, MplBlock> blocks,
+      @Nonnull Iterable<CompilerException> warnings) {
     this.orientation = checkNotNull(orientation, "orientation == null!");
     this.blocks = checkNotNull(blocks, "blocks == null!");
+    this.warnings = Multimaps.index(warnings, e -> e.getSource().file);
   }
 
   @Nonnull
@@ -72,4 +79,7 @@ public class MplCompilationResult {
     return blocks;
   }
 
+  public ImmutableListMultimap<File, CompilerException> getWarnings() {
+    return warnings;
+  }
 }

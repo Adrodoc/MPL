@@ -42,6 +42,7 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts.loop;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -49,9 +50,11 @@ import javax.annotation.Nullable;
 import com.google.common.annotations.VisibleForTesting;
 
 import de.adrodoc55.commons.CopyScope;
+import de.adrodoc55.commons.collections.Deques;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
@@ -100,6 +103,7 @@ public class MplWhile extends ModifiableChainPart implements ChainPartBuffer {
     this.condition = condition;
   }
 
+  @Deprecated
   protected MplWhile(MplWhile original) {
     super(original);
     parent = original.parent;
@@ -130,11 +134,11 @@ public class MplWhile extends ModifiableChainPart implements ChainPartBuffer {
 
   @Override
   public Deque<ChainPart> getChainParts() {
-    return new ArrayDeque<>(chainParts);
+    return Deques.unmodifiableDeque(chainParts);
   }
 
   @VisibleForTesting
-  public void setChainParts(Collection<ChainPart> chainParts) {
+  public void setChainParts(Collection<? extends ChainPart> chainParts) {
     this.chainParts.clear();
     this.chainParts.addAll(chainParts);
   }
@@ -149,7 +153,7 @@ public class MplWhile extends ModifiableChainPart implements ChainPartBuffer {
   }
 
   @Override
-  public void accept(MplAstVisitor visitor) {
-    visitor.visitWhile(this);
+  public List<ChainLink> accept(MplAstVisitor visitor) {
+    return visitor.visitWhile(this);
   }
 }

@@ -370,17 +370,14 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
 
         private CompilerExceptionWrapper getEx(Point point) {
           int offset = getTextPane().viewToModel(point);
-          MplSyntaxFilterPM pModel = getMplSyntaxFilter().getPresentationModel();
-          if (pModel == null) {
-            return null;
-          }
-          List<CompilerExceptionWrapper> exs = pModel.getExceptions();
-          if (exs == null) {
-            return null;
-          }
-          for (CompilerExceptionWrapper ex : exs) {
-            if (ex.getStartIndex() <= offset && offset < ex.getStopIndex()) {
-              return ex;
+          MplSyntaxFilterPM pm = getMplSyntaxFilter().getPresentationModel();
+          if (pm != null) {
+            List<CompilerExceptionWrapper> exs = new ArrayList<>(pm.getErrors());
+            exs.addAll(pm.getWarnings());
+            for (CompilerExceptionWrapper ex : exs) {
+              if (ex.getStartIndex() <= offset && offset < ex.getStopIndex()) {
+                return ex;
+              }
             }
           }
           return null;

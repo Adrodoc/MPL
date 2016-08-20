@@ -39,10 +39,19 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
+
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import de.adrodoc55.commons.Named;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 
 public class MplTestUtils extends MplTestBase {
 
@@ -59,6 +68,44 @@ public class MplTestUtils extends MplTestBase {
   public static <N extends Named> N findByName(String name, Collection<N> collection)
       throws NoSuchElementException {
     return collection.stream().filter(c -> name.equals(c.getName())).findFirst().get();
+  }
+
+  public static List<ChainLink> mapToCommands(List<MplCommand> commands) {
+    chainTogether(commands);
+    List<ChainLink> result = new ArrayList<>(commands.size());
+    for (MplCommand command : commands) {
+      if (command.getConditional() == INVERT) {
+        result.add(newInvertingCommand(command.getPrevious()));
+      }
+      String cmd = command.getCommand();
+      result.add(new Command(cmd, command));
+    }
+    return result;
+  }
+
+  /**
+   * Add an unconditional {@link MplCommand} at the start and then chain all {@code commands}
+   * together.
+   *
+   * @param commands to make valid
+   * @return a valid list of commands
+   */
+  public static List<MplCommand> makeValid(List<MplCommand> commands) {
+    commands.add(0, some($MplCommand().withConditional(UNCONDITIONAL)));
+    return chainTogether(commands);
+  }
+
+  public static List<MplCommand> chainTogether(List<MplCommand> commands) {
+    MplCommand lastCommand = null;
+    for (MplCommand command : commands) {
+      if (command.isConditional()) {
+        command.setPrevious(lastCommand);
+      } else {
+        command.setPrevious(null);
+      }
+      lastCommand = command;
+    }
+    return commands;
   }
 
 }

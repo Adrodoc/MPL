@@ -39,17 +39,20 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 
-import de.adrodoc55.commons.FileUtils;
+import com.google.common.base.Joiner;
+
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -58,13 +61,11 @@ import lombok.ToString;
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode(of = {"processName"})
-@ToString(of = {"processName"})
+@EqualsAndHashCode(of = {"processName"}, callSuper = false)
+@ToString(of = {"processName"}, callSuper = false)
 @Getter
-public class MplProcessReference {
+public class MplProcessReference extends MplReference {
   private final @Nonnull String processName;
-  private final @Nonnull Set<File> imports = new HashSet<>();
-  private final @Nonnull MplSource source;
 
   /**
    * Constructs a reference to a process.
@@ -76,24 +77,29 @@ public class MplProcessReference {
    */
   public MplProcessReference(@Nonnull String processName, @Nonnull Collection<File> imports,
       @Nonnull MplSource source) throws IllegalArgumentException {
+    super(imports, source);
     this.processName = checkNotNull(processName, "processName == null!");
-    setImports(imports);
-    this.source = checkNotNull(source, "source == null!");
   }
 
-  public @Nonnull Set<File> getImports() {
-    return Collections.unmodifiableSet(imports);
+  @Override
+  public boolean isContainedIn(MplProgram program) {
+    return program.containsProcess(processName);
   }
 
-  private void setImports(Collection<File> imports) throws IllegalArgumentException {
-    for (File file : imports) {
-      if (!file.isFile()) {
-        throw new IllegalArgumentException(
-            "The import '" + FileUtils.getCanonicalPath(file) + "' is not a file!");
-      }
-    }
-    this.imports.clear();
-    this.imports.addAll(imports);
+  @Override
+  public MplProcess getProcess(MplProgram program) {
+    return program.getProcess(processName);
+  }
+
+  @Override
+  public CompilerException createAmbigiousException(List<File> files) {
+    checkArgument(!files.isEmpty(), "files is empty!");
+    int lastIndex = files.size() - 1;
+    List<File> view = files.subList(0, lastIndex);
+    String first = Joiner.on(", ").join(view);
+    File last = files.get(lastIndex);
+    return new CompilerException(source, "Process " + processName
+        + " is ambigious. It was found in '" + first + " and " + last + "!");
   }
 
 }

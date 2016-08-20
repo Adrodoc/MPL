@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.commands;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -48,11 +51,26 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum Mode {
-  IMPULSE((byte) 137, "command_block"), //
-  CHAIN((byte) 211, "chain_command_block"), //
-  REPEAT((byte) 210, "repeating_command_block");
+  IMPULSE((byte) 137, "command_block", true), //
+  CHAIN((byte) 211, "chain_command_block", false), //
+  REPEAT((byte) 210, "repeating_command_block", true);
   public static final Mode DEFAULT = Mode.CHAIN;
+
+  /**
+   * If {@code mode} is {@code null} return {@link Mode#DEFAULT}, otherwise return {@code mode}.
+   *
+   * @param mode the {@link Mode} to check for null
+   * @return {@code mode} or {@link Mode#DEFAULT}, never {@code null}
+   */
+  public static @Nonnull Mode nonNull(@Nullable Mode mode) {
+    return (mode != null) ? mode : Mode.DEFAULT;
+  }
 
   private final byte byteBlockId;
   private final String stringBlockId;
+  private final boolean needsRedstoneByDefault;
+
+  public boolean getNeedsRedstoneByDefault() {
+    return needsRedstoneByDefault;
+  }
 }

@@ -41,12 +41,15 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
@@ -75,6 +78,7 @@ public class MplCommand extends ModifiableChainPart {
     this.command = checkNotNull(command, "command == null!");
   }
 
+  @Deprecated
   protected MplCommand(MplCommand original) {
     super(original);
     command = original.command;
@@ -92,8 +96,8 @@ public class MplCommand extends ModifiableChainPart {
   }
 
   @Override
-  public void accept(MplAstVisitor visitor) {
-    visitor.visitCommand(this);
+  public List<ChainLink> accept(MplAstVisitor visitor) {
+    return visitor.visitCommand(this);
   }
 
   @Override

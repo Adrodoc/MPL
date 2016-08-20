@@ -94,6 +94,7 @@ public abstract class ModifiableChainPart implements ExtendedModifiable, ChainPa
     }
   }
 
+  @Deprecated
   protected ModifiableChainPart(ModifiableChainPart original) {
     mode = original.mode;
     conditional = original.conditional;

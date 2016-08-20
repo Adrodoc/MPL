@@ -72,7 +72,7 @@ class MplCompilerSpec extends MplSpecBase {
     lastProgramFile = programFile
     MplCompiler compiler = new MplCompiler(new CompilerOptions())
     MplProgram program = compiler.assemble(programFile)
-    compiler.checkExceptions()
+    compiler.checkErrors()
     return program
   }
 
@@ -80,9 +80,9 @@ class MplCompilerSpec extends MplSpecBase {
     lastProgramFile = programFile
     MplCompiler compiler = new MplCompiler(new CompilerOptions(options))
     MplProgram program = compiler.assemble(programFile)
-    compiler.checkExceptions()
+    compiler.checkErrors()
     ChainContainer container = compiler.materialize(program)
-    compiler.checkExceptions()
+    compiler.checkErrors()
     List<CommandBlockChain> chains = compiler.place(container)
     return chains
   }
@@ -110,7 +110,7 @@ class MplCompilerSpec extends MplSpecBase {
 
     then:
     CompilationFailedException ex = thrown()
-    Collection<CompilerException> exs = ex.exceptions.values()
+    Collection<CompilerException> exs = ex.errors.values()
     exs[0].source.file == new File(folder, 'main.mpl')
     exs[0].source.token.line == 0
     exs[0].source.token.text == null
@@ -523,6 +523,40 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
+  public void "the includes of an imported file are not processed"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    import "newFolder/newFile1.mpl"
+
+    remote process main {
+      /this is the main process
+      start unknownProcess
+    }
+    """
+    new File(folder, 'newFolder').mkdirs()
+    new File(folder, 'newFolder/newFile1.mpl').text = """
+    include "newFile2.mpl"
+
+    remote process other1 {
+      /this is the other1 process
+    }
+    """
+    new File(folder, 'newFolder/newFile2.mpl').text = """
+    remote process other2 {
+      /this is the other2 process
+    }
+    """
+    when:
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
+    then:
+    result.processes.size() == 1
+    MplProcess main = result.processes.find { it.name == 'main' }
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
+  }
+
+  @Test
   public void "the includes of a referenced imported file are processed"() {
     given:
     File folder = tempFolder.root
@@ -586,7 +620,7 @@ class MplCompilerSpec extends MplSpecBase {
 
     then:
     CompilationFailedException ex = thrown()
-    Collection<CompilerException> exs = ex.exceptions.values()
+    Collection<CompilerException> exs = ex.errors.values()
     exs[0].source.file == new File(folder, 'other1.mpl')
     exs[0].source.token.line == 2
     exs[0].source.token.text == id2
@@ -617,7 +651,7 @@ class MplCompilerSpec extends MplSpecBase {
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     CompilationFailedException ex = thrown()
-    List<CompilerException> exs = ex.exceptions.get(new File(folder, 'main.mpl'))
+    List<CompilerException> exs = ex.errors.get(new File(folder, 'main.mpl'))
     exs[0].source.file == new File(folder, 'main.mpl')
     exs[0].source.token.line == 2
     exs[0].source.token.text == '"newFolder/scriptFile.mpl"'
@@ -720,7 +754,7 @@ class MplCompilerSpec extends MplSpecBase {
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
     then:
     CompilationFailedException ex = thrown()
-    List<CompilerException> exs = ex.exceptions.get(new File(folder, 'main.mpl'))
+    List<CompilerException> exs = ex.errors.get(new File(folder, 'main.mpl'))
     exs.size() == 1
     exs.first().message.startsWith "Process other is ambigious. It was found in "//'${newFile}' and '${newFile2}'"
   }
@@ -954,13 +988,162 @@ class MplCompilerSpec extends MplSpecBase {
 
     then:
     CompilationFailedException ex = thrown()
-    ex.exceptions.get(programFile)[0].message == "Cannot ${action} an inline process"
-    ex.exceptions.get(programFile)[0].source.file == programFile
-    ex.exceptions.get(programFile)[0].source.token.text == 'other'
-    ex.exceptions.get(programFile)[0].source.token.line == 3
-    ex.exceptions.size() == 1
+    ex.errors.get(programFile)[0].message == "Cannot ${action} an inline process"
+    ex.errors.get(programFile)[0].source.file == programFile
+    ex.errors.get(programFile)[0].source.token.text == 'other'
+    ex.errors.get(programFile)[0].source.token.line == 3
+    ex.errors.size() == 1
 
     where:
     action << ['start', 'stop', 'waitfor', 'intercept']
+  }
+
+  @Test
+  @Unroll("#action an unknown process results in a compiler warning")
+  public void "referencing an unknown process results in a compiler warning"(String action) {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      ${action} unknown
+    }
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.get(programFile)[0].message == "Could not resolve process unknown"
+    result.warnings.get(programFile)[0].source.file == programFile
+    result.warnings.get(programFile)[0].source.token.text == 'unknown'
+    result.warnings.get(programFile)[0].source.token.line == 3
+    result.warnings.size() == 1
+
+    where:
+    action << ['start', 'stop', 'intercept']
+  }
+
+  @Test
+  public void "calling an unknown process results in a compiler warning"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      unknown()
+    }
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.get(programFile)[0].message == "Could not resolve process unknown"
+    result.warnings.get(programFile)[0].source.file == programFile
+    result.warnings.get(programFile)[0].source.token.text == 'unknown'
+    result.warnings.get(programFile)[0].source.token.line == 3
+    result.warnings.size() == 1
+  }
+
+  @Test
+  public void "waiting for a process is fine"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      waitfor other
+    }
+
+    remote process other {}
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.isEmpty()
+  }
+
+  @Test
+  public void "waiting for a notify is fine"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      waitfor event
+    }
+
+    remote process other {
+      notify event
+    }
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.isEmpty()
+  }
+
+  @Test
+  public void "waiting for an unknown event results in a compiler warning"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      waitfor unknown
+    }
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.get(programFile)[0].message == "The event unknown is never triggered"
+    result.warnings.get(programFile)[0].source.file == programFile
+    result.warnings.get(programFile)[0].source.token.text == 'unknown'
+    result.warnings.get(programFile)[0].source.token.line == 3
+    result.warnings.size() == 1
+  }
+
+  @Test
+  public void "notifying an unknown event results in a compiler warning"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      notify unknown
+    }
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.get(programFile)[0].message == "The event unknown is never used"
+    result.warnings.get(programFile)[0].source.file == programFile
+    result.warnings.get(programFile)[0].source.token.text == 'unknown'
+    result.warnings.get(programFile)[0].source.token.line == 3
+    result.warnings.size() == 1
+  }
+
+  @Test
+  @Unroll("#action a selector is fine")
+  public void "referencing a selector is fine"(String action) {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      ${action} @e[name=other]
+    }
+    """
+    when:
+    compile(programFile)
+
+    then:
+    notThrown Exception
+
+    where:
+    action << ['start', 'stop']
   }
 }

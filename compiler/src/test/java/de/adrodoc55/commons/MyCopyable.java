@@ -20,6 +20,7 @@ public class MyCopyable implements Copyable {
   private final List<String> finalCollection = new ArrayList<>();
   private Set<Object> collection = new HashSet<>();
 
+  @Deprecated
   protected MyCopyable(MyCopyable original, CopyScope scope) {
     primitive = original.primitive;
     notCopyable = original.notCopyable;

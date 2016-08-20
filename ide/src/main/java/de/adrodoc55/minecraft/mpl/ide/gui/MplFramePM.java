@@ -66,7 +66,7 @@ import org.beanfabrics.model.PMManager;
 import org.beanfabrics.model.Selection;
 import org.beanfabrics.support.Operation;
 
-import com.google.common.collect.ListMultimap;
+import com.google.common.collect.ImmutableListMultimap;
 
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
@@ -337,24 +337,31 @@ public class MplFramePM extends AbstractPM {
       options.add(DELETE_ON_UNINSTALL);
     if (transmitter.getBoolean())
       options.add(TRANSMITTER);
-    for (MplEditorPM editorPm : editors) {
-      editorPm.setCompilerExceptions(Collections.emptyList());
-    }
     try {
-      return selected.compile(new CompilerOptions(options));
-    } catch (CompilationFailedException ex) {
-      setCompilerExceptions(ex.getExceptions());
-      throw ex;
-    }
-  }
-
-  public void setCompilerExceptions(ListMultimap<File, CompilerException> exceptions) {
-    for (File programFile : exceptions.keySet()) {
-      for (MplEditorPM editorPm : editors) {
-        if (programFile.equals(editorPm.getFile())) {
-          editorPm.setCompilerExceptions(exceptions.get(programFile));
+      MplCompilationResult result = selected.compile(new CompilerOptions(options));
+      for (MplEditorPM editor : editors) {
+        editor.setErrors(Collections.emptyList());
+        editor.setWarnings(Collections.emptyList());
+      }
+      ImmutableListMultimap<File, CompilerException> warnings = result.getWarnings();
+      for (File programFile : warnings.keySet()) {
+        for (MplEditorPM editor : editors) {
+          if (programFile.equals(editor.getFile())) {
+            editor.setWarnings(warnings.get(programFile));
+          }
         }
       }
+      return result;
+    } catch (CompilationFailedException ex) {
+      ImmutableListMultimap<File, CompilerException> errors = ex.getErrors();
+      for (File programFile : errors.keySet()) {
+        for (MplEditorPM editor : editors) {
+          if (programFile.equals(editor.getFile())) {
+            editor.setErrors(errors.get(programFile));
+          }
+        }
+      }
+      throw ex;
     }
   }
 

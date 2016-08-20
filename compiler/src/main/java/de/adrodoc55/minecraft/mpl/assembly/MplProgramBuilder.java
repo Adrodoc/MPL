@@ -108,6 +108,9 @@ public class MplProgramBuilder {
   }
 
   public void addToInstall(@Nullable MplProcess process) {
+    if (process == null) {
+      return;
+    }
     MplProcess install = program.getInstall();
     if (install == null) {
       program.setInstall(process);
@@ -117,6 +120,9 @@ public class MplProgramBuilder {
   }
 
   public void addToUninstall(@Nullable MplProcess process) {
+    if (process == null) {
+      return;
+    }
     MplProcess uninstall = program.getUninstall();
     if (uninstall == null) {
       program.setUninstall(process);

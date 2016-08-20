@@ -344,6 +344,7 @@ public class CopyScope {
    *   private final List&lt;String&gt; finalCollection = new ArrayList&lt;&gt;();
    *   private Set&lt;Object&gt; collection = new HashSet&lt;&gt;();
    *
+   *   &#64;Deprecated
    *   protected MyCopyable(MyCopyable original, CopyScope scope) {
    *     primitive = original.primitive;
    *     notCopyable = original.notCopyable;
