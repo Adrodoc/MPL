@@ -61,9 +61,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreak;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreakLoop;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinueLoop;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
@@ -264,12 +262,12 @@ public class MplWhileVisitor extends MplAstVisitorImpl {
     if (condition != null) {
       MplIf innerIf = new MplIf(false, condition, source);
       innerIf.enterThen();
-      innerIf.add(new MplContinueLoop(loop, source));
+      innerIf.add(newMplContinueLoop(loop));
       innerIf.enterElse();
-      innerIf.add(new MplBreakLoop(loop, source));
+      innerIf.add(newMplBreakLoop(loop));
       outerIf.add(innerIf);
     } else {
-      outerIf.add(new MplContinueLoop(loop, source));
+      outerIf.add(newMplContinueLoop(loop));
     }
     outerIf.enterElse();
     ResolveableCommand exit = new ResolveableCommand(getStartCommand(REF));
@@ -287,10 +285,16 @@ public class MplWhileVisitor extends MplAstVisitorImpl {
     return result;
   }
 
-  public List<ChainLink> visitBreakLoop(MplBreakLoop mplBreakLoop) {
+  private InternalMplCommand newMplBreakLoop(MplWhile loop) {
     List<ChainLink> result = new ArrayList<>();
-    addBreakLoop(result, mplBreakLoop.getLoop()).setModifier(mplBreakLoop);
-    return result;
+    addBreakLoop(result, loop);
+    return new InternalMplCommand(result);
+  }
+
+  private InternalMplCommand newMplContinueLoop(MplWhile loop) {
+    List<ChainLink> result = new ArrayList<>();
+    addContinueLoop(result, loop);
+    return new InternalMplCommand(result);
   }
 
   private Command addBreakLoop(List<ChainLink> commands, MplWhile loop) {
@@ -301,12 +305,6 @@ public class MplWhileVisitor extends MplAstVisitorImpl {
         break;
       }
     }
-    return result;
-  }
-
-  public List<ChainLink> visitContinueLoop(MplContinueLoop mplContinueLoop) {
-    List<ChainLink> result = new ArrayList<>();
-    addContinueLoop(result, mplContinueLoop.getLoop()).setModifier(mplContinueLoop);
     return result;
   }
 
