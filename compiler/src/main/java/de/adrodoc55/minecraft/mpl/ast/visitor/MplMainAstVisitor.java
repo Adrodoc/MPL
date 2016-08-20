@@ -96,10 +96,10 @@ import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.ResolveableCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ResolveableCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
@@ -145,7 +145,7 @@ public class MplMainAstVisitor implements MplAstVisitor {
     throw new IllegalArgumentException("The given ref was not found in commands.");
   }
 
-  public String getStartCommand(String ref) {
+  protected String getStartCommand(String ref) {
     if (options.hasOption(TRANSMITTER)) {
       return "setblock " + ref + " redstone_block";
     } else {
@@ -153,7 +153,7 @@ public class MplMainAstVisitor implements MplAstVisitor {
     }
   }
 
-  public String getStopCommand(String ref) {
+  protected String getStopCommand(String ref) {
     if (options.hasOption(TRANSMITTER)) {
       if (options.hasOption(DEBUG)) {
         return "setblock " + ref + " air";
@@ -165,19 +165,12 @@ public class MplMainAstVisitor implements MplAstVisitor {
     }
   }
 
-  private ReferencingCommand newReferencingStartCommand(boolean conditional, int relative) {
-    return new ReferencingCommand(getStartCommand(REF), conditional, relative);
-  }
-
-  private ReferencingCommand newReferencingStopCommand(boolean conditional, int relative) {
-    return new ReferencingCommand(getStopCommand(REF), conditional, relative);
-  }
-
-  @Deprecated
-  protected void addRestartBackref(List<ChainLink> commands, ChainLink chainLink,
-      boolean conditional) {
-    commands.add(newReferencingStopCommand(conditional, getCountToRef(commands, chainLink)));
-    commands.add(newReferencingStartCommand(true, getCountToRef(commands, chainLink)));
+  @CheckReturnValue
+  protected List<ChainLink> getRestartBackref(ChainLink referenced, boolean conditional) {
+    List<ChainLink> result = new ArrayList<>(2);
+    result.add(new ResolveableCommand(getStopCommand(REF), conditional, referenced));
+    result.add(new ResolveableCommand(getStartCommand(REF), true, referenced));
+    return result;
   }
 
   @CheckReturnValue
@@ -307,7 +300,7 @@ public class MplMainAstVisitor implements MplAstVisitor {
       result.addAll(chainPart.accept(this));
     }
     if (process.isRepeating() && containsSkip) {
-      addRestartBackref(result, result.get(0), false);
+      result.addAll(getRestartBackref(result.get(0), false));
     }
     if (!process.isRepeating() && name != null && !"install".equals(name)
         && !"uninstall".equals(name)) {
@@ -533,37 +526,36 @@ public class MplMainAstVisitor implements MplAstVisitor {
     InternalCommand entitydata = new InternalCommand(
         "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}", conditional);
 
-    ReferencingCommand summon = new ReferencingCommand("summon ArmorStand " + REF + " {CustomName:"
+    ResolveableCommand summon = new ResolveableCommand("summon ArmorStand " + REF + " {CustomName:"
         + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", conditional);
 
 
+    ResolveableCommand jump = new ResolveableCommand(getStartCommand(REF), true);
     if (intercept.getConditional() == UNCONDITIONAL) {
-      summon.setRelative(1);
       result.add(entitydata);
       result.add(summon);
     } else {
-      ReferencingCommand jump = new ReferencingCommand(getStartCommand(REF), true);
       if (intercept.getConditional() == CONDITIONAL) {
-        summon.setRelative(3);
-        jump.setRelative(1);
         result.add(entitydata);
         result.add(summon);
         result.add(newInvertingCommand(CHAIN));
         result.add(jump);
       } else { // conditional == INVERT
-        jump.setRelative(4);
-        summon.setRelative(1);
         result.add(jump);
         result.add(newInvertingCommand(CHAIN));
         result.add(entitydata);
         result.add(summon);
       }
     }
-    result.addAll(getTransmitterReceiverCombo(false));
+    List<ChainLink> trc = getTransmitterReceiverCombo(false);
+    ChainLink ref = trc.get(0);
+    summon.setReferenced(ref);
+    jump.setReferenced(ref);
+    result.addAll(trc);
     result.add(new InternalCommand("kill @e[name=" + event + ",r=2]"));
     result.add(new InternalCommand(
         "entitydata @e[name=" + event + INTERCEPTED + "] {CustomName:" + event + "}"));
-    return result;
+    return resolveReferences(result);
   }
 
   @Override

@@ -41,16 +41,8 @@ package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;
 
-import java.util.Iterator;
-import java.util.List;
-
-import javax.annotation.Nullable;
-
-import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * @author Adrodoc55
@@ -84,7 +76,6 @@ public class Commands {
     return newTestforSuccessCommand(-1, previousMode, false);
   }
 
-
   public static Command newTestforSuccessCommand(int relative, Mode referencedMode,
       boolean success) {
     return newTestforSuccessCommand(relative, referencedMode, success, false);
@@ -101,60 +92,6 @@ public class Commands {
     String command = "testforblock " + REF + " " + referenced.getMode().getStringBlockId()
         + " -1 {SuccessCount:" + (success ? 1 : 0) + "}";
     return new ResolveableCommand(command, referenced);
-  }
-
-  @Getter
-  @Setter
-  public static class ResolveableCommand extends InternalCommand {
-    private @Nullable ChainLink referenced;
-
-    public ResolveableCommand(String command) {
-      super(command);
-    }
-
-    public ResolveableCommand(String command, ChainLink referenced) {
-      this(command);
-      this.referenced = referenced;
-    }
-
-    @Deprecated
-    protected ResolveableCommand(ResolveableCommand original, CopyScope scope) {
-      super(original);
-      referenced = scope.copy(original.referenced);
-    }
-
-    @Deprecated
-    @Override
-    public ResolveableCommand createFlatCopy(CopyScope scope) throws NullPointerException {
-      return new ResolveableCommand(this, scope);
-    }
-
-    public ReferencingCommand resolve(List<ChainLink> chainLinks) {
-      int self = -1;
-      int ref = -1;
-      int i = 0;
-      for (Iterator<ChainLink> it = chainLinks.iterator(); it.hasNext(); i++) {
-        ChainLink chainLink = it.next();
-        if (this == chainLink) {
-          self = i;
-        }
-        if (referenced == chainLink) {
-          ref = i;
-        }
-      }
-      if (self == -1) {
-        throwNotFoundException("This");
-      }
-      if (ref == -1) {
-        throwNotFoundException("The referenced command");
-      }
-      return new ReferencingCommand(getCommand(), this, ref - self);
-    }
-
-    private void throwNotFoundException(String string) throws IllegalArgumentException {
-      throw new IllegalArgumentException(
-          "Failed to resolve reference. " + string + " was not found in the specified chainLinks");
-    }
   }
 
 }

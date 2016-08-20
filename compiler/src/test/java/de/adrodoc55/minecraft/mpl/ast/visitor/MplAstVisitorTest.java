@@ -1422,7 +1422,7 @@ public abstract class MplAstVisitorTest {
   public void test_While_mit_skip_wirft_exception() {
     // given:
     MplWhile mplIf = some($MplWhile()//
-        .withChainParts(listOf(some($MplSkip()))));
+        .withChainParts(listOf(1, $MplSkip())));
 
     // when:
     Exception act = null;
@@ -1434,7 +1434,7 @@ public abstract class MplAstVisitorTest {
 
     // then:
     assertThat(act).isNotNull();
-    assertThat(act.getMessage()).isEqualTo("while cannot contain skip");
+    assertThat(act.getMessage()).isEqualTo("while cannot start with skip");
   }
 
   @Test

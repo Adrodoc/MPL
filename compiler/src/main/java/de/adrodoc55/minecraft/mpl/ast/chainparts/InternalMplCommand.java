@@ -13,7 +13,7 @@ public class InternalMplCommand implements ChainPart {
 
   private final ImmutableList<ChainLink> chainLinks;
 
-  public InternalMplCommand(List<ChainLink> chainLinks) {
+  public InternalMplCommand(List<? extends ChainLink> chainLinks) {
     this.chainLinks = ImmutableList.copyOf(chainLinks);
   }
 
