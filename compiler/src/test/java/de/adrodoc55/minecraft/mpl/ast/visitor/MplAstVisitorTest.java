@@ -116,14 +116,14 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class MplAstVisitorTest {
 
-  protected MplAstVisitorImpl underTest;
+  protected MplMainAstVisitor underTest;
 
   @Before
   public void before() {
     underTest = newUnderTest();
   }
 
-  protected abstract MplAstVisitorImpl newUnderTest();
+  protected abstract MplMainAstVisitor newUnderTest();
 
   protected abstract String getOnCommand(String ref);
 
@@ -150,7 +150,7 @@ public abstract class MplAstVisitorTest {
         .withChainParts(mplCommands));
 
     // when:
-    CommandChain result = process.accept(underTest);
+    CommandChain result = underTest.visitProcess(process);
 
     // then:
     List<ChainLink> commands = mapToCommands(mplCommands);
@@ -171,7 +171,7 @@ public abstract class MplAstVisitorTest {
         .withChainParts(mplCommands));
 
     // when:
-    CommandChain result = process.accept(underTest);
+    CommandChain result = underTest.visitProcess(process);
 
     // then:
     assertThat(result.getCommands()).endsWith(//
@@ -188,7 +188,7 @@ public abstract class MplAstVisitorTest {
     MplProcess process = some($MplProcess().withTags(tags));
 
     // when:
-    CommandChain result = process.accept(underTest);
+    CommandChain result = underTest.visitProcess(process);
 
     // then:
     assertThat(result.getTags()).containsExactlyElementsOf(tags);
@@ -200,7 +200,7 @@ public abstract class MplAstVisitorTest {
     MplProcess process = some($MplProcess().withType(INLINE));
 
     // when:
-    CommandChain result = process.accept(underTest);
+    CommandChain result = underTest.visitProcess(process);
 
     // then:
     assertThat(result).isNull();
@@ -232,7 +232,7 @@ public abstract class MplAstVisitorTest {
         .withChainParts(listOf(first, second)));
 
     // when:
-    CommandChain result = process.accept(underTest);
+    CommandChain result = underTest.visitProcess(process);
 
     // then:
     assertThat(result.getCommands()).containsSequence(//
@@ -256,7 +256,7 @@ public abstract class MplAstVisitorTest {
         .withChainParts(listOf(first, second)));
 
     // when:
-    CommandChain result = process.accept(underTest);
+    CommandChain result = underTest.visitProcess(process);
 
     // then:
     assertThat(result.getCommands()).containsSequence(//
@@ -296,7 +296,7 @@ public abstract class MplAstVisitorTest {
     MplProgram program = some($MplProgram().withProcesses(listOf(main, inline)));
 
     // when:
-    ChainContainer result = program.accept(underTest);
+    ChainContainer result = underTest.visitProgram(program);
 
     // then:
     List<CommandChain> chains = result.getChains();
@@ -653,7 +653,7 @@ public abstract class MplAstVisitorTest {
         .withChainParts(listOf(mplBreakpoint))));
 
     // when:
-    ChainContainer result = program.accept(underTest);
+    ChainContainer result = underTest.visitProgram(program);
 
     // then:
     Condition<CommandChain> condition = new Condition<CommandChain>() {

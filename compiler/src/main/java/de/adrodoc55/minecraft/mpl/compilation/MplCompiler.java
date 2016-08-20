@@ -56,7 +56,7 @@ import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.assembly.MplProgramAssemler;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitorImpl;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplMainAstVisitor;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
@@ -126,7 +126,7 @@ public class MplCompiler {
   }
 
   public ChainContainer materialize(MplProgram program) {
-    return program.accept(new MplAstVisitorImpl(provideContext()));
+    return new MplMainAstVisitor(provideContext()).visitProgram(program);
   }
 
   public List<CommandBlockChain> place(ChainContainer container) throws CompilationFailedException {

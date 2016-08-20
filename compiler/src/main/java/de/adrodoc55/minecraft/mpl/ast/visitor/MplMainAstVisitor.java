@@ -110,7 +110,7 @@ import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 /**
  * @author Adrodoc55
  */
-public class MplAstVisitorImpl implements MplAstVisitor {
+public class MplMainAstVisitor implements MplAstVisitor {
   private final MplCompilerContext context;
   @VisibleForTesting
   final CompilerOptions options;
@@ -119,7 +119,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   private MplSource breakpoint;
 
-  public MplAstVisitorImpl(MplCompilerContext context) {
+  public MplMainAstVisitor(MplCompilerContext context) {
     this.context = checkNotNull(context, "context == null!");
     this.options = context.getOptions();
   }
@@ -194,7 +194,6 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     }
   }
 
-  @Override
   public ChainContainer visitProgram(MplProgram program) {
     this.program = program;
     Orientation3D orientation = program.getOrientation();
@@ -205,13 +204,13 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
     List<CommandChain> chains = new ArrayList<>(program.getProcesses().size());
     for (MplProcess process : program.getProcesses()) {
-      CommandChain chain = process.accept(this);
+      CommandChain chain = visitProcess(process);
       if (chain != null) {
         chains.add(chain);
       }
     }
     if (breakpoint != null) {
-      addBreakpointProcess(program);
+      chains.add(getBreakpointProcess(program));
     }
     return new ChainContainer(orientation, max, install, uninstall, chains, program.getHash());
   }
@@ -222,10 +221,11 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       process =
           new MplProcess(name, new MplSource(programFile, new CommonToken(MplLexer.PROCESS), ""));
     }
-    return process.accept(this);
+    return visitProcess(process);
   }
 
-  private void addBreakpointProcess(MplProgram program) {
+  @CheckReturnValue
+  private CommandChain getBreakpointProcess(MplProgram program) {
     String hash = program.getHash();
     MplProcess process = new MplProcess("breakpoint", breakpoint);
     List<ChainPart> commands = new ArrayList<>();
@@ -261,11 +261,15 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     commands.add(new MplNotify("breakpoint", breakpoint));
 
     process.setChainParts(commands);
-    program.addProcess(process);
-    process.accept(this);
+    return visitProcess(process);
   }
 
-  @Override
+  /**
+   * Returns null if the specified {@code process} is of type {@link ProcessType#INLINE}.
+   *
+   * @param process the {@link MplProcess} to convert
+   * @return result a new {@link CommandChain}
+   */
   public @Nullable CommandChain visitProcess(MplProcess process) {
     if (process.getType() == INLINE) {
       return null;
@@ -374,7 +378,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
    * @throws IllegalStateException if {@code chainPart} does not have predecessor
    * @see ModifiableChainPart#getPrevious()
    */
-  public static void visitPossibleInvert(List<? super Command> commands,
+  public static void addInvertingCommandIfInvert(List<? super Command> commands,
       ModifiableChainPart chainPart) throws IllegalStateException {
     if (chainPart.getConditional() == Conditional.INVERT) {
       Dependable previous = chainPart.getPrevious();
@@ -387,7 +391,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   @Override
   public List<ChainLink> visitCommand(MplCommand command) {
     List<ChainLink> result = new ArrayList<>(2);
-    visitPossibleInvert(result, command);
+    addInvertingCommandIfInvert(result, command);
 
     String cmd = command.getCommand();
     result.add(new Command(cmd, command));
@@ -425,7 +429,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     String processName = selector.substring(8, selector.length() - 1);
     checkProcessExists(start, processName);
     checkNotInlineProcess(start, processName);
-    visitPossibleInvert(result, start);
+    addInvertingCommandIfInvert(result, start);
 
     String command = "execute " + selector + " ~ ~ ~ " + getStartCommand("~ ~ ~");
     result.add(new Command(command, start));
@@ -439,7 +443,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     String processName = selector.substring(8, selector.length() - 1);
     checkProcessExists(stop, processName);
     checkNotInlineProcess(stop, processName);
-    visitPossibleInvert(result, stop);
+    addInvertingCommandIfInvert(result, stop);
 
     String command = "execute " + selector + " ~ ~ ~ " + getStopCommand("~ ~ ~");
     result.add(new Command(command, stop));
@@ -509,7 +513,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     // context.addWarning(
     // new CompilerException(notify.getSource(), "The event " + event + " is never used"));
     // }
-    visitPossibleInvert(result, notify);
+    addInvertingCommandIfInvert(result, notify);
 
     boolean conditional = notify.isConditional();
     result.add(new InternalCommand(
@@ -570,7 +574,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     List<ChainLink> result = new ArrayList<>();
     this.breakpoint = mplBreakpoint.getSource();
 
-    visitPossibleInvert(result, mplBreakpoint);
+    addInvertingCommandIfInvert(result, mplBreakpoint);
 
     result.add(new InternalCommand("say " + mplBreakpoint.getMessage(), mplBreakpoint));
 
@@ -593,7 +597,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
 
   @Override
   public List<ChainLink> visitIf(MplIf mplIf) {
-    List<ChainLink> result = new MplIfVisitor(context).visitIf(mplIf);
+    List<ChainLink> result = new MplIfVisitor(this).visitIf(mplIf);
     return resolveReferences(result);
   }
 

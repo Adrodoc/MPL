@@ -90,10 +90,10 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
 
   @Override
-  protected MplAstVisitorImpl newUnderTest() {
+  protected MplMainAstVisitor newUnderTest() {
     CompilerOptions options = new CompilerOptions(TRANSMITTER, DEBUG);
     MplCompilerContext context = new MplCompilerContext(options);
-    MplAstVisitorImpl result = new MplAstVisitorImpl(context);
+    MplMainAstVisitor result = new MplMainAstVisitor(context);
     result.program = new MplProgram(new File(""), context);
     return result;
   }
@@ -126,12 +126,12 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     MplCommand second = some($MplCommand()//
         .withPrevious(first)//
         .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
-    MplProcess mplProcess = some($MplProcess()//
+    MplProcess process = some($MplProcess()//
         .withRepeating(true)//
         .withChainParts(listOf(first, second)));
 
     // when:
-    CommandChain result = mplProcess.accept(underTest);
+    CommandChain result = underTest.visitProcess(process);
 
     // then:
     assertThat(result.getCommands()).containsExactly(//
@@ -148,12 +148,12 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     MplCommand second = some($MplCommand()//
         .withPrevious(first)//
         .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
-    MplProcess mplProcess = some($MplProcess()//
+    MplProcess process = some($MplProcess()//
         .withName((String) null)//
         .withChainParts(listOf(first, second)));
 
     // when:
-    CommandChain result = mplProcess.accept(underTest);
+    CommandChain result = underTest.visitProcess(process);
 
     // then:
     assertThat(result.getCommands()).containsExactly(//
@@ -447,7 +447,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         .withChainParts(listOf(mplIf)));
 
     // when:
-    CommandChain result = process.accept(underTest);
+    CommandChain result = underTest.visitProcess(process);
 
     // then:
     assertThat(result.getCommands()).containsExactly(//

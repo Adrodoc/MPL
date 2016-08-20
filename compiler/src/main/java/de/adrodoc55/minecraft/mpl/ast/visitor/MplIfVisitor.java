@@ -39,8 +39,10 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.visitor;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.ast.visitor.MplMainAstVisitor.addInvertingCommandIfInvert;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNormalizingCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newTestforSuccessCommand;
 
@@ -54,10 +56,21 @@ import javax.annotation.Nonnull;
 
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreak;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -65,9 +78,11 @@ import lombok.Setter;
 /**
  * @author Adrodoc55
  */
-public class MplIfVisitor extends MplAstVisitorImpl {
-  public MplIfVisitor(MplCompilerContext context) {
-    super(context);
+public class MplIfVisitor implements MplAstVisitor {
+  private final MplAstVisitor delegate;
+
+  public MplIfVisitor(MplAstVisitor delegate) {
+    this.delegate = checkNotNull(delegate, "delegate == null !");
   }
 
   @RequiredArgsConstructor
@@ -88,7 +103,7 @@ public class MplIfVisitor extends MplAstVisitorImpl {
   @Override
   public List<ChainLink> visitIf(MplIf mplIf) {
     List<ChainLink> result = new ArrayList<>();
-    visitPossibleInvert(result, mplIf);
+    addInvertingCommandIfInvert(result, mplIf);
 
     String condition = mplIf.getCondition();
     Command ref;
@@ -139,7 +154,7 @@ public class MplIfVisitor extends MplAstVisitorImpl {
 
   private List<ChainLink> getWithRef(ModifiableChainPart chainPart) {
     List<ChainLink> result = new ArrayList<>();
-    visitPossibleInvert(result, chainPart);
+    addInvertingCommandIfInvert(result, chainPart);
     if (chainPart.getConditional() != CONDITIONAL) {
       result.addAll(getConditionReferences(chainPart));
     }
@@ -245,6 +260,56 @@ public class MplIfVisitor extends MplAstVisitorImpl {
     } else {
       return containsConditionReference(mplIf.getElseParts().iterator());
     }
+  }
+
+  // Delegate Methods
+
+  public List<ChainLink> visitCommand(MplCommand command) {
+    return delegate.visitCommand(command);
+  }
+
+  public List<ChainLink> visitCall(MplCall mplCall) {
+    return delegate.visitCall(mplCall);
+  }
+
+  public List<ChainLink> visitStart(MplStart start) {
+    return delegate.visitStart(start);
+  }
+
+  public List<ChainLink> visitStop(MplStop stop) {
+    return delegate.visitStop(stop);
+  }
+
+  public List<ChainLink> visitWaitfor(MplWaitfor waitfor) {
+    return delegate.visitWaitfor(waitfor);
+  }
+
+  public List<ChainLink> visitNotify(MplNotify notify) {
+    return delegate.visitNotify(notify);
+  }
+
+  public List<ChainLink> visitIntercept(MplIntercept intercept) {
+    return delegate.visitIntercept(intercept);
+  }
+
+  public List<ChainLink> visitBreakpoint(MplBreakpoint breakpoint) {
+    return delegate.visitBreakpoint(breakpoint);
+  }
+
+  public List<ChainLink> visitSkip(MplSkip skip) {
+    return delegate.visitSkip(skip);
+  }
+
+  public List<ChainLink> visitWhile(MplWhile mplWhile) {
+    return delegate.visitWhile(mplWhile);
+  }
+
+  public List<ChainLink> visitBreak(MplBreak mplBreak) {
+    return delegate.visitBreak(mplBreak);
+  }
+
+  public List<ChainLink> visitContinue(MplContinue mplContinue) {
+    return delegate.visitContinue(mplContinue);
   }
 
 }

@@ -41,9 +41,6 @@ package de.adrodoc55.minecraft.mpl.ast.visitor;
 
 import java.util.List;
 
-import javax.annotation.Nullable;
-
-import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
@@ -56,10 +53,6 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreak;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
-import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 
@@ -67,17 +60,6 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
  * @author Adrodoc55
  */
 public interface MplAstVisitor {
-  ChainContainer visitProgram(MplProgram program);
-
-  /**
-   * Returns null if the specified {@code process} is of type {@link ProcessType#INLINE}.
-   *
-   * @param process the {@link MplProcess} to convert
-   * @return result
-   */
-  @Nullable
-  CommandChain visitProcess(MplProcess process);
-
   List<ChainLink> visitCommand(MplCommand command);
 
   List<ChainLink> visitCall(MplCall mplCall);

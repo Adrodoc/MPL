@@ -76,7 +76,7 @@ import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 /**
  * @author Adrodoc55
  */
-public class MplWhileVisitor extends MplAstVisitorImpl {
+public class MplWhileVisitor extends MplMainAstVisitor {
   public MplWhileVisitor(MplCompilerContext context, MplProgram program) {
     super(context);
     this.program = program;
