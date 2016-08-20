@@ -91,6 +91,10 @@ public class MplCompilerContext {
     return Collections.unmodifiableSet(errors);
   }
 
+  public void clearWarnings() {
+    warnings.clear();
+  }
+
   /**
    * Adds a {@link CompilerException} wich occured during compilation and should be treated as a
    * warning.

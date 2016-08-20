@@ -1100,7 +1100,7 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.warnings.get(programFile)[0].message == "The event unknown is never triggered"
     result.warnings.get(programFile)[0].source.file == programFile
-    result.warnings.get(programFile)[0].source.token.text == 'other'
+    result.warnings.get(programFile)[0].source.token.text == 'unknown'
     result.warnings.get(programFile)[0].source.token.line == 3
     result.warnings.size() == 1
   }
@@ -1121,7 +1121,7 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.warnings.get(programFile)[0].message == "The event unknown is never used"
     result.warnings.get(programFile)[0].source.file == programFile
-    result.warnings.get(programFile)[0].source.token.text == 'other'
+    result.warnings.get(programFile)[0].source.token.text == 'unknown'
     result.warnings.get(programFile)[0].source.token.line == 3
     result.warnings.size() == 1
   }

@@ -233,7 +233,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     }
     if (!process.isRepeating() && name != null && !"install".equals(name)
         && !"uninstall".equals(name)) {
-      result.addAll(new MplNotify(name, process.getSource()).accept(this));
+      result.addAll(visitIgnoringWarnings(new MplNotify(name, process.getSource())));
     }
     return new CommandChain(name, result, process.getTags());
   }
@@ -255,11 +255,12 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
 
   /**
    * Checks if a process with the specified {@code processName} is part of the program. If there is
-   * such a process, this method returns true, otherwise returns false and adds a compiler warning.
+   * such a process, this method returns {@code true}, otherwise it returns {@code false} and adds a
+   * compiler warning.
    *
    * @param chainpart where to display the warning
    * @param processName the required process
-   * @return true if the process was found, false otherwise
+   * @return {@code true} if the process was found, {@code false} otherwise
    */
   private boolean checkProcessExists(ModifiableChainPart chainpart, String processName) {
     checkNotNull(processName, "processName == null!");
@@ -318,11 +319,21 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     modifier.setConditional(mplCall.isConditional() ? CONDITIONAL : UNCONDITIONAL);
     MplStart mplStart = new MplStart("@e[name=" + processName + "]", mplCall, mplCall.getPrevious(),
         mplCall.getSource());
+    result.addAll(mplStart.accept(this));
 
     MplWaitfor mplWaitfor = new MplWaitfor(processName, modifier, mplCall.getSource());
-    result.addAll(mplStart.accept(this));
-    result.addAll(mplWaitfor.accept(this));
+    result.addAll(visitIgnoringWarnings(mplWaitfor));
     return result;
+  }
+
+  private List<ChainLink> visitIgnoringWarnings(ChainPart cp) {
+    MplCompilerContext context = new MplCompilerContext(options);
+    MplMainAstVisitor visitor = new MplMainAstVisitor(context);
+    visitor.program = program;
+    List<ChainLink> accept = cp.accept(visitor);
+    context.clearWarnings();
+    this.context.addContext(context);
+    return accept;
   }
 
   @Override
@@ -356,22 +367,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
   @Override
   public List<ChainLink> visitWaitfor(MplWaitfor waitfor) {
     List<ChainLink> result = new ArrayList<>();
+    checkIsUsed(waitfor);
     String event = waitfor.getEvent();
-    // boolean triggeredByProcess = program.streamProcesses()//
-    // .anyMatch(p -> event.equals(p.getName()));
-    // if (!triggeredByProcess) {
-    // boolean triggeredByNotify = program.streamProcesses()//
-    // .flatMap(p -> p.getChainParts().stream())//
-    // .anyMatch(c -> {
-    // if (c instanceof MplNotify)
-    // return event.equals(((MplNotify) c).getEvent());
-    // return false;
-    // });
-    // if (!triggeredByNotify) {
-    // context.addWarning(new CompilerException(waitfor.getSource(),
-    // "The event " + event + " is never triggered"));
-    // }
-    // }
     checkNotInlineProcess(waitfor, event);
 
     ReferencingCommand summon = new ReferencingCommand("summon ArmorStand " + REF + " {CustomName:"
@@ -401,21 +398,42 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     return result;
   }
 
+  /**
+   * Checks if the specified {@link MplWaitfor} can be triggered in the program, that is if there is
+   * a process with the same name as {@link MplWaitfor#getEvent()} or if there is a
+   * {@link MplNotify} for the event of the waitfor. If the waitfor is not used, a compiler warning
+   * is added.
+   *
+   * @param waitfor the {@link MplWaitfor}
+   * @return {@code true} if the specified waitfor is used, {@code false} otherwise
+   */
+  private boolean checkIsUsed(MplWaitfor waitfor) {
+    String event = waitfor.getEvent();
+    boolean triggeredByProcess = program.streamProcesses()//
+        .anyMatch(p -> event.equals(p.getName()));
+    if (triggeredByProcess) {
+      return true;
+    }
+    boolean triggeredByNotify = program.streamProcesses()//
+        .flatMap(p -> p.getChainParts().stream())//
+        .anyMatch(c -> {
+          if (c instanceof MplNotify)
+            return event.equals(((MplNotify) c).getEvent());
+          return false;
+        });
+    if (triggeredByNotify) {
+      return true;
+    }
+    context.addWarning(
+        new CompilerException(waitfor.getSource(), "The event " + event + " is never triggered"));
+    return false;
+  }
+
   @Override
   public List<ChainLink> visitNotify(MplNotify notify) {
     List<ChainLink> result = new ArrayList<>(3);
     String event = notify.getEvent();
-    // boolean used = program.streamProcesses()//
-    // .flatMap(p -> p.getChainParts().stream())//
-    // .anyMatch(c -> {
-    // if (c instanceof MplWaitfor)
-    // return event.equals(((MplWaitfor) c).getEvent());
-    // return false;
-    // });
-    // if (!used) {
-    // context.addWarning(
-    // new CompilerException(notify.getSource(), "The event " + event + " is never used"));
-    // }
+    checkIsUsed(notify);
     addInvertingCommandIfInvert(result, notify);
 
     boolean conditional = notify.isConditional();
@@ -423,6 +441,30 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
         "execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + getStartCommand("~ ~ ~"), conditional));
     result.add(new Command("kill @e[name=" + event + NOTIFY + "]", conditional));
     return result;
+  }
+
+  /**
+   * Checks if the specified {@link MplNotify} is used in the program, that is if there is a
+   * {@link MplWaitfor} for the event of the notify. If the notify is not used, a compiler warning
+   * is added.
+   *
+   * @param notify the {@link MplNotify}
+   * @return {@code true} if the specified notify is used, {@code false} otherwise
+   */
+  private boolean checkIsUsed(MplNotify notify) {
+    String event = notify.getEvent();
+    boolean used = program.streamProcesses()//
+        .flatMap(p -> p.getChainParts().stream())//
+        .anyMatch(c -> {
+          if (c instanceof MplWaitfor)
+            return event.equals(((MplWaitfor) c).getEvent());
+          return false;
+        });
+    if (!used) {
+      context.addWarning(
+          new CompilerException(notify.getSource(), "The event " + event + " is never used"));
+    }
+    return used;
   }
 
   @Override
