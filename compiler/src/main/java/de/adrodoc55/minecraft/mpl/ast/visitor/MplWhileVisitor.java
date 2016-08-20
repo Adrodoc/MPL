@@ -62,17 +62,23 @@ import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.InternalMplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreak;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ResolveableCommand;
-import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 import lombok.Getter;
@@ -80,10 +86,12 @@ import lombok.Getter;
 /**
  * @author Adrodoc55
  */
-public class MplWhileVisitor extends MplMainAstVisitor {
-  public MplWhileVisitor(MplCompilerContext context, MplProgram program) {
-    super(context);
-    this.program = program;
+public class MplWhileVisitor extends MplBaseAstVisitor {
+  private final MplAstVisitor delegate;
+
+  public MplWhileVisitor(MplAstVisitor delegate, CompilerOptions options) {
+    super(options);
+    this.delegate = checkNotNull(delegate, "delegate == null!");
   }
 
   private Deque<MplWhile> loops = new ArrayDeque<>();
@@ -447,6 +455,48 @@ public class MplWhileVisitor extends MplMainAstVisitor {
       }
     });
     return skipLoop;
+  }
+
+  // Delegate Methods
+
+  public List<ChainLink> visitCommand(MplCommand command) {
+    return delegate.visitCommand(command);
+  }
+
+  public List<ChainLink> visitCall(MplCall mplCall) {
+    return delegate.visitCall(mplCall);
+  }
+
+  public List<ChainLink> visitStart(MplStart start) {
+    return delegate.visitStart(start);
+  }
+
+  public List<ChainLink> visitStop(MplStop stop) {
+    return delegate.visitStop(stop);
+  }
+
+  public List<ChainLink> visitWaitfor(MplWaitfor waitfor) {
+    return delegate.visitWaitfor(waitfor);
+  }
+
+  public List<ChainLink> visitNotify(MplNotify notify) {
+    return delegate.visitNotify(notify);
+  }
+
+  public List<ChainLink> visitIntercept(MplIntercept intercept) {
+    return delegate.visitIntercept(intercept);
+  }
+
+  public List<ChainLink> visitBreakpoint(MplBreakpoint breakpoint) {
+    return delegate.visitBreakpoint(breakpoint);
+  }
+
+  public List<ChainLink> visitSkip(MplSkip skip) {
+    return delegate.visitSkip(skip);
+  }
+
+  public List<ChainLink> visitIf(MplIf mplIf) {
+    return delegate.visitIf(mplIf);
   }
 
 }

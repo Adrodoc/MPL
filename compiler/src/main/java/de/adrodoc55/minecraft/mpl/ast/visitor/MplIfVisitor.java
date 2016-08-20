@@ -42,8 +42,6 @@ package de.adrodoc55.minecraft.mpl.ast.visitor;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
-import static de.adrodoc55.minecraft.mpl.ast.visitor.MplMainAstVisitor.addInvertingCommandIfInvert;
-import static de.adrodoc55.minecraft.mpl.ast.visitor.MplMainAstVisitor.resolveReferences;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNormalizingCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newTestforSuccessCommand;
 
@@ -72,6 +70,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -79,11 +78,12 @@ import lombok.Setter;
 /**
  * @author Adrodoc55
  */
-public class MplIfVisitor implements MplAstVisitor {
+public class MplIfVisitor extends MplBaseAstVisitor {
   private final MplAstVisitor delegate;
 
-  public MplIfVisitor(MplAstVisitor delegate) {
-    this.delegate = checkNotNull(delegate, "delegate == null !");
+  public MplIfVisitor(MplAstVisitor delegate, CompilerOptions options) {
+    super(options);
+    this.delegate = checkNotNull(delegate, "delegate == null!");
   }
 
   @RequiredArgsConstructor

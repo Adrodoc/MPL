@@ -99,8 +99,7 @@ public class Chain implements Iterable<ChainLinkType> {
   private Chain(ChainLinkType... chainLinks) {
     checkNotNull(chainLinks, "chainLinks must not be null");
     checkArgument(chainLinks.length > 0, "chain must not be empty");
-    checkArgument(chainLinks[0] != CONDITIONAL, "chain must not start with a %s",
-        CONDITIONAL);
+    checkArgument(chainLinks[0] != CONDITIONAL, "chain must not start with a %s", CONDITIONAL);
     // checkArgument(chainLinks[chainLinks.length - 1] != CONDITIONAL,
     // "chain must not end with a %s", CONDITIONAL);
     for (int i = 0; i < chainLinks.length; i++) {

@@ -40,7 +40,6 @@
 package de.adrodoc55.minecraft.mpl.ast.visitor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
@@ -65,16 +64,13 @@ import javax.annotation.Nullable;
 import org.antlr.v4.runtime.CommonToken;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
-import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall;
@@ -92,16 +88,13 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ResolveableCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
-import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
@@ -110,81 +103,16 @@ import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 /**
  * @author Adrodoc55
  */
-public class MplMainAstVisitor implements MplAstVisitor {
+public class MplMainAstVisitor extends MplBaseAstVisitor {
   private final MplCompilerContext context;
-  @VisibleForTesting
-  final CompilerOptions options;
   @VisibleForTesting
   MplProgram program;
 
   private MplSource breakpoint;
 
   public MplMainAstVisitor(MplCompilerContext context) {
+    super(context.getOptions());
     this.context = checkNotNull(context, "context == null!");
-    this.options = context.getOptions();
-  }
-
-  /**
-   * Returns the relative count to the given {@link ChainLink} as a negative integer. If {@code ref}
-   * is null the returned count will reference the first link in {@link #commands}.
-   *
-   * @param ref the {@link ChainLink} to search for
-   * @return the count to ref
-   * @throws IllegalArgumentException if {@code ref} is not found
-   * @throws NullPointerException if {@code ref} is null
-   */
-  @Deprecated
-  protected int getCountToRef(List<ChainLink> commands, ChainLink ref)
-      throws IllegalArgumentException, NullPointerException {
-    checkNotNull(ref, "ref == null!");
-    for (int i = commands.size() - 1; i >= 0; i--) {
-      if (ref == commands.get(i)) {
-        return -commands.size() + i;
-      }
-    }
-    throw new IllegalArgumentException("The given ref was not found in commands.");
-  }
-
-  protected String getStartCommand(String ref) {
-    if (options.hasOption(TRANSMITTER)) {
-      return "setblock " + ref + " redstone_block";
-    } else {
-      return "blockdata " + ref + " {auto:1b}";
-    }
-  }
-
-  protected String getStopCommand(String ref) {
-    if (options.hasOption(TRANSMITTER)) {
-      if (options.hasOption(DEBUG)) {
-        return "setblock " + ref + " air";
-      } else {
-        return "setblock " + ref + " stone";
-      }
-    } else {
-      return "blockdata " + ref + " {auto:0b}";
-    }
-  }
-
-  @CheckReturnValue
-  protected List<ChainLink> getRestartBackref(ChainLink referenced, boolean conditional) {
-    List<ChainLink> result = new ArrayList<>(2);
-    result.add(new ResolveableCommand(getStopCommand(REF), conditional, referenced));
-    result.add(new ResolveableCommand(getStartCommand(REF), true, referenced));
-    return result;
-  }
-
-  @CheckReturnValue
-  protected List<ChainLink> getTransmitterReceiverCombo(boolean internal) {
-    if (options.hasOption(TRANSMITTER)) {
-      List<ChainLink> result = new ArrayList<>(2);
-      result.add(new MplSkip(internal));
-      result.add(new InternalCommand(getStopCommand("${this - 1}"), Mode.IMPULSE));
-      return result;
-    } else {
-      List<ChainLink> result = new ArrayList<>(1);
-      result.add(new InternalCommand(getStopCommand("~ ~ ~"), Mode.IMPULSE));
-      return result;
-    }
   }
 
   public ChainContainer visitProgram(MplProgram program) {
@@ -361,26 +289,6 @@ public class MplMainAstVisitor implements MplAstVisitor {
       return false;
     }
     return true;
-  }
-
-  /**
-   * Checks if the given {@link ModifiableChainPart} has the {@link Conditional#INVERT INVERT}
-   * modifier. If it does, an {@link Commands#newInvertingCommand inverting command} is added to
-   * {@code commands}. If {@code chainPart} does not have predecessor an
-   * {@link IllegalStateException} is thrown.
-   *
-   * @param chainPart the {@link ModifiableChainPart} to check
-   * @throws IllegalStateException if {@code chainPart} does not have predecessor
-   * @see ModifiableChainPart#getPrevious()
-   */
-  public static void addInvertingCommandIfInvert(List<? super Command> commands,
-      ModifiableChainPart chainPart) throws IllegalStateException {
-    if (chainPart.getConditional() == Conditional.INVERT) {
-      Dependable previous = chainPart.getPrevious();
-      checkState(previous != null,
-          "Cannot invert ChainPart; no previous command found for " + chainPart);
-      commands.add(newInvertingCommand(previous));
-    }
   }
 
   @Override
@@ -591,26 +499,12 @@ public class MplMainAstVisitor implements MplAstVisitor {
 
   @Override
   public List<ChainLink> visitIf(MplIf mplIf) {
-    return new MplIfVisitor(this).visitIf(mplIf);
-  }
-
-  // TODO: Alles auf solche Referenzen umstellen
-  protected static List<ChainLink> resolveReferences(List<ChainLink> chainLinks) {
-    return new ArrayList<>(Lists.transform(chainLinks, it -> {
-      if (it instanceof ResolveableCommand) {
-        try {
-          return ((ResolveableCommand) it).resolve(chainLinks);
-        } catch (IllegalArgumentException ex) {
-          return it;
-        }
-      }
-      return it;
-    }));
+    return new MplIfVisitor(this, options).visitIf(mplIf);
   }
 
   @Override
   public List<ChainLink> visitWhile(MplWhile mplWhile) {
-    return new MplWhileVisitor(context, program).visitWhile(mplWhile);
+    return new MplWhileVisitor(this, options).visitWhile(mplWhile);
   }
 
   @Override
