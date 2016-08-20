@@ -61,8 +61,8 @@ import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStart;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStop;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWaitfor;
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWhile;
-import static de.adrodoc55.minecraft.mpl.MplTestUtils.chainTogether;
 import static de.adrodoc55.minecraft.mpl.MplTestUtils.findByName;
+import static de.adrodoc55.minecraft.mpl.MplTestUtils.makeValid;
 import static de.adrodoc55.minecraft.mpl.MplTestUtils.mapToCommands;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
@@ -144,9 +144,7 @@ public abstract class MplAstVisitorTest {
   public void test_an_repeat_process_with_chainparts_results_in_a_chain_with_chainlinks()
       throws Exception {
     // given:
-    List<MplCommand> mplCommands = listOf(several(), $MplCommand());
-    mplCommands.addAll(0, some($listOf(2, $MplCommand().withConditional(UNCONDITIONAL))));
-    chainTogether(mplCommands);
+    List<MplCommand> mplCommands = makeValid(listOf(several(), $MplCommand()));
     MplProcess process = some($MplProcess()//
         .withRepeating(true)//
         .withChainParts(mplCommands));
@@ -167,7 +165,7 @@ public abstract class MplAstVisitorTest {
   @Test
   public void test_an_impulse_process_always_ends_with_notify() throws Exception {
     // given:
-    List<MplCommand> mplCommands = chainTogether(listOf(several(), $MplCommand()));
+    List<MplCommand> mplCommands = makeValid(listOf(several(), $MplCommand()));
     MplProcess process = some($MplProcess()//
         .withRepeating(false)//
         .withChainParts(mplCommands));
@@ -179,7 +177,7 @@ public abstract class MplAstVisitorTest {
     assertThat(result.getCommands()).endsWith(//
         new InternalCommand(
             "/execute @e[name=" + process.getName() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~")), //
-        new InternalCommand("/kill @e[name=" + process.getName() + NOTIFY + "]")//
+        new Command("/kill @e[name=" + process.getName() + NOTIFY + "]")//
     );
   }
 
@@ -281,9 +279,7 @@ public abstract class MplAstVisitorTest {
   @Test
   public void test_calling_an_inline_process_will_inline_all_ChainParts() {
     // given:
-    List<MplCommand> mplCommands = listOf(several(), $MplCommand());
-    mplCommands.add(0, some($MplCommand().withConditional(UNCONDITIONAL)));
-    chainTogether(mplCommands);
+    List<MplCommand> mplCommands = makeValid(listOf(several(), $MplCommand()));
     MplProcess inline = some($MplProcess()//
         .withType(INLINE)//
         .withRepeating(false)//

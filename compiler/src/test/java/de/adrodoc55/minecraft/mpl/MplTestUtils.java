@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl;
 
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
 
 import java.util.ArrayList;
@@ -80,6 +81,18 @@ public class MplTestUtils extends MplTestBase {
       result.add(new Command(cmd, command));
     }
     return result;
+  }
+
+  /**
+   * Add an unconditional {@link MplCommand} at the start and then chain all {@code commands}
+   * together.
+   *
+   * @param commands to make valid
+   * @return a valid list of commands
+   */
+  public static List<MplCommand> makeValid(List<MplCommand> commands) {
+    commands.add(0, some($MplCommand().withConditional(UNCONDITIONAL)));
+    return chainTogether(commands);
   }
 
   public static List<MplCommand> chainTogether(List<MplCommand> commands) {

@@ -116,10 +116,6 @@ public class MplAstVisitorImpl implements MplAstVisitor {
   final CompilerOptions options;
   @VisibleForTesting
   MplProgram program;
-  // @VisibleForTesting
-  // List<CommandChain> chains = new ArrayList<>();
-  // @VisibleForTesting
-  // List<ChainLink> commands = new ArrayList<>();
 
   private MplSource breakpoint;
 
@@ -275,13 +271,13 @@ public class MplAstVisitorImpl implements MplAstVisitor {
       return null;
     }
     List<ChainPart> chainParts = new CopyScope().copy(process.getChainParts());
-    List<ChainLink> commands = new ArrayList<>(chainParts.size());
+    List<ChainLink> result = new ArrayList<>(chainParts.size());
     boolean containsSkip = containsHighlevelSkip(chainParts);
     String name = process.getName();
     if (name != null) {
       if (process.isRepeating()) {
         if (options.hasOption(TRANSMITTER)) {
-          commands.add(new MplSkip());
+          result.add(new MplSkip());
         }
         if (chainParts.isEmpty()) {
           chainParts.add(new MplCommand("", process.getSource()));
@@ -298,22 +294,22 @@ public class MplAstVisitorImpl implements MplAstVisitor {
           throw new IllegalStateException(ex.getMessage(), ex);
         }
       } else {
-        commands.addAll(getTransmitterReceiverCombo(false));
+        result.addAll(getTransmitterReceiverCombo(false));
       }
     } else if (options.hasOption(TRANSMITTER)) {
-      commands.add(new MplSkip());
+      result.add(new MplSkip());
     }
     for (ChainPart chainPart : chainParts) {
-      commands.addAll(chainPart.accept(this));
+      result.addAll(chainPart.accept(this));
     }
     if (process.isRepeating() && containsSkip) {
-      addRestartBackref(commands, commands.get(0), false);
+      addRestartBackref(result, result.get(0), false);
     }
     if (!process.isRepeating() && name != null && !"install".equals(name)
         && !"uninstall".equals(name)) {
-      new MplNotify(name, process.getSource()).accept(this);
+      result.addAll(new MplNotify(name, process.getSource()).accept(this));
     }
-    return new CommandChain(name, commands, process.getTags());
+    return new CommandChain(name, result, process.getTags());
   }
 
   private boolean containsHighlevelSkip(List<ChainPart> chainParts) {
