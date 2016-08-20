@@ -77,6 +77,7 @@ public class MplCall extends ModifiableChainPart {
     this.process = checkNotNull(process, "process == null!");
   }
 
+  @Deprecated
   protected MplCall(MplCall original) {
     super(original);
     process = original.process;

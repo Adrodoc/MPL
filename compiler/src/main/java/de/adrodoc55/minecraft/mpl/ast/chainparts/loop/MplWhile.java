@@ -103,6 +103,7 @@ public class MplWhile extends ModifiableChainPart implements ChainPartBuffer {
     this.condition = condition;
   }
 
+  @Deprecated
   protected MplWhile(MplWhile original) {
     super(original);
     parent = original.parent;

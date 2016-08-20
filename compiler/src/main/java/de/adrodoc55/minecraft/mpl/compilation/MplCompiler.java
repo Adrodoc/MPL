@@ -63,7 +63,6 @@ import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.placement.MplDebugProgramPlacer;
 import de.adrodoc55.minecraft.mpl.placement.MplProgramPlacer;
@@ -236,7 +235,7 @@ public class MplCompiler {
     if (block instanceof CommandBlock) {
       CommandBlock commandBlock = (CommandBlock) block;
       Command command = commandBlock.toCommand();
-      return command instanceof InternalCommand;
+      return command.isInternal();
     }
     return false;
   }

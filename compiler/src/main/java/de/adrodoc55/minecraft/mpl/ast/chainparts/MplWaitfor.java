@@ -84,6 +84,7 @@ public class MplWaitfor extends ModifiableChainPart {
     this.event = checkNotNull(event, "event == null!");
   }
 
+  @Deprecated
   protected MplWaitfor(MplWaitfor original) {
     super(original);
     event = original.event;

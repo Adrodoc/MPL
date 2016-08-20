@@ -86,6 +86,7 @@ public class MplIntercept extends ModifiableChainPart {
     this.event = checkNotNull(event, "event == null!");
   }
 
+  @Deprecated
   protected MplIntercept(MplIntercept original) {
     super(original);
     event = original.event;

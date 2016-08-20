@@ -347,7 +347,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     // then:
     assertThat(result).containsExactly(//
         new InternalCommand("/say " + mplBreakpoint.getMessage(), mplBreakpoint), //
-        new InternalCommand("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~")), //
+        new Command("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~")), //
         new InternalCommand(
             "/summon ArmorStand ${this + 1} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
         new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE));
@@ -365,7 +365,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     // then:
     assertThat(result).containsExactly(//
         new InternalCommand("/say " + mplBreakpoint.getMessage(), mplBreakpoint), //
-        new InternalCommand("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~"), true), //
+        new Command("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~"), true), //
         new InternalCommand(
             "/summon ArmorStand ${this + 3} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
             true), //
@@ -399,7 +399,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     assertThat(result).containsExactly(//
         newInvertingCommand(mode), //
         new InternalCommand("/say " + mplBreakpoint.getMessage(), mplBreakpoint), //
-        new InternalCommand("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~"), true), //
+        new Command("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~"), true), //
         new InternalCommand(
             "/summon ArmorStand ${this + 3} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
             true), //
@@ -438,11 +438,11 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
 
     // then:
     assertThat(result.getCommands()).containsExactly(//
-        new InternalCommand(mplIf.getCondition(), REPEAT), //
+        new Command(mplIf.getCondition(), REPEAT), //
         // then
         new InternalCommand(
             "/testforblock ${this - 1} repeating_command_block -1 {SuccessCount:0}"), //
-        new InternalCommand(first.getCommand(), first.getMode(), true, first.getNeedsRedstone())//
+        new Command(first.getCommand(), first.getMode(), true, first.getNeedsRedstone())//
     );
   }
 
@@ -567,7 +567,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
             repeat1.getNeedsRedstone()), //
         new Command(repeat2.getCommand(), repeat2.getMode(), repeat2.isConditional(),
             repeat2.getNeedsRedstone()), //
-        new InternalCommand(mplWhile.getCondition()), //
+        new Command(mplWhile.getCondition()), //
         new InternalCommand(getOffCommand("${this - 3}"), true), //
         new InternalCommand(getOnCommand("${this - 4}"), true), //
         newInvertingCommand(CHAIN), //

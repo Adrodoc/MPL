@@ -21,6 +21,7 @@ public class InternalMplCommand implements ChainPart {
     this.chainLinks = ImmutableList.copyOf(chainLinks);
   }
 
+  @Deprecated
   protected InternalMplCommand(InternalMplCommand original) {
     chainLinks = original.chainLinks;
   }

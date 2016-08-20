@@ -85,6 +85,7 @@ public class MplBreak extends ModifiableChainPart {
     this.loop = checkNotNull(loop, "loop == null!");
   }
 
+  @Deprecated
   protected MplBreak(MplBreak original, CopyScope scope) {
     super(original);
     label = original.label;

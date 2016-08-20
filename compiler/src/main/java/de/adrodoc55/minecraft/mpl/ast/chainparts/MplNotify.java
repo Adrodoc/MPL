@@ -87,6 +87,7 @@ public class MplNotify extends ModifiableChainPart {
     this.event = checkNotNull(event, "event == null!");
   }
 
+  @Deprecated
   protected MplNotify(MplNotify original) {
     super(original);
     event = original.event;

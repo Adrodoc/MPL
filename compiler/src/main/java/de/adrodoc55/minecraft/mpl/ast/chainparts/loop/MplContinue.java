@@ -90,6 +90,7 @@ public class MplContinue extends ModifiableChainPart {
     this.loop = checkNotNull(loop, "loop == null!");
   }
 
+  @Deprecated
   protected MplContinue(MplContinue original, CopyScope scope) {
     super(original);
     label = original.label;

@@ -57,7 +57,6 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -94,7 +93,7 @@ public class MplIfVisitor extends MplAstVisitorImpl {
     String condition = mplIf.getCondition();
     Command ref;
     if (condition != null) {
-      ref = new InternalCommand(condition, mplIf);
+      ref = new Command(condition, mplIf);
       result.add(ref);
     } else {
       ref = (Command) result.get(result.size() - 1);

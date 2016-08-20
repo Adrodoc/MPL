@@ -78,6 +78,7 @@ public class MplCommand extends ModifiableChainPart {
     this.command = checkNotNull(command, "command == null!");
   }
 
+  @Deprecated
   protected MplCommand(MplCommand original) {
     super(original);
     command = original.command;

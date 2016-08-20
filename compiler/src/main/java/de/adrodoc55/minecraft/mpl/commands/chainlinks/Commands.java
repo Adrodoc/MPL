@@ -117,8 +117,9 @@ public class Commands {
       this.referenced = referenced;
     }
 
+    @Deprecated
     protected ResolveableCommand(ResolveableCommand original, CopyScope scope) {
-      super(original, scope);
+      super(original);
       referenced = scope.copy(original.referenced);
     }
 

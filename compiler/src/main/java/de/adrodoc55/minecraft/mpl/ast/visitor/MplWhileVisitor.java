@@ -67,7 +67,6 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.ResolveableCommand;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
@@ -245,7 +244,7 @@ public class MplWhileVisitor extends MplAstVisitorImpl {
     String condition = loop.getCondition();
     if (conditional == UNCONDITIONAL) {
       if (condition != null) {
-        result.add(new InternalCommand(condition, mplContinue));
+        result.add(new Command(condition, mplContinue));
         addContinueLoop(result, loop).setConditional(true);
         result.add(newInvertingCommand(CHAIN));
         addBreakLoop(result, loop).setConditional(true);

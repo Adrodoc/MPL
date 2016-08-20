@@ -40,14 +40,16 @@
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import de.adrodoc55.commons.CopyScope;
-import de.adrodoc55.commons.CopyScope.Copyable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
-@Deprecated
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class InternalCommand extends Command {
 
   public InternalCommand() {
@@ -78,13 +80,19 @@ public class InternalCommand extends Command {
     super(command, modifier);
   }
 
-  protected InternalCommand(InternalCommand original, CopyScope scope) {
-    super(original, scope);
+  @Deprecated
+  protected InternalCommand(InternalCommand original) {
+    super(original);
   }
 
   @Deprecated
   @Override
-  public InternalCommand createFlatCopy(CopyScope scope) throws NullPointerException {
-    return new InternalCommand(this, scope);
+  public InternalCommand createFlatCopy(CopyScope scope) {
+    return new InternalCommand(this);
+  }
+
+  @Override
+  public boolean isInternal() {
+    return true;
   }
 }

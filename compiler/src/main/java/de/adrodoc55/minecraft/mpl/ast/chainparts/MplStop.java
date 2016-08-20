@@ -85,6 +85,7 @@ public class MplStop extends ModifiableChainPart {
     this.selector = checkNotNull(selector, "selector == null!");
   }
 
+  @Deprecated
   protected MplStop(MplStop original) {
     super(original);
     selector = original.selector;

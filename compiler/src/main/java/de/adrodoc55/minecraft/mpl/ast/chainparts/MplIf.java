@@ -90,6 +90,7 @@ public class MplIf extends ModifiableChainPart implements ChainPartBuffer {
     this.condition = condition;
   }
 
+  @Deprecated
   protected MplIf(MplIf original, CopyScope scope) {
     super(original);
     parent = scope.copyObject(original.parent);

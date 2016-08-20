@@ -52,13 +52,14 @@ public class NoOperationCommand extends InternalCommand {
     super("", mode);
   }
 
-  protected NoOperationCommand(NoOperationCommand original, CopyScope scope) {
-    super(original, scope);
+  @Deprecated
+  protected NoOperationCommand(NoOperationCommand original) {
+    super(original);
   }
 
   @Deprecated
   @Override
-  public NoOperationCommand createFlatCopy(CopyScope scope) throws NullPointerException {
-    return new NoOperationCommand(this, scope);
+  public NoOperationCommand createFlatCopy(CopyScope scope) {
+    return new NoOperationCommand(this);
   }
 }

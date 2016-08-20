@@ -84,6 +84,7 @@ public class MplBreakpoint extends ModifiableChainPart {
     this.message = checkNotNull(message, "message == null!");
   }
 
+  @Deprecated
   protected MplBreakpoint(MplBreakpoint original) {
     super(original);
     message = original.message;

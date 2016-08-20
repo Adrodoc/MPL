@@ -85,6 +85,7 @@ public class MplStart extends ModifiableChainPart {
     this.selector = checkNotNull(selector, "selector == null!");
   }
 
+  @Deprecated
   protected MplStart(MplStart original) {
     super(original);
     selector = original.selector;

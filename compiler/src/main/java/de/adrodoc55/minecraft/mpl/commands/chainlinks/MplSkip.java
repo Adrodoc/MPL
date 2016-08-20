@@ -71,6 +71,7 @@ public class MplSkip implements ChainPart, ChainLink {
     this.internal = internal;
   }
 
+  @Deprecated
   protected MplSkip(MplSkip original) {
     internal = original.internal;
   }
