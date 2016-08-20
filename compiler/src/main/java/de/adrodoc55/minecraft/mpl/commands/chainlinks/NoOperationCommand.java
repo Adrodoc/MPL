@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 
 /**
@@ -49,5 +50,15 @@ public class NoOperationCommand extends InternalCommand {
 
   public NoOperationCommand(Mode mode) {
     super("", mode);
+  }
+
+  protected NoOperationCommand(NoOperationCommand original, CopyScope scope) {
+    super(original, scope);
+  }
+
+  @Deprecated
+  @Override
+  public NoOperationCommand createFlatCopy(CopyScope scope) throws NullPointerException {
+    return new NoOperationCommand(this, scope);
   }
 }

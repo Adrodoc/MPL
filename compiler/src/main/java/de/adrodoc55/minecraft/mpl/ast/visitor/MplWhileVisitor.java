@@ -56,6 +56,7 @@ import java.util.List;
 
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.InternalMplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
@@ -67,6 +68,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.ResolveableCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
@@ -179,14 +181,14 @@ public class MplWhileVisitor extends MplAstVisitorImpl {
     } catch (IllegalArgumentException ex) {
       // If skip was not added the reference does not have to be set
     }
-    addTransmitterReceiverCombo(result, true);
+    result.addAll(getTransmitterReceiverCombo(true));
     ChainLink exitPoint = result.get(exitIndex);
 
     for (Iterator<LoopRef> it = loopRefs.iterator(); it.hasNext();) {
       LoopRef loopRef = it.next();
       if (loopRef.getLoop() == mplWhile) {
-        loopRef.setEntryPoint(result, entryPoint);
-        loopRef.setExitPoint(result, exitPoint);
+        loopRef.setEntryPoint(entryPoint);
+        loopRef.setExitPoint(exitPoint);
         it.remove();
       }
     }
@@ -200,9 +202,9 @@ public class MplWhileVisitor extends MplAstVisitorImpl {
   private interface LoopRef {
     MplWhile getLoop();
 
-    default void setEntryPoint(List<ChainLink> commands, ChainLink entryPoint) {}
+    default void setEntryPoint(ChainLink entryPoint) {}
 
-    default void setExitPoint(List<ChainLink> commands, ChainLink exitPoint) {}
+    default void setExitPoint(ChainLink exitPoint) {}
   }
 
   public void setRef(List<ChainLink> commands, ReferencingCommand command, ChainLink reference) {
@@ -231,7 +233,7 @@ public class MplWhileVisitor extends MplAstVisitorImpl {
       addBreakLoop(result, loop).setConditional(true);
     }
     dontBreak.setRelative(-getCountToRef(result, dontBreak));
-    addTransmitterReceiverCombo(result, false);
+    result.addAll(getTransmitterReceiverCombo(false));
     return result;
 
   }
@@ -270,24 +272,18 @@ public class MplWhileVisitor extends MplAstVisitorImpl {
       outerIf.add(new MplContinueLoop(loop, source));
     }
     outerIf.enterElse();
-    // Mark this command to find it later no user can create such a command
-    outerIf.add(new MplCommand("//", source));
+    ResolveableCommand exit = new ResolveableCommand(getStartCommand(REF));
+    exit.setConditional(true);
+    outerIf.add(new InternalMplCommand(exit));
 
     if (conditional == INVERT) {
       outerIf.switchThenAndElse();
     }
     outerIf.accept(this);
 
-    for (int i = result.size() - 1; i >= 0; i--) {
-      ChainLink chainLink = result.get(i);
-      if (chainLink instanceof Command) {
-        if ("/".equals(((Command) chainLink).getCommand())) {
-          result.set(i, new ReferencingCommand(getStartCommand(REF), true, result.size() - i));
-          break;
-        }
-      }
-    }
-    addTransmitterReceiverCombo(result, false);
+    List<ChainLink> end = getTransmitterReceiverCombo(false);
+    exit.setReferenced(end.get(0));
+    result.addAll(end);
     return result;
   }
 
@@ -297,8 +293,8 @@ public class MplWhileVisitor extends MplAstVisitorImpl {
     return result;
   }
 
-  private ReferencingCommand addBreakLoop(List<ChainLink> commands, MplWhile loop) {
-    ReferencingCommand result = addSkipLoop(commands, loop);
+  private Command addBreakLoop(List<ChainLink> commands, MplWhile loop) {
+    Command result = addSkipLoop(commands, loop);
     for (MplWhile innerLoop : loops) {
       addStopLoop(commands, innerLoop).setConditional(true);
       if (innerLoop == loop) {
@@ -314,10 +310,10 @@ public class MplWhileVisitor extends MplAstVisitorImpl {
     return result;
   }
 
-  private ReferencingCommand addContinueLoop(List<ChainLink> commands, MplWhile loop) {
+  private Command addContinueLoop(List<ChainLink> commands, MplWhile loop) {
     Iterator<MplWhile> it = loops.iterator();
     MplWhile innerestLoop = it.next();
-    ReferencingCommand result = addStopLoop(commands, innerestLoop);
+    Command result = addStopLoop(commands, innerestLoop);
     if (innerestLoop != loop) {
       while (it.hasNext()) {
         MplWhile innerLoop = it.next();
@@ -331,8 +327,8 @@ public class MplWhileVisitor extends MplAstVisitorImpl {
     return result;
   }
 
-  private ReferencingCommand addStartLoop(List<ChainLink> result, MplWhile loop) {
-    ReferencingCommand startLoop = new ReferencingCommand(getStartCommand(REF));
+  private Command addStartLoop(List<ChainLink> result, MplWhile loop) {
+    ResolveableCommand startLoop = new ResolveableCommand(getStartCommand(REF));
     result.add(startLoop);
     loopRefs.add(new LoopRef() {
       @Override
@@ -341,15 +337,15 @@ public class MplWhileVisitor extends MplAstVisitorImpl {
       }
 
       @Override
-      public void setEntryPoint(List<ChainLink> commands, ChainLink entryPoint) {
-        setRef(commands, startLoop, entryPoint);
+      public void setEntryPoint(ChainLink entryPoint) {
+        startLoop.setReferenced(entryPoint);
       }
     });
     return startLoop;
   }
 
-  private ReferencingCommand addStopLoop(List<ChainLink> result, MplWhile loop) {
-    ReferencingCommand stopLoop = new ReferencingCommand(getStopCommand(REF));
+  private Command addStopLoop(List<ChainLink> result, MplWhile loop) {
+    ResolveableCommand stopLoop = new ResolveableCommand(getStopCommand(REF));
     result.add(stopLoop);
     loopRefs.add(new LoopRef() {
       @Override
@@ -358,15 +354,15 @@ public class MplWhileVisitor extends MplAstVisitorImpl {
       }
 
       @Override
-      public void setEntryPoint(List<ChainLink> commands, ChainLink entryPoint) {
-        setRef(commands, stopLoop, entryPoint);
+      public void setEntryPoint(ChainLink entryPoint) {
+        stopLoop.setReferenced(entryPoint);
       }
     });
     return stopLoop;
   }
 
-  private ReferencingCommand addSkipLoop(List<ChainLink> result, MplWhile loop) {
-    ReferencingCommand skipLoop = new ReferencingCommand(getStartCommand(REF));
+  private Command addSkipLoop(List<ChainLink> result, MplWhile loop) {
+    ResolveableCommand skipLoop = new ResolveableCommand(getStartCommand(REF));
     result.add(skipLoop);
     loopRefs.add(new LoopRef() {
       @Override
@@ -375,8 +371,8 @@ public class MplWhileVisitor extends MplAstVisitorImpl {
       }
 
       @Override
-      public void setExitPoint(List<ChainLink> commands, ChainLink exitPoint) {
-        setRef(commands, skipLoop, exitPoint);
+      public void setExitPoint(ChainLink exitPoint) {
+        skipLoop.setReferenced(exitPoint);
       }
     });
     return skipLoop;

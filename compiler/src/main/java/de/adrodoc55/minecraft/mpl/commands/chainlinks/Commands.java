@@ -44,8 +44,13 @@ import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.
 import java.util.Iterator;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Adrodoc55
@@ -98,12 +103,29 @@ public class Commands {
     return new ResolveableCommand(command, referenced);
   }
 
+  @Getter
+  @Setter
   public static class ResolveableCommand extends InternalCommand {
-    private final ChainLink referenced;
+    private @Nullable ChainLink referenced;
+
+    public ResolveableCommand(String command) {
+      super(command);
+    }
 
     public ResolveableCommand(String command, ChainLink referenced) {
-      super(command);
+      this(command);
       this.referenced = referenced;
+    }
+
+    protected ResolveableCommand(ResolveableCommand original, CopyScope scope) {
+      super(original, scope);
+      referenced = scope.copy(original.referenced);
+    }
+
+    @Deprecated
+    @Override
+    public ResolveableCommand createFlatCopy(CopyScope scope) throws NullPointerException {
+      return new ResolveableCommand(this, scope);
     }
 
     public ReferencingCommand resolve(List<ChainLink> chainLinks) {

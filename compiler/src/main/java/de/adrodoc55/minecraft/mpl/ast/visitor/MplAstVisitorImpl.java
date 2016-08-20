@@ -59,6 +59,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 
 import org.antlr.v4.runtime.CommonToken;
@@ -183,12 +184,17 @@ public class MplAstVisitorImpl implements MplAstVisitor {
     commands.add(newReferencingStartCommand(true, getCountToRef(commands, chainLink)));
   }
 
-  protected void addTransmitterReceiverCombo(List<ChainLink> commands, boolean internal) {
+  @CheckReturnValue
+  protected List<ChainLink> getTransmitterReceiverCombo(boolean internal) {
     if (options.hasOption(TRANSMITTER)) {
-      commands.add(new MplSkip(internal));
-      commands.add(new InternalCommand(getStopCommand("${this - 1}"), Mode.IMPULSE));
+      List<ChainLink> result = new ArrayList<>(2);
+      result.add(new MplSkip(internal));
+      result.add(new InternalCommand(getStopCommand("${this - 1}"), Mode.IMPULSE));
+      return result;
     } else {
-      commands.add(new InternalCommand(getStopCommand("~ ~ ~"), Mode.IMPULSE));
+      List<ChainLink> result = new ArrayList<>(1);
+      result.add(new InternalCommand(getStopCommand("~ ~ ~"), Mode.IMPULSE));
+      return result;
     }
   }
 
@@ -292,7 +298,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
           throw new IllegalStateException(ex.getMessage(), ex);
         }
       } else {
-        addTransmitterReceiverCombo(commands, false);
+        commands.addAll(getTransmitterReceiverCombo(false));
       }
     } else if (options.hasOption(TRANSMITTER)) {
       commands.add(new MplSkip());
@@ -488,7 +494,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
         result.add(summon);
       }
     }
-    addTransmitterReceiverCombo(result, false);
+    result.addAll(getTransmitterReceiverCombo(false));
     return result;
   }
 
@@ -553,7 +559,7 @@ public class MplAstVisitorImpl implements MplAstVisitor {
         result.add(summon);
       }
     }
-    addTransmitterReceiverCombo(result, false);
+    result.addAll(getTransmitterReceiverCombo(false));
     result.add(new InternalCommand("kill @e[name=" + event + ",r=2]"));
     result.add(new InternalCommand(
         "entitydata @e[name=" + event + INTERCEPTED + "] {CustomName:" + event + "}"));

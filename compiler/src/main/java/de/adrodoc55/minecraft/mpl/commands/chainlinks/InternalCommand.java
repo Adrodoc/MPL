@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import de.adrodoc55.commons.CopyScope;
+import de.adrodoc55.commons.CopyScope.Copyable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 
@@ -76,4 +78,13 @@ public class InternalCommand extends Command {
     super(command, modifier);
   }
 
+  protected InternalCommand(InternalCommand original, CopyScope scope) {
+    super(original, scope);
+  }
+
+  @Deprecated
+  @Override
+  public InternalCommand createFlatCopy(CopyScope scope) throws NullPointerException {
+    return new InternalCommand(this, scope);
+  }
 }

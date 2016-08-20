@@ -42,6 +42,7 @@ package de.adrodoc55.commons.collections;
 import java.io.Serializable;
 import java.util.Deque;
 import java.util.Iterator;
+
 import de.adrodoc55.commons.collections.Queues.UnmodifiableQueue;
 
 public class Deques {
@@ -157,8 +158,7 @@ public class Deques {
 
     @Override
     public Iterator<E> descendingIterator() {
-      // TODO Auto-generated method stub
-      return null;
+      return Iterators.unmodifiableIterator(delegate.descendingIterator());
     }
   }
 }

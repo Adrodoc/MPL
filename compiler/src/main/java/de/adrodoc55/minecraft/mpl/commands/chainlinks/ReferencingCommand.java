@@ -49,7 +49,6 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@Deprecated
 public class ReferencingCommand extends InternalCommand {
   public static final String REF = "${this}";
 

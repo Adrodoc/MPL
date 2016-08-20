@@ -43,6 +43,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nonnull;
 
+import de.adrodoc55.commons.CopyScope;
+import de.adrodoc55.commons.CopyScope.Copyable;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
@@ -101,6 +103,19 @@ public class Command implements ChainLink, Modifiable {
   public Command(String command, Modifiable modifier) {
     this(command);
     setModifier(modifier);
+  }
+
+  protected Command(Command original, CopyScope scope) {
+    command = original.command;
+    mode = original.mode;
+    conditional = original.conditional;
+    needsRedstone = original.needsRedstone;
+  }
+
+  @Deprecated
+  @Override
+  public Command createFlatCopy(CopyScope scope) throws NullPointerException {
+    return new Command(this, scope);
   }
 
   public void setModifier(Modifiable modifier) {
