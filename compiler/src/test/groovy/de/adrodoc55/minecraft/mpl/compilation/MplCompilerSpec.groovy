@@ -826,21 +826,23 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
-  public void "a script does not have installation/uninstallation by default"() {
+  public void "a script does not have install/uninstall by default"() {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     /say hi
     """
     when:
-    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+    List<CommandBlockChain> result = place(new File(folder, 'main.mpl'), TRANSMITTER)
     then:
-    result.install == null
-    result.uninstall == null
+    result.find { it.name == 'install' } == null
+    result.find { it.name == 'uninstall' } == null
+    result.find { it.name == null }
+    result.size() == 1
   }
 
   @Test
-  public void "having an installation does not produce an uninstallation"() {
+  public void "having an install does not produce an uninstall"() {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
@@ -849,16 +851,16 @@ class MplCompilerSpec extends MplSpecBase {
     }
     """
     when:
-    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+    List<CommandBlockChain> result = place(new File(folder, 'main.mpl'), TRANSMITTER)
     then:
-    result.install.chainParts.size() == 1
-    result.uninstall == null
-    result.processes.size() == 1
-    result.processes[0].chainParts.isEmpty()
+    result.find { it.name == 'install' }
+    result.find { it.name == 'uninstall' } == null
+    result.find { it.name == null }
+    result.size() == 2
   }
 
   @Test
-  public void "having an uninstallation does not produce an installation"() {
+  public void "having an uninstall produces an install"() {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
@@ -867,16 +869,21 @@ class MplCompilerSpec extends MplSpecBase {
     }
     """
     when:
-    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+    List<CommandBlockChain> result = place(new File(folder, 'main.mpl'), TRANSMITTER)
     then:
-    result.install == null
-    result.uninstall.chainParts.size() == 1
-    result.processes.size() == 1
-    result.processes[0].chainParts.isEmpty()
+    CommandBlockChain install = result.find { it.name == 'install' }
+    install.blocks[0].class == Transmitter
+    install.blocks[1].getCommand().startsWith('setblock ')
+    install.blocks[2].class == AirBlock
+    install.blocks.size() == 3
+
+    result.find { it.name == 'uninstall' }
+    result.find { it.name == null }
+    result.size() == 3
   }
 
   @Test
-  public void "the commands of a custom installation are executed after the generated ones"() {
+  public void "the commands of a custom install are executed after the generated ones"() {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
@@ -889,27 +896,27 @@ class MplCompilerSpec extends MplSpecBase {
     }
     """
     when:
-    List<CommandBlockChain> chains = place(new File(folder, 'main.mpl'), TRANSMITTER)
+    List<CommandBlockChain> result = place(new File(folder, 'main.mpl'), TRANSMITTER)
     then:
-    CommandBlockChain installation = chains.find { it.name == 'install' }
-    installation.blocks.size() == 5
-    installation.blocks[0].class == Transmitter
-    installation.blocks[1].getCommand().startsWith('setblock ')
-    installation.blocks[2].getCommand().startsWith('summon ArmorStand ')
-    installation.blocks[3].toCommand() == new Command('say install')
-    installation.blocks[4].class == AirBlock
+    CommandBlockChain install = result.find { it.name == 'install' }
+    install.blocks.size() == 5
+    install.blocks[0].class == Transmitter
+    install.blocks[1].getCommand().startsWith('setblock ')
+    install.blocks[2].getCommand().startsWith('summon ArmorStand ')
+    install.blocks[3].toCommand() == new Command('say install')
+    install.blocks[4].class == AirBlock
   }
 
   /**
-   * Allowing start of processes within uninstallation may cause problems if the started process
+   * Allowing start of processes within uninstall may cause problems if the started process
    * attempts to start more processes. The reason behind this is, that any newly started process is
    * executed 1 tick later at which point all processes will have been uninstalled.<br>
-   * TODO Maybe the uninstallation should automatically insert a multi-waitfor after all custom
+   * TODO Maybe the uninstall should automatically insert a multi-waitfor after all custom
    * commands for every process that has been started, but is not waited for. This would also
-   * require every process that could at least be indirectly called by the uninstallation to notify
+   * require every process that could at least be indirectly called by the uninstall to notify
    */
   @Test
-  public void "the commands of a custom uninstallation are executed before the generated ones"() {
+  public void "the commands of a custom uninstall are executed before the generated ones"() {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
@@ -922,19 +929,19 @@ class MplCompilerSpec extends MplSpecBase {
     }
     """
     when:
-    List<CommandBlockChain> chains = place(new File(folder, 'main.mpl'), TRANSMITTER)
+    List<CommandBlockChain> result = place(new File(folder, 'main.mpl'), TRANSMITTER)
     then:
-    CommandBlockChain uninstallation = chains.find { it.name == 'uninstall' }
-    uninstallation.blocks.size() == 5
-    uninstallation.blocks[0].class == Transmitter
-    uninstallation.blocks[1].getCommand().startsWith('setblock ')
-    uninstallation.blocks[2].toCommand() == new Command('say uninstall')
-    uninstallation.blocks[3].getCommand().startsWith('kill @e[type=ArmorStand,tag=MPL')
-    uninstallation.blocks[4].class == AirBlock
+    CommandBlockChain uninstall = result.find { it.name == 'uninstall' }
+    uninstall.blocks.size() == 5
+    uninstall.blocks[0].class == Transmitter
+    uninstall.blocks[1].getCommand().startsWith('setblock ')
+    uninstall.blocks[2].toCommand() == new Command('say uninstall')
+    uninstall.blocks[3].getCommand().startsWith('kill @e[type=ArmorStand,tag=MPL')
+    uninstall.blocks[4].class == AirBlock
   }
 
   @Test
-  public void "the installation and uninstallation of multiple files is concatenated"() {
+  public void "the install and uninstall of multiple files is concatenated"() {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """

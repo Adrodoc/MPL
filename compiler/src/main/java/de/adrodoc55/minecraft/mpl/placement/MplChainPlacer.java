@@ -49,11 +49,13 @@ import static de.kussm.direction.Direction.WEST;
 import static de.kussm.direction.Directions.$;
 import static java.util.Comparator.naturalOrder;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -272,22 +274,23 @@ public abstract class MplChainPlacer {
 
   protected CommandChain getPopulatedUninstall() {
     List<ChainLink> commands = getUninstall().getCommands();
-    ArrayList<ChainLink> result = new ArrayList<>(commands.size() + chains.size());
+    ArrayList<ChainLink> result = new ArrayList<>(commands.size() + 1);
     result.addAll(commands);
-    result.add(new Command("/kill @e[type=ArmorStand,tag=" + container.getHashCode() + "]"));
+    if (!commands.isEmpty()) {
+      result.add(new Command("/kill @e[type=ArmorStand,tag=" + container.getHashCode() + "]"));
+    }
     return new CommandChain(getUninstall().getName(), result);
   }
 
-  protected List<MplBlock> toBlocks(List<ChainLink> commands,
-      LinkedHashMap<Position, ChainLinkType> placed) {
-    LinkedList<ChainLink> chainLinks = new LinkedList<>(commands);
+  protected List<MplBlock> toBlocks(List<ChainLink> commands, Map<Position, ChainLinkType> placed) {
+    Deque<ChainLink> chainLinks = new ArrayDeque<>(commands);
 
     Orientation3D orientation = getOrientation();
 
-    LinkedList<Entry<Position, ChainLinkType>> entries =
-        placed.entrySet().stream().collect(Collectors.toCollection(LinkedList::new));
+    Deque<Entry<Position, ChainLinkType>> entries =
+        placed.entrySet().stream().collect(Collectors.toCollection(ArrayDeque::new));
 
-    List<MplBlock> blocks = new LinkedList<>();
+    List<MplBlock> blocks = new ArrayList<>();
     while (entries.size() > 1) {
       Entry<Position, ChainLinkType> entry = entries.pop();
 

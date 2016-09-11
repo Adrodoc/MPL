@@ -54,6 +54,7 @@ import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNormali
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newTestforSuccessCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DELETE_ON_UNINSTALL;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.io.File;
@@ -131,9 +132,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     this.program = program;
     Orientation3D orientation = program.getOrientation();
     Coordinate3D max = program.getMax();
-    File file = program.getProgramFile();
-    CommandChain install = visitUnInstall("install", file, program.getInstall());
-    CommandChain uninstall = visitUnInstall("uninstall", file, program.getUninstall());
+    CommandChain install = visitInstall(program);
+    CommandChain uninstall = visitUninstall(program);
 
     List<CommandChain> chains = new ArrayList<>(program.getProcesses().size());
     for (MplProcess process : program.getProcesses()) {
@@ -148,13 +148,41 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     return new ChainContainer(orientation, max, install, uninstall, chains, program.getHash());
   }
 
-  private @Nullable CommandChain visitUnInstall(String name, File programFile,
-      @Nullable MplProcess process) {
-    if (process == null) {
-      process =
-          new MplProcess(name, new MplSource(programFile, new CommonToken(MplLexer.PROCESS), ""));
+  private static MplSource defaultSource(File programFile) {
+    return new MplSource(programFile, new CommonToken(MplLexer.PROCESS), "");
+  }
+
+  private CommandChain visitInstall(MplProgram program) {
+    if (!isInstallRequired(program)) {
+      return new CommandChain("install", new ArrayList<>(0));
     }
-    return visitProcess(process);
+    MplProcess install = program.getInstall();
+    if (install == null) {
+      install = new MplProcess("install", defaultSource(program.getProgramFile()));
+    }
+    return visitProcess(install);
+  }
+
+  private boolean isInstallRequired(MplProgram program) {
+    return program.getInstall() != null//
+        || isUninstallRequired(program);
+  }
+
+  private CommandChain visitUninstall(MplProgram program) {
+    if (!isUninstallRequired(program)) {
+      return new CommandChain("uninstall", new ArrayList<>(0));
+    }
+    MplProcess uninstall = program.getUninstall();
+    if (uninstall == null) {
+      uninstall = new MplProcess("uninstall", defaultSource(program.getProgramFile()));
+    }
+    return visitProcess(uninstall);
+  }
+
+  private boolean isUninstallRequired(MplProgram program) {
+    return program.getUninstall() != null//
+        || options.hasOption(DELETE_ON_UNINSTALL)//
+        || program.getProcesses().stream().anyMatch(p -> p.getName() != null);
   }
 
   @CheckReturnValue

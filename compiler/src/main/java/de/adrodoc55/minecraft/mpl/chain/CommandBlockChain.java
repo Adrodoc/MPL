@@ -51,10 +51,12 @@ import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
+import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
+@ToString
 public class CommandBlockChain implements Named {
   private final String name;
   private final List<MplBlock> blocks = new ArrayList<>();
@@ -107,8 +109,4 @@ public class CommandBlockChain implements Named {
             .collect(toList()));
   }
 
-  @Override
-  public String toString() {
-    return getName();
-  }
 }

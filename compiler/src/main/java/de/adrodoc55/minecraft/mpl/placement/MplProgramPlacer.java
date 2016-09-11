@@ -90,7 +90,7 @@ public class MplProgramPlacer extends MplChainPlacer {
         for (CommandChain chain : chains) {
           addChain(chain);
         }
-        addUnInstallation();
+        addUnInstall();
         break;
       } catch (NotEnoughSpaceException ex) {
         increaseSize();
@@ -287,9 +287,12 @@ public class MplProgramPlacer extends MplChainPlacer {
     occupied[Math.abs(maxC)] = Math.abs(maxB) + 1;
   }
 
-  private void addUnInstallation() throws NotEnoughSpaceException {
-    // move all chains by 1 block, if installation or uninstallation is added.
-    // if there is at least one process, both installation and unistallation will be added.
+  private void addUnInstall() throws NotEnoughSpaceException {
+    // move all chains by 1 block, if install or uninstall is added.
+    // if there is at least one process, both install and uninstall will be added.
+
+    // TODO: This line is incorrect, as a script has 1 chain.
+    // Preferred solution: build install in visitor and reference other processes via ${other}
     if (!container.getChains().isEmpty()//
         || !getInstall().getCommands().isEmpty()//
         || !getUninstall().getCommands().isEmpty()) {
@@ -301,8 +304,8 @@ public class MplProgramPlacer extends MplChainPlacer {
   }
 
   /**
-   * This method generates both installation uninstallation of the program at (0, 0, 0) and adds
-   * them to {@link #chains}. The resulting chains are in the same flat plane.
+   * This method generates both install uninstall of the program at (0, 0, 0) and adds them to
+   * {@link #chains}. The resulting chains are in the same flat plane.
    *
    * @throws NotEnoughSpaceException if the current size is to small to generate install or
    *         uninstall
