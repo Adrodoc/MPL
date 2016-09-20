@@ -70,7 +70,7 @@ Here are some guidelines to make contributing easier:
 
 ### Building
 
-MPL is built using [Gradle]. You don't have to install Gradle, because the project contains a [Gradle Wrapper] along with the source files. To to build custom jar files execute `gradlew build` on Windows or `./gradlew build` on Unix systems. The jar files will be created in the directories `MPL/ide/build/libs` and `MPL/compiler/build/libs`.
+MPL is built using [Gradle]. You don't have to install Gradle, because the project contains a [Gradle Wrapper] along with the source files. To build custom jar files execute `gradlew build` on Windows or `./gradlew build` on Unix systems. The jar files will be created in the directories `MPL/ide/build/libs` and `MPL/compiler/build/libs`.
 
 [Sonatype OSS Maven Repository]: https://oss.sonatype.org/content/repositories/releases/de/adrodoc55/mpl
 [Maven Central]: http://search.maven.org/#search|ga|1|g%3Ade.adrodoc55.mpl
