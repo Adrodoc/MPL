@@ -37,29 +37,17 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.commons;
+package de.adrodoc55.minecraft.mpl.ast.variable;
 
-import java.util.Locale;
+import static com.google.common.base.CaseFormat.UPPER_CAMEL;
+import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 
 /**
  * @author Adrodoc55
  */
-public class StringUtils {
-  protected StringUtils() throws Exception {
-    throw new Exception("Utils Classes cannot be instantiated!");
-  }
-
-  public static String escapeBackslashes(String literal) {
-    return literal.replace("\\", "\\\\");
-  }
-
-  public static String capitalize(String string) {
-    if (string == null) {
-      return null;
-    }
-    if (string.isEmpty()) {
-      return string;
-    }
-    return string.substring(0, 1).toUpperCase(Locale.ENGLISH) + string.substring(1);
+public enum MplType {
+  STRING, INTEGER;
+  public String toString() {
+    return UPPER_UNDERSCORE.to(UPPER_CAMEL, super.toString());
   }
 }
