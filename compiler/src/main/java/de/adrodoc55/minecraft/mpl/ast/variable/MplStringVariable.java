@@ -37,29 +37,22 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.commons;
+package de.adrodoc55.minecraft.mpl.ast.variable;
 
-import java.util.Locale;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 
 /**
  * @author Adrodoc55
  */
-public class StringUtils {
-  protected StringUtils() throws Exception {
-    throw new Exception("Utils Classes cannot be instantiated!");
+public class MplStringVariable extends MplVariable<String>implements Insertable {
+
+  public MplStringVariable(MplSource declarationSource, String identifier) {
+    super(declarationSource, MplType.STRING, identifier);
   }
 
-  public static String escapeBackslashes(String literal) {
-    return literal.replace("\\", "\\\\");
+  @Override
+  public String toInsert() {
+    return value;
   }
 
-  public static String capitalize(String string) {
-    if (string == null) {
-      return null;
-    }
-    if (string.isEmpty()) {
-      return string;
-    }
-    return string.substring(0, 1).toUpperCase(Locale.ENGLISH) + string.substring(1);
-  }
 }

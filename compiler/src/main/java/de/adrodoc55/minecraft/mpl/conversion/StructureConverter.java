@@ -139,7 +139,7 @@ public class StructureConverter implements MplConverter {
     if (block instanceof CommandBlock) {
       CommandBlock cmd = (CommandBlock) block;
       conditional = String.valueOf(cmd.isConditional());
-      facing = cmd.getDirection().name().toLowerCase(Locale.US);
+      facing = cmd.getDirection().toString().toLowerCase(Locale.ENGLISH);
     }
 
     State newState = new State(blockId, conditional, facing);

@@ -52,6 +52,7 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
@@ -102,6 +103,7 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.StartContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.StopContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ThenContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.UninstallContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.VariableDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.WaitforContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.WhileDeclarationContext;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
@@ -122,12 +124,14 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.minecraft.mpl.ast.variable.MplIntegerVariable;
+import de.adrodoc55.minecraft.mpl.ast.variable.MplStringVariable;
+import de.adrodoc55.minecraft.mpl.ast.variable.MplType;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
-import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer.ChainPartBufferImpl;
 
 /**
  * @author Adrodoc55
@@ -336,18 +340,13 @@ public class MplInterpreter extends MplBaseListener {
 
   private final Deque<ChainPartBuffer> chainBufferStack = new LinkedList<>();
   private ChainPartBuffer chainBuffer;
-  // private IfBuffer ifBuffer;
 
   private void newChainBuffer() {
     chainBufferStack.push(chainBuffer);
-    chainBuffer = new ChainPartBufferImpl();
-    // this.ifBuffer = new IfBuffer(chainBuffer);
   }
 
   private void popChainBuffer() {
-    // ifBuffer is not recovered, because it is currently not required
     chainBuffer = chainBufferStack.poll();
-    // ifBuffer = null;
   }
 
   private MplProcess process;
@@ -827,4 +826,55 @@ public class MplInterpreter extends MplBaseListener {
     return loop;
   }
 
+  private VariableScope variableScope;
+
+  @Override
+  public void enterVariableDeclaration(VariableDeclarationContext ctx) {
+    MplType declaredType = MplType.valueOf(ctx.TYPE().getText().toUpperCase(Locale.ENGLISH));
+    TerminalNode string = ctx.STRING();
+    TerminalNode integer = ctx.UNSIGNED_INT();
+    MplType actualType;
+    Token actualTypeToken;
+    if (string != null) {
+      actualType = MplType.STRING;
+      actualTypeToken = string.getSymbol();
+    } else if (integer != null) {
+      actualType = MplType.INTEGER;
+      actualTypeToken = integer.getSymbol();
+    } else {
+      throw new InternalError("Unreachable code");
+    }
+    if (declaredType != actualType) {
+      context.addError(new CompilerException(toSource(actualTypeToken),
+          "Type mismatch: cannot convert from " + actualType + " to " + declaredType));
+      return;
+    }
+
+    TerminalNode identifier = ctx.IDENTIFIER();
+    // type.newVariable();
+    switch (declaredType) {
+      case STRING:
+        MplStringVariable variable =
+            new MplStringVariable(toSource(identifier.getSymbol()), identifier.getText());
+        variable.setValue(string.getText());
+        break;
+      case INTEGER:
+        MplIntegerVariable variable =
+            new MplIntegerVariable(toSource(identifier.getSymbol()), identifier.getText());
+        variable.setValue(Integer.parseInt(integer.getText()));
+        break;
+      default:
+        throw new InternalError("Unreachable code");
+    }
+  }
+
+  public MplType getActualType(VariableDeclarationContext ctx) {
+    if (ctx.STRING() != null) {
+      return MplType.STRING;
+    }
+    if (ctx.UNSIGNED_INT() != null) {
+      return MplType.INTEGER;
+    }
+    throw new InternalError("Unreachable code");
+  }
 }

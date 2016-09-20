@@ -119,6 +119,7 @@ chain
     | whileDeclaration
     | mplCommand
     | skipDeclaration
+    | variableDeclaration
   )+
 ;
 
@@ -267,6 +268,15 @@ continueDeclaration
 skipDeclaration
 :
   SKIP_TOKEN
+;
+
+variableDeclaration
+:
+  TYPE IDENTIFIER '='
+  (
+    STRING
+    | UNSIGNED_INT
+  )
 ;
 
 COMMENT
@@ -457,6 +467,12 @@ WS
 STRING
 :
   '"' ~( '\r' | '\n' )*? '"'
+;
+
+TYPE
+:
+  'String'
+  | 'Integer'
 ;
 
 IDENTIFIER
