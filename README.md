@@ -29,7 +29,7 @@ MPL is licensed under [GNU General Public License]. Any application compiled by 
 
 It would still be nice if you give credit to MPL, for example by using the following command in the installation of your application:
 
-`/tellraw @a {"text":"","extra":[{"text":"This project was created using the\n ","color":"yellow"},{"text":"Minecraft Programming Language ","color":"gold"},{"text":"[MPL]","color":"aqua","hoverEvent":{"action":"show_text","value":{"text":"Click to open GitHub","color":"red"}},"clickEvent":{"action":"open_url","value":"https://github.com/Adrodoc55/MPL"}}]}`
+`/tellraw @a [{"text":"This project was created using the\n ","color":"yellow"},{"text":"Minecraft Programming Language ","color":"gold"},{"text":"[MPL]","color":"aqua","hoverEvent":{"action":"show_text","value":{"text":"Click to open GitHub","color":"red"}},"clickEvent":{"action":"open_url","value":"https://github.com/Adrodoc55/MPL"}}]`
 
 Download
 --------
