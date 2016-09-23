@@ -42,12 +42,35 @@ package de.adrodoc55.minecraft.mpl.ast.variable;
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+
 /**
  * @author Adrodoc55
  */
 public enum MplType {
-  STRING, INTEGER;
+  STRING {
+    @Override
+    public MplStringVariable newVariable(MplSource source, String identifier, String value) {
+      MplStringVariable result = new MplStringVariable(source, identifier);
+      result.setValue(value);
+      return result;
+    }
+  },
+  INTEGER {
+    @Override
+    public MplIntegerVariable newVariable(MplSource source, String identifier, String value) {
+      MplIntegerVariable result = new MplIntegerVariable(source, identifier);
+      result.setValue(Integer.parseInt(value));
+      return result;
+    }
+  };
   public String toString() {
     return UPPER_UNDERSCORE.to(UPPER_CAMEL, super.toString());
+  }
+
+  public abstract MplVariable<?> newVariable(MplSource source, String identifier, String value);
+
+  public boolean isAssignableFrom(MplType type) {
+    return this == type;
   }
 }

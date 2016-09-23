@@ -68,6 +68,10 @@ public class MplVariable<T> {
     return type;
   }
 
+  public String getIdentifier() {
+    return identifier;
+  }
+
   public @Nullable T getValue() {
     return value;
   }

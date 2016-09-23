@@ -39,9 +39,47 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.annotation.Nullable;
+
+import de.adrodoc55.minecraft.mpl.ast.variable.MplVariable;
+
 /**
  * @author Adrodoc55
  */
 public class VariableScope {
+  private final @Nullable VariableScope parent;
+  private final Map<String, MplVariable<?>> variables = new HashMap<>();
+
+  public VariableScope(@Nullable VariableScope parent) {
+    this.parent = parent;
+  }
+
+  public void declareVariable(MplVariable<?> variable) throws DuplicateVariableException {
+    if (findVariable(variable.getIdentifier()) != null) {
+      throw new DuplicateVariableException();
+    }
+    variables.put(variable.getIdentifier(), variable);
+  }
+
+  /**
+   * Return the {@link MplVariable} with the specified {@code identifier} or {@code null}, if this
+   * {@link VariableScope} and non of the parant scopes contain such a variable.
+   *
+   * @param identifier
+   * @return the {@link MplVariable} with the specified {@code identifier} or {@code null}.
+   */
+  public @Nullable MplVariable<?> findVariable(String identifier) {
+    MplVariable<?> result = variables.get(identifier);
+    if (result != null) {
+      return result;
+    }
+    if (parent != null) {
+      return parent.findVariable(identifier);
+    }
+    return null;
+  }
 
 }

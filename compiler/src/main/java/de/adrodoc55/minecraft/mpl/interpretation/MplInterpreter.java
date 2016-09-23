@@ -124,9 +124,8 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.ast.variable.MplIntegerVariable;
-import de.adrodoc55.minecraft.mpl.ast.variable.MplStringVariable;
 import de.adrodoc55.minecraft.mpl.ast.variable.MplType;
+import de.adrodoc55.minecraft.mpl.ast.variable.MplVariable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
@@ -844,37 +843,20 @@ public class MplInterpreter extends MplBaseListener {
     } else {
       throw new InternalError("Unreachable code");
     }
-    if (declaredType != actualType) {
+    if (!declaredType.isAssignableFrom(actualType)) {
       context.addError(new CompilerException(toSource(actualTypeToken),
           "Type mismatch: cannot convert from " + actualType + " to " + declaredType));
       return;
     }
 
     TerminalNode identifier = ctx.IDENTIFIER();
-    // type.newVariable();
-    switch (declaredType) {
-      case STRING:
-        MplStringVariable variable =
-            new MplStringVariable(toSource(identifier.getSymbol()), identifier.getText());
-        variable.setValue(string.getText());
-        break;
-      case INTEGER:
-        MplIntegerVariable variable =
-            new MplIntegerVariable(toSource(identifier.getSymbol()), identifier.getText());
-        variable.setValue(Integer.parseInt(integer.getText()));
-        break;
-      default:
-        throw new InternalError("Unreachable code");
+    MplVariable<?> variable = declaredType.newVariable(toSource(identifier.getSymbol()),
+        identifier.getText(), actualTypeToken.getText());
+    try {
+      variableScope.declareVariable(variable);
+    } catch (DuplicateVariableException ex) {
+      context.addError(new CompilerException(toSource(identifier.getSymbol()),
+          "Duplicate local variable " + identifier.getText()));
     }
-  }
-
-  public MplType getActualType(VariableDeclarationContext ctx) {
-    if (ctx.STRING() != null) {
-      return MplType.STRING;
-    }
-    if (ctx.UNSIGNED_INT() != null) {
-      return MplType.INTEGER;
-    }
-    throw new InternalError("Unreachable code");
   }
 }
