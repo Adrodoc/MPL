@@ -48,7 +48,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 /**
  * @author Adrodoc55
  */
-public class MplVariable<T> {
+public abstract class MplVariable<T> {
   protected final MplSource declarationSource;
   protected final MplType type;
   protected final String identifier;
@@ -79,6 +79,12 @@ public class MplVariable<T> {
   public void setValue(T value) {
     this.value = checkNotNull(value, "value == null!");
   }
+
+  public final void setValueString(String value) {
+    setValue(convertValue(value));
+  }
+
+  protected abstract T convertValue(String value);
 
   public boolean isInitialized() {
     return value != null;

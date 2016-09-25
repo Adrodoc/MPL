@@ -40,12 +40,13 @@
 package de.adrodoc55.minecraft.mpl.ast.variable;
 
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
 public class MplStringVariable extends MplVariable<String>implements Insertable {
-
+  @GenerateMplPojoBuilder
   public MplStringVariable(MplSource declarationSource, String identifier) {
     super(declarationSource, MplType.STRING, identifier);
   }
@@ -55,4 +56,8 @@ public class MplStringVariable extends MplVariable<String>implements Insertable 
     return value;
   }
 
+  @Override
+  protected String convertValue(String value) {
+    return value;
+  }
 }

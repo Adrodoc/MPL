@@ -48,27 +48,44 @@ import de.adrodoc55.minecraft.mpl.compilation.MplSource;
  * @author Adrodoc55
  */
 public enum MplType {
-  STRING {
+  INTEGER {
     @Override
-    public MplStringVariable newVariable(MplSource source, String identifier, String value) {
-      MplStringVariable result = new MplStringVariable(source, identifier);
-      result.setValue(value);
+    public MplIntegerVariable newVariable(MplSource source, String identifier) {
+      MplIntegerVariable result = new MplIntegerVariable(source, identifier);
       return result;
     }
   },
-  INTEGER {
+  SELECTOR {
     @Override
-    public MplIntegerVariable newVariable(MplSource source, String identifier, String value) {
-      MplIntegerVariable result = new MplIntegerVariable(source, identifier);
-      result.setValue(Integer.parseInt(value));
+    public MplVariable<?> newVariable(MplSource source, String identifier) {
+      // TODO Auto-generated method stub
+      return null;
+    }
+  },
+  STRING {
+    @Override
+    public MplStringVariable newVariable(MplSource source, String identifier) {
+      MplStringVariable result = new MplStringVariable(source, identifier);
       return result;
+    }
+  },
+  VALUE {
+    @Override
+    public MplVariable<?> newVariable(MplSource source, String identifier) {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public boolean isAssignableFrom(MplType type) {
+      return type == INTEGER || type == VALUE;
     }
   };
   public String toString() {
     return UPPER_UNDERSCORE.to(UPPER_CAMEL, super.toString());
   }
 
-  public abstract MplVariable<?> newVariable(MplSource source, String identifier, String value);
+  public abstract MplVariable<?> newVariable(MplSource source, String identifier);
 
   public boolean isAssignableFrom(MplType type) {
     return this == type;
