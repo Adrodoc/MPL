@@ -41,7 +41,7 @@ package de.adrodoc55.minecraft.mpl.ast.variable.type;
 
 import javax.annotation.concurrent.Immutable;
 
-import de.adrodoc55.minecraft.mpl.ast.variable.MplVariable;
+import de.adrodoc55.minecraft.mpl.ast.variable.MplSelectorVariable;
 import de.adrodoc55.minecraft.mpl.ast.variable.selector.TargetSelector;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
@@ -61,7 +61,7 @@ class MplSelectorType extends MplType<TargetSelector> {
   }
 
   @Override
-  public MplVariable<TargetSelector> newVariable(MplSource declarationSource, String identifier) {
-    return new MplVariable<>(declarationSource, SELECTOR, identifier);
+  public MplSelectorVariable newVariable(MplSource declarationSource, String identifier) {
+    return new MplSelectorVariable(declarationSource, identifier);
   }
 }

@@ -37,30 +37,17 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.variable.type;
+package de.adrodoc55.minecraft.mpl.ast.variable;
 
-import javax.annotation.concurrent.Immutable;
-
-import de.adrodoc55.minecraft.mpl.ast.variable.MplIntegerVariable;
-import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
+import de.adrodoc55.minecraft.mpl.ast.variable.type.MplType;
+import de.adrodoc55.minecraft.mpl.ast.variable.value.MplValue;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 
 /**
  * @author Adrodoc55
  */
-@Immutable
-class MplIntegerType extends MplType<Integer> {
-  MplIntegerType(Type type) {
-    super(type);
-  }
-
-  @Override
-  public Integer convert(String value, MplSource source, MplCompilerContext context) {
-    return Integer.parseInt(value);
-  }
-
-  @Override
-  public MplIntegerVariable newVariable(MplSource declarationSource, String identifier) {
-    return new MplIntegerVariable(declarationSource, identifier);
+public class MplValueVariable extends MplVariable<MplValue> {
+  public MplValueVariable(MplSource declarationSource, String identifier) {
+    super(declarationSource, MplType.VALUE, identifier);
   }
 }
