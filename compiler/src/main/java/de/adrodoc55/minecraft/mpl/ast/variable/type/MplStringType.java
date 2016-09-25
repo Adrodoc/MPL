@@ -41,16 +41,10 @@ package de.adrodoc55.minecraft.mpl.ast.variable.type;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Arrays;
-
 import javax.annotation.concurrent.Immutable;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-
+import de.adrodoc55.minecraft.mpl.ast.variable.MplStringVariable;
 import de.adrodoc55.minecraft.mpl.ast.variable.MplVariable;
-import de.adrodoc55.minecraft.mpl.ast.variable.selector.TargetSelector;
-import de.adrodoc55.minecraft.mpl.ast.variable.value.MplValue;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 
@@ -58,41 +52,18 @@ import de.adrodoc55.minecraft.mpl.compilation.MplSource;
  * @author Adrodoc55
  */
 @Immutable
-public abstract class MplType<T> {
-  public static final MplType<Integer> INTEGER = new MplIntegerType(Type.INTEGER);
-  public static final MplType<TargetSelector> SELECTOR = new MplSelectorType(Type.SELECTOR);
-  public static final MplType<String> STRING = new MplStringType(Type.STRING);
-  public static final MplType<MplValue> VALUE = new MplValueType(Type.VALUE);
-  private static ImmutableList<MplType<?>> VALUES;
-
-  public static ImmutableList<MplType<?>> values() {
-    if (VALUES == null) {
-      VALUES =
-          ImmutableList.copyOf(Lists.transform(Arrays.asList(Type.values()), t -> t.getType()));
-    }
-    return VALUES;
+class MplStringType extends MplType<String> {
+  MplStringType(Type type) {
+    super(type);
   }
-
-  public static MplType<?> valueOf(String name) {
-    return Type.valueOf(name).getType();
-  }
-
-  private final Type type;
-
-  public MplType(Type type) {
-    this.type = checkNotNull(type, "type == null!");
-  }
-
-  public boolean isAssignableFrom(MplType<?> type) {
-    return this == checkNotNull(type, "type == null!");
-  }
-
-  public abstract T convert(String value, MplSource source, MplCompilerContext context);
-
-  public abstract MplVariable<T> newVariable(MplSource declarationSource, String identifier);
 
   @Override
-  public String toString() {
-    return type.toString();
+  public String convert(String value, MplSource source, MplCompilerContext context) {
+    return checkNotNull(value, "value == null!");
+  }
+
+  @Override
+  public MplVariable<String> newVariable(MplSource declarationSource, String identifier) {
+    return new MplStringVariable(declarationSource, identifier);
   }
 }
