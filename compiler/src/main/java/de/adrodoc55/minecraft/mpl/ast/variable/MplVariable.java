@@ -43,18 +43,20 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nullable;
 
+import de.adrodoc55.minecraft.mpl.ast.variable.type.MplType;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 
 /**
  * @author Adrodoc55
  */
-public abstract class MplVariable<T> {
+public class MplVariable<T> {
   protected final MplSource declarationSource;
-  protected final MplType type;
+  protected final MplType<T> type;
   protected final String identifier;
   protected @Nullable T value;
 
-  public MplVariable(MplSource declarationSource, MplType type, String identifier) {
+  public MplVariable(MplSource declarationSource, MplType<T> type, String identifier) {
     this.declarationSource = checkNotNull(declarationSource, "declarationSource == null!");
     this.type = checkNotNull(type, "type == null!");
     this.identifier = checkNotNull(identifier, "identifier == null!");
@@ -64,7 +66,7 @@ public abstract class MplVariable<T> {
     return declarationSource;
   }
 
-  public MplType getType() {
+  public MplType<T> getType() {
     return type;
   }
 
@@ -80,11 +82,9 @@ public abstract class MplVariable<T> {
     this.value = checkNotNull(value, "value == null!");
   }
 
-  public final void setValueString(String value) {
-    setValue(convertValue(value));
+  public final void setValueString(String value, MplSource source, MplCompilerContext context) {
+    setValue(type.convert(value, source, context));
   }
-
-  protected abstract T convertValue(String value);
 
   public boolean isInitialized() {
     return value != null;

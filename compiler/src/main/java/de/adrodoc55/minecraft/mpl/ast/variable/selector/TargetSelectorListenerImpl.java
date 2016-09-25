@@ -37,23 +37,47 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.variable;
+package de.adrodoc55.minecraft.mpl.ast.variable.selector;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 
-import de.adrodoc55.minecraft.mpl.ast.variable.type.MplType;
-import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import org.antlr.v4.runtime.tree.TerminalNode;
+
+import de.adrodoc55.minecraft.mpl.antlr.TargetSelectorBaseListener;
+import de.adrodoc55.minecraft.mpl.antlr.TargetSelectorParser.ArgumentContext;
+import de.adrodoc55.minecraft.mpl.antlr.TargetSelectorParser.SelectorContext;
+import de.adrodoc55.minecraft.mpl.antlr.TargetSelectorParser.ValueContext;
 
 /**
  * @author Adrodoc55
  */
-public class MplIntegerVariable extends MplVariable<Integer>implements Insertable {
-  public MplIntegerVariable(MplSource declarationSource, String identifier) {
-    super(declarationSource, MplType.INTEGER, identifier);
+public class TargetSelectorListenerImpl extends TargetSelectorBaseListener {
+  private final Map<String, String> arguments = new LinkedHashMap<>();
+  private final TargetSelectorBuilder builder =
+      new TargetSelectorBuilder().withArguments(arguments);
+
+  @Override
+  public void enterSelector(SelectorContext ctx) {
+    TerminalNode selectorType = ctx.TARGET_SELECTOR_TYPE();
+    String typeString = selectorType.getText().toUpperCase(Locale.ENGLISH);
+    TargetSelectorType type = TargetSelectorType.valueOf(typeString);
+    builder.withType(type);
   }
 
   @Override
-  public String toInsert() {
-    return String.valueOf(checkNotNull(value, "value == null!"));
+  public void enterArgument(ArgumentContext ctx) {
+    String key = ctx.key().getText();
+    ValueContext valueCtx = ctx.value();
+    String value = valueCtx != null ? valueCtx.getText() : "";
+    if (ctx.EXCLAMATION_MARK() != null) {
+      value = '!' + value;
+    }
+    arguments.put(key, value);
+  }
+
+  public TargetSelector getResult() {
+    return builder.build();
   }
 }

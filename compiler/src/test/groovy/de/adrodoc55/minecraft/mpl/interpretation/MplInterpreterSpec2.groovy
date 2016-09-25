@@ -73,9 +73,13 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram
-import de.adrodoc55.minecraft.mpl.ast.variable.MplIntegerVariable;
+import de.adrodoc55.minecraft.mpl.ast.variable.MplIntegerVariable
 import de.adrodoc55.minecraft.mpl.ast.variable.MplStringVariable
-import de.adrodoc55.minecraft.mpl.ast.variable.MplType
+import de.adrodoc55.minecraft.mpl.ast.variable.MplVariable
+import de.adrodoc55.minecraft.mpl.ast.variable.selector.TargetSelector
+import de.adrodoc55.minecraft.mpl.ast.variable.type.MplType
+import de.adrodoc55.minecraft.mpl.ast.variable.value.MplScoreboardValue
+import de.adrodoc55.minecraft.mpl.ast.variable.value.MplValue
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext
 import de.adrodoc55.minecraft.mpl.compilation.MplSource
 
@@ -2450,11 +2454,33 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
 
     then:
-    VariableScope scope = interpreter.variableScope
+    lastContext.errors.isEmpty()
 
+    VariableScope scope = interpreter.variableScope
     MplIntegerVariable variable = scope.findVariable(id)
     variable != null
     variable.value == value
+  }
+
+  @Test
+  public void "Declaring a Selector variable"() {
+    given:
+    String id = some($Identifier())
+    String value = "@e[name=${some($Identifier())}]"
+    String programString = """
+    Selector ${id} = ${value}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    VariableScope scope = interpreter.variableScope
+    MplVariable<TargetSelector> variable = scope.findVariable(id)
+    variable != null
+    variable.value instanceof TargetSelector
+    variable.value.toString() == value
   }
 
   @Test
@@ -2469,11 +2495,36 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
 
     then:
-    VariableScope scope = interpreter.variableScope
+    lastContext.errors.isEmpty()
 
+    VariableScope scope = interpreter.variableScope
     MplStringVariable variable = scope.findVariable(id)
     variable != null
     variable.value == value
+  }
+
+  @Test
+  public void "Declaring a Value variable"() {
+    given:
+    String id = some($Identifier())
+    String selector = "@e[name=${some($Identifier())}]"
+    String scoreboard = some($Identifier())
+    String programString = """
+    Value ${id} = ${selector}  ${scoreboard}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    VariableScope scope = interpreter.variableScope
+    MplVariable<MplValue> variable = scope.findVariable(id)
+    variable != null
+    MplScoreboardValue value = variable.value
+    value.selector instanceof TargetSelector
+    value.selector.toString() == selector
+    value.scoreboard == scoreboard
   }
 
   @Test

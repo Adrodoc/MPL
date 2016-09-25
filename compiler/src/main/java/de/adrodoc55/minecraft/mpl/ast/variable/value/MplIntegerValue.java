@@ -37,23 +37,25 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.variable;
+package de.adrodoc55.minecraft.mpl.ast.variable.value;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import de.adrodoc55.minecraft.mpl.ast.variable.type.MplType;
-import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import javax.annotation.concurrent.Immutable;
 
 /**
  * @author Adrodoc55
  */
-public class MplIntegerVariable extends MplVariable<Integer>implements Insertable {
-  public MplIntegerVariable(MplSource declarationSource, String identifier) {
-    super(declarationSource, MplType.INTEGER, identifier);
+@Immutable
+public class MplIntegerValue implements MplValue {
+  private final int value;
+
+  public MplIntegerValue(int value) {
+    this.value = value;
   }
 
-  @Override
-  public String toInsert() {
-    return String.valueOf(checkNotNull(value, "value == null!"));
+  /**
+   * @return the {@link #value}
+   */
+  public int getValue() {
+    return value;
   }
 }
