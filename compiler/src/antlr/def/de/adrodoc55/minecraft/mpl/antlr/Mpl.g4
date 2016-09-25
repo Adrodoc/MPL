@@ -275,7 +275,9 @@ variableDeclaration
   TYPE IDENTIFIER '='
   (
     STRING
-    | UNSIGNED_INT
+    | SELECTOR
+    | INTEGER
+    | SELECTOR IDENTIFIER
   )
 ;
 
@@ -454,14 +456,34 @@ INLINE
   'inline'
 ;
 
-UNSIGNED_INT
+TAG
 :
-  [0-9]+
+  '#' IDENTIFIER
 ;
 
-WS
+TYPE
 :
-  [ \t\r\n]+ -> skip
+  'String'
+  | 'Selector'
+  | 'Integer'
+  | 'Value'
+;
+
+INTEGER
+:
+  '-'? [0-9]+
+;
+
+SELECTOR
+:
+  '@' [pare]
+  (
+    '['
+    (
+      IDENTIFIER
+      | [,=]
+    )+ ']'
+  )?
 ;
 
 STRING
@@ -469,25 +491,14 @@ STRING
   '"' ~( '\r' | '\n' )*? '"'
 ;
 
-TYPE
+WS
 :
-  'String'
-  | 'Integer'
+  [ \t\r\n]+ -> skip
 ;
 
 IDENTIFIER
 :
   [a-zA-Z0-9_]+
-;
-
-TAG
-:
-  '#' IDENTIFIER
-;
-
-SELECTOR
-:
-  '@' [pare] '[' [a-zA-Z0-9,=_]+ ']'
 ;
 
 UNRECOGNIZED

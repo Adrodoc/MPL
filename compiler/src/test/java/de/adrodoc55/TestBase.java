@@ -89,6 +89,15 @@ public class TestBase {
     return someInt(11, 100);
   }
 
+  public static Builder<Integer> $int() {
+    return new Builder<Integer>() {
+      @Override
+      public Integer build() {
+        return someInt();
+      }
+    };
+  }
+
   public static Builder<String> $String() {
     return new Builder<String>() {
       @Override

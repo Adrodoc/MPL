@@ -131,6 +131,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer.ChainPartBufferImpl;
 
 /**
  * @author Adrodoc55
@@ -163,7 +164,7 @@ public class MplInterpreter extends MplBaseListener {
       }
     });
     FileContext context = parser.file();
-    // Trees.inspect(context, parser);
+    // Trees.inspect(context, parser).get();
     return context;
   }
 
@@ -342,6 +343,7 @@ public class MplInterpreter extends MplBaseListener {
 
   private void newChainBuffer() {
     chainBufferStack.push(chainBuffer);
+    chainBuffer = new ChainPartBufferImpl();
   }
 
   private void popChainBuffer() {
@@ -825,37 +827,52 @@ public class MplInterpreter extends MplBaseListener {
     return loop;
   }
 
-  private VariableScope variableScope;
+  private VariableScope variableScope = new VariableScope(null);
 
   @Override
   public void enterVariableDeclaration(VariableDeclarationContext ctx) {
     MplType declaredType = MplType.valueOf(ctx.TYPE().getText().toUpperCase(Locale.ENGLISH));
+    List<TerminalNode> identifiers = ctx.IDENTIFIER();
+    TerminalNode identifier = identifiers.get(0);
     TerminalNode string = ctx.STRING();
-    TerminalNode integer = ctx.UNSIGNED_INT();
+    TerminalNode integer = ctx.INTEGER();
+    TerminalNode selector = ctx.SELECTOR();
+    TerminalNode scoreboard = identifiers.size() > 1 ? identifiers.get(1) : null;
     MplType actualType;
-    Token actualTypeToken;
+    MplSource actualSource;
+    String value;
     if (string != null) {
       actualType = MplType.STRING;
-      actualTypeToken = string.getSymbol();
+      actualSource = toSource(string.getSymbol());
+      value = MplLexerUtils.getContainedString(string.getSymbol());
     } else if (integer != null) {
       actualType = MplType.INTEGER;
-      actualTypeToken = integer.getSymbol();
+      actualSource = toSource(integer.getSymbol());
+      value = integer.getText();
+    } else if (scoreboard != null) {
+      actualType = MplType.VALUE;
+      actualSource = toSource(scoreboard.getSymbol());
+      value = selector.getText() + " " + scoreboard.getText();
+    } else if (selector != null) {
+      actualType = MplType.SELECTOR;
+      actualSource = toSource(selector.getSymbol());
+      value = selector.getText();
     } else {
       throw new InternalError("Unreachable code");
     }
     if (!declaredType.isAssignableFrom(actualType)) {
-      context.addError(new CompilerException(toSource(actualTypeToken),
+      context.addError(new CompilerException(actualSource,
           "Type mismatch: cannot convert from " + actualType + " to " + declaredType));
       return;
     }
 
-    TerminalNode identifier = ctx.IDENTIFIER();
-    MplVariable<?> variable = declaredType.newVariable(toSource(identifier.getSymbol()),
-        identifier.getText(), actualTypeToken.getText());
+    MplSource declarationSource = toSource(identifier.getSymbol());
+    MplVariable<?> variable = declaredType.newVariable(declarationSource, identifier.getText());
+    variable.setValueString(value);
     try {
       variableScope.declareVariable(variable);
     } catch (DuplicateVariableException ex) {
-      context.addError(new CompilerException(toSource(identifier.getSymbol()),
+      context.addError(new CompilerException(declarationSource,
           "Duplicate local variable " + identifier.getText()));
     }
   }

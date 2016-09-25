@@ -76,6 +76,8 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinueBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhileBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcessBuilder;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgramBuilder;
+import de.adrodoc55.minecraft.mpl.ast.variable.MplStringVariableBuilder;
+import de.adrodoc55.minecraft.mpl.ast.variable.MplType;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainerBuilder;
 import de.adrodoc55.minecraft.mpl.chain.CommandChainBuilder;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -291,6 +293,18 @@ public class MplTestBase extends TestBase {
         .withModifier($ModifierBuffer())//
         .withLabel($String())//
         .withSource($MplSource())//
+        ;
+  }
+
+  public static OneOf<MplType> $MplType() {
+    return $oneOf(MplType.values());
+  }
+
+  public static MplStringVariableBuilder $MplVariable() {
+    return new MplStringVariableBuilder()//
+        .withDeclarationSource($MplSource())//
+        .withIdentifier($Identifier())//
+        .withValue($String())//
         ;
   }
 

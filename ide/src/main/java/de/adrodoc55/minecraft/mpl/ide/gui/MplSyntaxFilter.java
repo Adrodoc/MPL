@@ -264,11 +264,11 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
           styleToken(token, getIdentifierStyle());
           break;
         case MplLexer.COMMAND:
+        case MplLexer.INTEGER:
         case MplLexer.SELECTOR:
         case MplLexer.STRING:
         case MplLexer.TAG:
         case MplLexer.UNRECOGNIZED:
-        case MplLexer.UNSIGNED_INT:
           styleToken(token, getDefaultStyle());
           Matcher insert = INSERT_PATTERN.matcher(token.getText());
           while (insert.find()) {

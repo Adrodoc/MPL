@@ -47,7 +47,6 @@ import de.adrodoc55.minecraft.mpl.compilation.MplSource;
  * @author Adrodoc55
  */
 public class MplIntegerVariable extends MplVariable<Integer>implements Insertable {
-
   public MplIntegerVariable(MplSource declarationSource, String identifier) {
     super(declarationSource, MplType.INTEGER, identifier);
   }
@@ -57,4 +56,8 @@ public class MplIntegerVariable extends MplVariable<Integer>implements Insertabl
     return String.valueOf(checkNotNull(value, "value == null!"));
   }
 
+  @Override
+  protected Integer convertValue(String value) {
+    return Integer.parseInt(value);
+  }
 }
