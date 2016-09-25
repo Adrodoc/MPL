@@ -44,7 +44,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import javax.annotation.concurrent.Immutable;
 
 import de.adrodoc55.minecraft.mpl.ast.variable.MplStringVariable;
-import de.adrodoc55.minecraft.mpl.ast.variable.MplVariable;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 
@@ -63,7 +62,7 @@ class MplStringType extends MplType<String> {
   }
 
   @Override
-  public MplVariable<String> newVariable(MplSource declarationSource, String identifier) {
+  public MplStringVariable newVariable(MplSource declarationSource, String identifier) {
     return new MplStringVariable(declarationSource, identifier);
   }
 }

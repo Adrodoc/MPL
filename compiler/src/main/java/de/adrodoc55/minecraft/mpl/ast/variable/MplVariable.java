@@ -50,7 +50,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 /**
  * @author Adrodoc55
  */
-public class MplVariable<T> {
+public abstract class MplVariable<T> {
   protected final MplSource declarationSource;
   protected final MplType<T> type;
   protected final String identifier;

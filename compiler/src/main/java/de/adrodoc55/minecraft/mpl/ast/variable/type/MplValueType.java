@@ -41,7 +41,7 @@ package de.adrodoc55.minecraft.mpl.ast.variable.type;
 
 import javax.annotation.concurrent.Immutable;
 
-import de.adrodoc55.minecraft.mpl.ast.variable.MplVariable;
+import de.adrodoc55.minecraft.mpl.ast.variable.MplValueVariable;
 import de.adrodoc55.minecraft.mpl.ast.variable.value.MplValue;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
@@ -61,7 +61,7 @@ class MplValueType extends MplType<MplValue> {
   }
 
   @Override
-  public MplVariable<MplValue> newVariable(MplSource declarationSource, String identifier) {
-    return new MplVariable<>(declarationSource, VALUE, identifier);
+  public MplValueVariable newVariable(MplSource declarationSource, String identifier) {
+    return new MplValueVariable(declarationSource, identifier);
   }
 }
