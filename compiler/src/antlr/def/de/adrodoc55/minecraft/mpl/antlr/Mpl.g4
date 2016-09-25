@@ -476,13 +476,9 @@ INTEGER
 
 SELECTOR
 :
-  '@' [pare]
+  '@' [a-z]
   (
-    '['
-    (
-      IDENTIFIER
-      | [,=]
-    )+ ']'
+    '[' [a-zA-Z0-9,!=_]* ']'
   )?
 ;
 

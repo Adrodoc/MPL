@@ -37,57 +37,33 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.variable;
+package de.adrodoc55.minecraft.mpl.ast.variable.value;
 
-import static com.google.common.base.CaseFormat.UPPER_CAMEL;
-import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import de.adrodoc55.minecraft.mpl.ast.variable.selector.TargetSelector;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 
 /**
  * @author Adrodoc55
  */
-public enum MplType {
-  INTEGER {
-    @Override
-    public MplIntegerVariable newVariable(MplSource source, String identifier) {
-      MplIntegerVariable result = new MplIntegerVariable(source, identifier);
-      return result;
+public interface MplValue {
+  public static MplValue parse(String value, MplSource source, MplCompilerContext context)
+      throws IllegalArgumentException {
+    checkNotNull(value, "value == null!");
+    checkNotNull(source, "source == null!");
+    checkNotNull(context, "context == null!");
+    try {
+      return new MplIntegerValue(Integer.parseInt(value));
+    } catch (NumberFormatException ex) {
+      int space = value.indexOf(' ');
+      if (space < 0) {
+        throw new IllegalArgumentException("The specified value does not contain a space");
+      }
+      TargetSelector selector = TargetSelector.parse(value.substring(0, space), source, context);
+      String scoreboard = value.substring(space + 1);
+      return new MplScoreboardValue(selector, scoreboard);
     }
-  },
-  SELECTOR {
-    @Override
-    public MplVariable<?> newVariable(MplSource source, String identifier) {
-      // TODO Auto-generated method stub
-      return null;
-    }
-  },
-  STRING {
-    @Override
-    public MplStringVariable newVariable(MplSource source, String identifier) {
-      MplStringVariable result = new MplStringVariable(source, identifier);
-      return result;
-    }
-  },
-  VALUE {
-    @Override
-    public MplVariable<?> newVariable(MplSource source, String identifier) {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public boolean isAssignableFrom(MplType type) {
-      return type == INTEGER || type == VALUE;
-    }
-  };
-  public String toString() {
-    return UPPER_UNDERSCORE.to(UPPER_CAMEL, super.toString());
-  }
-
-  public abstract MplVariable<?> newVariable(MplSource source, String identifier);
-
-  public boolean isAssignableFrom(MplType type) {
-    return this == type;
   }
 }

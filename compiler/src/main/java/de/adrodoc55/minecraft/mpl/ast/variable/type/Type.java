@@ -37,23 +37,46 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.variable;
+package de.adrodoc55.minecraft.mpl.ast.variable.type;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.CaseFormat.UPPER_CAMEL;
+import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 
-import de.adrodoc55.minecraft.mpl.ast.variable.type.MplType;
-import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import de.adrodoc55.minecraft.mpl.ast.variable.selector.TargetSelector;
+import de.adrodoc55.minecraft.mpl.ast.variable.value.MplValue;
 
 /**
  * @author Adrodoc55
  */
-public class MplIntegerVariable extends MplVariable<Integer>implements Insertable {
-  public MplIntegerVariable(MplSource declarationSource, String identifier) {
-    super(declarationSource, MplType.INTEGER, identifier);
-  }
+enum Type {
+  INTEGER() {
+    @Override
+    public MplType<Integer> getType() {
+      return MplType.INTEGER;
+    }
+  },
+  SELECTOR() {
+    @Override
+    public MplType<TargetSelector> getType() {
+      return MplType.SELECTOR;
+    }
+  },
+  STRING() {
+    @Override
+    public MplType<String> getType() {
+      return MplType.STRING;
+    }
+  },
+  VALUE() {
+    @Override
+    public MplType<MplValue> getType() {
+      return MplType.VALUE;
+    }
+  };
+  public abstract MplType<?> getType();
 
   @Override
-  public String toInsert() {
-    return String.valueOf(checkNotNull(value, "value == null!"));
+  public String toString() {
+    return UPPER_UNDERSCORE.to(UPPER_CAMEL, super.toString());
   }
 }

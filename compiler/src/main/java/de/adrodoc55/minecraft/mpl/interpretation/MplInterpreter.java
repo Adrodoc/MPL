@@ -124,8 +124,8 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.ast.variable.MplType;
 import de.adrodoc55.minecraft.mpl.ast.variable.MplVariable;
+import de.adrodoc55.minecraft.mpl.ast.variable.type.MplType;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
@@ -831,14 +831,14 @@ public class MplInterpreter extends MplBaseListener {
 
   @Override
   public void enterVariableDeclaration(VariableDeclarationContext ctx) {
-    MplType declaredType = MplType.valueOf(ctx.TYPE().getText().toUpperCase(Locale.ENGLISH));
+    MplType<?> declaredType = MplType.valueOf(ctx.TYPE().getText().toUpperCase(Locale.ENGLISH));
     List<TerminalNode> identifiers = ctx.IDENTIFIER();
     TerminalNode identifier = identifiers.get(0);
     TerminalNode string = ctx.STRING();
     TerminalNode integer = ctx.INTEGER();
     TerminalNode selector = ctx.SELECTOR();
     TerminalNode scoreboard = identifiers.size() > 1 ? identifiers.get(1) : null;
-    MplType actualType;
+    MplType<?> actualType;
     MplSource actualSource;
     String value;
     if (string != null) {
@@ -868,7 +868,7 @@ public class MplInterpreter extends MplBaseListener {
 
     MplSource declarationSource = toSource(identifier.getSymbol());
     MplVariable<?> variable = declaredType.newVariable(declarationSource, identifier.getText());
-    variable.setValueString(value);
+    variable.setValueString(value, actualSource, context);
     try {
       variableScope.declareVariable(variable);
     } catch (DuplicateVariableException ex) {

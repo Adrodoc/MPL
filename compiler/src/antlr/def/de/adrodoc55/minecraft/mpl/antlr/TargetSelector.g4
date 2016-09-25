@@ -37,23 +37,86 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.variable;
+ grammar TargetSelector;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+ selector
+ :
+   AT_SIGN TARGET_SELECTOR_TYPE
+   (
+     OPEN_SQUARE_BRACKET
+     (
+       argument
+       (
+         COMMA argument
+       )*
+     )? CLOSED_SQUARE_BRACKET
+   )? EOF
+ ;
 
-import de.adrodoc55.minecraft.mpl.ast.variable.type.MplType;
-import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+ argument
+ :
+   key EQUALS_SIGN EXCLAMATION_MARK? value
+ ;
 
-/**
- * @author Adrodoc55
- */
-public class MplIntegerVariable extends MplVariable<Integer>implements Insertable {
-  public MplIntegerVariable(MplSource declarationSource, String identifier) {
-    super(declarationSource, MplType.INTEGER, identifier);
-  }
+ key
+ :
+   IDENTIFIER
+ ;
 
-  @Override
-  public String toInsert() {
-    return String.valueOf(checkNotNull(value, "value == null!"));
-  }
-}
+ value
+ :
+   (
+     IDENTIFIER
+     | AT_SIGN
+     | EQUALS_SIGN
+     | EXCLAMATION_MARK
+     | OPEN_SQUARE_BRACKET
+     | CLOSED_SQUARE_BRACKET
+   )*
+ ;
+
+ TARGET_SELECTOR_TYPE
+ :
+   [pare]
+ ;
+
+ AT_SIGN
+ :
+   '@'
+ ;
+
+ COMMA
+ :
+   ','
+ ;
+
+ EQUALS_SIGN
+ :
+   '='
+ ;
+
+ EXCLAMATION_MARK
+ :
+   '!'
+ ;
+
+ OPEN_SQUARE_BRACKET
+ :
+   '['
+ ;
+
+ CLOSED_SQUARE_BRACKET
+ :
+   ']'
+ ;
+
+ WS
+ :
+   [ \t\r\n]+
+ ;
+
+ IDENTIFIER
+ :
+   ~[@,=!\[\] \t\r\n]+
+ ;
+

@@ -37,23 +37,36 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.variable;
+package de.adrodoc55.minecraft.mpl.ast.variable.value;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import javax.annotation.concurrent.Immutable;
 
-import de.adrodoc55.minecraft.mpl.ast.variable.type.MplType;
-import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import de.adrodoc55.minecraft.mpl.ast.variable.selector.TargetSelector;
 
 /**
  * @author Adrodoc55
  */
-public class MplIntegerVariable extends MplVariable<Integer>implements Insertable {
-  public MplIntegerVariable(MplSource declarationSource, String identifier) {
-    super(declarationSource, MplType.INTEGER, identifier);
+@Immutable
+public class MplScoreboardValue implements MplValue {
+  private final TargetSelector selector;
+  private final String scoreboard;
+
+  public MplScoreboardValue(TargetSelector selector, String scoreboard) {
+    this.selector = selector;
+    this.scoreboard = scoreboard;
   }
 
-  @Override
-  public String toInsert() {
-    return String.valueOf(checkNotNull(value, "value == null!"));
+  /**
+   * @return the {@link #selector}
+   */
+  public TargetSelector getSelector() {
+    return selector;
+  }
+
+  /**
+   * @return the {@link #scoreboard}
+   */
+  public String getScoreboard() {
+    return scoreboard;
   }
 }

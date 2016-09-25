@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.variable;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import de.adrodoc55.minecraft.mpl.ast.variable.type.MplType;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
@@ -53,11 +56,6 @@ public class MplStringVariable extends MplVariable<String>implements Insertable 
 
   @Override
   public String toInsert() {
-    return value;
-  }
-
-  @Override
-  protected String convertValue(String value) {
-    return value;
+    return checkNotNull(value, "value == null!");
   }
 }
