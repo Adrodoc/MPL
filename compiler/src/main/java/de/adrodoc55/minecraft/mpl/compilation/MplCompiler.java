@@ -67,26 +67,29 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.placement.MplDebugProgramPlacer;
 import de.adrodoc55.minecraft.mpl.placement.MplProgramPlacer;
 import de.adrodoc55.minecraft.mpl.placement.NotEnoughSpaceException;
+import de.adrodoc55.minecraft.mpl.version.MplVersion;
 
 /**
  * @author Adrodoc55
  */
 public class MplCompiler {
-  public static MplCompilationResult compile(File programFile, CompilerOptions options)
-      throws IOException, CompilationFailedException {
-    return new MplCompiler(options).compile(programFile);
+  public static MplCompilationResult compile(File programFile, MplVersion version,
+      CompilerOptions options) throws IOException, CompilationFailedException {
+    return new MplCompiler(version, options).compile(programFile);
   }
 
+  private final MplVersion version;
   private final CompilerOptions options;
   private MplCompilerContext context;
 
-  public MplCompiler(CompilerOptions options) {
+  public MplCompiler(MplVersion version, CompilerOptions options) {
+    this.version = version;
     this.options = options;
   }
 
   public MplCompilerContext provideContext() {
     if (context == null) {
-      context = new MplCompilerContext(options);
+      context = new MplCompilerContext(version, options);
     }
     return context;
   }
@@ -132,9 +135,9 @@ public class MplCompiler {
   public List<CommandBlockChain> place(ChainContainer container) throws CompilationFailedException {
     try {
       if (options.hasOption(DEBUG)) {
-        return new MplDebugProgramPlacer(container, options).place();
+        return new MplDebugProgramPlacer(container, version, options).place();
       } else {
-        return new MplProgramPlacer(container, options).place();
+        return new MplProgramPlacer(container, version, options).place();
       }
     } catch (NotEnoughSpaceException ex) {
       throw new CompilationFailedException(

@@ -64,12 +64,15 @@ import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
+import de.adrodoc55.minecraft.mpl.version.MplVersion;
 
 public abstract class AbstractMplProgramPlacerTest extends MplTestBase {
 
   protected abstract boolean isDebug();
 
-  protected abstract MplChainPlacer createPlacer(CompilerOptions options, ChainContainer container);
+  protected abstract MplChainPlacer createPlacer(MplVersion version, CompilerOptions options,
+      ChainContainer container);
 
   @Test
   public void test_chains_size() throws NotEnoughSpaceException {
@@ -82,7 +85,8 @@ public abstract class AbstractMplProgramPlacerTest extends MplTestBase {
         .withChains($listOf(chainCount, $CommandChain(options))));
 
     // when:
-    List<CommandBlockChain> chains = createPlacer(options, container).place();
+    List<CommandBlockChain> chains =
+        createPlacer(MinecraftVersion.getDefault(), options, container).place();
 
     // then:
     assertThat(chains.size()).isEqualTo(chainCount + 2); // +2 for install and uninstall
@@ -99,7 +103,8 @@ public abstract class AbstractMplProgramPlacerTest extends MplTestBase {
         .withChains(listOf(chain)));
 
     // when:
-    List<CommandBlockChain> chains = createPlacer(options, container).place();
+    List<CommandBlockChain> chains =
+        createPlacer(MinecraftVersion.getDefault(), options, container).place();
 
     // then:
     CommandBlockChain placed = findByName(chain.getName(), chains);
@@ -119,7 +124,8 @@ public abstract class AbstractMplProgramPlacerTest extends MplTestBase {
         .withChains(listOf(chain)));
 
     // when:
-    List<CommandBlockChain> chains = createPlacer(options, container).place();
+    List<CommandBlockChain> chains =
+        createPlacer(MinecraftVersion.getDefault(), options, container).place();
 
     // then:
     CommandBlockChain placed = findByName(chain.getName(), chains);
@@ -144,7 +150,8 @@ public abstract class AbstractMplProgramPlacerTest extends MplTestBase {
         .withChains(listOf(chain)));
 
     // when:
-    List<CommandBlockChain> chains = createPlacer(options, container).place();
+    List<CommandBlockChain> chains =
+        createPlacer(MinecraftVersion.getDefault(), options, container).place();
 
     // then:
     CommandBlockChain placed = findByName(chain.getName(), chains);
@@ -168,7 +175,8 @@ public abstract class AbstractMplProgramPlacerTest extends MplTestBase {
             .withTags(new ArrayList<>()))));
 
     // when:
-    List<CommandBlockChain> chains = createPlacer(options, container).place();
+    List<CommandBlockChain> chains =
+        createPlacer(MinecraftVersion.getDefault(), options, container).place();
 
     // then:
     CommandBlockChain install = findByName("install", chains);
@@ -191,7 +199,8 @@ public abstract class AbstractMplProgramPlacerTest extends MplTestBase {
             .withTags(tags))));
 
     // when:
-    List<CommandBlockChain> chains = createPlacer(options, container).place();
+    List<CommandBlockChain> chains =
+        createPlacer(MinecraftVersion.getDefault(), options, container).place();
 
     // then:
     CommandBlockChain install = findByName("install", chains);

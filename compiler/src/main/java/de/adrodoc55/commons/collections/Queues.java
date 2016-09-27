@@ -44,6 +44,9 @@ import java.util.Queue;
 
 import de.adrodoc55.commons.collections.Collections.UnmodifiableCollection;
 
+/**
+ * @author Adrodoc55
+ */
 public class Queues {
   protected Queues() throws Exception {
     throw new Exception("Utils Classes cannot be instantiated!");

@@ -58,6 +58,7 @@ import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.version.MplVersion;
 import de.kussm.chain.Chain;
 import de.kussm.chain.ChainLinkType;
 import de.kussm.direction.Directions;
@@ -71,8 +72,8 @@ public class MplProgramPlacer extends MplChainPlacer {
   private final int[] occupied;
   private Position size;
 
-  public MplProgramPlacer(ChainContainer container, CompilerOptions options) {
-    super(container, options);
+  public MplProgramPlacer(ChainContainer container, MplVersion version, CompilerOptions options) {
+    super(container, version, options);
     int size = container.getChains().size() + 2;
     this.occupied = new int[size];
   }

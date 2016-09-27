@@ -46,11 +46,14 @@ import java.util.Set;
 
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInclude;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
+import de.adrodoc55.minecraft.mpl.version.MplVersion;
 
 /**
  * @author Adrodoc55
  */
 public class MplCompilerContext {
+  private final MplVersion version;
   private final CompilerOptions options;
   private final Set<CompilerException> errors = new LinkedHashSet<>();
   private final Set<CompilerException> warnings = new LinkedHashSet<>();
@@ -62,6 +65,11 @@ public class MplCompilerContext {
   }
 
   public MplCompilerContext(CompilerOptions options) {
+    this(MinecraftVersion.getDefault(), options);
+  }
+
+  public MplCompilerContext(MplVersion version, CompilerOptions options) {
+    this.version = version;
     this.options = options;
   }
 
@@ -70,6 +78,10 @@ public class MplCompilerContext {
     warnings.addAll(context.warnings);
     included.addAll(context.included);
     toInclude.addAll(context.toInclude);
+  }
+
+  public MplVersion getVersion() {
+    return version;
   }
 
   public CompilerOptions getOptions() {

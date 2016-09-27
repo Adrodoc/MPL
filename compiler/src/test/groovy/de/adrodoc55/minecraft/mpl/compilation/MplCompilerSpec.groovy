@@ -902,7 +902,7 @@ class MplCompilerSpec extends MplSpecBase {
     install.blocks.size() == 5
     install.blocks[0].class == Transmitter
     install.blocks[1].getCommand().startsWith('setblock ')
-    install.blocks[2].getCommand().startsWith('summon ArmorStand ')
+    install.blocks[2].getCommand().startsWith('summon ')
     install.blocks[3].toCommand() == new Command('say install')
     install.blocks[4].class == AirBlock
   }
@@ -936,7 +936,7 @@ class MplCompilerSpec extends MplSpecBase {
     uninstall.blocks[0].class == Transmitter
     uninstall.blocks[1].getCommand().startsWith('setblock ')
     uninstall.blocks[2].toCommand() == new Command('say uninstall')
-    uninstall.blocks[3].getCommand().startsWith('kill @e[type=ArmorStand,tag=MPL')
+    uninstall.blocks[3].getCommand().startsWith('kill @e[type=')
     uninstall.blocks[4].class == AirBlock
   }
 

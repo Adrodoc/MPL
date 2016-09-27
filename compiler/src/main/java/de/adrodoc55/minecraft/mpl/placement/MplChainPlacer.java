@@ -82,6 +82,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
+import de.adrodoc55.minecraft.mpl.version.MplVersion;
 import de.kussm.chain.Chain;
 import de.kussm.chain.ChainLayouter;
 import de.kussm.chain.ChainLinkType;
@@ -94,10 +95,12 @@ import de.kussm.position.Position;
 public abstract class MplChainPlacer {
   protected final ChainContainer container;
   protected final CompilerOptions options;
+  protected final MplVersion version;
   protected final List<CommandBlockChain> chains = new ArrayList<>();
 
-  protected MplChainPlacer(ChainContainer container, CompilerOptions options) {
+  protected MplChainPlacer(ChainContainer container, MplVersion version, CompilerOptions options) {
     this.container = container;
+    this.version = version;
     this.options = options;
   }
 
@@ -263,9 +266,9 @@ public abstract class MplChainPlacer {
         tags += "," + tag;
       }
       result.add(index,
-          new Command("/summon ArmorStand ${origin + (" + chainStart.toAbsoluteString()
-              + ")} {CustomName:" + name + ",Tags:[" + container.getHashCode() + tags
-              + "],NoGravity:1b,Invisible:1b,Invulnerable:1b"
+          new Command("/summon " + version.getMarkerEntityName() + " ${origin + ("
+              + chainStart.toAbsoluteString() + ")} {CustomName:" + name + ",Tags:["
+              + container.getHashCode() + tags + "],NoGravity:1b,Invisible:1b,Invulnerable:1b"
               + (nonTransmitterDebug ? "" : ",Marker:1b")
               + (options.hasOption(DEBUG) ? ",CustomNameVisible:1b" : "") + "}"));
     }
@@ -277,7 +280,8 @@ public abstract class MplChainPlacer {
     ArrayList<ChainLink> result = new ArrayList<>(commands.size() + 1);
     result.addAll(commands);
     if (!commands.isEmpty()) {
-      result.add(new Command("/kill @e[type=ArmorStand,tag=" + container.getHashCode() + "]"));
+      result.add(new Command("/kill @e[type=" + version.getMarkerEntityName() + ",tag="
+          + container.getHashCode() + "]"));
     }
     return new CommandChain(getUninstall().getName(), result);
   }

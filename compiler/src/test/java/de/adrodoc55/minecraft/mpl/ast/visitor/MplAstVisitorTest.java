@@ -111,18 +111,26 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class MplAstVisitorTest {
-
+  protected MplCompilerContext context;
   protected MplMainAstVisitor underTest;
 
   @Before
   public void before() {
-    underTest = newUnderTest();
+    context = newContext();
+    underTest = newUnderTest(context);
   }
 
-  protected abstract MplMainAstVisitor newUnderTest();
+  protected String markerEntity() {
+    return context.getVersion().getMarkerEntityName();
+  }
+
+  protected abstract MplCompilerContext newContext();
+
+  protected abstract MplMainAstVisitor newUnderTest(MplCompilerContext context);
 
   protected abstract String getOnCommand(String ref);
 

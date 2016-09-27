@@ -45,6 +45,9 @@ import java.util.Iterator;
 
 import de.adrodoc55.commons.collections.Queues.UnmodifiableQueue;
 
+/**
+ * @author Adrodoc55
+ */
 public class Deques {
   protected Deques() throws Exception {
     throw new Exception("Utils Classes cannot be instantiated!");

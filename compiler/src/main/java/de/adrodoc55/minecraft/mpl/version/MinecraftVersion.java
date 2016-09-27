@@ -37,51 +37,54 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.commons.collections;
+package de.adrodoc55.minecraft.mpl.version;
 
-import java.util.Iterator;
-import java.util.function.Consumer;
+import java.util.Collections;
+
+import com.google.common.collect.ImmutableList;
+
+import de.adrodoc55.commons.Version;
 
 /**
  * @author Adrodoc55
  */
-public class Iterators {
-  protected Iterators() throws Exception {
-    throw new Exception("Utils Classes cannot be instantiated!");
+public enum MinecraftVersion implements MplVersion {
+  V1_9 {
+    @Override
+    public String getMarkerEntityName() {
+      return "ArmorStand";
+    }
+  },
+  v1_11 {
+    @Override
+    public String getMarkerEntityName() {
+      return "armor_stand";
+    }
+  };
+  private static final ImmutableList<MinecraftVersion> VALUES =
+      ImmutableList.copyOf(MinecraftVersion.values());
+
+  public static ImmutableList<MinecraftVersion> getValues() {
+    return VALUES;
   }
 
-  public static <T> Iterator<T> unmodifiableIterator(Iterator<? extends T> delegate) {
-    return new UnmodifiableIterator<T>(delegate);
+  public static MinecraftVersion getDefault() {
+    return Collections.max(VALUES);
   }
 
-  static class UnmodifiableIterator<E> implements Iterator<E> {
-    private final Iterator<? extends E> delegate;
-
-    UnmodifiableIterator(Iterator<? extends E> delegate) {
-      if (delegate == null) {
-        throw new NullPointerException();
+  public static MinecraftVersion getVersion(String version) {
+    Version other = new Version(version);
+    for (MinecraftVersion mv : VALUES.reverse()) {
+      Version v = new Version(mv.toString());
+      if (v.isLessThanOrEqualTo(other)) {
+        return mv;
       }
-      this.delegate = delegate;
     }
+    return Collections.min(VALUES);
+  }
 
-    @Override
-    public boolean hasNext() {
-      return delegate.hasNext();
-    }
-
-    @Override
-    public E next() {
-      return delegate.next();
-    }
-
-    @Override
-    public void remove() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void forEachRemaining(Consumer<? super E> action) {
-      delegate.forEachRemaining(action);
-    }
+  @Override
+  public String toString() {
+    return super.toString().substring(1).replace('_', '.');
   }
 }
