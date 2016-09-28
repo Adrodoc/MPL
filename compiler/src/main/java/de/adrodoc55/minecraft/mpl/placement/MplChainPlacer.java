@@ -256,7 +256,7 @@ public abstract class MplChainPlacer {
       }
       Coordinate3D chainStart = chain.getBlocks().get(0).getCoordinate();
       boolean nonTransmitterDebug = (!options.hasOption(TRANSMITTER) && options.hasOption(DEBUG));
-      if (nonTransmitterDebug) {
+      if (nonTransmitterDebug || version.isGreaterThanOrEqualTo(MinecraftVersion._16w32a)) {
         chainStart = chainStart.minus(0.4, Y);
       } else {
         chainStart = chainStart.plus(0.4, Y);

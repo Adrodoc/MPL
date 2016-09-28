@@ -70,7 +70,7 @@ public class MplProgramPlacerTest extends AbstractMplProgramPlacerTest {
   public void test_when_using_normal_Mode_Prozess_MarkerEntities_are_at_the_top_of_each_block()
       throws Exception {
     // given:
-    MinecraftVersion version = MinecraftVersion.getDefault();
+    MinecraftVersion version = MinecraftVersion._15w35a;
     CompilerOptions options = new CompilerOptions();
 
     ChainContainer container = some($ChainContainer(options)//
