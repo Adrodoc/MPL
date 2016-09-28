@@ -147,7 +147,18 @@ public class MplCompilerMain {
           }
           String v = args[++i];
           version = MinecraftVersion.getVersion(v);
-
+          boolean printVersion = false;
+          if (MinecraftVersion.isSnapshotVersion(v)) {
+            if (!version.getSnapshotVersion().equals(v)) {
+              printVersion = true;
+            }
+          } else if (!version.toString().equals(v)) {
+            printVersion = true;
+          }
+          if (printVersion) {
+            System.out.println("Falling back to Version: " + version);
+          }
+          continue;
         default:
           throw new InvalidOptionException(
               "mpl: invalid argument " + argument + " run with --help for help");
@@ -172,7 +183,7 @@ public class MplCompilerMain {
     System.out.println("  -c | --option <option1>[,<option2>...]     Specify compiler options; for instance: debug or transmitter");
     System.out.println("  -o | --output <path>                       Specify an output file (defaults to stdout)");
     System.out.println("  -t | --type schematic|command|filter       Specify the output type (defaults to structure)");
-    System.out.println("  -v | --version schematic|command|filter    Specify the target Minecraft version (defaults to " + MinecraftVersion.getDefault() + ")");
+    System.out.println("  -v | --version                             Specify the target Minecraft version (defaults to " + MinecraftVersion.getDefault() + ")");
     // @formatter:on
   }
 

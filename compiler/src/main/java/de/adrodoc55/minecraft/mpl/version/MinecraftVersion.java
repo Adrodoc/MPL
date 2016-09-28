@@ -144,8 +144,12 @@ public enum MinecraftVersion implements Comparables<MinecraftVersion> {
 
   @Override
   public String toString() {
-    String result = getMajorVersion();
-    return result != null ? result : getSnapshotVersion();
+    String result = getSnapshotVersion();
+    String majorVersion = getMajorVersion();
+    if (majorVersion != null) {
+      result += " (" + majorVersion + ")";
+    }
+    return result;
   }
 
   public abstract String markerEntity();
