@@ -74,7 +74,7 @@ import org.beanfabrics.swing.BnLabel;
 import org.beanfabrics.swing.BnTextArea;
 
 /**
- * The ExceptionDialog is a {@link View} on a {@link ExceptionDialogPM}.
+ * The {@link ExceptionDialog} is a {@link View} on a {@link ExceptionDialogPM}.
  *
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
@@ -93,14 +93,14 @@ public class ExceptionDialog extends JDialog implements View<ExceptionDialogPM>,
   private BnModelObserver bnModelObserver;
 
   /**
-   * Constructs a new <code>ExceptionDialog</code>.
+   * Constructs a new {@link ExceptionDialog}.
    */
   public ExceptionDialog() {
     this(null);
   }
 
   /**
-   * Constructs a new <code>ExceptionDialog</code>.
+   * Constructs a new {@link ExceptionDialog}.
    *
    * @param parent the {@code Window} from which the dialog is displayed or {@code null} if this
    *        dialog has no parent

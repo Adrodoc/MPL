@@ -37,51 +37,29 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.commons.collections;
-
-import java.util.Iterator;
-import java.util.function.Consumer;
+package de.adrodoc55.commons;
 
 /**
  * @author Adrodoc55
  */
-public class Iterators {
-  protected Iterators() throws Exception {
-    throw new Exception("Utils Classes cannot be instantiated!");
+public interface Comparables<T> extends Comparable<T> {
+  public default boolean isEqualTo(T other) {
+    return compareTo(other) == 0;
   }
 
-  public static <T> Iterator<T> unmodifiableIterator(Iterator<? extends T> delegate) {
-    return new UnmodifiableIterator<T>(delegate);
+  public default boolean isGreaterThan(T other) {
+    return compareTo(other) > 0;
   }
 
-  static class UnmodifiableIterator<E> implements Iterator<E> {
-    private final Iterator<? extends E> delegate;
+  public default boolean isGreaterThanOrEqualTo(T other) {
+    return compareTo(other) >= 0;
+  }
 
-    UnmodifiableIterator(Iterator<? extends E> delegate) {
-      if (delegate == null) {
-        throw new NullPointerException();
-      }
-      this.delegate = delegate;
-    }
+  public default boolean isLessThan(T other) {
+    return compareTo(other) < 0;
+  }
 
-    @Override
-    public boolean hasNext() {
-      return delegate.hasNext();
-    }
-
-    @Override
-    public E next() {
-      return delegate.next();
-    }
-
-    @Override
-    public void remove() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void forEachRemaining(Consumer<? super E> action) {
-      delegate.forEachRemaining(action);
-    }
+  public default boolean isLessThanOrEqualTo(T other) {
+    return compareTo(other) <= 0;
   }
 }

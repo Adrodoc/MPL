@@ -37,61 +37,36 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace;
 
-import java.awt.Component;
-import java.awt.KeyboardFocusManager;
-import java.awt.Point;
 import java.awt.Window;
 
-import javax.annotation.Nonnull;
+import javax.swing.WindowConstants;
 
-import org.beanfabrics.model.PresentationModel;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowController;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogPM.Context;
 
 /**
  * @author Adrodoc55
- * @param <V> the {@link WindowView} managed by this controller.
- * @param <PM> the {@link PresentationModel} managed by this controller.
  */
-public abstract class WindowControler<V extends WindowView<PM>, PM extends PresentationModel> {
-  private V view;
-  private PM pm;
+public class SearchAndReplaceDialogController
+    extends WindowController<SearchAndReplaceDialog, SearchAndReplaceDialogPM> {
 
-  public @Nonnull V getView() {
-    if (view == null) {
-      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-      view = createView(activeWindow);
-      view.setPresentationModel(getPresentationModel());
-    }
+  private final Context context;
+
+  public SearchAndReplaceDialogController(Context context) {
+    this.context = context;
+  }
+
+  @Override
+  protected SearchAndReplaceDialogPM createPM() {
+    return new SearchAndReplaceDialogPM(context);
+  }
+
+  @Override
+  protected SearchAndReplaceDialog createView(Window activeWindow) {
+    SearchAndReplaceDialog view = new SearchAndReplaceDialog(activeWindow);
+    view.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
     return view;
-  }
-
-  protected abstract V createView(Window activeWindow);
-
-  public @Nonnull PM getPresentationModel() {
-    if (pm == null) {
-      pm = createPM();
-    }
-    return pm;
-  }
-
-  protected abstract PM createPM();
-
-  public void dispose() {
-    if (hasView()) {
-      getView().dispose();
-    }
-  }
-
-  public boolean hasView() {
-    return view != null;
-  }
-
-  public void setLocation(Component source, Point location) {
-    int fontSize = source.getFont().getSize();
-    location.translate(1, fontSize + 3);
-    Point screenPos = source.getLocationOnScreen();
-    location.translate(screenPos.x, screenPos.y);
-    getView().setLocation(location);
   }
 }

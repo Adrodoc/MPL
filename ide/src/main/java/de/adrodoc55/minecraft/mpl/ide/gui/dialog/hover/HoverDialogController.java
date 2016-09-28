@@ -37,51 +37,28 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.commons.collections;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.hover;
 
-import java.util.Iterator;
-import java.util.function.Consumer;
+import java.awt.Window;
+
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowController;
 
 /**
  * @author Adrodoc55
  */
-public class Iterators {
-  protected Iterators() throws Exception {
-    throw new Exception("Utils Classes cannot be instantiated!");
+public class HoverDialogController extends WindowController<HoverDialog, HoverDialogPM> {
+  @Override
+  protected HoverDialogPM createPM() {
+    return new HoverDialogPM();
   }
 
-  public static <T> Iterator<T> unmodifiableIterator(Iterator<? extends T> delegate) {
-    return new UnmodifiableIterator<T>(delegate);
+  @Override
+  protected HoverDialog createView(Window activeWindow) {
+    return new HoverDialog(activeWindow);
   }
 
-  static class UnmodifiableIterator<E> implements Iterator<E> {
-    private final Iterator<? extends E> delegate;
-
-    UnmodifiableIterator(Iterator<? extends E> delegate) {
-      if (delegate == null) {
-        throw new NullPointerException();
-      }
-      this.delegate = delegate;
-    }
-
-    @Override
-    public boolean hasNext() {
-      return delegate.hasNext();
-    }
-
-    @Override
-    public E next() {
-      return delegate.next();
-    }
-
-    @Override
-    public void remove() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void forEachRemaining(Consumer<? super E> action) {
-      delegate.forEachRemaining(action);
-    }
+  public void setMessage(String message) {
+    getPresentationModel().setMessage(message);
+    getView().pack();
   }
 }

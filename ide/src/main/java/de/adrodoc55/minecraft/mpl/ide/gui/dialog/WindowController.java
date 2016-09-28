@@ -37,51 +37,61 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.commons.collections;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog;
 
-import java.util.Iterator;
-import java.util.function.Consumer;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
+import java.awt.Point;
+import java.awt.Window;
+
+import javax.annotation.Nonnull;
+
+import org.beanfabrics.model.PresentationModel;
 
 /**
  * @author Adrodoc55
+ * @param <V> the {@link WindowView} managed by this controller.
+ * @param <PM> the {@link PresentationModel} managed by this controller.
  */
-public class Iterators {
-  protected Iterators() throws Exception {
-    throw new Exception("Utils Classes cannot be instantiated!");
+public abstract class WindowController<V extends WindowView<PM>, PM extends PresentationModel> {
+  private V view;
+  private PM pm;
+
+  public @Nonnull V getView() {
+    if (view == null) {
+      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+      view = createView(activeWindow);
+      view.setPresentationModel(getPresentationModel());
+    }
+    return view;
   }
 
-  public static <T> Iterator<T> unmodifiableIterator(Iterator<? extends T> delegate) {
-    return new UnmodifiableIterator<T>(delegate);
+  protected abstract V createView(Window activeWindow);
+
+  public @Nonnull PM getPresentationModel() {
+    if (pm == null) {
+      pm = createPM();
+    }
+    return pm;
   }
 
-  static class UnmodifiableIterator<E> implements Iterator<E> {
-    private final Iterator<? extends E> delegate;
+  protected abstract PM createPM();
 
-    UnmodifiableIterator(Iterator<? extends E> delegate) {
-      if (delegate == null) {
-        throw new NullPointerException();
-      }
-      this.delegate = delegate;
+  public void dispose() {
+    if (hasView()) {
+      getView().dispose();
     }
+  }
 
-    @Override
-    public boolean hasNext() {
-      return delegate.hasNext();
-    }
+  public boolean hasView() {
+    return view != null;
+  }
 
-    @Override
-    public E next() {
-      return delegate.next();
-    }
-
-    @Override
-    public void remove() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void forEachRemaining(Consumer<? super E> action) {
-      delegate.forEachRemaining(action);
-    }
+  public void setLocation(Component source, Point location) {
+    int fontSize = source.getFont().getSize();
+    location.translate(1, fontSize + 3);
+    Point screenPos = source.getLocationOnScreen();
+    location.translate(screenPos.x, screenPos.y);
+    getView().setLocation(location);
   }
 }

@@ -58,6 +58,7 @@ import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
 import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
 import de.adrodoc55.minecraft.mpl.conversion.SchematicConverter;
 import de.adrodoc55.minecraft.mpl.conversion.StructureConverter;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 
 /**
  * @author Adrodoc55
@@ -94,6 +95,7 @@ public class MplCompilerMain {
     OutputStream out = System.out;
     CompilationType type = CompilationType.STRUCTURE;
     CompilerOptions options = new CompilerOptions();
+    MinecraftVersion version = MinecraftVersion.getDefault();
 
     for (int i = 0; i < args.length; i++) {
       String arg = args[i];
@@ -138,7 +140,25 @@ public class MplCompilerMain {
                 + "; possible types are: " + Joiner.on(", ").join(CompilationType.values()));
           }
           continue;
-
+        case "v":
+        case "version":
+          if (i >= args.length) {
+            throw new InvalidOptionException("mpl: missing argument for option " + argument);
+          }
+          String v = args[++i];
+          version = MinecraftVersion.getVersion(v);
+          boolean printVersion = false;
+          if (MinecraftVersion.isSnapshotVersion(v)) {
+            if (!version.getSnapshotVersion().equals(v)) {
+              printVersion = true;
+            }
+          } else if (!version.toString().equals(v)) {
+            printVersion = true;
+          }
+          if (printVersion) {
+            System.out.println("Falling back to Version: " + version);
+          }
+          continue;
         default:
           throw new InvalidOptionException(
               "mpl: invalid argument " + argument + " run with --help for help");
@@ -151,20 +171,20 @@ public class MplCompilerMain {
     File programFile = new File(srcPath).getAbsoluteFile();
     String name = FileUtils.getFilenameWithoutExtension(programFile);
 
-    MplCompilationResult compiled = MplCompiler.compile(programFile, options);
-    type.getConverter().write(compiled, name, out);
+    MplCompilationResult compiled = MplCompiler.compile(programFile, version, options);
+    type.getConverter().write(compiled, name, out, version);
   }
 
   private static void printHelp() {
+    // @formatter:off
     System.out.println("Usage: java -jar MPL.jar <options> <src-file>");
     System.out.println("where possible options include:");
-    System.out.println("  -h | --help\t\t\t\t\tPrint information about the commandline usage");
-    System.out.println(
-        "  -c | --option <option1>[,<option2>...] \tSpecify compiler options; for instance: debug or transmitter");
-    System.out
-        .println("  -o | --output <path> \t\t\t\tSpecify an output file (defaults to stdout)");
-    System.out.println(
-        "  -t | --type schematic|command|filter \t\tSpecify the output type (defaults to structure)");
+    System.out.println("  -h | --help                                Print information about the commandline usage");
+    System.out.println("  -c | --option <option1>[,<option2>...]     Specify compiler options; for instance: debug or transmitter");
+    System.out.println("  -o | --output <path>                       Specify an output file (defaults to stdout)");
+    System.out.println("  -t | --type schematic|command|filter       Specify the output type (defaults to structure)");
+    System.out.println("  -v | --version                             Specify the target Minecraft version (defaults to " + MinecraftVersion.getDefault() + ")");
+    // @formatter:on
   }
 
   @VisibleForTesting

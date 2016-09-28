@@ -37,51 +37,33 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.commons.collections;
+package de.adrodoc55.commons;
 
-import java.util.Iterator;
-import java.util.function.Consumer;
+import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * @author Adrodoc55
- */
-public class Iterators {
-  protected Iterators() throws Exception {
-    throw new Exception("Utils Classes cannot be instantiated!");
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+
+@RunWith(Parameterized.class)
+public class VersionTest_GreaterThan {
+  private final String a;
+  private final String b;
+
+  public VersionTest_GreaterThan(String a, String b) {
+    this.a = a;
+    this.b = b;
   }
 
-  public static <T> Iterator<T> unmodifiableIterator(Iterator<? extends T> delegate) {
-    return new UnmodifiableIterator<T>(delegate);
+  @Test
+  public void test_compareTo() {
+    // expect:
+    assertThat(new Version(a)).isGreaterThan(new Version(b));
   }
 
-  static class UnmodifiableIterator<E> implements Iterator<E> {
-    private final Iterator<? extends E> delegate;
-
-    UnmodifiableIterator(Iterator<? extends E> delegate) {
-      if (delegate == null) {
-        throw new NullPointerException();
-      }
-      this.delegate = delegate;
-    }
-
-    @Override
-    public boolean hasNext() {
-      return delegate.hasNext();
-    }
-
-    @Override
-    public E next() {
-      return delegate.next();
-    }
-
-    @Override
-    public void remove() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void forEachRemaining(Consumer<? super E> action) {
-      delegate.forEachRemaining(action);
-    }
+  @Parameters(name = "{index}: {0} > {1}")
+  public static Iterable<String[]> data() {
+    return VersionTestDataFactory.greaterThan();
   }
 }

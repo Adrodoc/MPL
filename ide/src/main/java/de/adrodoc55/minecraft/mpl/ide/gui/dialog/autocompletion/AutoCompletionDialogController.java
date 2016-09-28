@@ -37,51 +37,50 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.commons.collections;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion;
 
-import java.util.Iterator;
-import java.util.function.Consumer;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.awt.Dimension;
+import java.awt.Window;
+import java.util.Collection;
+
+import de.adrodoc55.minecraft.mpl.ide.autocompletion.AutoCompletionAction;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowController;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialogPM.Context;
 
 /**
  * @author Adrodoc55
  */
-public class Iterators {
-  protected Iterators() throws Exception {
-    throw new Exception("Utils Classes cannot be instantiated!");
+public class AutoCompletionDialogController
+    extends WindowController<AutoCompletionDialog, AutoCompletionDialogPM> {
+  private final Context context;
+
+  public AutoCompletionDialogController(Context context) {
+    this.context = checkNotNull(context, "context == null!");
   }
 
-  public static <T> Iterator<T> unmodifiableIterator(Iterator<? extends T> delegate) {
-    return new UnmodifiableIterator<T>(delegate);
+  public void setOptions(Collection<AutoCompletionAction> options) {
+    getPresentationModel().setOptions(options);
+    recalculateViewSize();
   }
 
-  static class UnmodifiableIterator<E> implements Iterator<E> {
-    private final Iterator<? extends E> delegate;
+  @Override
+  protected AutoCompletionDialogPM createPM() {
+    return new AutoCompletionDialogPM(context);
+  }
 
-    UnmodifiableIterator(Iterator<? extends E> delegate) {
-      if (delegate == null) {
-        throw new NullPointerException();
-      }
-      this.delegate = delegate;
-    }
+  @Override
+  protected AutoCompletionDialog createView(Window activeWindow) {
+    return new AutoCompletionDialog(activeWindow);
+  }
 
-    @Override
-    public boolean hasNext() {
-      return delegate.hasNext();
-    }
-
-    @Override
-    public E next() {
-      return delegate.next();
-    }
-
-    @Override
-    public void remove() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void forEachRemaining(Consumer<? super E> action) {
-      delegate.forEachRemaining(action);
-    }
+  private void recalculateViewSize() {
+    AutoCompletionDialog view = getView();
+    AutoCompletionDialogPM pm = getPresentationModel();
+    view.getBnList().setVisibleRowCount(Math.max(1, Math.min(pm.options.size(), 10)));
+    Dimension preferredSize = view.getPreferredSize();
+    preferredSize.width += 5;
+    view.setSize(preferredSize);
   }
 }

@@ -41,12 +41,12 @@ package de.adrodoc55.minecraft.mpl.ide.gui.dialog.command;
 
 import java.awt.Window;
 
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowControler;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowController;
 
 /**
  * @author Adrodoc55
  */
-public class CommandDialogControler extends WindowControler<CommandDialog, CommandDialogPM> {
+public class CommandDialogController extends WindowController<CommandDialog, CommandDialogPM> {
   @Override
   protected CommandDialogPM createPM() {
     return new CommandDialogPM(new CommandDialogPM.Context() {

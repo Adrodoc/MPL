@@ -37,28 +37,44 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.hover;
+package de.adrodoc55.commons;
 
-import java.awt.Window;
+import java.util.Arrays;
 
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowControler;
-
-/**
- * @author Adrodoc55
- */
-public class HoverDialogControler extends WindowControler<HoverDialog, HoverDialogPM> {
-  @Override
-  protected HoverDialogPM createPM() {
-    return new HoverDialogPM();
+public class VersionTestDataFactory {
+  public static Iterable<String[]> equalTo() {
+    return Arrays.asList(new String[][] {//
+        {"1", "1"}, //
+        {"a", "a"}, //
+        {"1a", "1a"}, //
+        {"a1", "a1"}, //
+        {"1.2", "1.2"}, //
+        {"1", "1.0"}, //
+        {"1", "1.0.0"}, //
+    });
   }
 
-  @Override
-  protected HoverDialog createView(Window activeWindow) {
-    return new HoverDialog(activeWindow);
+  public static Iterable<String[]> lessThan() {
+    return Arrays.asList(new String[][] {//
+        {"1", "2"}, //
+        {"1", "a"}, //
+        {"1", "1a"}, //
+        {"a1", "a2"}, //
+        {"1.1", "1.2"}, //
+        {"1.1", "2"}, //
+        {"1.1", "2.1"}, //
+        {"2", "10"}, //
+        {"2.1", "10"},//
+    });
   }
 
-  public void setMessage(String message) {
-    getPresentationModel().setMessage(message);
-    getView().pack();
+  public static Iterable<String[]> greaterThan() {
+    Iterable<String[]> result = lessThan();
+    for (String[] pair : result) {
+      String temp = pair[0];
+      pair[0] = pair[1];
+      pair[1] = temp;
+    }
+    return result;
   }
 }

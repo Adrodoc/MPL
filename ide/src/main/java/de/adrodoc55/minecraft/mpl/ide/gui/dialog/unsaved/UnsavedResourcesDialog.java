@@ -74,7 +74,7 @@ import org.beanfabrics.swing.table.BnColumnBuilder;
 import org.beanfabrics.swing.table.BnTable;
 
 /**
- * The UnsavedFilesDialog is a {@link View} on a {@link UnsavedResourcesDialogPM}.
+ * The {@link UnsavedResourcesDialog} is a {@link View} on a {@link UnsavedResourcesDialogPM}.
  *
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
@@ -100,7 +100,7 @@ public class UnsavedResourcesDialog extends JDialog
   }
 
   /**
-   * Constructs a new <code>UnsavedFilesDialog</code>.
+   * Constructs a new {@link UnsavedResourcesDialog}.
    *
    * @param parent the {@code Window} from which the dialog is displayed or {@code null} if this
    *        dialog has no parent

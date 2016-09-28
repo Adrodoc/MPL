@@ -49,6 +49,7 @@ import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import de.kussm.direction.Directions;
 
 /**
@@ -58,8 +59,9 @@ public class MplDebugProgramPlacer extends MplChainPlacer {
 
   private Coordinate3D start = new Coordinate3D().plus(3, getOrientation().getC());
 
-  public MplDebugProgramPlacer(ChainContainer container, CompilerOptions options) {
-    super(container, options);
+  public MplDebugProgramPlacer(ChainContainer container, MinecraftVersion version,
+      CompilerOptions options) {
+    super(container, version, options);
   }
 
   @Override
@@ -105,7 +107,7 @@ public class MplDebugProgramPlacer extends MplChainPlacer {
     Command deleteOnUninstall = null;
     if (options.hasOption(DELETE_ON_UNINSTALL)) {
       deleteOnUninstall = new Command();
-      uninstall.getCommands().add(deleteOnUninstall);
+      uninstall.addCommand(deleteOnUninstall);
     }
 
     addChain(getPopulatedInstall());
