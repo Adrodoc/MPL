@@ -54,14 +54,16 @@ import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
+import de.adrodoc55.minecraft.mpl.version.MplVersion;
 
 /**
  * @author Adrodoc55
  */
 public class CommandConverter implements MplConverter {
   @Override
-  public void write(MplCompilationResult result, String name, OutputStream out) throws IOException {
-    List<String> converted = CommandConverter.convert(result);
+  public void write(MplCompilationResult result, String name, OutputStream out, MplVersion version)
+      throws IOException {
+    List<String> converted = CommandConverter.convert(result, version);
     int i = 0;
     for (String string : converted) {
       out.write(("Command " + (++i) + ":\r\n").getBytes(UTF_8));
@@ -78,18 +80,26 @@ public class CommandConverter implements MplConverter {
   private static final String REPLACE = "";
   public static final int MAX_COMMAND_LENGTH = 32500;
 
-  private static final String HEADER =
-      "summon FallingSand ~ ~1 ~ {Block:redstone_block,Time:1,Passengers:["
-          + "{id:FallingSand,Block:activator_rail,Time:1,Passengers:[";
+  private static final String header(MplVersion v) {
+    return "summon " + v.fallingBlock() + " ~ ~1 ~ {Block:redstone_block,Time:1,Passengers:["
+        + "{id:" + v.fallingBlock() + ",Block:activator_rail,Time:1,Passengers:[";
+  }
 
-  private static final String TAIL =
-      "{id:MinecartCommandBlock,Command:setblock ~ ~-2 ~ command_block},"
-          + "{id:MinecartCommandBlock,Command:setblock ~ ~2 ~ command_block 0 " + REPLACE
-          + " {Command:fill ~ ~-3 ~ ~ ~ ~ air}},"
-          + "{id:MinecartCommandBlock,Command:setblock ~ ~1 ~ redstone_block},"
-          + "{id:MinecartCommandBlock,Command:kill @e[type=MinecartCommandBlock,r=0]}]}]}";
-  private static final String COMMAND_HEADER = "{id:MinecartCommandBlock,Command:";
-  private static final String COMMAND_TAIL = "},";
+  private static final String tail(MplVersion v) {
+    return "{id:" + v.commandBlockMinecart() + ",Command:setblock ~ ~-2 ~ command_block}," + "{id:"
+        + v.commandBlockMinecart() + ",Command:setblock ~ ~2 ~ command_block 0 " + REPLACE
+        + " {Command:fill ~ ~-3 ~ ~ ~ ~ air}}," + "{id:" + v.commandBlockMinecart()
+        + ",Command:setblock ~ ~1 ~ redstone_block}," + "{id:" + v.commandBlockMinecart()
+        + ",Command:kill @e[type=" + v.commandBlockMinecart() + ",r=0]}]}]}";
+  }
+
+  private static final String commandHeader(MplVersion v) {
+    return "{id:" + v.commandBlockMinecart() + ",Command:";
+  }
+
+  private static final String commandTail(MplVersion v) {
+    return "},";
+  }
 
   public static Coordinate3D getOffset(Orientation3D orientation) {
     Coordinate3D a = orientation.getA().toCoordinate();
@@ -107,45 +117,46 @@ public class CommandConverter implements MplConverter {
     // @formatter:on
   }
 
-  public static List<String> convert(MplCompilationResult result) {
+  public static List<String> convert(MplCompilationResult result, MplVersion version) {
     List<String> commands = new ArrayList<>();
     Orientation3D orientation = result.getOrientation();
 
-    StringBuilder sb = new StringBuilder(HEADER);
+    StringBuilder sb = new StringBuilder(header(version));
     // Appending initial fill Command to clear the required Area
     Coordinate3D max = getBoundaries(orientation, result.getBlocks().keySet());
-    sb.append(COMMAND_HEADER);
+    sb.append(commandHeader(version));
     sb.append("fill ");
     sb.append(new Coordinate3D().plus(getOffset(orientation)).toRelativeString()).append(' ');
     sb.append(max.plus(getOffset(orientation)).toRelativeString()).append(' ');
     sb.append("air");
-    sb.append(COMMAND_TAIL);
+    sb.append(commandTail(version));
     // Appending setblock for all Commands
     for (MplBlock block : result.getBlocks().values()) {
       if (!(block instanceof CommandBlock)) {
         continue;
       }
-      StringBuilder convert = convert((CommandBlock) block, orientation);
-      int totalLength = sb.length() + convert.length() + TAIL.length();
+      StringBuilder convert = convert((CommandBlock) block, orientation, version);
+      int totalLength = sb.length() + convert.length() + tail(version).length();
       if (totalLength > MAX_COMMAND_LENGTH) {
-        sb.append(TAIL);
+        sb.append(tail(version));
         commands.add(sb.toString());
-        sb = new StringBuilder(HEADER);
+        sb = new StringBuilder(header(version));
       }
       sb.append(convert);
     }
-    sb.append(TAIL);
+    sb.append(tail(version));
     commands.add(sb.toString());
-    sb = new StringBuilder(HEADER);
+    sb = new StringBuilder(header(version));
 
     return commands;
   }
 
-  private static StringBuilder convert(CommandBlock block, Orientation3D orientation) {
+  private static StringBuilder convert(CommandBlock block, Orientation3D orientation,
+      MplVersion version) {
     String coordinate = block.getCoordinate().plus(getOffset(orientation)).toRelativeString();
     String blockId = block.getStringBlockId();
     int damage = block.getDamageValue();
-    StringBuilder sb = new StringBuilder(COMMAND_HEADER);
+    StringBuilder sb = new StringBuilder(commandHeader(version));
     sb.append("setblock ");
     sb.append(coordinate).append(' ');
     sb.append(blockId).append(' ');
@@ -158,7 +169,7 @@ public class CommandConverter implements MplConverter {
     sb.append("Command:");
     sb.append(escapeCommand(block.getCommand()));
     sb.append('}');
-    sb.append(COMMAND_TAIL);
+    sb.append(commandTail(version));
     return sb;
   }
 

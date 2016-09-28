@@ -87,7 +87,7 @@ public class MplProgramPlacerTest extends AbstractMplProgramPlacerTest {
     assertThat(blocks).hasSize(3);
     CommandBlock block = (CommandBlock) blocks.get(1);
     assertThat(block.getCommand())
-        .startsWith("summon " + version.getMarkerEntityName() + " ${origin + (0 0.4 1)}");
+        .startsWith("summon " + version.markerEntity() + " ${origin + (0 0.4 1)}");
   }
 
 }

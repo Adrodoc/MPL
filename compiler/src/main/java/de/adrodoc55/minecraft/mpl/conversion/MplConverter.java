@@ -43,10 +43,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
+import de.adrodoc55.minecraft.mpl.version.MplVersion;
 
 /**
  * @author Adrodoc55
  */
 public interface MplConverter {
-  void write(MplCompilationResult result, String name, OutputStream out) throws IOException;
+  void write(MplCompilationResult result, String name, OutputStream out, MplVersion version)
+      throws IOException;
 }

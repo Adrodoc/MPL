@@ -413,9 +413,9 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     checkNotInlineProcess(waitfor, event);
 
     MplVersion version = context.getVersion();
-    ReferencingCommand summon = new ReferencingCommand(
-        "summon " + version.getMarkerEntityName() + " " + REF + " {CustomName:" + event + NOTIFY
-            + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
+    ReferencingCommand summon =
+        new ReferencingCommand("summon " + version.markerEntity() + " " + REF + " {CustomName:"
+            + event + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
 
     if (waitfor.getConditional() == UNCONDITIONAL) {
       summon.setRelative(1);
@@ -522,10 +522,9 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
         "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}", conditional);
 
     MplVersion version = context.getVersion();
-    ResolveableCommand summon = new ResolveableCommand(
-        "summon " + version.getMarkerEntityName() + " " + REF + " {CustomName:" + event
-            + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
-        conditional);
+    ResolveableCommand summon =
+        new ResolveableCommand("summon " + version.markerEntity() + " " + REF + " {CustomName:"
+            + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", conditional);
 
 
     ResolveableCommand jump = new ResolveableCommand(getStartCommand(REF), true);

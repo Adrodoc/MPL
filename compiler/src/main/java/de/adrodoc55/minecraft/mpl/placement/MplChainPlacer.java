@@ -266,7 +266,7 @@ public abstract class MplChainPlacer {
         tags += "," + tag;
       }
       result.add(index,
-          new Command("/summon " + version.getMarkerEntityName() + " ${origin + ("
+          new Command("/summon " + version.markerEntity() + " ${origin + ("
               + chainStart.toAbsoluteString() + ")} {CustomName:" + name + ",Tags:["
               + container.getHashCode() + tags + "],NoGravity:1b,Invisible:1b,Invulnerable:1b"
               + (nonTransmitterDebug ? "" : ",Marker:1b")
@@ -280,8 +280,8 @@ public abstract class MplChainPlacer {
     ArrayList<ChainLink> result = new ArrayList<>(commands.size() + 1);
     result.addAll(commands);
     if (!commands.isEmpty()) {
-      result.add(new Command("/kill @e[type=" + version.getMarkerEntityName() + ",tag="
-          + container.getHashCode() + "]"));
+      result.add(new Command(
+          "/kill @e[type=" + version.markerEntity() + ",tag=" + container.getHashCode() + "]"));
     }
     return new CommandChain(getUninstall().getName(), result);
   }

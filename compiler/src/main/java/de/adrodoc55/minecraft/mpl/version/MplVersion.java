@@ -43,5 +43,9 @@ package de.adrodoc55.minecraft.mpl.version;
  * @author Adrodoc55
  */
 public interface MplVersion {
-  String getMarkerEntityName();
+  String markerEntity();
+
+  String commandBlockMinecart();
+
+  String fallingBlock();
 }

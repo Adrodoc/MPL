@@ -91,7 +91,7 @@ public class MplDebugProgramPlacerTest extends AbstractMplProgramPlacerTest {
     CommandBlock block = (CommandBlock) blocks.get(1);
     String command = block.getCommand();
     assertThat(command)
-        .startsWith("summon " + version.getMarkerEntityName() + " ${origin + (0 -0.4 5)}");
+        .startsWith("summon " + version.markerEntity() + " ${origin + (0 -0.4 5)}");
     assertThat(command).doesNotContain("Marker");
   }
 

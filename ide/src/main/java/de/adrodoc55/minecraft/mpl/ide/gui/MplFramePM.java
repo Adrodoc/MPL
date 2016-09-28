@@ -224,7 +224,9 @@ public class MplFramePM extends AbstractPM {
     if (result == null) {
       return;
     }
-    List<String> commands = CommandConverter.convert(result);
+    CompilerOptionsDialogPM optionPm = optionCtrl.getPresentationModel();
+    MplVersion version = optionPm.getSavedVersion();
+    List<String> commands = CommandConverter.convert(result, version);
     CommandDialogController ctrl = new CommandDialogController();
     CommandDialogPM pm = ctrl.getPresentationModel();
     CommandDialog view = ctrl.getView();
@@ -293,7 +295,9 @@ public class MplFramePM extends AbstractPM {
       outputFile.getParentFile().mkdirs();
       outputFile.createNewFile();
       try (FileOutputStream out = new FileOutputStream(outputFile);) {
-        converter.write(result, name, out);
+        CompilerOptionsDialogPM optionPm = optionCtrl.getPresentationModel();
+        MplVersion version = optionPm.getSavedVersion();
+        converter.write(result, name, out, version);
       }
     } catch (Exception ex) {
       ex.printStackTrace();

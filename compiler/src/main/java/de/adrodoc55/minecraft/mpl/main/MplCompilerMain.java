@@ -162,7 +162,7 @@ public class MplCompilerMain {
     String name = FileUtils.getFilenameWithoutExtension(programFile);
 
     MplCompilationResult compiled = MplCompiler.compile(programFile, version, options);
-    type.getConverter().write(compiled, name, out);
+    type.getConverter().write(compiled, name, out, version);
   }
 
   private static void printHelp() {

@@ -56,8 +56,18 @@ public enum MinecraftVersion implements MplVersion {
    */
   _15w35a("1.9") {
     @Override
-    public String getMarkerEntityName() {
+    public String markerEntity() {
       return "ArmorStand";
+    }
+
+    @Override
+    public String commandBlockMinecart() {
+      return "MinecartCommandBlock";
+    }
+
+    @Override
+    public String fallingBlock() {
+      return "FallingSand";
     }
   },
   /**
@@ -65,8 +75,18 @@ public enum MinecraftVersion implements MplVersion {
    */
   _16w32a("1.11") {
     @Override
-    public String getMarkerEntityName() {
+    public String markerEntity() {
       return "armor_stand";
+    }
+
+    @Override
+    public String commandBlockMinecart() {
+      return "commandblock_minecart";
+    }
+
+    @Override
+    public String fallingBlock() {
+      return "falling_block";
     }
   };
   private static final ImmutableList<MinecraftVersion> VALUES =

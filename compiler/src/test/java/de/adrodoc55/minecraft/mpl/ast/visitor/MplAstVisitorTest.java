@@ -125,7 +125,7 @@ public abstract class MplAstVisitorTest {
   }
 
   protected String markerEntity() {
-    return context.getVersion().getMarkerEntityName();
+    return context.getVersion().markerEntity();
   }
 
   protected abstract MplCompilerContext newContext();
