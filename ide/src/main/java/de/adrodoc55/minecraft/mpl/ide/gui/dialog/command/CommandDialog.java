@@ -72,7 +72,7 @@ import org.beanfabrics.model.IListPM;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowView;
 
 /**
- * The OneCommandDialog is a {@link View} on a {@link CommandDialogPM}.
+ * The {@link CommandDialog} is a {@link View} on a {@link CommandDialogPM}.
  *
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
@@ -85,7 +85,7 @@ public class CommandDialog extends JDialog implements WindowView<CommandDialogPM
   private JPanel commandPanel;
 
   /**
-   * Constructs a new <code>OneCommandDialog</code>.
+   * Constructs a new {@link CommandDialog}.
    *
    * @param parent the {@code Window} from which the dialog is displayed or {@code null} if this
    *        dialog has no parent

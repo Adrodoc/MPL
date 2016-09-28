@@ -37,28 +37,36 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.hover;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace;
 
 import java.awt.Window;
 
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowControler;
+import javax.swing.WindowConstants;
+
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowController;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogPM.Context;
 
 /**
  * @author Adrodoc55
  */
-public class HoverDialogControler extends WindowControler<HoverDialog, HoverDialogPM> {
-  @Override
-  protected HoverDialogPM createPM() {
-    return new HoverDialogPM();
+public class SearchAndReplaceDialogController
+    extends WindowController<SearchAndReplaceDialog, SearchAndReplaceDialogPM> {
+
+  private final Context context;
+
+  public SearchAndReplaceDialogController(Context context) {
+    this.context = context;
   }
 
   @Override
-  protected HoverDialog createView(Window activeWindow) {
-    return new HoverDialog(activeWindow);
+  protected SearchAndReplaceDialogPM createPM() {
+    return new SearchAndReplaceDialogPM(context);
   }
 
-  public void setMessage(String message) {
-    getPresentationModel().setMessage(message);
-    getView().pack();
+  @Override
+  protected SearchAndReplaceDialog createView(Window activeWindow) {
+    SearchAndReplaceDialog view = new SearchAndReplaceDialog(activeWindow);
+    view.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+    return view;
   }
 }

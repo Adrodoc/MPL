@@ -39,10 +39,6 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui;
 
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DELETE_ON_UNINSTALL;
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
-
 import java.awt.KeyboardFocusManager;
 import java.awt.Window;
 import java.io.File;
@@ -59,7 +55,6 @@ import javax.swing.JOptionPane;
 import javax.swing.text.JTextComponent;
 
 import org.beanfabrics.model.AbstractPM;
-import org.beanfabrics.model.BooleanPM;
 import org.beanfabrics.model.ListPM;
 import org.beanfabrics.model.OperationPM;
 import org.beanfabrics.model.PMManager;
@@ -72,7 +67,6 @@ import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
-import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
 import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
@@ -80,13 +74,16 @@ import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
 import de.adrodoc55.minecraft.mpl.conversion.SchematicConverter;
 import de.adrodoc55.minecraft.mpl.conversion.StructureConverter;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialog;
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialogControler;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialogController;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialogPM;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.compilerexception.ExceptionDialog;
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogControler;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.compileroptions.CompilerOptionsDialogController;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.compileroptions.CompilerOptionsDialogPM;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogController;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogPM;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.unsaved.UnsavedResourcesDialog;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.unsaved.UnsavedResourcesDialogPM;
+import de.adrodoc55.minecraft.mpl.version.MplVersion;
 
 /**
  * @author Adrodoc55
@@ -109,12 +106,12 @@ public class MplFramePM extends AbstractPM {
   final OperationPM compileToSchematicUnder = new OperationPM();
   final OperationPM compileToFilter = new OperationPM();
   final OperationPM compileToFilterUnder = new OperationPM();
-  final BooleanPM debug = new BooleanPM();
-  final BooleanPM deleteOnUninstall = new BooleanPM();
-  final BooleanPM transmitter = new BooleanPM();
+  final OperationPM openOptionsDialog = new OperationPM();
 
-  SearchAndReplaceDialogControler sarController =
-      new SearchAndReplaceDialogControler(new SearchAndReplaceDialogPM.Context() {
+  private final CompilerOptionsDialogController optionCtrl = new CompilerOptionsDialogController();
+
+  SearchAndReplaceDialogController sarController =
+      new SearchAndReplaceDialogController(new SearchAndReplaceDialogPM.Context() {
         @Override
         public JTextComponent getComponent() {
           MplEditorPM selected = editors.getSelection().getFirst();
@@ -138,11 +135,6 @@ public class MplFramePM extends AbstractPM {
     compileToSchematicUnder.setDescription(COMPILE_TO_SCHEMATIC);
     compileToFilter.setDescription(COMPILE_TO_FILTER);
     compileToFilterUnder.setDescription(COMPILE_TO_FILTER);
-    deleteOnUninstall.setBoolean(true);
-    transmitter.setBoolean(true);
-    debug.setDescription("Compile in debug mode");
-    deleteOnUninstall.setDescription("Delete all command blocks on uninstall");
-    transmitter.setDescription("Use redstone blocks");
     PMManager.setup(this);
   }
 
@@ -233,7 +225,7 @@ public class MplFramePM extends AbstractPM {
       return;
     }
     List<String> commands = CommandConverter.convert(result);
-    CommandDialogControler ctrl = new CommandDialogControler();
+    CommandDialogController ctrl = new CommandDialogController();
     CommandDialogPM pm = ctrl.getPresentationModel();
     CommandDialog view = ctrl.getView();
     pm.setCommands(commands);
@@ -330,15 +322,11 @@ public class MplFramePM extends AbstractPM {
   }
 
   private MplCompilationResult compile(MplEditorPM selected) throws CompilationFailedException {
-    List<CompilerOption> options = new ArrayList<>(3);
-    if (debug.getBoolean())
-      options.add(DEBUG);
-    if (deleteOnUninstall.getBoolean())
-      options.add(DELETE_ON_UNINSTALL);
-    if (transmitter.getBoolean())
-      options.add(TRANSMITTER);
     try {
-      MplCompilationResult result = selected.compile(new CompilerOptions(options));
+      CompilerOptionsDialogPM optionPm = optionCtrl.getPresentationModel();
+      MplVersion version = optionPm.getSavedVersion();
+      CompilerOptions options = optionPm.getSavedOptions();
+      MplCompilationResult result = selected.compile(version, options);
       for (MplEditorPM editor : editors) {
         editor.setErrors(Collections.emptyList());
         editor.setWarnings(Collections.emptyList());
@@ -438,7 +426,7 @@ public class MplFramePM extends AbstractPM {
       }
 
       @Override
-      public SearchAndReplaceDialogControler getSearchAndReplaceController() {
+      public SearchAndReplaceDialogController getSearchAndReplaceController() {
         return sarController;
       }
 
@@ -485,6 +473,11 @@ public class MplFramePM extends AbstractPM {
     dialog.setPresentationModel(dialogPm);
     dialog.setVisible(true);
     return dialogPm.isCanceled();
+  }
+
+  @Operation
+  public void openOptionsDialog() {
+    optionCtrl.getView().setVisible(true);
   }
 
   public void terminate() {

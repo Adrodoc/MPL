@@ -75,7 +75,7 @@ import org.beanfabrics.swing.BnComboBox;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowView;
 
 /**
- * The SearchAndReplaceDialog is a {@link View} on a {@link SearchAndReplaceDialogPM}.
+ * The {@link SearchAndReplaceDialog} is a {@link View} on a {@link SearchAndReplaceDialogPM}.
  *
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
@@ -107,7 +107,7 @@ public class SearchAndReplaceDialog extends JDialog
   private JButton btnClose;
 
   /**
-   * Constructs a new <code>SearchAndReplaceDialog</code>.
+   * Constructs a new {@link SearchAndReplaceDialog}.
    *
    * @param parent the {@code Window} from which the dialog is displayed or {@code null} if this
    *        dialog has no parent

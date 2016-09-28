@@ -67,9 +67,10 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogControler;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogController;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogPM;
 import de.adrodoc55.minecraft.mpl.ide.gui.editor.EditorPM;
+import de.adrodoc55.minecraft.mpl.version.MplVersion;
 
 /**
  * @author Adrodoc55
@@ -121,7 +122,7 @@ public class MplEditorPM extends AbstractPM implements EditorPM {
   public static interface Context {
     void close(MplEditorPM editorPm);
 
-    SearchAndReplaceDialogControler getSearchAndReplaceController();
+    SearchAndReplaceDialogController getSearchAndReplaceController();
 
     void compile(MplEditorPM mplEditorPM);
   }
@@ -288,7 +289,8 @@ public class MplEditorPM extends AbstractPM implements EditorPM {
     save();
   }
 
-  public MplCompilationResult compile(CompilerOptions options) throws CompilationFailedException {
+  public MplCompilationResult compile(MplVersion version, CompilerOptions options)
+      throws CompilationFailedException {
     File file = getFile();
     if (file == null || !file.exists()) {
       Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
@@ -298,7 +300,7 @@ public class MplEditorPM extends AbstractPM implements EditorPM {
       return null;
     }
     try {
-      return MplCompiler.compile(file, options);
+      return MplCompiler.compile(file, version, options);
     } catch (IOException ex) {
       ex.printStackTrace();
       Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
@@ -309,7 +311,7 @@ public class MplEditorPM extends AbstractPM implements EditorPM {
   }
 
   public void searchAndReplace() {
-    SearchAndReplaceDialogControler ctrl = context.getSearchAndReplaceController();
+    SearchAndReplaceDialogController ctrl = context.getSearchAndReplaceController();
     SearchAndReplaceDialogPM pm = ctrl.getPresentationModel();
     JTextComponent component = pm.getComponent();
     if (component != null) {

@@ -37,47 +37,61 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.command;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
+import java.awt.Point;
+import java.awt.Window;
 
-import java.util.List;
+import javax.annotation.Nonnull;
 
-import org.beanfabrics.model.AbstractPM;
-import org.beanfabrics.model.ListPM;
-import org.beanfabrics.model.PMManager;
+import org.beanfabrics.model.PresentationModel;
 
 /**
  * @author Adrodoc55
+ * @param <V> the {@link WindowView} managed by this controller.
+ * @param <PM> the {@link PresentationModel} managed by this controller.
  */
-public class CommandDialogPM extends AbstractPM {
-  public static interface Context {
-    void close();
-  }
+public abstract class WindowController<V extends WindowView<PM>, PM extends PresentationModel> {
+  private V view;
+  private PM pm;
 
-  private final Context context;
-  final ListPM<CommandPM> commands = new ListPM<>();
-
-  public CommandDialogPM(Context context) {
-    this.context = checkNotNull(context, "context = null!");
-    PMManager.setup(this);
-  }
-
-  public void setCommands(List<String> commands) {
-    this.commands.clear();
-    int i = 1;
-    for (String command : commands) {
-      CommandPM element = new CommandPM(i++, command, new CommandPM.Context() {
-        @Override
-        public void close(CommandPM pm) {
-          ListPM<CommandPM> commands = CommandDialogPM.this.commands;
-          commands.remove(pm);
-          if (commands.isEmpty()) {
-            context.close();
-          }
-        }
-      });
-      this.commands.add(element);
+  public @Nonnull V getView() {
+    if (view == null) {
+      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+      view = createView(activeWindow);
+      view.setPresentationModel(getPresentationModel());
     }
+    return view;
+  }
+
+  protected abstract V createView(Window activeWindow);
+
+  public @Nonnull PM getPresentationModel() {
+    if (pm == null) {
+      pm = createPM();
+    }
+    return pm;
+  }
+
+  protected abstract PM createPM();
+
+  public void dispose() {
+    if (hasView()) {
+      getView().dispose();
+    }
+  }
+
+  public boolean hasView() {
+    return view != null;
+  }
+
+  public void setLocation(Component source, Point location) {
+    int fontSize = source.getFont().getSize();
+    location.translate(1, fontSize + 3);
+    Point screenPos = source.getLocationOnScreen();
+    location.translate(screenPos.x, screenPos.y);
+    getView().setLocation(location);
   }
 }

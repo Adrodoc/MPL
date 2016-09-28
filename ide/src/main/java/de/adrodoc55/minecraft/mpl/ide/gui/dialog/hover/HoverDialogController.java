@@ -37,61 +37,28 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.hover;
 
-import java.awt.Component;
-import java.awt.KeyboardFocusManager;
-import java.awt.Point;
 import java.awt.Window;
 
-import javax.annotation.Nonnull;
-
-import org.beanfabrics.model.PresentationModel;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowController;
 
 /**
  * @author Adrodoc55
- * @param <V> the {@link WindowView} managed by this controller.
- * @param <PM> the {@link PresentationModel} managed by this controller.
  */
-public abstract class WindowControler<V extends WindowView<PM>, PM extends PresentationModel> {
-  private V view;
-  private PM pm;
-
-  public @Nonnull V getView() {
-    if (view == null) {
-      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-      view = createView(activeWindow);
-      view.setPresentationModel(getPresentationModel());
-    }
-    return view;
+public class HoverDialogController extends WindowController<HoverDialog, HoverDialogPM> {
+  @Override
+  protected HoverDialogPM createPM() {
+    return new HoverDialogPM();
   }
 
-  protected abstract V createView(Window activeWindow);
-
-  public @Nonnull PM getPresentationModel() {
-    if (pm == null) {
-      pm = createPM();
-    }
-    return pm;
+  @Override
+  protected HoverDialog createView(Window activeWindow) {
+    return new HoverDialog(activeWindow);
   }
 
-  protected abstract PM createPM();
-
-  public void dispose() {
-    if (hasView()) {
-      getView().dispose();
-    }
-  }
-
-  public boolean hasView() {
-    return view != null;
-  }
-
-  public void setLocation(Component source, Point location) {
-    int fontSize = source.getFont().getSize();
-    location.translate(1, fontSize + 3);
-    Point screenPos = source.getLocationOnScreen();
-    location.translate(screenPos.x, screenPos.y);
-    getView().setLocation(location);
+  public void setMessage(String message) {
+    getPresentationModel().setMessage(message);
+    getView().pack();
   }
 }

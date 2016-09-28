@@ -37,28 +37,22 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.command;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.compileroptions;
 
-import java.awt.Window;
-
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowControler;
+import org.beanfabrics.swing.ModelSubscriberBeanInfo;
 
 /**
  * @author Adrodoc55
+ * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class CommandDialogControler extends WindowControler<CommandDialog, CommandDialogPM> {
+public class CompilerOptionsDialogBeanInfo extends ModelSubscriberBeanInfo {
   @Override
-  protected CommandDialogPM createPM() {
-    return new CommandDialogPM(new CommandDialogPM.Context() {
-      @Override
-      public void close() {
-        getView().dispose();
-      }
-    });
+  protected Class<CompilerOptionsDialog> getBeanClass() {
+    return CompilerOptionsDialog.class;
   }
 
   @Override
-  protected CommandDialog createView(Window activeWindow) {
-    return new CommandDialog(activeWindow);
+  protected boolean isPathBound() {
+    return false;
   }
 }

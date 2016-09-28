@@ -37,36 +37,28 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.command;
 
 import java.awt.Window;
 
-import javax.swing.WindowConstants;
-
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowControler;
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogPM.Context;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowController;
 
 /**
  * @author Adrodoc55
  */
-public class SearchAndReplaceDialogControler
-    extends WindowControler<SearchAndReplaceDialog, SearchAndReplaceDialogPM> {
-
-  private final Context context;
-
-  public SearchAndReplaceDialogControler(Context context) {
-    this.context = context;
+public class CommandDialogController extends WindowController<CommandDialog, CommandDialogPM> {
+  @Override
+  protected CommandDialogPM createPM() {
+    return new CommandDialogPM(new CommandDialogPM.Context() {
+      @Override
+      public void close() {
+        getView().dispose();
+      }
+    });
   }
 
   @Override
-  protected SearchAndReplaceDialogPM createPM() {
-    return new SearchAndReplaceDialogPM(context);
-  }
-
-  @Override
-  protected SearchAndReplaceDialog createView(Window activeWindow) {
-    SearchAndReplaceDialog view = new SearchAndReplaceDialog(activeWindow);
-    view.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-    return view;
+  protected CommandDialog createView(Window activeWindow) {
+    return new CommandDialog(activeWindow);
   }
 }

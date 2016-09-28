@@ -37,50 +37,33 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.compileroptions;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.awt.Dimension;
 import java.awt.Window;
-import java.util.Collection;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
-import de.adrodoc55.minecraft.mpl.ide.autocompletion.AutoCompletionAction;
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowControler;
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialogPM.Context;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowController;
 
 /**
  * @author Adrodoc55
  */
-public class AutoCompletionDialogControler
-    extends WindowControler<AutoCompletionDialog, AutoCompletionDialogPM> {
-  private final Context context;
-
-  public AutoCompletionDialogControler(Context context) {
-    this.context = checkNotNull(context, "context == null!");
-  }
-
-  public void setOptions(Collection<AutoCompletionAction> options) {
-    getPresentationModel().setOptions(options);
-    recalculateViewSize();
+public class CompilerOptionsDialogController
+    extends WindowController<CompilerOptionsDialog, CompilerOptionsDialogPM> {
+  @Override
+  protected CompilerOptionsDialog createView(Window activeWindow) {
+    CompilerOptionsDialog result = new CompilerOptionsDialog(activeWindow);
+    result.addWindowListener(new WindowAdapter() {
+      @Override
+      public void windowClosed(WindowEvent e) {
+        getPresentationModel().resetProperties();
+      }
+    });
+    return result;
   }
 
   @Override
-  protected AutoCompletionDialogPM createPM() {
-    return new AutoCompletionDialogPM(context);
-  }
-
-  @Override
-  protected AutoCompletionDialog createView(Window activeWindow) {
-    return new AutoCompletionDialog(activeWindow);
-  }
-
-  private void recalculateViewSize() {
-    AutoCompletionDialog view = getView();
-    AutoCompletionDialogPM pm = getPresentationModel();
-    view.getBnList().setVisibleRowCount(Math.max(1, Math.min(pm.options.size(), 10)));
-    Dimension preferredSize = view.getPreferredSize();
-    preferredSize.width += 5;
-    view.setSize(preferredSize);
+  protected CompilerOptionsDialogPM createPM() {
+    return new CompilerOptionsDialogPM();
   }
 }

@@ -37,47 +37,50 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.command;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.List;
+import java.awt.Dimension;
+import java.awt.Window;
+import java.util.Collection;
 
-import org.beanfabrics.model.AbstractPM;
-import org.beanfabrics.model.ListPM;
-import org.beanfabrics.model.PMManager;
+import de.adrodoc55.minecraft.mpl.ide.autocompletion.AutoCompletionAction;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowController;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialogPM.Context;
 
 /**
  * @author Adrodoc55
  */
-public class CommandDialogPM extends AbstractPM {
-  public static interface Context {
-    void close();
-  }
-
+public class AutoCompletionDialogController
+    extends WindowController<AutoCompletionDialog, AutoCompletionDialogPM> {
   private final Context context;
-  final ListPM<CommandPM> commands = new ListPM<>();
 
-  public CommandDialogPM(Context context) {
-    this.context = checkNotNull(context, "context = null!");
-    PMManager.setup(this);
+  public AutoCompletionDialogController(Context context) {
+    this.context = checkNotNull(context, "context == null!");
   }
 
-  public void setCommands(List<String> commands) {
-    this.commands.clear();
-    int i = 1;
-    for (String command : commands) {
-      CommandPM element = new CommandPM(i++, command, new CommandPM.Context() {
-        @Override
-        public void close(CommandPM pm) {
-          ListPM<CommandPM> commands = CommandDialogPM.this.commands;
-          commands.remove(pm);
-          if (commands.isEmpty()) {
-            context.close();
-          }
-        }
-      });
-      this.commands.add(element);
-    }
+  public void setOptions(Collection<AutoCompletionAction> options) {
+    getPresentationModel().setOptions(options);
+    recalculateViewSize();
+  }
+
+  @Override
+  protected AutoCompletionDialogPM createPM() {
+    return new AutoCompletionDialogPM(context);
+  }
+
+  @Override
+  protected AutoCompletionDialog createView(Window activeWindow) {
+    return new AutoCompletionDialog(activeWindow);
+  }
+
+  private void recalculateViewSize() {
+    AutoCompletionDialog view = getView();
+    AutoCompletionDialogPM pm = getPresentationModel();
+    view.getBnList().setVisibleRowCount(Math.max(1, Math.min(pm.options.size(), 10)));
+    Dimension preferredSize = view.getPreferredSize();
+    preferredSize.width += 5;
+    view.setSize(preferredSize);
   }
 }
