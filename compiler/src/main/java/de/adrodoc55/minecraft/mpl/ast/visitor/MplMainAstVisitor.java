@@ -204,12 +204,12 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     }
 
     commands.add(new MplCommand(
-        "tellraw @a [{\"text\":\"[tp to breakpoint]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/tp @p @e[name=breakpoint_NOTIFY,c=-1]\"}},{\"text\":\" \"},{\"text\":\"[continue program]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/execute @e[name=breakpoint_CONTINUE] ~ ~ ~ "
-            + getStartCommand("~ ~ ~") + "\"}}]",
+        "tellraw @a [{\"text\":\"[tp to breakpoint]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/tp @p @e[name=breakpoint_NOTIFY,c=-1]\"}},{\"text\":\" \"},{\"text\":\"[continue program]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/execute @e[name=breakpoint_CONTINUE"
+            + NOTIFY + "] ~ ~ ~ " + getStartCommand("~ ~ ~") + "\"}}]",
         breakpoint));
 
     commands.add(new MplWaitfor("breakpoint_CONTINUE", breakpoint));
-    commands.add(new MplCommand("/kill @e[name=breakpoint_CONTINUE]", breakpoint));
+    commands.add(new MplCommand("/kill @e[name=breakpoint_CONTINUE" + NOTIFY + "]", breakpoint));
 
     // Unpause
     commands.add(new MplCommand(
@@ -307,7 +307,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
   /**
    * Checks if a process with the specified {@code processName} is part of the program. If there is
    * such a process, this method returns {@code true}, otherwise it returns {@code false} and adds a
-   * compiler warning.
+   * compiler warning. In the special case that {@code processName == "breakpoint"} this method
+   * returns false, but does not add a warning.
    *
    * @param chainpart where to display the warning
    * @param processName the required process
@@ -316,8 +317,10 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
   private boolean checkProcessExists(ModifiableChainPart chainpart, String processName) {
     checkNotNull(processName, "processName == null!");
     if (!program.containsProcess(processName)) {
-      context.addWarning(
-          new CompilerException(chainpart.getSource(), "Could not resolve process " + processName));
+      if (!"breakpoint".equals(processName)) {
+        context.addWarning(new CompilerException(chainpart.getSource(),
+            "Could not resolve process " + processName));
+      }
       return false;
     }
     return true;
@@ -569,11 +572,12 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
 
     ModifierBuffer modifier = new ModifierBuffer();
     modifier.setConditional(mplBreakpoint.isConditional() ? CONDITIONAL : UNCONDITIONAL);
-    // new MplCall("breakpoint", modifier, mplBreakpoint.getSource()).accept(this);
-    MplStart mplStart = new MplStart("@e[name=breakpoint]", modifier, mplBreakpoint.getSource());
-    MplWaitfor mplWaitfor = new MplWaitfor("breakpoint", modifier, mplBreakpoint.getSource());
-    result.addAll(mplStart.accept(this));
-    result.addAll(mplWaitfor.accept(this));
+    MplCall mplCall = new MplCall("breakpoint", modifier, mplBreakpoint.getSource());
+    result.addAll(mplCall.accept(this));
+    // MplStart mplStart = new MplStart("@e[name=breakpoint]", modifier, mplBreakpoint.getSource());
+    // MplWaitfor mplWaitfor = new MplWaitfor("breakpoint", modifier, mplBreakpoint.getSource());
+    // result.addAll(mplStart.accept(this));
+    // result.addAll(mplWaitfor.accept(this));
     return result;
   }
 
