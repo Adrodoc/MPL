@@ -45,12 +45,13 @@ import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
 
+import de.adrodoc55.commons.Comparables;
 import de.adrodoc55.commons.Version;
 
 /**
  * @author Adrodoc55
  */
-public enum MinecraftVersion implements MplVersion {
+public enum MinecraftVersion implements Comparables<MinecraftVersion> {
   /**
    * 15w35a (1.9)
    */
@@ -146,4 +147,10 @@ public enum MinecraftVersion implements MplVersion {
     String result = getMajorVersion();
     return result != null ? result : getSnapshotVersion();
   }
+
+  public abstract String markerEntity();
+
+  public abstract String commandBlockMinecart();
+
+  public abstract String fallingBlock();
 }

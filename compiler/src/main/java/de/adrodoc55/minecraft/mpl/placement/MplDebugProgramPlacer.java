@@ -49,7 +49,7 @@ import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
-import de.adrodoc55.minecraft.mpl.version.MplVersion;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import de.kussm.direction.Directions;
 
 /**
@@ -59,7 +59,7 @@ public class MplDebugProgramPlacer extends MplChainPlacer {
 
   private Coordinate3D start = new Coordinate3D().plus(3, getOrientation().getC());
 
-  public MplDebugProgramPlacer(ChainContainer container, MplVersion version,
+  public MplDebugProgramPlacer(ChainContainer container, MinecraftVersion version,
       CompilerOptions options) {
     super(container, version, options);
   }

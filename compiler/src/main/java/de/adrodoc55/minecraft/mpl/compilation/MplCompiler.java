@@ -67,22 +67,22 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.placement.MplDebugProgramPlacer;
 import de.adrodoc55.minecraft.mpl.placement.MplProgramPlacer;
 import de.adrodoc55.minecraft.mpl.placement.NotEnoughSpaceException;
-import de.adrodoc55.minecraft.mpl.version.MplVersion;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 
 /**
  * @author Adrodoc55
  */
 public class MplCompiler {
-  public static MplCompilationResult compile(File programFile, MplVersion version,
+  public static MplCompilationResult compile(File programFile, MinecraftVersion version,
       CompilerOptions options) throws IOException, CompilationFailedException {
     return new MplCompiler(version, options).compile(programFile);
   }
 
-  private final MplVersion version;
+  private final MinecraftVersion version;
   private final CompilerOptions options;
   private MplCompilerContext context;
 
-  public MplCompiler(MplVersion version, CompilerOptions options) {
+  public MplCompiler(MinecraftVersion version, CompilerOptions options) {
     this.version = version;
     this.options = options;
   }

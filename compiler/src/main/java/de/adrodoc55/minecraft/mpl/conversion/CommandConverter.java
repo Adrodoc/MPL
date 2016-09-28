@@ -54,15 +54,15 @@ import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
-import de.adrodoc55.minecraft.mpl.version.MplVersion;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 
 /**
  * @author Adrodoc55
  */
 public class CommandConverter implements MplConverter {
   @Override
-  public void write(MplCompilationResult result, String name, OutputStream out, MplVersion version)
-      throws IOException {
+  public void write(MplCompilationResult result, String name, OutputStream out,
+      MinecraftVersion version) throws IOException {
     List<String> converted = CommandConverter.convert(result, version);
     int i = 0;
     for (String string : converted) {
@@ -80,12 +80,12 @@ public class CommandConverter implements MplConverter {
   private static final String REPLACE = "";
   public static final int MAX_COMMAND_LENGTH = 32500;
 
-  private static final String header(MplVersion v) {
+  private static final String header(MinecraftVersion v) {
     return "summon " + v.fallingBlock() + " ~ ~1 ~ {Block:redstone_block,Time:1,Passengers:["
         + "{id:" + v.fallingBlock() + ",Block:activator_rail,Time:1,Passengers:[";
   }
 
-  private static final String tail(MplVersion v) {
+  private static final String tail(MinecraftVersion v) {
     return "{id:" + v.commandBlockMinecart() + ",Command:setblock ~ ~-2 ~ command_block}," + "{id:"
         + v.commandBlockMinecart() + ",Command:setblock ~ ~2 ~ command_block 0 " + REPLACE
         + " {Command:fill ~ ~-3 ~ ~ ~ ~ air}}," + "{id:" + v.commandBlockMinecart()
@@ -93,11 +93,11 @@ public class CommandConverter implements MplConverter {
         + ",Command:kill @e[type=" + v.commandBlockMinecart() + ",r=0]}]}]}";
   }
 
-  private static final String commandHeader(MplVersion v) {
+  private static final String commandHeader(MinecraftVersion v) {
     return "{id:" + v.commandBlockMinecart() + ",Command:";
   }
 
-  private static final String commandTail(MplVersion v) {
+  private static final String commandTail(MinecraftVersion v) {
     return "},";
   }
 
@@ -117,7 +117,7 @@ public class CommandConverter implements MplConverter {
     // @formatter:on
   }
 
-  public static List<String> convert(MplCompilationResult result, MplVersion version) {
+  public static List<String> convert(MplCompilationResult result, MinecraftVersion version) {
     List<String> commands = new ArrayList<>();
     Orientation3D orientation = result.getOrientation();
 
@@ -152,7 +152,7 @@ public class CommandConverter implements MplConverter {
   }
 
   private static StringBuilder convert(CommandBlock block, Orientation3D orientation,
-      MplVersion version) {
+      MinecraftVersion version) {
     String coordinate = block.getCoordinate().plus(getOffset(orientation)).toRelativeString();
     String blockId = block.getStringBlockId();
     int damage = block.getDamageValue();

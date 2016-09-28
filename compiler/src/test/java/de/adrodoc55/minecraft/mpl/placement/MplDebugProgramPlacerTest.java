@@ -54,7 +54,6 @@ import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
-import de.adrodoc55.minecraft.mpl.version.MplVersion;
 
 public class MplDebugProgramPlacerTest extends AbstractMplProgramPlacerTest {
 
@@ -64,7 +63,7 @@ public class MplDebugProgramPlacerTest extends AbstractMplProgramPlacerTest {
   }
 
   @Override
-  protected MplDebugProgramPlacer createPlacer(MplVersion version, CompilerOptions options,
+  protected MplDebugProgramPlacer createPlacer(MinecraftVersion version, CompilerOptions options,
       ChainContainer container) {
     return new MplDebugProgramPlacer(container, version, options);
   }
@@ -73,7 +72,7 @@ public class MplDebugProgramPlacerTest extends AbstractMplProgramPlacerTest {
   public void test_when_using_Debug_Mode_without_Transmitter_MarkerEntities_are_at_the_bottom_of_each_block_and_are_not_Markers()
       throws Exception {
     // given:
-    MplVersion version = MinecraftVersion.getDefault();
+    MinecraftVersion version = MinecraftVersion.getDefault();
     CompilerOptions options = new CompilerOptions(DEBUG);
 
     ChainContainer container = some($ChainContainer(options)//
@@ -90,8 +89,7 @@ public class MplDebugProgramPlacerTest extends AbstractMplProgramPlacerTest {
     assertThat(blocks).hasSize(3);
     CommandBlock block = (CommandBlock) blocks.get(1);
     String command = block.getCommand();
-    assertThat(command)
-        .startsWith("summon " + version.markerEntity() + " ${origin + (0 -0.4 5)}");
+    assertThat(command).startsWith("summon " + version.markerEntity() + " ${origin + (0 -0.4 5)}");
     assertThat(command).doesNotContain("Marker");
   }
 

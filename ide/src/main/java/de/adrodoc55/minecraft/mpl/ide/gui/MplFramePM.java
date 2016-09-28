@@ -83,7 +83,7 @@ import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndRepla
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogPM;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.unsaved.UnsavedResourcesDialog;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.unsaved.UnsavedResourcesDialogPM;
-import de.adrodoc55.minecraft.mpl.version.MplVersion;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 
 /**
  * @author Adrodoc55
@@ -225,7 +225,7 @@ public class MplFramePM extends AbstractPM {
       return;
     }
     CompilerOptionsDialogPM optionPm = optionCtrl.getPresentationModel();
-    MplVersion version = optionPm.getSavedVersion();
+    MinecraftVersion version = optionPm.getSavedVersion();
     List<String> commands = CommandConverter.convert(result, version);
     CommandDialogController ctrl = new CommandDialogController();
     CommandDialogPM pm = ctrl.getPresentationModel();
@@ -296,7 +296,7 @@ public class MplFramePM extends AbstractPM {
       outputFile.createNewFile();
       try (FileOutputStream out = new FileOutputStream(outputFile);) {
         CompilerOptionsDialogPM optionPm = optionCtrl.getPresentationModel();
-        MplVersion version = optionPm.getSavedVersion();
+        MinecraftVersion version = optionPm.getSavedVersion();
         converter.write(result, name, out, version);
       }
     } catch (Exception ex) {
@@ -328,7 +328,7 @@ public class MplFramePM extends AbstractPM {
   private MplCompilationResult compile(MplEditorPM selected) throws CompilationFailedException {
     try {
       CompilerOptionsDialogPM optionPm = optionCtrl.getPresentationModel();
-      MplVersion version = optionPm.getSavedVersion();
+      MinecraftVersion version = optionPm.getSavedVersion();
       CompilerOptions options = optionPm.getSavedOptions();
       MplCompilationResult result = selected.compile(version, options);
       for (MplEditorPM editor : editors) {

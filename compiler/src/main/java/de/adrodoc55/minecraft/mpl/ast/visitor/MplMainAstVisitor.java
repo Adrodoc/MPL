@@ -109,7 +109,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
-import de.adrodoc55.minecraft.mpl.version.MplVersion;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -412,7 +412,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     String event = waitfor.getEvent();
     checkNotInlineProcess(waitfor, event);
 
-    MplVersion version = context.getVersion();
+    MinecraftVersion version = context.getVersion();
     ReferencingCommand summon =
         new ReferencingCommand("summon " + version.markerEntity() + " " + REF + " {CustomName:"
             + event + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
@@ -521,7 +521,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     InternalCommand entitydata = new InternalCommand(
         "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}", conditional);
 
-    MplVersion version = context.getVersion();
+    MinecraftVersion version = context.getVersion();
     ResolveableCommand summon =
         new ResolveableCommand("summon " + version.markerEntity() + " " + REF + " {CustomName:"
             + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", conditional);

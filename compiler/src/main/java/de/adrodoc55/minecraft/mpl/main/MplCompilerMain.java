@@ -59,7 +59,6 @@ import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
 import de.adrodoc55.minecraft.mpl.conversion.SchematicConverter;
 import de.adrodoc55.minecraft.mpl.conversion.StructureConverter;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
-import de.adrodoc55.minecraft.mpl.version.MplVersion;
 
 /**
  * @author Adrodoc55
@@ -96,7 +95,7 @@ public class MplCompilerMain {
     OutputStream out = System.out;
     CompilationType type = CompilationType.STRUCTURE;
     CompilerOptions options = new CompilerOptions();
-    MplVersion version = MinecraftVersion.getDefault();
+    MinecraftVersion version = MinecraftVersion.getDefault();
 
     for (int i = 0; i < args.length; i++) {
       String arg = args[i];

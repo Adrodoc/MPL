@@ -53,7 +53,6 @@ import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
-import de.adrodoc55.minecraft.mpl.version.MplVersion;
 
 public class MplProgramPlacerTest extends AbstractMplProgramPlacerTest {
   @Override
@@ -62,7 +61,7 @@ public class MplProgramPlacerTest extends AbstractMplProgramPlacerTest {
   }
 
   @Override
-  protected MplProgramPlacer createPlacer(MplVersion version, CompilerOptions options,
+  protected MplProgramPlacer createPlacer(MinecraftVersion version, CompilerOptions options,
       ChainContainer container) {
     return new MplProgramPlacer(container, version, options);
   }
@@ -71,7 +70,7 @@ public class MplProgramPlacerTest extends AbstractMplProgramPlacerTest {
   public void test_when_using_normal_Mode_Prozess_MarkerEntities_are_at_the_top_of_each_block()
       throws Exception {
     // given:
-    MplVersion version = MinecraftVersion.getDefault();
+    MinecraftVersion version = MinecraftVersion.getDefault();
     CompilerOptions options = new CompilerOptions();
 
     ChainContainer container = some($ChainContainer(options)//

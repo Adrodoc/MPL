@@ -50,15 +50,15 @@ import de.adrodoc55.commons.StringUtils;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
-import de.adrodoc55.minecraft.mpl.version.MplVersion;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 
 /**
  * @author Adrodoc55
  */
 public class PythonConverter implements MplConverter {
   @Override
-  public void write(MplCompilationResult result, String name, OutputStream out, MplVersion version)
-      throws IOException {
+  public void write(MplCompilationResult result, String name, OutputStream out,
+      MinecraftVersion version) throws IOException {
     try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, UTF_8))) {
       writer.write(convert(result, name));
     }

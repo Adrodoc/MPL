@@ -82,7 +82,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
-import de.adrodoc55.minecraft.mpl.version.MplVersion;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import de.kussm.chain.Chain;
 import de.kussm.chain.ChainLayouter;
 import de.kussm.chain.ChainLinkType;
@@ -95,10 +95,11 @@ import de.kussm.position.Position;
 public abstract class MplChainPlacer {
   protected final ChainContainer container;
   protected final CompilerOptions options;
-  protected final MplVersion version;
+  protected final MinecraftVersion version;
   protected final List<CommandBlockChain> chains = new ArrayList<>();
 
-  protected MplChainPlacer(ChainContainer container, MplVersion version, CompilerOptions options) {
+  protected MplChainPlacer(ChainContainer container, MinecraftVersion version,
+      CompilerOptions options) {
     this.container = container;
     this.version = version;
     this.options = options;
@@ -254,7 +255,7 @@ public abstract class MplChainPlacer {
         continue;
       }
       Coordinate3D chainStart = chain.getBlocks().get(0).getCoordinate();
-      boolean nonTransmitterDebug = !options.hasOption(TRANSMITTER) && options.hasOption(DEBUG);
+      boolean nonTransmitterDebug = (!options.hasOption(TRANSMITTER) && options.hasOption(DEBUG));
       if (nonTransmitterDebug) {
         chainStart = chainStart.minus(0.4, Y);
       } else {

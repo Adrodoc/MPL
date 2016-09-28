@@ -65,13 +65,12 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
-import de.adrodoc55.minecraft.mpl.version.MplVersion;
 
 public abstract class AbstractMplProgramPlacerTest extends MplTestBase {
 
   protected abstract boolean isDebug();
 
-  protected abstract MplChainPlacer createPlacer(MplVersion version, CompilerOptions options,
+  protected abstract MplChainPlacer createPlacer(MinecraftVersion version, CompilerOptions options,
       ChainContainer container);
 
   @Test

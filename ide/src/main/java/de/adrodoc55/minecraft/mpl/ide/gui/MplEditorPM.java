@@ -70,7 +70,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogController;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogPM;
 import de.adrodoc55.minecraft.mpl.ide.gui.editor.EditorPM;
-import de.adrodoc55.minecraft.mpl.version.MplVersion;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 
 /**
  * @author Adrodoc55
@@ -289,7 +289,7 @@ public class MplEditorPM extends AbstractPM implements EditorPM {
     save();
   }
 
-  public MplCompilationResult compile(MplVersion version, CompilerOptions options)
+  public MplCompilationResult compile(MinecraftVersion version, CompilerOptions options)
       throws CompilationFailedException {
     File file = getFile();
     if (file == null || !file.exists()) {

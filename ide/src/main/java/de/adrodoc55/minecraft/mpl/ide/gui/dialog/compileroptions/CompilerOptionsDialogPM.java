@@ -57,7 +57,6 @@ import org.beanfabrics.support.Operation;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
-import de.adrodoc55.minecraft.mpl.version.MplVersion;
 
 /**
  * @author Adrodoc55
@@ -69,7 +68,7 @@ public class CompilerOptionsDialogPM extends AbstractPM {
   final TextPM version = new TextPM();
   final OperationPM ok = new OperationPM();
 
-  private MplVersion savedVersion = MinecraftVersion.getDefault();
+  private MinecraftVersion savedVersion = MinecraftVersion.getDefault();
   private CompilerOptions savedOptions = new CompilerOptions(DELETE_ON_UNINSTALL, TRANSMITTER);
 
   public CompilerOptionsDialogPM() {
@@ -106,7 +105,7 @@ public class CompilerOptionsDialogPM extends AbstractPM {
     return new CompilerOptions(options);
   }
 
-  public MplVersion getSavedVersion() {
+  public MinecraftVersion getSavedVersion() {
     return savedVersion;
   }
 
