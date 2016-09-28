@@ -41,6 +41,8 @@ package de.adrodoc55.minecraft.mpl.version;
 
 import java.util.Collections;
 
+import javax.annotation.Nullable;
+
 import com.google.common.collect.ImmutableList;
 
 import de.adrodoc55.commons.Version;
@@ -49,13 +51,19 @@ import de.adrodoc55.commons.Version;
  * @author Adrodoc55
  */
 public enum MinecraftVersion implements MplVersion {
-  V1_9 {
+  /**
+   * 15w35a (1.9)
+   */
+  _15w35a("1.9") {
     @Override
     public String getMarkerEntityName() {
       return "ArmorStand";
     }
   },
-  v1_11 {
+  /**
+   * 16w32a (1.11)
+   */
+  _16w32a("1.11") {
     @Override
     public String getMarkerEntityName() {
       return "armor_stand";
@@ -73,9 +81,10 @@ public enum MinecraftVersion implements MplVersion {
   }
 
   public static MinecraftVersion getVersion(String version) {
+    boolean snapshot = isSnapshotVersion(version);
     Version other = new Version(version);
     for (MinecraftVersion mv : VALUES.reverse()) {
-      Version v = new Version(mv.toString());
+      Version v = new Version(snapshot ? mv.getSnapshotVersion() : mv.getMajorVersion());
       if (v.isLessThanOrEqualTo(other)) {
         return mv;
       }
@@ -83,8 +92,38 @@ public enum MinecraftVersion implements MplVersion {
     return Collections.min(VALUES);
   }
 
+  public static boolean isSnapshotVersion(String version) {
+    return version.contains("w");
+  }
+
+  private final @Nullable String version;
+
+  private MinecraftVersion(@Nullable String snapshotVersion) {
+    this.version = snapshotVersion;
+  }
+
+  /**
+   * Returns the snapshot version that first introduced the change that is reflected by this
+   * {@link MinecraftVersion}.
+   *
+   * @return the snapshot version
+   */
+  public String getSnapshotVersion() {
+    return super.toString().substring(1);
+  }
+
+  /**
+   * Returns the official release version that is reflected by this {@link MinecraftVersion}.
+   *
+   * @return the official release version
+   */
+  public @Nullable String getMajorVersion() {
+    return version;
+  }
+
   @Override
   public String toString() {
-    return super.toString().substring(1).replace('_', '.');
+    String result = getMajorVersion();
+    return result != null ? result : getSnapshotVersion();
   }
 }

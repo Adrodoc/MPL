@@ -47,27 +47,36 @@ public class MinecraftVersionTest {
   @Test
   public void test_getVersion__For_exact_version() {
     // when:
-    MinecraftVersion actual = MinecraftVersion.getVersion("1.9");
+    MinecraftVersion actual = MinecraftVersion.getVersion("1.11");
 
     // then:
-    assertThat(actual).isSameAs(MinecraftVersion.V1_9);
+    assertThat(actual).isSameAs(MinecraftVersion._16w32a);
   }
 
   @Test
   public void test_getVersion__For_later_version() {
     // when:
-    MinecraftVersion actual = MinecraftVersion.getVersion("1.9.2");
+    MinecraftVersion actual = MinecraftVersion.getVersion("1.11.2");
 
     // then:
-    assertThat(actual).isSameAs(MinecraftVersion.V1_9);
+    assertThat(actual).isSameAs(MinecraftVersion._16w32a);
   }
 
   @Test
-  public void test_getVersion__For_later_major_version() {
+  public void test_getVersion__For_exact_snapshot_version() {
     // when:
-    MinecraftVersion actual = MinecraftVersion.getVersion("1.10");
+    MinecraftVersion actual = MinecraftVersion.getVersion("16w32a");
 
     // then:
-    assertThat(actual).isSameAs(MinecraftVersion.V1_9);
+    assertThat(actual).isSameAs(MinecraftVersion._16w32a);
+  }
+
+  @Test
+  public void test_getVersion__For_later_snapshot_version() {
+    // when:
+    MinecraftVersion actual = MinecraftVersion.getVersion("16w38a");
+
+    // then:
+    assertThat(actual).isSameAs(MinecraftVersion._16w32a);
   }
 }
