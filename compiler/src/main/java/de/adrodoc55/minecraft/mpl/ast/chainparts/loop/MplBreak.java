@@ -41,8 +41,6 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts.loop;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.List;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -51,7 +49,6 @@ import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -104,7 +101,7 @@ public class MplBreak extends ModifiableChainPart {
   }
 
   @Override
-  public List<ChainLink> accept(MplAstVisitor visitor) {
+  public <T> T accept(MplAstVisitor<T> visitor) {
     return visitor.visitBreak(this);
   }
 }

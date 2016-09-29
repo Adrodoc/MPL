@@ -42,6 +42,7 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts.program;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -53,6 +54,7 @@ import javax.annotation.Nullable;
 import org.antlr.v4.runtime.Token;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
 import de.adrodoc55.commons.FileUtils;
@@ -167,6 +169,23 @@ public class MplProgram implements Named {
   public Stream<MplProcess> streamProcesses() {
     return Stream.concat(Stream.of(install, uninstall), getProcesses().stream())
         .filter(p -> p != null);
+  }
+
+  /**
+   * Returns all processes of {@code this} program including install and uninstall if they are
+   * present.
+   *
+   * @return all processes
+   */
+  public Iterable<MplProcess> getAllProcesses() {
+    Iterable<MplProcess> result = getProcesses();
+    if (install != null) {
+      result = Iterables.concat(Arrays.asList(install), result);
+    }
+    if (uninstall != null) {
+      result = Iterables.concat(Arrays.asList(uninstall), result);
+    }
+    return result;
   }
 
   public String getHash() {

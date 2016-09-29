@@ -271,12 +271,12 @@ class MplInterpreterSpec2 extends MplSpecBase {
     processes.size() == 2
 
     MplProcess process1 = processes.find { it.name == id1 }
-    List<ChainPart> chainParts1 = process1.chainParts
+    Deque<ChainPart> chainParts1 = process1.chainParts
     chainParts1[0] == new MplCommand("/say I am the first process", source())
     chainParts1.size() == 1
 
     MplProcess process2 = processes.find { it.name == id2 }
-    List<ChainPart> chainParts2 = process2.chainParts
+    Deque<ChainPart> chainParts2 = process2.chainParts
     chainParts2[0] == new MplCommand("/say I am the second process", source())
     chainParts2.size() == 1
   }

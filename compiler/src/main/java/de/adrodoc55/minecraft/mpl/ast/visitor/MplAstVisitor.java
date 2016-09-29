@@ -39,8 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.visitor;
 
-import java.util.List;
-
+import de.adrodoc55.minecraft.mpl.ast.chainparts.InternalMplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
@@ -53,36 +52,37 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreak;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 
 /**
  * @author Adrodoc55
  */
-public interface MplAstVisitor {
-  List<ChainLink> visitCommand(MplCommand command);
+public interface MplAstVisitor<T> {
+  T visitInternalCommand(InternalMplCommand mplCommand);
 
-  List<ChainLink> visitCall(MplCall mplCall);
+  T visitCommand(MplCommand mplCommand);
 
-  List<ChainLink> visitStart(MplStart start);
+  T visitCall(MplCall mplCall);
 
-  List<ChainLink> visitStop(MplStop stop);
+  T visitStart(MplStart mplStart);
 
-  List<ChainLink> visitWaitfor(MplWaitfor waitfor);
+  T visitStop(MplStop mplStop);
 
-  List<ChainLink> visitNotify(MplNotify notify);
+  T visitWaitfor(MplWaitfor mplWaitfor);
 
-  List<ChainLink> visitIntercept(MplIntercept intercept);
+  T visitNotify(MplNotify mplNotify);
 
-  List<ChainLink> visitBreakpoint(MplBreakpoint breakpoint);
+  T visitIntercept(MplIntercept mplIntercept);
 
-  List<ChainLink> visitSkip(MplSkip skip);
+  T visitBreakpoint(MplBreakpoint mplBreakpoint);
 
-  List<ChainLink> visitIf(MplIf mplIf);
+  T visitSkip(MplSkip mplSkip);
 
-  List<ChainLink> visitWhile(MplWhile mplWhile);
+  T visitIf(MplIf mplIf);
 
-  List<ChainLink> visitBreak(MplBreak mplBreak);
+  T visitWhile(MplWhile mplWhile);
 
-  List<ChainLink> visitContinue(MplContinue mplContinue);
+  T visitBreak(MplBreak mplBreak);
+
+  T visitContinue(MplContinue mplContinue);
 }

@@ -347,6 +347,11 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
   }
 
   @Override
+  public List<ChainLink> visitInternalCommand(InternalMplCommand command) {
+    return command.getChainLinks();
+  }
+
+  @Override
   public List<ChainLink> visitCommand(MplCommand command) {
     List<ChainLink> result = new ArrayList<>(2);
     addInvertingCommandIfInvert(result, command);
@@ -460,15 +465,15 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     if (triggeredByProcess) {
       return true;
     }
-    boolean triggeredByNotify = program.streamProcesses()//
-        .flatMap(p -> p.getChainParts().stream())//
-        .anyMatch(c -> {
-          if (c instanceof MplNotify)
-            return event.equals(((MplNotify) c).getEvent());
-          return false;
-        });
-    if (triggeredByNotify) {
-      return true;
+
+    for (MplProcess mplProcess : program.getAllProcesses()) {
+      MatchesPredicateVisitor visitor = new MatchesPredicateVisitor(
+          cp -> !(cp instanceof MplNotify) || !event.equals(((MplNotify) cp).getEvent()));
+      Boolean notNotified = visitor.test(mplProcess);
+      if (!notNotified) {
+        // Triggered by notify
+        return true;
+      }
     }
     context.addWarning(
         new CompilerException(waitfor.getSource(), "The event " + event + " is never triggered"));
@@ -499,18 +504,17 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
    */
   private boolean checkIsUsed(MplNotify notify) {
     String event = notify.getEvent();
-    boolean used = program.streamProcesses()//
-        .flatMap(p -> p.getChainParts().stream())//
-        .anyMatch(c -> {
-          if (c instanceof MplWaitfor)
-            return event.equals(((MplWaitfor) c).getEvent());
-          return false;
-        });
-    if (!used) {
-      context.addWarning(
-          new CompilerException(notify.getSource(), "The event " + event + " is never used"));
+    for (MplProcess mplProcess : program.getAllProcesses()) {
+      MatchesPredicateVisitor visitor = new MatchesPredicateVisitor(
+          cp -> !(cp instanceof MplWaitfor) || !event.equals(((MplWaitfor) cp).getEvent()));
+      Boolean notTriggered = visitor.test(mplProcess);
+      if (!notTriggered) {
+        return true;
+      }
     }
-    return used;
+    context.addWarning(
+        new CompilerException(notify.getSource(), "The event " + event + " is never used"));
+    return false;
   }
 
   @Override

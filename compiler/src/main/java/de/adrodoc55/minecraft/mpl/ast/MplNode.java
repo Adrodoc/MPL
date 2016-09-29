@@ -44,6 +44,6 @@ import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 /**
  * @author Adrodoc55
  */
-public interface MplNode<T> {
-  T accept(MplAstVisitor visitor);
+public interface MplNode {
+  <T> T accept(MplAstVisitor<T> visitor);
 }

@@ -39,8 +39,6 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
-import java.util.List;
-
 import de.adrodoc55.commons.CopyScope.Copyable;
 import de.adrodoc55.commons.Named;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
@@ -52,7 +50,7 @@ import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 /**
  * @author Adrodoc55
  */
-public interface ChainPart extends MplNode<List<ChainLink>>, Named, Copyable, Dependable {
+public interface ChainPart extends MplNode, Named, Copyable, Dependable {
   /**
    * Set the {@link Mode} of this {@link ChainPart} (optional operation).
    * <p>

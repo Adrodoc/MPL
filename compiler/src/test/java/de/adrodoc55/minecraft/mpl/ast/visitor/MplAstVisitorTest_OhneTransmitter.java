@@ -476,8 +476,6 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     MplCommand repeat2 = some($MplCommand().withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
     MplWhile mplWhile = some($MplWhile()//
         .withCondition((String) null)//
-        .withNot($boolean())//
-        .withTrailing($boolean())//
         .withChainParts(listOf(repeat1, repeat2)));
 
     // when:

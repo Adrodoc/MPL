@@ -1001,7 +1001,7 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     notThrown Exception
 
-    List<ChainPart> install = result.install.chainParts
+    Deque<ChainPart> install = result.install.chainParts
     install[0] == new MplCommand("/say main install", source())
     install[1] == new MplCommand("/say install 1", source())
     install[2] == new MplCommand("/say install 2", source())
@@ -1122,6 +1122,32 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
+  public void "waiting for a nested notify is fine"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      waitfor event
+    }
+
+    remote process other {
+      if: /testfor @e
+      then {
+        notify event
+      } else {
+        /say hi
+      }
+    }
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.isEmpty()
+  }
+
+  @Test
   public void "waiting for an unknown event results in a compiler warning"() {
     given:
     File folder = tempFolder.root
@@ -1140,6 +1166,53 @@ class MplCompilerSpec extends MplSpecBase {
     result.warnings.get(programFile)[0].source.token.text == 'unknown'
     result.warnings.get(programFile)[0].source.token.line == 3
     result.warnings.size() == 1
+  }
+
+  @Test
+  public void "notifying a known event is fine"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      notify event
+    }
+
+    remote process other {
+      waitfor event
+    }
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.isEmpty()
+  }
+
+  @Test
+  public void "notifying a known nested event is fine"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      notify event
+    }
+
+    remote process other {
+      if: /testfor @e
+      then {
+        waitfor event
+      } else {
+        /say hi
+      }
+    }
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.isEmpty()
   }
 
   @Test
