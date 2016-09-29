@@ -2,9 +2,9 @@ install {
   /scoreboard objectives add ST_Triangle dummy
 }
 
-process reset {
+impulse process reset {
   /kill @e[name=ST_Head]
-  /summon ArmorStand ${origin + (0 0 5)} {CustomName:ST_Head,Tags:[ST_Main],NoGravity:1}
+  /summon armor_stand ${origin + (0 0 5)} {CustomName:ST_Head,Tags:[ST_Main],NoGravity:1}
 }
 
 repeat process triangle {
@@ -14,7 +14,7 @@ repeat process triangle {
   /execute @e[name=ST_Head] ~ ~ ~ setblock ~ ~ ~ wool 0
   /execute @e[name=ST_Head,score_ST_Triangle_min=1,score_ST_Triangle=1] ~ ~ ~ setblock ~ ~ ~ wool 15
 
-  /execute @e[name=ST_Head,tag=ST_Main] ~ ~ ~ summon ArmorStand ~ ~ ~ {CustomName:ST_Head,NoGravity:1}
+  /execute @e[name=ST_Head,tag=ST_Main] ~ ~ ~ summon armor_stand ~ ~ ~ {CustomName:ST_Head,NoGravity:1}
   /tp @e[name=ST_Head,tag=ST_Main] ~1 ~ ~
   /tp @e[name=ST_Head,tag=!ST_Main] ~ ~ ~1
 

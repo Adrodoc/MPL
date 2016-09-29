@@ -12,21 +12,21 @@
 
 
 
-install (
+install {
   /gamerule commandBlockOutput false
   /gamerule logAdminCommands false
   /scoreboard objectives add Tnt dummy
   /scoreboard players set delay Tnt 50
   /scoreboard players set count Tnt -3
-)
+}
 
-uninstall (
+uninstall {
   /scoreboard objectives remove Tnt
-)
+}
 
-repeat process tntRain (
-  /execute @a ~ ~ ~ /scoreboard players tag @e[type=Item,r=10] add closeToPlayer
-  /kill @e[type=Item,tag=!closeToPlayer]
+repeat process tntRain {
+  /execute @a ~ ~ ~ /scoreboard players tag @e[type=item,r=10] add closeToPlayer
+  /kill @e[type=item,tag=!closeToPlayer]
 
   // Test for var <= count
   /scoreboard players operation temp Tnt = var Tnt
@@ -37,10 +37,10 @@ repeat process tntRain (
   /scoreboard players remove var Tnt 1
   
   if: /scoreboard players test var Tnt * -1
-  then (
-    /execute @a ~ 1 ~ summon PrimedTnt ~ ~ ~ {Fuse:100,Tags:[new]}
-    /execute @e[type=PrimedTnt,tag=new] ~ ~ ~ /spreadplayers ~ ~ 1 10 false @e[c=1]
-    /tp @e[type=PrimedTnt,tag=new] ~ ~100 ~
-    /scoreboard players tag @e[type=PrimedTnt] remove new
-  )
-)
+  then {
+    /execute @a ~ 1 ~ summon tnt ~ ~ ~ {Fuse:100,Tags:[new]}
+    /execute @e[type=tnt,tag=new] ~ ~ ~ /spreadplayers ~ ~ 1 10 false @e[c=1]
+    /tp @e[type=tnt,tag=new] ~ ~100 ~
+    /scoreboard players tag @e[type=tnt] remove new
+  }
+}
