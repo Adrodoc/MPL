@@ -970,7 +970,41 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
-  public void "the install and uninstall of multiple files is concatenated"() {
+  public void "install and uninstall are processed"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    install {
+      /say main install
+    }
+
+    uninstall {
+      /say main uninstall
+    }
+
+    remote process main {
+      start other   // ein include erzeugen, damit sichergestellt wird, dass der interpreter sich nicht selbst included
+    }
+
+    remote process other {}
+    """
+    when:
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
+    then:
+    notThrown Exception
+
+    Deque<ChainPart> install = result.install.chainParts
+    install[0] == new MplCommand("/say main install", source())
+    install.size() == 1
+
+    Deque<ChainPart> uninstall = result.uninstall.chainParts
+    uninstall[0] == new MplCommand("/say main uninstall", source())
+    uninstall.size() == 1
+  }
+
+  @Test
+  public void "the install of multiple files is concatenated"() {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
@@ -1006,6 +1040,45 @@ class MplCompilerSpec extends MplSpecBase {
     install[1] == new MplCommand("/say install 1", source())
     install[2] == new MplCommand("/say install 2", source())
     install.size() == 3
+  }
+
+  @Test
+  public void "the uninstall of multiple files is concatenated"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    include "uninstall1.mpl"
+    include "uninstall2.mpl"
+
+    uninstall {
+      /say main uninstall
+    }
+
+    remote process main {}
+    """
+    new File(folder, 'uninstall1.mpl').text = """
+    project p {}
+    uninstall {
+      /say uninstall 1
+    }
+    """
+    new File(folder, 'uninstall2.mpl').text = """
+    project p {}
+    uninstall {
+      /say uninstall 2
+    }
+    """
+    when:
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
+    then:
+    notThrown Exception
+
+    Deque<ChainPart> uninstall = result.uninstall.chainParts
+    uninstall[0] == new MplCommand("/say main uninstall", source())
+    uninstall[1] == new MplCommand("/say uninstall 1", source())
+    uninstall[2] == new MplCommand("/say uninstall 2", source())
+    uninstall.size() == 3
   }
 
   @Test
