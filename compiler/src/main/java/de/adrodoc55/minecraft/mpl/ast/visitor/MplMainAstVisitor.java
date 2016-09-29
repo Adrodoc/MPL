@@ -227,7 +227,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
   }
 
   private List<ChainLink> visitIgnoringWarnings(ChainPart cp) {
-    MplCompilerContext context = new MplCompilerContext(options);
+    MplCompilerContext context = new MplCompilerContext(this.context.getVersion(), options);
     MplMainAstVisitor visitor = new MplMainAstVisitor(context);
     visitor.program = program;
     List<ChainLink> accept = cp.accept(visitor);

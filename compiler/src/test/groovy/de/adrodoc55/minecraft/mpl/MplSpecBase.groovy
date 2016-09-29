@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl
 
+import static de.adrodoc55.TestBase.some
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplCompilerContext
+
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
@@ -62,7 +65,7 @@ class MplSpecBase extends Specification {
   }
 
   MplInterpreter interpret(File file = newTempFile()) {
-    lastContext = new MplCompilerContext()
+    lastContext = some($MplCompilerContext())
     MplInterpreter.interpret(file, lastContext)
   }
 }

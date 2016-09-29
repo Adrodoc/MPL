@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -47,6 +49,7 @@ import java.util.Set;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInclude;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
@@ -59,17 +62,14 @@ public class MplCompilerContext {
   private final Set<MplInclude> included = new LinkedHashSet<>();
   private final Set<MplInclude> toInclude = new LinkedHashSet<>();
 
-  public MplCompilerContext(CompilerOption... options) {
-    this(new CompilerOptions(options));
+  public MplCompilerContext(MinecraftVersion version, CompilerOption... options) {
+    this(version, new CompilerOptions(options));
   }
 
-  public MplCompilerContext(CompilerOptions options) {
-    this(MinecraftVersion.getDefault(), options);
-  }
-
+  @GenerateMplPojoBuilder
   public MplCompilerContext(MinecraftVersion version, CompilerOptions options) {
-    this.version = version;
-    this.options = options;
+    this.version = checkNotNull(version, "version == null!");
+    this.options = checkNotNull(options, "options == null!");
   }
 
   public void addContext(MplCompilerContext context) {

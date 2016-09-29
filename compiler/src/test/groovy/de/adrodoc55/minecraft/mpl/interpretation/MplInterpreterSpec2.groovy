@@ -41,6 +41,7 @@ package de.adrodoc55.minecraft.mpl.interpretation
 
 import static de.adrodoc55.TestBase.some
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$Identifier
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplCompilerContext
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.*
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.*
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY
@@ -428,7 +429,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     File programFile = newTempFile()
     File neighbourFile = new File(programFile.parentFile, 'neighbour.mpl')
     neighbourFile.createNewFile()
-    MplInterpreter interpreter = new MplInterpreter(programFile, new MplCompilerContext())
+    MplInterpreter interpreter = new MplInterpreter(programFile, some($MplCompilerContext()))
 
     expect:
     interpreter.imports.containsAll([programFile, neighbourFile])
@@ -441,7 +442,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     File programFile = newTempFile()
     File neighbourFile = new File(programFile.parentFile, 'neighbour.txt')
     neighbourFile.createNewFile()
-    MplInterpreter interpreter = new MplInterpreter(programFile, new MplCompilerContext())
+    MplInterpreter interpreter = new MplInterpreter(programFile, some($MplCompilerContext()))
 
     expect:
     interpreter.imports.containsAll([programFile])
@@ -455,7 +456,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     File otherFile = new File(programFile.parentFile, 'folder/other.txt')
     otherFile.parentFile.mkdirs()
     otherFile.createNewFile()
-    MplInterpreter interpreter = new MplInterpreter(programFile, new MplCompilerContext())
+    MplInterpreter interpreter = new MplInterpreter(programFile, some($MplCompilerContext()))
 
     when:
     interpreter.addFileImport(null, otherFile)

@@ -150,7 +150,8 @@ public class MplProgramAssemler {
     List<MplInterpreter> found = new ArrayList<>(imports.size());
     for (File file : imports) {
       try {
-        MplInterpreter interpreter = interpret(file, new MplCompilerContext(context.getOptions()));
+        MplInterpreter interpreter =
+            interpret(file, new MplCompilerContext(context.getVersion(), context.getOptions()));
         MplProgram program = interpreter.getProgram();
         if (reference.isContainedIn(program)) {
           // Referencing a process in the same file is never ambigious

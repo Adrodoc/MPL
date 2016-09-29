@@ -86,12 +86,13 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 
 public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
   @Override
   protected MplCompilerContext newContext() {
     CompilerOptions options = new CompilerOptions(TRANSMITTER, DEBUG);
-    return new MplCompilerContext(options);
+    return new MplCompilerContext(MinecraftVersion.getDefault(), options);
   }
 
   @Override
