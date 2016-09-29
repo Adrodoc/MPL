@@ -467,10 +467,10 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     }
 
     for (MplProcess mplProcess : program.getAllProcesses()) {
-      MatchesPredicateVisitor visitor = new MatchesPredicateVisitor(
-          cp -> !(cp instanceof MplNotify) || !event.equals(((MplNotify) cp).getEvent()));
-      Boolean notNotified = visitor.test(mplProcess);
-      if (!notNotified) {
+      ContainsMatchVisitor visitor = new ContainsMatchVisitor(
+          cp -> (cp instanceof MplNotify) && event.equals(((MplNotify) cp).getEvent()));
+      Boolean notified = visitor.test(mplProcess);
+      if (notified) {
         // Triggered by notify
         return true;
       }
@@ -505,10 +505,11 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
   private boolean checkIsUsed(MplNotify notify) {
     String event = notify.getEvent();
     for (MplProcess mplProcess : program.getAllProcesses()) {
-      MatchesPredicateVisitor visitor = new MatchesPredicateVisitor(
-          cp -> !(cp instanceof MplWaitfor) || !event.equals(((MplWaitfor) cp).getEvent()));
-      Boolean notTriggered = visitor.test(mplProcess);
-      if (!notTriggered) {
+      ContainsMatchVisitor visitor = new ContainsMatchVisitor(
+          cp -> ((cp instanceof MplWaitfor) && event.equals(((MplWaitfor) cp).getEvent()))
+              || ((cp instanceof MplCall) && event.equals(((MplCall) cp).getProcess())));
+      Boolean triggered = visitor.test(mplProcess);
+      if (triggered) {
         return true;
       }
     }

@@ -1242,7 +1242,7 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
-  public void "notifying a known event is fine"() {
+  public void "notifying a waitfor event is fine"() {
     given:
     File folder = tempFolder.root
     File programFile = new File(folder, 'main.mpl')
@@ -1263,7 +1263,7 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
-  public void "notifying a known nested event is fine"() {
+  public void "notifying a nested waitfor event is fine"() {
     given:
     File folder = tempFolder.root
     File programFile = new File(folder, 'main.mpl')
@@ -1280,6 +1280,57 @@ class MplCompilerSpec extends MplSpecBase {
         /say hi
       }
     }
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.isEmpty()
+  }
+
+  @Test
+  public void "notifying a call event is fine"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      notify event
+    }
+
+    remote process other {
+      event()
+    }
+
+    remote process event {}
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.isEmpty()
+  }
+
+  @Test
+  public void "notifying a nested call event is fine"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      notify event
+    }
+
+    remote process other {
+      if: /testfor @e
+      then {
+        event()
+      } else {
+        /say hi
+      }
+    }
+
+    remote process event {}
     """
     when:
     MplCompilationResult result = compile(programFile)

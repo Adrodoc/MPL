@@ -19,15 +19,15 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer;
 
-public class MatchesPredicateVisitor implements MplAstVisitor<Boolean> {
+public class ContainsMatchVisitor implements MplAstVisitor<Boolean> {
   private final Predicate<? super ChainPart> prediacate;
 
-  public MatchesPredicateVisitor(Predicate<? super ChainPart> prediacate) {
+  public ContainsMatchVisitor(Predicate<? super ChainPart> prediacate) {
     this.prediacate = prediacate;
   }
 
   /**
-   * Returns {@code true} if the specified {@link ChainPart} and all it's children match the
+   * Returns {@code true} if the specified {@link ChainPart} or any of it's children match the
    * {@link Predicate}, false otherwise.
    *
    * @param <C> the type of {@link ChainPartBuffer}
@@ -35,15 +35,14 @@ public class MatchesPredicateVisitor implements MplAstVisitor<Boolean> {
    * @return {@code true} if all elements match the predicate
    */
   public <C extends Object & ChainPartBuffer & ChainPart> Boolean test(C chainPartBuffer) {
-    if (!test((ChainPart) chainPartBuffer)) {
-      return false;
-    } else {
-      return test((ChainPartBuffer) chainPartBuffer);
+    if (test((ChainPart) chainPartBuffer)) {
+      return true;
     }
+    return test((ChainPartBuffer) chainPartBuffer);
   }
 
   /**
-   * Returns {@code true} if all {@link ChainPart}s of the specified {@link ChainPartBuffer} match
+   * Returns {@code true} if any {@link ChainPart} of the specified {@link ChainPartBuffer} matches
    * the {@link Predicate}, false otherwise.
    *
    * @param chainPartBuffer
@@ -54,7 +53,7 @@ public class MatchesPredicateVisitor implements MplAstVisitor<Boolean> {
   }
 
   /**
-   * Returns {@code true} if all {@link ChainPart}s of the specified {@link Iterable} match the
+   * Returns {@code true} if any {@link ChainPart} of the specified {@link Iterable} matches the
    * {@link Predicate}, false otherwise.
    *
    * @param chainParts
@@ -62,11 +61,11 @@ public class MatchesPredicateVisitor implements MplAstVisitor<Boolean> {
    */
   public Boolean test(Iterable<ChainPart> chainParts) {
     for (ChainPart chainPart : chainParts) {
-      if (!chainPart.accept(this)) {
-        return false;
+      if (chainPart.accept(this)) {
+        return true;
       }
     }
-    return true;
+    return false;
   }
 
   private Boolean test(ChainPart chainPart) {
@@ -125,16 +124,16 @@ public class MatchesPredicateVisitor implements MplAstVisitor<Boolean> {
 
   @Override
   public Boolean visitIf(MplIf mplIf) {
-    if (!test((ChainPart) mplIf)) {
-      return false;
+    if (test((ChainPart) mplIf)) {
+      return true;
     }
-    if (!test(mplIf.getThenParts())) {
-      return false;
+    if (test(mplIf.getThenParts())) {
+      return true;
     }
-    if (!test(mplIf.getElseParts())) {
-      return false;
+    if (test(mplIf.getElseParts())) {
+      return true;
     }
-    return true;
+    return false;
   }
 
   @Override
