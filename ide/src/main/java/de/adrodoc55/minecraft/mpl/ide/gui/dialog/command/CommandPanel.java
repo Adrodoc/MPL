@@ -106,31 +106,37 @@ public class CommandPanel extends JPanel implements View<CommandPM>, ModelSubscr
   }
 
   /** {@inheritDoc} */
+  @Override
   public CommandPM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPresentationModel(CommandPM pModel) {
     getLocalModelProvider().setPresentationModel(pModel);
   }
 
   /** {@inheritDoc} */
+  @Override
   public IModelProvider getModelProvider() {
     return this.link.getModelProvider();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setModelProvider(IModelProvider modelProvider) {
     this.link.setModelProvider(modelProvider);
   }
 
   /** {@inheritDoc} */
+  @Override
   public Path getPath() {
     return this.link.getPath();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPath(Path path) {
     this.link.setPath(path);
   }

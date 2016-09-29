@@ -98,21 +98,25 @@ public class BnTextPane extends TextPMTextPane implements ModelSubscriber {
   }
 
   /** {@inheritDoc} */
+  @Override
   public IModelProvider getModelProvider() {
     return link.getModelProvider();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setModelProvider(IModelProvider provider) {
     this.link.setModelProvider(provider);
   }
 
   /** {@inheritDoc} */
+  @Override
   public Path getPath() {
     return link.getPath();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPath(Path path) {
     this.link.setPath(path);
   }

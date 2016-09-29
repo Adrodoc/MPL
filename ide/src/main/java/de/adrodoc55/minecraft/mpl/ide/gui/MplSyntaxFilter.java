@@ -106,6 +106,7 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
     return modelObserver;
   }
 
+  @Override
   public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
     super.remove(fb, offset, length);
     correctExceptionIndicies(offset, -length);
@@ -115,6 +116,7 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
     }
   }
 
+  @Override
   public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr)
       throws BadLocationException {
     super.insertString(fb, offset, string, attr);
@@ -125,6 +127,7 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
     }
   }
 
+  @Override
   public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
       throws BadLocationException {
     super.replace(fb, offset, length, text, attrs);
@@ -424,19 +427,20 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
   protected ModelProvider getLocalModelProvider() {
     if (localModelProvider == null) {
       localModelProvider = new ModelProvider(); // @wb:location=10,430
-      localModelProvider
-          .setPresentationModelType(de.adrodoc55.minecraft.mpl.ide.gui.MplSyntaxFilterPM.class);
+      localModelProvider.setPresentationModelType(MplSyntaxFilterPM.class);
     }
     return localModelProvider;
   }
 
   /** {@inheritDoc} */
-  public de.adrodoc55.minecraft.mpl.ide.gui.MplSyntaxFilterPM getPresentationModel() {
+  @Override
+  public MplSyntaxFilterPM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
-  public void setPresentationModel(de.adrodoc55.minecraft.mpl.ide.gui.MplSyntaxFilterPM pModel) {
+  @Override
+  public void setPresentationModel(MplSyntaxFilterPM pModel) {
     getLocalModelProvider().setPresentationModel(pModel);
   }
 

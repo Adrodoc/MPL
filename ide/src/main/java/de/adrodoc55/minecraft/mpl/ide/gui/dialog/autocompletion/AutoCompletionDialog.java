@@ -144,6 +144,7 @@ public class AutoCompletionDialog extends JDialog
       bnList.setModelProvider(getLocalModelProvider());
 
       bnList.addMouseListener(new MouseAdapter() {
+        @Override
         public void mouseClicked(MouseEvent mouseEvent) {
           if (!bnList.equals(mouseEvent.getSource()))
             return;
@@ -179,31 +180,37 @@ public class AutoCompletionDialog extends JDialog
   }
 
   /** {@inheritDoc} */
+  @Override
   public AutoCompletionDialogPM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPresentationModel(AutoCompletionDialogPM pModel) {
     getLocalModelProvider().setPresentationModel(pModel);
   }
 
   /** {@inheritDoc} */
+  @Override
   public IModelProvider getModelProvider() {
     return this.link.getModelProvider();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setModelProvider(IModelProvider modelProvider) {
     this.link.setModelProvider(modelProvider);
   }
 
   /** {@inheritDoc} */
+  @Override
   public Path getPath() {
     return this.link.getPath();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPath(Path path) {
     this.link.setPath(path);
   }
