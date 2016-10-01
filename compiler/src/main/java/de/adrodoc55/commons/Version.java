@@ -39,11 +39,6 @@
  */
 package de.adrodoc55.commons;
 
-import java.util.ArrayDeque;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.Iterator;
-
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -52,90 +47,59 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public class Version implements Comparables<Version> {
   private final String version;
-  private final Iterable<String> tokens;
 
   public Version(String version) {
-    this.version = version;
-    tokens = tokenize(version);
-  }
-
-  private static Iterable<String> tokenize(String version) {
-    if (version.isEmpty()) {
-      return Collections.emptyList();
-    }
-    Deque<String> tokens = new ArrayDeque<>();
-    boolean lastWasDigit = isDigit(version.charAt(0));
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < version.length(); i++) {
-      char c = version.charAt(i);
-
-      boolean isDigit = isDigit(c);
-      if (isDigit != lastWasDigit || c == '.') {
-        tokens.add(sb.toString());
-        sb = new StringBuilder();
-      }
-      if (c != '.') {
-        sb.append(c);
-      }
-      lastWasDigit = isDigit;
-    }
-    tokens.add(sb.toString());
-    removeTrailingZeros(tokens);
-    return tokens;
-  }
-
-  private static boolean isDigit(char c) {
-    return '0' <= c && c <= '9';
-  }
-
-  private static void removeTrailingZeros(Deque<String> tokens) {
-    for (Iterator<String> it = tokens.descendingIterator(); it.hasNext();) {
-      String token = it.next();
-      if (containsOnlyZeros(token)) {
-        it.remove();
+    int index = version.length();
+    while (index >= 0) {
+      int i = index;
+      while (version.charAt(--i) == '0');
+      if (version.charAt(i) == '.') {
+        index = i;
       } else {
         break;
       }
     }
-  }
-
-  private static boolean containsOnlyZeros(String string) {
-    for (int i = 0; i < string.length(); i++) {
-      char c = string.charAt(i);
-      if (c != '0') {
-        return false;
-      }
-    }
-    return true;
+    this.version = version.substring(0, index);
   }
 
   @Override
   public int compareTo(Version other) {
-    Iterator<String> thisIt = this.tokens.iterator();
-    Iterator<String> otherIt = other.tokens.iterator();
+    int thisIndex = 0;
+    int otherIndex = 0;
     while (true) {
-      if (thisIt.hasNext() && otherIt.hasNext()) {
-        String thisToken = thisIt.next();
-        String otherToken = otherIt.next();
-        int result;
-        try {
-          int thisInt = Integer.parseInt(thisToken);
-          int otherInt = Integer.parseInt(otherToken);
-          result = Integer.compare(thisInt, otherInt);
-        } catch (NumberFormatException ex) {
-          result = thisToken.compareTo(otherToken);
-        }
-        if (result != 0) {
-          return result;
-        }
-      } else if (thisIt.hasNext()) {
-        return 1;
-      } else if (otherIt.hasNext()) {
-        return -1;
-      } else {
+      boolean thisEnd = thisIndex >= this.version.length();
+      boolean otherEnd = otherIndex >= other.version.length();
+      if (thisEnd && otherEnd) {
         return 0;
+      } else if (thisEnd) {
+        return -1;
+      } else if (otherEnd) {
+        return 1;
+      }
+      char thisChar = this.version.charAt(thisIndex);
+      char otherChar = other.version.charAt(otherIndex);
+      int result;
+      if (isDigit(thisChar) && isDigit(otherChar)) {
+        int thisStartIndex = thisIndex;
+        int otherStartIndex = otherIndex;
+        while (++thisIndex < this.version.length() && isDigit(this.version.charAt(thisIndex)));
+        while (++otherIndex < other.version.length() && isDigit(other.version.charAt(otherIndex)));
+        long thisLong = Long.parseLong(this.version.substring(thisStartIndex, thisIndex));
+        long otherLong = Long.parseLong(other.version.substring(otherStartIndex, otherIndex));
+        result = Long.compare(thisLong, otherLong);
+      } else {
+        result = Character.compare(thisChar, otherChar);
+        thisIndex++;
+        otherIndex++;
+      }
+      if (result != 0) {
+        return result;
       }
     }
+  }
+
+  private static boolean isDigit(char c) {
+    return '0' <= c && c <= '9';
   }
 
   @Override
