@@ -37,58 +37,30 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.compilation;
+package de.adrodoc55.minecraft.mpl.main;
 
 import static com.google.common.base.CaseFormat.LOWER_HYPHEN;
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 
-import java.util.Arrays;
+import com.beust.jcommander.converters.EnumConverter;
 
-import javax.annotation.concurrent.Immutable;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 
 /**
  * @author Adrodoc55
  */
-@Immutable
-public class CompilerOptions {
-  private final ImmutableSet<CompilerOption> options;
-
-  public CompilerOptions(CompilerOption... options) {
-    this(Arrays.asList(options));
-  }
-
-  public CompilerOptions(Iterable<CompilerOption> options) {
-    this.options = Sets.immutableEnumSet(options);
-  }
-
-  public boolean hasOption(CompilerOption option) {
-    return options.contains(option);
-  }
-
-  public ImmutableSet<CompilerOption> getOptions() {
-    return options;
+public class CompilerOptionConverter extends EnumConverter<CompilerOption> {
+  /**
+   * Constructs a new converter.
+   *
+   * @param optionName the option name for error reporting
+   */
+  public CompilerOptionConverter(String optionName) {
+    super(optionName, CompilerOption.class);
   }
 
   @Override
-  public String toString() {
-    return options.toString();
-  }
-
-  /**
-   * @author Adrodoc55
-   */
-  public enum CompilerOption {
-    DEBUG, //
-    DELETE_ON_UNINSTALL, //
-    TRANSMITTER, //
-    ;
-    @Override
-    public String toString() {
-      return UPPER_UNDERSCORE.to(LOWER_HYPHEN, super.toString());
-    }
+  public CompilerOption convert(String value) {
+    return super.convert(LOWER_HYPHEN.to(UPPER_UNDERSCORE, value));
   }
 }
-

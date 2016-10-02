@@ -45,10 +45,8 @@ import com.jdotsoft.jarloader.JarClassLoader;
  * @author Adrodoc55
  */
 public class MplCompilerMainLauncher {
-
   public static void main(String[] args) throws Throwable {
     JarClassLoader jcl = new JarClassLoader();
     jcl.invokeMain("de.adrodoc55.minecraft.mpl.main.MplCompilerMain", args);
   }
-
 }

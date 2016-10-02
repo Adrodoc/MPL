@@ -40,65 +40,68 @@
 package de.adrodoc55.minecraft.mpl.main;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.util.List;
 
-import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 
-import de.adrodoc55.commons.FileUtils;
-import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
-import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
-import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 
 /**
  * @author Adrodoc55
  */
-public class MplCompilerMain {
-  public static void main(String[] args) throws IOException {
-    MplCompilerParameter params = new MplCompilerParameter();
-    JCommander jc = new JCommander(params);
-    jc.setProgramName("java -jar MPL.jar");
-    try {
-      jc.parse(args);
-      if (params.isHelp()) {
-        jc.usage();
-        return;
-      }
-      MinecraftVersion version = getVersion(params.getVersion());
-      File programFile = params.getInput();
-      MplCompilationResult compiled = compile(programFile, version, params.getCompilerOptions());
-      String name = FileUtils.getFilenameWithoutExtension(programFile);
-      params.getType().getConverter().write(compiled, name, params.getOutput(), version);
-    } catch (ParameterException ex) {
-      System.err.println(ex.getLocalizedMessage());
-      System.err.println("Run with '-h' to print help");
-    }
+public class MplCompilerParameter {
+  private static final File STDOUT = new File("stdout");
+
+  @Parameter(names = {"-h", "--help"}, help = true,
+      description = "Print information about the commandline usage")
+  private Boolean help;
+
+  @Parameter(names = {"-c", "--option"}, converter = CompilerOptionConverter.class,
+      description = "Specify compiler options; for instance: debug or transmitter")
+  private List<CompilerOption> compilerOptions;
+
+  @Parameter(names = {"-o", "--output"}, description = "Specify an output file")
+  private File output = STDOUT;
+
+  @Parameter(names = {"-t", "--type"}, description = "Specify the output type")
+  private CompilationType type = CompilationType.STRUCTURE;
+
+  @Parameter(names = {"-v", "--version"}, description = "Specify the target Minecraft version")
+  private String version = MinecraftVersion.getDefault().toString();
+
+  @Parameter(description = "<src-file>", required = true)
+  private List<File> input;
+
+  public boolean isHelp() {
+    return help != null && help;
   }
 
-  private static MinecraftVersion getVersion(String specifiedVersion) {
-    MinecraftVersion version = MinecraftVersion.getVersion(specifiedVersion);
-    String usedVersion;
-    if (MinecraftVersion.isSnapshotVersion(specifiedVersion)) {
-      usedVersion = version.getSnapshotVersion();
-    } else {
-      usedVersion = version.toString();
-    }
-    if (!usedVersion.equals(specifiedVersion)) {
-      System.out.println("Falling back to version: " + version);
-    }
+  public CompilerOptions getCompilerOptions() {
+    return new CompilerOptions(compilerOptions);
+  }
+
+  public OutputStream getOutput() throws FileNotFoundException {
+    return output == STDOUT ? System.out : new FileOutputStream(output);
+  }
+
+  public CompilationType getType() {
+    return type;
+  }
+
+  public String getVersion() {
     return version;
   }
 
-  private static MplCompilationResult compile(File programFile, MinecraftVersion version,
-      CompilerOptions options) throws IOException {
-    try {
-      return MplCompiler.compile(programFile, version, options);
-    } catch (CompilationFailedException ex) {
-      System.err.println(ex);
-      System.exit(-1);
-      return null;
+  public File getInput() throws ParameterException {
+    if (input.size() != 1) {
+      throw new ParameterException("Exactly one source file has to be specified");
     }
+    return input.get(0).getAbsoluteFile();
   }
 }

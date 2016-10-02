@@ -51,6 +51,7 @@ ext {
     assertj:        'org.assertj:assertj-core:3.5.2',
     beanfabrics:    'org.beanfabrics:beanfabrics-swing:1.4.3',
     guava:          'com.google.guava:guava:19.0',
+    jcommander:     'com.beust:jcommander:1.58',
     jsr305:         'com.google.code.findbugs:jsr305:3.0.1',
     junit:          'junit:junit:4.12',
     lombok:         'org.projectlombok:lombok:1.16.10',

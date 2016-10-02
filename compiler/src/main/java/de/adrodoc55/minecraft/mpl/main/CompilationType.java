@@ -19,8 +19,8 @@
  *
  *
  *
- * Minecraft Programming Language (MPL): Eine Sprache für die einfache Entwicklung von Anwendungen,
- * inklusive einer IDE.
+ * Minecraft Programming Language (MPL): Eine Sprache für die einfache Entwicklung von Commandoblock
+ * Anwendungen, inklusive einer IDE.
  *
  * © Copyright (C) 2016 Adrodoc55
  *
@@ -39,13 +39,36 @@
  */
 package de.adrodoc55.minecraft.mpl.main;
 
+import static com.google.common.base.CaseFormat.LOWER_CAMEL;
+import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
+
+import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
+import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
+import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
+import de.adrodoc55.minecraft.mpl.conversion.SchematicConverter;
+import de.adrodoc55.minecraft.mpl.conversion.StructureConverter;
+
 /**
  * @author Adrodoc55
  */
-public class InvalidOptionException extends Exception {
-  private static final long serialVersionUID = 1L;
+enum CompilationType {
+  STRUCTURE(new StructureConverter()), //
+  SCHEMATIC(new SchematicConverter()), //
+  COMMAND(new CommandConverter()), //
+  FILTER(new PythonConverter()),//
+  ;
+  private final MplConverter converter;
 
-  public InvalidOptionException(String string) {
-    super(string);
+  private CompilationType(MplConverter converter) {
+    this.converter = converter;
+  }
+
+  public MplConverter getConverter() {
+    return converter;
+  }
+
+  @Override
+  public String toString() {
+    return UPPER_UNDERSCORE.to(LOWER_CAMEL, super.toString());
   }
 }
