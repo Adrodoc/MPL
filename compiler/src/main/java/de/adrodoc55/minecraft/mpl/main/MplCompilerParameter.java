@@ -43,6 +43,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.List;
 
 import com.beust.jcommander.Parameter;
@@ -83,7 +84,7 @@ public class MplCompilerParameter {
   }
 
   public CompilerOptions getCompilerOptions() {
-    return new CompilerOptions(compilerOptions);
+    return new CompilerOptions(compilerOptions != null ? compilerOptions : Collections.emptyList());
   }
 
   public OutputStream getOutput() throws FileNotFoundException {
