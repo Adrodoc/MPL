@@ -54,7 +54,7 @@ public class TargetSelectorTest extends MplTestBase {
   private MplSource lastSource;
 
   private TargetSelector parse(String value) {
-    lastContext = new MplCompilerContext();
+    lastContext = some($MplCompilerContext());
     lastSource = some($MplSource().withLine(value));
     return TargetSelector.parse(value, lastSource, lastContext);
   }
