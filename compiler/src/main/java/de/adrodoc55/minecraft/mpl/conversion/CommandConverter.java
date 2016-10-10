@@ -82,7 +82,7 @@ public class CommandConverter implements MplConverter {
 
   private static final String header(MinecraftVersion v) {
     return "summon " + v.fallingBlock() + " ~ ~1 ~ {Block:redstone_block,Time:1,Passengers:["
-        + "{id:" + v.fallingBlock() + ",Block:activator_rail,Time:1,Passengers:[";
+        + "{id:" + v.fallingBlock() + ",Block:activator_rail,Time:1},";
   }
 
   private static final String tail(MinecraftVersion v) {
@@ -90,7 +90,7 @@ public class CommandConverter implements MplConverter {
         + v.commandBlockMinecart() + ",Command:setblock ~ ~2 ~ command_block 0 " + REPLACE
         + " {Command:fill ~ ~-3 ~ ~ ~ ~ air}}," + "{id:" + v.commandBlockMinecart()
         + ",Command:setblock ~ ~1 ~ redstone_block}," + "{id:" + v.commandBlockMinecart()
-        + ",Command:kill @e[type=" + v.commandBlockMinecart() + ",r=0]}]}]}";
+        + ",Command:kill @e[type=" + v.commandBlockMinecart() + ",r=0]}]}";
   }
 
   private static final String commandHeader(MinecraftVersion v) {
