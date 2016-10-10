@@ -51,7 +51,7 @@ public class MplValueTest extends MplTestBase {
   private MplCompilerContext lastContext;
 
   private MplValue parse(String value) {
-    lastContext = new MplCompilerContext();
+    lastContext = some($MplCompilerContext());
     MplSource source = some($MplSource().withLine(value));
     return MplValue.parse(value, source, lastContext);
   }
