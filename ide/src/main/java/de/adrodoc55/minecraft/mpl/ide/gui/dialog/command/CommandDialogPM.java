@@ -55,8 +55,8 @@ public class CommandDialogPM extends AbstractPM {
     void close();
   }
 
-  final ListPM<CommandPM> commands = new ListPM<>();
   private final Context context;
+  final ListPM<CommandPM> commands = new ListPM<>();
 
   public CommandDialogPM(Context context) {
     this.context = checkNotNull(context, "context = null!");

@@ -37,64 +37,33 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.main;
+package de.adrodoc55.commons;
 
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DELETE_ON_UNINSTALL;
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
-import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+@RunWith(Parameterized.class)
+public class VersionTest_Equal {
+  private final String a;
+  private final String b;
 
-public class MplCompilerMainTest {
-
-  @Test
-  public void test_parseOptions__with_valid_options() throws Exception {
-    // when:
-    CompilerOptions options = MplCompilerMain.parseOptions("debug");
-
-    // then:
-    assertThat(options.hasOption(DEBUG)).isTrue();
-    assertThat(options.getOptions()).containsOnly(DEBUG);
+  public VersionTest_Equal(String a, String b) {
+    this.a = a;
+    this.b = b;
   }
 
   @Test
-  public void test_parseOptions__with_invalid_options() {
-    // when:
-    InvalidOptionException act = null;
-    try {
-      MplCompilerMain.parseOptions("invalid");
-    } catch (InvalidOptionException ex) {
-      act = ex;
-    }
-
-    // then:
-    assertThat(act).isNotNull();
-    assertThat(act.getMessage())
-        .startsWith("mpl: invalid compiler option INVALID; possible options are: ");
+  public void test_compareTo() {
+    // expect:
+    assertThat(new Version(a)).isEqualByComparingTo(new Version(b));
   }
 
-  @Test
-  public void test_parseOptions__with_multiple_options() throws Exception {
-    // when:
-    CompilerOptions options = MplCompilerMain.parseOptions("debug,transmitter");
-
-    // then:
-    assertThat(options.hasOption(DEBUG)).isTrue();
-    assertThat(options.hasOption(TRANSMITTER)).isTrue();
-    assertThat(options.getOptions()).containsOnly(DEBUG, TRANSMITTER);
+  @Parameters(name = "{index}: {0} == {1}")
+  public static Iterable<String[]> data() {
+    return VersionTestDataFactory.equalTo();
   }
-
-  @Test
-  public void test_parseOptions__can_handle_minus() throws Exception {
-    // when:
-    CompilerOptions options = MplCompilerMain.parseOptions("delete-on-uninstall");
-
-    // then:
-    assertThat(options.hasOption(DELETE_ON_UNINSTALL)).isTrue();
-    assertThat(options.getOptions()).containsOnly(DELETE_ON_UNINSTALL);
-  }
-
 }

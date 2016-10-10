@@ -52,6 +52,7 @@ import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 
 public class MplProgramPlacerTest extends AbstractMplProgramPlacerTest {
   @Override
@@ -60,14 +61,16 @@ public class MplProgramPlacerTest extends AbstractMplProgramPlacerTest {
   }
 
   @Override
-  protected MplProgramPlacer createPlacer(CompilerOptions options, ChainContainer container) {
-    return new MplProgramPlacer(container, options);
+  protected MplProgramPlacer createPlacer(MinecraftVersion version, CompilerOptions options,
+      ChainContainer container) {
+    return new MplProgramPlacer(container, version, options);
   }
 
   @Test
-  public void test_when_using_normal_Mode_Prozess_ArmorStands_are_at_the_top_of_each_block()
+  public void test_when_using_normal_Mode_Prozess_MarkerEntities_are_at_the_top_of_each_block()
       throws Exception {
     // given:
+    MinecraftVersion version = MinecraftVersion._15w35a;
     CompilerOptions options = new CompilerOptions();
 
     ChainContainer container = some($ChainContainer(options)//
@@ -75,14 +78,15 @@ public class MplProgramPlacerTest extends AbstractMplProgramPlacerTest {
         .withChains(listOf(some($CommandChain(options)))));
 
     // when:
-    List<CommandBlockChain> placed = createPlacer(options, container).place();
+    List<CommandBlockChain> placed = createPlacer(version, options, container).place();
 
     // then:
     CommandBlockChain install = findByName("install", placed);
     List<MplBlock> blocks = install.getBlocks();
     assertThat(blocks).hasSize(3);
     CommandBlock block = (CommandBlock) blocks.get(1);
-    assertThat(block.getCommand()).startsWith("summon ArmorStand ${origin + (0 0.4 1)}");
+    assertThat(block.getCommand())
+        .startsWith("summon " + version.markerEntity() + " ${origin + (0 0.4 1)}");
   }
 
 }

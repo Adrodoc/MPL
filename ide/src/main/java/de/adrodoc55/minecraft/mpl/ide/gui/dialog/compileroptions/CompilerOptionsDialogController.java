@@ -37,28 +37,33 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.hover;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.compileroptions;
 
 import java.awt.Window;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowControler;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowController;
 
 /**
  * @author Adrodoc55
  */
-public class HoverDialogControler extends WindowControler<HoverDialog, HoverDialogPM> {
+public class CompilerOptionsDialogController
+    extends WindowController<CompilerOptionsDialog, CompilerOptionsDialogPM> {
   @Override
-  protected HoverDialogPM createPM() {
-    return new HoverDialogPM();
+  protected CompilerOptionsDialog createView(Window activeWindow) {
+    CompilerOptionsDialog result = new CompilerOptionsDialog(activeWindow);
+    result.addWindowListener(new WindowAdapter() {
+      @Override
+      public void windowClosed(WindowEvent e) {
+        getPresentationModel().resetProperties();
+      }
+    });
+    return result;
   }
 
   @Override
-  protected HoverDialog createView(Window activeWindow) {
-    return new HoverDialog(activeWindow);
-  }
-
-  public void setMessage(String message) {
-    getPresentationModel().setMessage(message);
-    getView().pack();
+  protected CompilerOptionsDialogPM createPM() {
+    return new CompilerOptionsDialogPM();
   }
 }

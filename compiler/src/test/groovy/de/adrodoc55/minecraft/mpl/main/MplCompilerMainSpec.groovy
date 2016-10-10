@@ -49,7 +49,6 @@ import org.junit.Test
 import de.adrodoc55.minecraft.mpl.MplSpecBase
 
 public class MplCompilerMainSpec extends MplSpecBase {
-
   String lastOutput
   String lastError
 
@@ -72,23 +71,7 @@ public class MplCompilerMainSpec extends MplSpecBase {
     when:
     compile("-o a.txt")
     then:
-    lastError == 'You need to specify a source file\r\n'
-  }
-
-  @Test
-  public void "with invalid type"() {
-    when:
-    compile("-t myType")
-    then:
-    lastError == 'mpl: invalid type myType; possible types are: STRUCTURE, SCHEMATIC, COMMAND, FILTER\r\n'
-  }
-
-  @Test
-  public void "with invalid option"() {
-    when:
-    compile("-c myOption")
-    then:
-    lastError == 'mpl: invalid compiler option MYOPTION; possible options are: DEBUG, DELETE_ON_UNINSTALL, TRANSMITTER\r\n'
+    lastError == 'Main parameters are required ("<src-file>")\r\nRun with \'-h\' to print help\r\n'
   }
 
   @Test
@@ -97,10 +80,10 @@ public class MplCompilerMainSpec extends MplSpecBase {
     File file = new File("test.mpl");
     file.delete();
 
-    String[] args = ["test.mpl"]
+    String[] args = ["test.mpl", "-o", "a.txt"]
 
     when:
-    MplCompilerMain.startCompiler(args);
+    MplCompilerMain.main(args);
 
     then:
     thrown NoSuchFileException
@@ -116,27 +99,11 @@ public class MplCompilerMainSpec extends MplSpecBase {
     String[] args = ["test.mpl", "-o", "a.txt"]
 
     when:
-    MplCompilerMain.startCompiler(args);
+    MplCompilerMain.main(args);
 
     then:
     File output = new File('a.txt')
     output.exists()
     output.delete()
-  }
-
-  @Test
-  public void test_startCompiler_with_one_compiler_option() {
-    given:
-    File file = new File("test.mpl");
-    file.createNewFile();
-    file.deleteOnExit();
-
-    String[] args = ["test.mpl", "-c", "debug"]
-
-    when:
-    MplCompilerMain.startCompiler(args);
-
-    then:
-    notThrown Exception
   }
 }

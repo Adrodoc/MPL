@@ -74,7 +74,6 @@ import org.beanfabrics.event.ListListener;
 import org.beanfabrics.model.IListPM;
 import org.beanfabrics.model.ListPM;
 import org.beanfabrics.swing.BnButton;
-import org.beanfabrics.swing.BnCheckBoxMenuItem;
 import org.beanfabrics.swing.BnMenuItem;
 
 /**
@@ -103,9 +102,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnMenuItem bnmntmCompileToFilter;
   private BnMenuItem bnmntmCompileToFilterUnder;
   private JMenu mnOptions;
-  private BnCheckBoxMenuItem bnchckbxmntmDebug;
-  private BnCheckBoxMenuItem bnchckbxmntmDeleteOnUninstall;
-  private BnCheckBoxMenuItem bnchckbxmntmTransmitter;
+  private BnMenuItem bnmntmCompilerOptions;
   private JToolBar toolBar;
   private BnButton bnbtnNew;
   private BnButton bnbtnOpen;
@@ -178,11 +175,13 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   }
 
   /** {@inheritDoc} */
+  @Override
   public MplFramePM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPresentationModel(MplFramePM pModel) {
     ListListener l = new ListListener() {
       @Override
@@ -254,21 +253,25 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   }
 
   /** {@inheritDoc} */
+  @Override
   public IModelProvider getModelProvider() {
     return this.link.getModelProvider();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setModelProvider(IModelProvider modelProvider) {
     this.link.setModelProvider(modelProvider);
   }
 
   /** {@inheritDoc} */
+  @Override
   public Path getPath() {
     return this.link.getPath();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPath(Path path) {
     this.link.setPath(path);
   }
@@ -413,41 +416,19 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private JMenu getMnOptions() {
     if (mnOptions == null) {
       mnOptions = new JMenu("Options");
-      mnOptions.add(getBnchckbxmntmDebug());
-      mnOptions.add(getBnchckbxmntmDeleteOnUninstall());
-      mnOptions.add(getBnchckbxmntmTransmitter());
+      mnOptions.add(getBnmntmCompilerOptions());
     }
     return mnOptions;
   }
 
-  private BnCheckBoxMenuItem getBnchckbxmntmDebug() {
-    if (bnchckbxmntmDebug == null) {
-      bnchckbxmntmDebug = new BnCheckBoxMenuItem();
-      bnchckbxmntmDebug.setPath(new Path("this.debug"));
-      bnchckbxmntmDebug.setModelProvider(getLocalModelProvider());
-      bnchckbxmntmDebug.setText("Debug");
+  private BnMenuItem getBnmntmCompilerOptions() {
+    if (bnmntmCompilerOptions == null) {
+      bnmntmCompilerOptions = new BnMenuItem();
+      bnmntmCompilerOptions.setPath(new Path("this.openOptionsDialog"));
+      bnmntmCompilerOptions.setModelProvider(getLocalModelProvider());
+      bnmntmCompilerOptions.setText("Compiler Options");
     }
-    return bnchckbxmntmDebug;
-  }
-
-  private BnCheckBoxMenuItem getBnchckbxmntmDeleteOnUninstall() {
-    if (bnchckbxmntmDeleteOnUninstall == null) {
-      bnchckbxmntmDeleteOnUninstall = new BnCheckBoxMenuItem();
-      bnchckbxmntmDeleteOnUninstall.setPath(new Path("this.deleteOnUninstall"));
-      bnchckbxmntmDeleteOnUninstall.setModelProvider(getLocalModelProvider());
-      bnchckbxmntmDeleteOnUninstall.setText("Delete on Uninstall");
-    }
-    return bnchckbxmntmDeleteOnUninstall;
-  }
-
-  private BnCheckBoxMenuItem getBnchckbxmntmTransmitter() {
-    if (bnchckbxmntmTransmitter == null) {
-      bnchckbxmntmTransmitter = new BnCheckBoxMenuItem();
-      bnchckbxmntmTransmitter.setPath(new Path("this.transmitter"));
-      bnchckbxmntmTransmitter.setModelProvider(getLocalModelProvider());
-      bnchckbxmntmTransmitter.setText("Transmitter");
-    }
-    return bnchckbxmntmTransmitter;
+    return bnmntmCompilerOptions;
   }
 
   private JToolBar getToolBar() {

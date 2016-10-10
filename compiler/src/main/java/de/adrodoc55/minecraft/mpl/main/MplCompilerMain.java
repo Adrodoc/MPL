@@ -40,163 +40,65 @@
 package de.adrodoc55.minecraft.mpl.main;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
 
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
-import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
-import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
-import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
-import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
-import de.adrodoc55.minecraft.mpl.conversion.SchematicConverter;
-import de.adrodoc55.minecraft.mpl.conversion.StructureConverter;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 
 /**
  * @author Adrodoc55
  */
 public class MplCompilerMain {
-
-  /**
-   * -o | --output default=stdout<br>
-   * -t | --type default=schematic |command|filter<br>
-   * -c | --option :transmitter,debug<br>
-   * Beispiel:<br>
-   * java -jar MPL.jar -t command -o a.txt -c:debug a.mpl<br>
-   * java -jar MPL.jar a.mpl -o a.schematic
-   *
-   *
-   * file to compile
-   *
-   * @param args to be parsed by this compiler
-   * @throws IOException for the input and output file
-   */
   public static void main(String[] args) throws IOException {
+    MplCompilerParameter params = new MplCompilerParameter();
+    JCommander jc = new JCommander(params);
+    jc.setProgramName("java -jar MPL.jar");
     try {
-      startCompiler(args);
-    } catch (CompilationFailedException ex) {
-      System.err.println(ex.toString());
-    } catch (InvalidOptionException ex) {
+      jc.parse(args);
+      if (params.isHelp()) {
+        jc.usage();
+        return;
+      }
+      MinecraftVersion version = getVersion(params.getVersion());
+      File programFile = params.getInput();
+      MplCompilationResult compiled = compile(programFile, version, params.getCompilerOptions());
+      String name = FileUtils.getFilenameWithoutExtension(programFile);
+      params.getType().getConverter().write(compiled, name, params.getOutput(), version);
+    } catch (ParameterException ex) {
       System.err.println(ex.getLocalizedMessage());
+      System.err.println("Run with '-h' to print help");
     }
   }
 
-  private static void startCompiler(String[] args)
-      throws InvalidOptionException, IOException, CompilationFailedException {
-    String srcPath = null;
-    OutputStream out = System.out;
-    CompilationType type = CompilationType.STRUCTURE;
-    CompilerOptions options = new CompilerOptions();
-
-    for (int i = 0; i < args.length; i++) {
-      String arg = args[i];
-      String argument;
-      if (arg.startsWith("--")) {
-        argument = arg.substring(2);
-      } else if (arg.startsWith("-")) {
-        argument = arg.substring(1);
-      } else {
-        srcPath = arg;
-        continue;
-      }
-      switch (argument) {
-        case "h":
-        case "help":
-          printHelp();
-          return;
-        case "c":
-        case "option":
-          if (i >= args.length) {
-            throw new InvalidOptionException("mpl: missing argument for option " + argument);
-          }
-          options = parseOptions(args[++i]);
-          continue;
-        case "o":
-        case "output":
-          if (i >= args.length) {
-            throw new InvalidOptionException("mpl: missing argument for option " + argument);
-          }
-          out = new FileOutputStream(args[++i]);
-          continue;
-        case "t":
-        case "type":
-          if (i >= args.length) {
-            throw new InvalidOptionException("mpl: missing argument for option " + argument);
-          }
-          String typeString = args[++i];
-          try {
-            type = CompilationType.valueOf(typeString.toUpperCase());
-          } catch (IllegalArgumentException ex) {
-            throw new InvalidOptionException("mpl: invalid type " + typeString
-                + "; possible types are: " + Joiner.on(", ").join(CompilationType.values()));
-          }
-          continue;
-
-        default:
-          throw new InvalidOptionException(
-              "mpl: invalid argument " + argument + " run with --help for help");
-      }
-
+  private static MinecraftVersion getVersion(String specifiedVersion) {
+    MinecraftVersion version = MinecraftVersion.getVersion(specifiedVersion);
+    String usedVersion;
+    if (MinecraftVersion.isSnapshotVersion(specifiedVersion)) {
+      usedVersion = version.getSnapshotVersion();
+    } else {
+      usedVersion = version.toString();
     }
-    if (srcPath == null) {
-      throw new InvalidOptionException("You need to specify a source file");
+    if (!usedVersion.equals(specifiedVersion)) {
+      System.out.println("Falling back to version: " + version);
     }
-    File programFile = new File(srcPath).getAbsoluteFile();
-    String name = FileUtils.getFilenameWithoutExtension(programFile);
-
-    MplCompilationResult compiled = MplCompiler.compile(programFile, options);
-    type.getConverter().write(compiled, name, out);
+    return version;
   }
 
-  private static void printHelp() {
-    System.out.println("Usage: java -jar MPL.jar <options> <src-file>");
-    System.out.println("where possible options include:");
-    System.out.println("  -h | --help\t\t\t\t\tPrint information about the commandline usage");
-    System.out.println(
-        "  -c | --option <option1>[,<option2>...] \tSpecify compiler options; for instance: debug or transmitter");
-    System.out
-        .println("  -o | --output <path> \t\t\t\tSpecify an output file (defaults to stdout)");
-    System.out.println(
-        "  -t | --type schematic|command|filter \t\tSpecify the output type (defaults to structure)");
-  }
-
-  @VisibleForTesting
-  static CompilerOptions parseOptions(String string) throws InvalidOptionException {
-    String[] split = string.split(",");
-    CompilerOption[] options = new CompilerOption[split.length];
-    for (int i = 0; i < split.length; i++) {
-      String option = split[i].replace('-', '_').toUpperCase();
-      try {
-        options[i] = CompilerOption.valueOf(option);
-      } catch (IllegalArgumentException ex) {
-        throw new InvalidOptionException("mpl: invalid compiler option " + option
-            + "; possible options are: " + Joiner.on(", ").join(CompilerOption.values()));
-      }
-    }
-    return new CompilerOptions(options);
-  }
-
-  private static enum CompilationType {
-    STRUCTURE(new StructureConverter()), //
-    SCHEMATIC(new SchematicConverter()), //
-    COMMAND(new CommandConverter()), //
-    FILTER(new PythonConverter()),//
-    ;
-    private final MplConverter converter;
-
-    private CompilationType(MplConverter converter) {
-      this.converter = converter;
-    }
-
-    public MplConverter getConverter() {
-      return converter;
+  private static MplCompilationResult compile(File programFile, MinecraftVersion version,
+      CompilerOptions options) throws IOException {
+    try {
+      return MplCompiler.compile(programFile, version, options);
+    } catch (CompilationFailedException ex) {
+      System.err.println(ex);
+      System.exit(-1);
+      return null;
     }
   }
 }

@@ -47,6 +47,7 @@ dependencies {
   compile sourceSets.jdotsoft.output
   compile libs.antlr4_runtime
   compile libs.guava
+  compile libs.jcommander
   compile libs.jsr305
   compile libs.nbt
   compileOnly libs.lombok

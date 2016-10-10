@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation;
 
+import static com.google.common.base.CaseFormat.LOWER_HYPHEN;
+import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
+
 import java.util.Arrays;
 
 import javax.annotation.concurrent.Immutable;
@@ -81,6 +84,11 @@ public class CompilerOptions {
     DEBUG, //
     DELETE_ON_UNINSTALL, //
     TRANSMITTER, //
+    ;
+    @Override
+    public String toString() {
+      return UPPER_UNDERSCORE.to(LOWER_HYPHEN, super.toString());
+    }
   }
 }
 

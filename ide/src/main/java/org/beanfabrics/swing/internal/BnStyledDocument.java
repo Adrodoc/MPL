@@ -83,6 +83,7 @@ public class BnStyledDocument extends DefaultStyledDocument implements View<ITex
   private class MyWeakPropertyChangeListener implements WeakPropertyChangeListener, Serializable {
     private static final long serialVersionUID = 1L;
 
+    @Override
     public void propertyChange(PropertyChangeEvent evt) {
       if (pending_modelChange == false) { // avoid event cycle
         try {
@@ -137,11 +138,13 @@ public class BnStyledDocument extends DefaultStyledDocument implements View<ITex
   }
 
   /** {@inheritDoc} */
+  @Override
   public ITextPM getPresentationModel() {
     return this.pModel;
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPresentationModel(ITextPM pModel) {
     disconnect();
     this.pModel = pModel;
@@ -202,6 +205,7 @@ public class BnStyledDocument extends DefaultStyledDocument implements View<ITex
     }
   }
 
+  @Override
   public void remove(int offs, int len) throws BadLocationException {
     try {
       try {
@@ -232,6 +236,7 @@ public class BnStyledDocument extends DefaultStyledDocument implements View<ITex
     updatePM();
   }
 
+  @Override
   public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
     try {
       pending_modelChange = true;

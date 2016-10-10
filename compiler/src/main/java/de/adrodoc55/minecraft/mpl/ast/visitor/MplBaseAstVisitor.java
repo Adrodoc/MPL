@@ -67,7 +67,7 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 /**
  * @author Adrodoc55
  */
-public abstract class MplBaseAstVisitor implements MplAstVisitor {
+public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>> {
   protected final CompilerOptions options;
 
   public MplBaseAstVisitor(CompilerOptions options) {

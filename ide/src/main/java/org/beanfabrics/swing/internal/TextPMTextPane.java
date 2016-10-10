@@ -74,6 +74,7 @@ public class TextPMTextPane extends JTextPane implements View<ITextPM> {
   private class MyWeakPropertyChangeListener implements WeakPropertyChangeListener, Serializable {
     private static final long serialVersionUID = 1L;
 
+    @Override
     public void propertyChange(PropertyChangeEvent evt) {
       refresh();
     }
@@ -114,10 +115,12 @@ public class TextPMTextPane extends JTextPane implements View<ITextPM> {
   private void init() {
     this.setEnabled(false);
     this.addFocusListener(new FocusAdapter() {
+      @Override
       public void focusGained(FocusEvent e) {
         TextPMTextPane.this.onFocusGained();
       }
 
+      @Override
       public void focusLost(FocusEvent e) {
         TextPMTextPane.this.onFocusLost();
       }
@@ -144,10 +147,12 @@ public class TextPMTextPane extends JTextPane implements View<ITextPM> {
    *
    * @return the editor kit
    */
+  @Override
   protected EditorKit createDefaultEditorKit() {
     return new BnStyledEditorKit();
   }
 
+  @Override
   public BnStyledDocument getDocument() {
     return (BnStyledDocument) super.getDocument();
   }
@@ -160,6 +165,7 @@ public class TextPMTextPane extends JTextPane implements View<ITextPM> {
    *            <code>BnStyledDocument</code> which is the required type of model for this text
    *            component
    */
+  @Override
   public void setDocument(Document doc) {
     if (doc instanceof BnStyledDocument) {
       super.setDocument(doc);
@@ -187,6 +193,7 @@ public class TextPMTextPane extends JTextPane implements View<ITextPM> {
   }
 
   /** {@inheritDoc} */
+  @Override
   public ITextPM getPresentationModel() {
     if (getDocument() == null)
       return null;
@@ -194,6 +201,7 @@ public class TextPMTextPane extends JTextPane implements View<ITextPM> {
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPresentationModel(ITextPM newModel) {
     ITextPM oldModel = getDocument().getPresentationModel();
     if (oldModel != null) {

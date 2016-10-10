@@ -86,13 +86,17 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 
 public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
+  @Override
+  protected MplCompilerContext newContext() {
+    CompilerOptions options = new CompilerOptions(TRANSMITTER, DEBUG);
+    return new MplCompilerContext(MinecraftVersion.getDefault(), options);
+  }
 
   @Override
-  protected MplMainAstVisitor newUnderTest() {
-    CompilerOptions options = new CompilerOptions(TRANSMITTER, DEBUG);
-    MplCompilerContext context = new MplCompilerContext(options);
+  protected MplMainAstVisitor newUnderTest(MplCompilerContext context) {
     MplMainAstVisitor result = new MplMainAstVisitor(context);
     result.program = new MplProgram(new File(""), context);
     return result;
@@ -183,10 +187,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     // when:
     List<ChainLink> result = mplWaitfor.accept(underTest);
 
-    // then:
     assertThat(result).containsExactly(//
-        new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplWaitfor.getEvent()
-            + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
+        new InternalCommand(
+            "/summon " + markerEntity() + " ${this + 1} {CustomName:" + mplWaitfor.getEvent()
+                + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
         new MplSkip(), //
         new InternalCommand(getOffCommand("${this - 1}"), IMPULSE));
   }
@@ -202,8 +206,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
 
     // then:
     assertThat(result).containsExactly(//
-        new InternalCommand("/summon ArmorStand ${this + 3} {CustomName:" + mplWaitfor.getEvent()
-            + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
+        new InternalCommand(
+            "/summon " + markerEntity() + " ${this + 3} {CustomName:" + mplWaitfor.getEvent()
+                + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
+            true), //
         newInvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true), //
         new MplSkip(), //
@@ -223,8 +229,10 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     assertThat(result).containsExactly(//
         new InternalCommand(getOnCommand("${this + 3}"), true), //
         newInvertingCommand(CHAIN), //
-        new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplWaitfor.getEvent()
-            + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
+        new InternalCommand(
+            "/summon " + markerEntity() + " ${this + 1} {CustomName:" + mplWaitfor.getEvent()
+                + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
+            true), //
         new MplSkip(), //
         new InternalCommand(getOffCommand("${this - 1}"), IMPULSE));
   }
@@ -253,8 +261,8 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     assertThat(result).containsExactly(//
         new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + "] {CustomName:"
             + mplIntercept.getEvent() + INTERCEPTED + "}"), //
-        new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplIntercept.getEvent()
-            + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
+        new InternalCommand("/summon " + markerEntity() + " ${this + 1} {CustomName:"
+            + mplIntercept.getEvent() + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
         new MplSkip(), //
         new InternalCommand(getOffCommand("${this - 1}"), IMPULSE), //
         new InternalCommand("/kill @e[name=" + mplIntercept.getEvent() + ",r=2]"), //
@@ -287,8 +295,9 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     assertThat(result).containsExactly(//
         new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + "] {CustomName:"
             + mplIntercept.getEvent() + INTERCEPTED + "}", true), //
-        new InternalCommand("/summon ArmorStand ${this + 3} {CustomName:" + mplIntercept.getEvent()
-            + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
+        new InternalCommand("/summon " + markerEntity() + " ${this + 3} {CustomName:"
+            + mplIntercept.getEvent() + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
+            true), //
         newInvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true), //
         new MplSkip(), //
@@ -325,8 +334,9 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         newInvertingCommand(CHAIN), //
         new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + "] {CustomName:"
             + mplIntercept.getEvent() + INTERCEPTED + "}", true), //
-        new InternalCommand("/summon ArmorStand ${this + 1} {CustomName:" + mplIntercept.getEvent()
-            + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", true), //
+        new InternalCommand("/summon " + markerEntity() + " ${this + 1} {CustomName:"
+            + mplIntercept.getEvent() + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
+            true), //
         new MplSkip(), //
         new InternalCommand(getOffCommand("${this - 1}"), IMPULSE), //
         new InternalCommand("/kill @e[name=" + mplIntercept.getEvent() + ",r=2]"), //
@@ -358,8 +368,8 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     assertThat(result).containsExactly(//
         new InternalCommand("/say " + mplBreakpoint.getMessage(), mplBreakpoint), //
         new Command("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~")), //
-        new InternalCommand(
-            "/summon ArmorStand ${this + 1} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
+        new InternalCommand("/summon " + markerEntity()
+            + " ${this + 1} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
         new MplSkip(), //
         new InternalCommand(getOffCommand("${this - 1}"), IMPULSE));
   }
@@ -378,7 +388,8 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         new InternalCommand("/say " + mplBreakpoint.getMessage(), mplBreakpoint), //
         new Command("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~"), true), //
         new InternalCommand(
-            "/summon ArmorStand ${this + 3} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
+            "/summon " + markerEntity()
+                + " ${this + 3} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
             true), //
         newInvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true), //
@@ -413,7 +424,8 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         new InternalCommand("/say " + mplBreakpoint.getMessage(), mplBreakpoint), //
         new Command("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~"), true), //
         new InternalCommand(
-            "/summon ArmorStand ${this + 3} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
+            "/summon " + markerEntity()
+                + " ${this + 3} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
             true), //
         newInvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true), //

@@ -37,28 +37,28 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.command;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.hover;
 
 import java.awt.Window;
 
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowControler;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowController;
 
 /**
  * @author Adrodoc55
  */
-public class CommandDialogControler extends WindowControler<CommandDialog, CommandDialogPM> {
+public class HoverDialogController extends WindowController<HoverDialog, HoverDialogPM> {
   @Override
-  protected CommandDialogPM createPM() {
-    return new CommandDialogPM(new CommandDialogPM.Context() {
-      @Override
-      public void close() {
-        getView().dispose();
-      }
-    });
+  protected HoverDialogPM createPM() {
+    return new HoverDialogPM();
   }
 
   @Override
-  protected CommandDialog createView(Window activeWindow) {
-    return new CommandDialog(activeWindow);
+  protected HoverDialog createView(Window activeWindow) {
+    return new HoverDialog(activeWindow);
+  }
+
+  public void setMessage(String message) {
+    getPresentationModel().setMessage(message);
+    getView().pack();
   }
 }

@@ -68,7 +68,7 @@ import org.beanfabrics.swing.BnLabel;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowView;
 
 /**
- * The HoverDialog is a {@link View} on a {@link HoverDialogPM}.
+ * The {@link HoverDialog} is a {@link View} on a {@link HoverDialogPM}.
  *
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
@@ -82,14 +82,14 @@ public class HoverDialog extends JDialog implements WindowView<HoverDialogPM>, M
   private BnLabel bnlblMessage;
 
   /**
-   * Constructs a new <code>HoverDialog</code>.
+   * Constructs a new {@link HoverDialog}.
    */
   public HoverDialog() {
     this(null);
   }
 
   /**
-   * Constructs a new <code>HoverDialog</code>.
+   * Constructs a new {@link HoverDialog}.
    *
    * @param parent the {@code Window} from which the dialog is displayed or {@code null} if this
    *        dialog has no parent
@@ -152,31 +152,37 @@ public class HoverDialog extends JDialog implements WindowView<HoverDialogPM>, M
   }
 
   /** {@inheritDoc} */
+  @Override
   public HoverDialogPM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPresentationModel(HoverDialogPM pModel) {
     getLocalModelProvider().setPresentationModel(pModel);
   }
 
   /** {@inheritDoc} */
+  @Override
   public IModelProvider getModelProvider() {
     return this.link.getModelProvider();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setModelProvider(IModelProvider modelProvider) {
     this.link.setModelProvider(modelProvider);
   }
 
   /** {@inheritDoc} */
+  @Override
   public Path getPath() {
     return this.link.getPath();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPath(Path path) {
     this.link.setPath(path);
   }

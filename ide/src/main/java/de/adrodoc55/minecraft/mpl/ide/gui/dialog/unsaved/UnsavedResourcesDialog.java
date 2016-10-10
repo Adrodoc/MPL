@@ -74,7 +74,7 @@ import org.beanfabrics.swing.table.BnColumnBuilder;
 import org.beanfabrics.swing.table.BnTable;
 
 /**
- * The UnsavedFilesDialog is a {@link View} on a {@link UnsavedResourcesDialogPM}.
+ * The {@link UnsavedResourcesDialog} is a {@link View} on a {@link UnsavedResourcesDialogPM}.
  *
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
@@ -100,7 +100,7 @@ public class UnsavedResourcesDialog extends JDialog
   }
 
   /**
-   * Constructs a new <code>UnsavedFilesDialog</code>.
+   * Constructs a new {@link UnsavedResourcesDialog}.
    *
    * @param parent the {@code Window} from which the dialog is displayed or {@code null} if this
    *        dialog has no parent
@@ -154,31 +154,37 @@ public class UnsavedResourcesDialog extends JDialog
   }
 
   /** {@inheritDoc} */
+  @Override
   public UnsavedResourcesDialogPM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPresentationModel(UnsavedResourcesDialogPM pModel) {
     getLocalModelProvider().setPresentationModel(pModel);
   }
 
   /** {@inheritDoc} */
+  @Override
   public IModelProvider getModelProvider() {
     return this.link.getModelProvider();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setModelProvider(IModelProvider modelProvider) {
     this.link.setModelProvider(modelProvider);
   }
 
   /** {@inheritDoc} */
+  @Override
   public Path getPath() {
     return this.link.getPath();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPath(Path path) {
     this.link.setPath(path);
   }

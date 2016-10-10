@@ -88,9 +88,10 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkipBuilder;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
-import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContextBuilder;
 import de.adrodoc55.minecraft.mpl.compilation.MplSourceBuilder;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBufferBuilder;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import net.karneim.pojobuilder.Builder;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 import net.karneim.pojobuilder.GeneratePojoBuilder;
@@ -136,6 +137,13 @@ public class MplTestBase extends TestBase {
     return $oneOf(ProcessType.values());
   }
 
+  public static MplCompilerContextBuilder $MplCompilerContext() {
+    return new MplCompilerContextBuilder()//
+        .withOptions(new CompilerOptions())//
+        .withVersion(MinecraftVersion.getDefault())//
+        ;
+  }
+
   public static CommandBuilder $Command() {
     return new CommandBuilder()//
         .withCommand($CommandString())//
@@ -172,7 +180,7 @@ public class MplTestBase extends TestBase {
   public static MplProgramBuilder $MplProgram() {
     return new MplProgramBuilder()//
         .withProgramFile(new File(""))//
-        .withContext(new MplCompilerContext())//
+        .withContext($MplCompilerContext())//
         .withName($String())//
         .withScript($boolean())//
         .withOrientation($Orientation3D())//

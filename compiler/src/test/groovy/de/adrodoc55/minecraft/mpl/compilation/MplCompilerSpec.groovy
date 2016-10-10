@@ -59,6 +59,7 @@ import de.adrodoc55.minecraft.mpl.chain.ChainContainer
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion
 
 class MplCompilerSpec extends MplSpecBase {
 
@@ -70,7 +71,7 @@ class MplCompilerSpec extends MplSpecBase {
 
   private MplProgram assembleProgram(File programFile) {
     lastProgramFile = programFile
-    MplCompiler compiler = new MplCompiler(new CompilerOptions())
+    MplCompiler compiler = new MplCompiler(MinecraftVersion.getDefault(), new CompilerOptions())
     MplProgram program = compiler.assemble(programFile)
     compiler.checkErrors()
     return program
@@ -78,7 +79,7 @@ class MplCompilerSpec extends MplSpecBase {
 
   private List<CommandBlockChain> place(File programFile, CompilerOption... options) {
     lastProgramFile = programFile
-    MplCompiler compiler = new MplCompiler(new CompilerOptions(options))
+    MplCompiler compiler = new MplCompiler(MinecraftVersion.getDefault(), new CompilerOptions(options))
     MplProgram program = compiler.assemble(programFile)
     compiler.checkErrors()
     ChainContainer container = compiler.materialize(program)
@@ -89,7 +90,7 @@ class MplCompilerSpec extends MplSpecBase {
 
   private MplCompilationResult compile(File programFile, CompilerOption... options) {
     lastProgramFile = programFile
-    return MplCompiler.compile(programFile, new CompilerOptions(options))
+    return MplCompiler.compile(programFile, MinecraftVersion.getDefault(), new CompilerOptions(options))
   }
 
   @Test
@@ -133,6 +134,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
@@ -158,6 +160,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.processes.size() == 1
     MplProcess main = result.processes.find { it.name == 'main' }
@@ -181,6 +184,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
@@ -209,6 +213,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.processes.size() == 1
     MplProcess main = result.processes.find { it.name == 'main' }
@@ -235,6 +240,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
@@ -263,6 +269,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.processes.size() == 1
     MplProcess main = result.processes.find { it.name == 'main' }
@@ -315,6 +322,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
@@ -345,6 +353,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
@@ -375,6 +384,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     notThrown Exception
     result.processes.size() == 3
@@ -410,6 +420,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'p1.mpl'))
+
     then:
     notThrown Exception
     result.processes.size() == 3
@@ -442,6 +453,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
@@ -475,6 +487,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
@@ -510,6 +523,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.processes.size() == 3
     MplProcess main = result.processes.find { it.name == 'main' }
@@ -583,6 +597,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.processes.size() == 3
     MplProcess main = result.processes.find { it.name == 'main' }
@@ -649,6 +664,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     CompilationFailedException ex = thrown()
     List<CompilerException> exs = ex.errors.get(new File(folder, 'main.mpl'))
@@ -673,6 +689,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.orientation == new Orientation3D('zyx')
   }
@@ -693,6 +710,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.orientation == new Orientation3D()
   }
@@ -720,6 +738,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.processes.size() == 1
     MplProcess main = result.processes.find { it.name == 'main' }
@@ -752,6 +771,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     CompilationFailedException ex = thrown()
     List<CompilerException> exs = ex.errors.get(new File(folder, 'main.mpl'))
@@ -777,6 +797,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     result.processes.size() == 2
     MplProcess main = result.processes.find { it.name == 'main' }
@@ -794,7 +815,8 @@ class MplCompilerSpec extends MplSpecBase {
     impulse: /say hi
     """
     when:
-    MplCompiler.compile(new File(folder, 'main.mpl'), new CompilerOptions())
+    compile(new File(folder, 'main.mpl'))
+
     then:
     notThrown Exception
   }
@@ -807,7 +829,8 @@ class MplCompilerSpec extends MplSpecBase {
     repeat: /say hi
     """
     when:
-    MplCompiler.compile(new File(folder, 'main.mpl'), new CompilerOptions())
+    compile(new File(folder, 'main.mpl'))
+
     then:
     notThrown Exception
   }
@@ -820,7 +843,8 @@ class MplCompilerSpec extends MplSpecBase {
     /say hi
     """
     when:
-    MplCompiler.compile(new File(folder, 'main.mpl'), new CompilerOptions())
+    compile(new File(folder, 'main.mpl'))
+
     then:
     notThrown Exception
   }
@@ -834,6 +858,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     List<CommandBlockChain> result = place(new File(folder, 'main.mpl'), TRANSMITTER)
+
     then:
     result.find { it.name == 'install' } == null
     result.find { it.name == 'uninstall' } == null
@@ -852,6 +877,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     List<CommandBlockChain> result = place(new File(folder, 'main.mpl'), TRANSMITTER)
+
     then:
     result.find { it.name == 'install' }
     result.find { it.name == 'uninstall' } == null
@@ -870,6 +896,7 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     List<CommandBlockChain> result = place(new File(folder, 'main.mpl'), TRANSMITTER)
+
     then:
     CommandBlockChain install = result.find { it.name == 'install' }
     install.blocks[0].class == Transmitter
@@ -897,12 +924,13 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     List<CommandBlockChain> result = place(new File(folder, 'main.mpl'), TRANSMITTER)
+
     then:
     CommandBlockChain install = result.find { it.name == 'install' }
     install.blocks.size() == 5
     install.blocks[0].class == Transmitter
     install.blocks[1].getCommand().startsWith('setblock ')
-    install.blocks[2].getCommand().startsWith('summon ArmorStand ')
+    install.blocks[2].getCommand().startsWith('summon ')
     install.blocks[3].toCommand() == new Command('say install')
     install.blocks[4].class == AirBlock
   }
@@ -930,18 +958,53 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     List<CommandBlockChain> result = place(new File(folder, 'main.mpl'), TRANSMITTER)
+
     then:
     CommandBlockChain uninstall = result.find { it.name == 'uninstall' }
     uninstall.blocks.size() == 5
     uninstall.blocks[0].class == Transmitter
     uninstall.blocks[1].getCommand().startsWith('setblock ')
     uninstall.blocks[2].toCommand() == new Command('say uninstall')
-    uninstall.blocks[3].getCommand().startsWith('kill @e[type=ArmorStand,tag=MPL')
+    uninstall.blocks[3].getCommand().startsWith('kill @e[type=')
     uninstall.blocks[4].class == AirBlock
   }
 
   @Test
-  public void "the install and uninstall of multiple files is concatenated"() {
+  public void "install and uninstall are processed"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    install {
+      /say main install
+    }
+
+    uninstall {
+      /say main uninstall
+    }
+
+    remote process main {
+      start other   // ein include erzeugen, damit sichergestellt wird, dass der interpreter sich nicht selbst included
+    }
+
+    remote process other {}
+    """
+    when:
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
+    then:
+    notThrown Exception
+
+    Deque<ChainPart> install = result.install.chainParts
+    install[0] == new MplCommand("/say main install", source())
+    install.size() == 1
+
+    Deque<ChainPart> uninstall = result.uninstall.chainParts
+    uninstall[0] == new MplCommand("/say main uninstall", source())
+    uninstall.size() == 1
+  }
+
+  @Test
+  public void "the install of multiple files is concatenated"() {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
@@ -968,14 +1031,54 @@ class MplCompilerSpec extends MplSpecBase {
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
     then:
     notThrown Exception
 
-    List<ChainPart> install = result.install.chainParts
+    Deque<ChainPart> install = result.install.chainParts
     install[0] == new MplCommand("/say main install", source())
     install[1] == new MplCommand("/say install 1", source())
     install[2] == new MplCommand("/say install 2", source())
     install.size() == 3
+  }
+
+  @Test
+  public void "the uninstall of multiple files is concatenated"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    include "uninstall1.mpl"
+    include "uninstall2.mpl"
+
+    uninstall {
+      /say main uninstall
+    }
+
+    remote process main {}
+    """
+    new File(folder, 'uninstall1.mpl').text = """
+    project p {}
+    uninstall {
+      /say uninstall 1
+    }
+    """
+    new File(folder, 'uninstall2.mpl').text = """
+    project p {}
+    uninstall {
+      /say uninstall 2
+    }
+    """
+    when:
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
+    then:
+    notThrown Exception
+
+    Deque<ChainPart> uninstall = result.uninstall.chainParts
+    uninstall[0] == new MplCommand("/say main uninstall", source())
+    uninstall[1] == new MplCommand("/say uninstall 1", source())
+    uninstall[2] == new MplCommand("/say uninstall 2", source())
+    uninstall.size() == 3
   }
 
   @Test
@@ -1092,6 +1195,32 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
+  public void "waiting for a nested notify is fine"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      waitfor event
+    }
+
+    remote process other {
+      if: /testfor @e
+      then {
+        notify event
+      } else {
+        /say hi
+      }
+    }
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.isEmpty()
+  }
+
+  @Test
   public void "waiting for an unknown event results in a compiler warning"() {
     given:
     File folder = tempFolder.root
@@ -1110,6 +1239,104 @@ class MplCompilerSpec extends MplSpecBase {
     result.warnings.get(programFile)[0].source.token.text == 'unknown'
     result.warnings.get(programFile)[0].source.token.line == 3
     result.warnings.size() == 1
+  }
+
+  @Test
+  public void "notifying a waitfor event is fine"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      notify event
+    }
+
+    remote process other {
+      waitfor event
+    }
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.isEmpty()
+  }
+
+  @Test
+  public void "notifying a nested waitfor event is fine"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      notify event
+    }
+
+    remote process other {
+      if: /testfor @e
+      then {
+        waitfor event
+      } else {
+        /say hi
+      }
+    }
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.isEmpty()
+  }
+
+  @Test
+  public void "notifying a call event is fine"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      notify event
+    }
+
+    remote process other {
+      event()
+    }
+
+    remote process event {}
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.isEmpty()
+  }
+
+  @Test
+  public void "notifying a nested call event is fine"() {
+    given:
+    File folder = tempFolder.root
+    File programFile = new File(folder, 'main.mpl')
+    programFile.text = """
+    remote process main {
+      notify event
+    }
+
+    remote process other {
+      if: /testfor @e
+      then {
+        event()
+      } else {
+        /say hi
+      }
+    }
+
+    remote process event {}
+    """
+    when:
+    MplCompilationResult result = compile(programFile)
+
+    then:
+    result.warnings.isEmpty()
   }
 
   @Test

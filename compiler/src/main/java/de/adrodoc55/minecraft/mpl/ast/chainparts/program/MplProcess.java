@@ -42,18 +42,22 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts.program;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.commons.Named;
+import de.adrodoc55.commons.collections.Deques;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -65,12 +69,12 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @EqualsAndHashCode(exclude = "source")
 @ToString(exclude = "source")
 @Getter
-public class MplProcess implements Named {
+public class MplProcess implements Named, ChainPartBuffer {
   private final String name;
   private final boolean repeating;
   private final ProcessType type;
   private final MplSource source;
-  private final List<ChainPart> chainParts = new ArrayList<>();
+  private final Deque<ChainPart> chainParts = new ArrayDeque<>();
   private final List<String> tags = new ArrayList<>();
 
   public MplProcess(@Nonnull MplSource source) {
@@ -94,10 +98,11 @@ public class MplProcess implements Named {
   /**
    * Read only!
    *
-   * @return an unmodifiable {@link List} of the {@link ChainPart}s of this {@link MplProcess}
+   * @return an unmodifiable {@link Deque} of the {@link ChainPart}s of this {@link MplProcess}
    */
-  public List<ChainPart> getChainParts() {
-    return Collections.unmodifiableList(chainParts);
+  @Override
+  public Deque<ChainPart> getChainParts() {
+    return Deques.unmodifiableDeque(chainParts);
   }
 
   public void setChainParts(Collection<? extends ChainPart> chainParts) {
@@ -105,6 +110,7 @@ public class MplProcess implements Named {
     addAll(chainParts);
   }
 
+  @Override
   public void add(ChainPart chainPart) {
     this.chainParts.add(chainPart);
   }

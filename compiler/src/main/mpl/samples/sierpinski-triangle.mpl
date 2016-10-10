@@ -4,9 +4,9 @@ install {
   /scoreboard objectives add ST_Z dummy
 }
 
-process reset {
+impulse process reset {
   /kill @e[name=ST_Head]
-  /summon ArmorStand ${origin + (0 0 5)} {CustomName:ST_Head,NoGravity:1}
+  /summon armor_stand ${origin + (0 0 5)} {CustomName:ST_Head,NoGravity:1}
 }
 
 repeat process triangle {

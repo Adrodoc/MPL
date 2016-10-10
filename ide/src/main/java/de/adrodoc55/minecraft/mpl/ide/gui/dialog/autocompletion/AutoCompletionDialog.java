@@ -69,7 +69,7 @@ import org.beanfabrics.swing.list.CellConfig;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowView;
 
 /**
- * The AutoCompletionDialog is a {@link View} on a {@link AutoCompletionDialogPM}.
+ * The {@link AutoCompletionDialog} is a {@link View} on a {@link AutoCompletionDialogPM}.
  *
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
@@ -84,7 +84,7 @@ public class AutoCompletionDialog extends JDialog
   private JPanel panel;
 
   /**
-   * Constructs a new <code>AutoCompletionDialog</code>.
+   * Constructs a new {@link AutoCompletionDialog}.
    *
    * @param parent the {@code Window} from which the dialog is displayed or {@code null} if this
    *        dialog has no parent
@@ -101,7 +101,6 @@ public class AutoCompletionDialog extends JDialog
     getContentPane().add(getPanel(), BorderLayout.CENTER);
     InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
     ActionMap actionMap = getRootPane().getActionMap();
-
     inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
     actionMap.put("close", new AbstractAction() {
       @Override
@@ -145,6 +144,7 @@ public class AutoCompletionDialog extends JDialog
       bnList.setModelProvider(getLocalModelProvider());
 
       bnList.addMouseListener(new MouseAdapter() {
+        @Override
         public void mouseClicked(MouseEvent mouseEvent) {
           if (!bnList.equals(mouseEvent.getSource()))
             return;
@@ -180,31 +180,37 @@ public class AutoCompletionDialog extends JDialog
   }
 
   /** {@inheritDoc} */
+  @Override
   public AutoCompletionDialogPM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPresentationModel(AutoCompletionDialogPM pModel) {
     getLocalModelProvider().setPresentationModel(pModel);
   }
 
   /** {@inheritDoc} */
+  @Override
   public IModelProvider getModelProvider() {
     return this.link.getModelProvider();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setModelProvider(IModelProvider modelProvider) {
     this.link.setModelProvider(modelProvider);
   }
 
   /** {@inheritDoc} */
+  @Override
   public Path getPath() {
     return this.link.getPath();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPath(Path path) {
     this.link.setPath(path);
   }

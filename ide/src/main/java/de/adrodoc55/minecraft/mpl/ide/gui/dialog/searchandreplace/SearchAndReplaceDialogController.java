@@ -43,18 +43,18 @@ import java.awt.Window;
 
 import javax.swing.WindowConstants;
 
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowControler;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowController;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogPM.Context;
 
 /**
  * @author Adrodoc55
  */
-public class SearchAndReplaceDialogControler
-    extends WindowControler<SearchAndReplaceDialog, SearchAndReplaceDialogPM> {
+public class SearchAndReplaceDialogController
+    extends WindowController<SearchAndReplaceDialog, SearchAndReplaceDialogPM> {
 
   private final Context context;
 
-  public SearchAndReplaceDialogControler(Context context) {
+  public SearchAndReplaceDialogController(Context context) {
     this.context = context;
   }
 

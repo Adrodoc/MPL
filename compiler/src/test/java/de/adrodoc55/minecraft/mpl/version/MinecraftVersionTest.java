@@ -37,50 +37,46 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion;
+package de.adrodoc55.minecraft.mpl.version;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import java.awt.Dimension;
-import java.awt.Window;
-import java.util.Collection;
+import org.junit.Test;
 
-import de.adrodoc55.minecraft.mpl.ide.autocompletion.AutoCompletionAction;
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowControler;
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialogPM.Context;
+public class MinecraftVersionTest {
+  @Test
+  public void test_getVersion__For_exact_version() {
+    // when:
+    MinecraftVersion actual = MinecraftVersion.getVersion("1.11");
 
-/**
- * @author Adrodoc55
- */
-public class AutoCompletionDialogControler
-    extends WindowControler<AutoCompletionDialog, AutoCompletionDialogPM> {
-  private final Context context;
-
-  public AutoCompletionDialogControler(Context context) {
-    this.context = checkNotNull(context, "context == null!");
+    // then:
+    assertThat(actual).isSameAs(MinecraftVersion._16w32a);
   }
 
-  public void setOptions(Collection<AutoCompletionAction> options) {
-    getPresentationModel().setOptions(options);
-    recalculateViewSize();
+  @Test
+  public void test_getVersion__For_later_version() {
+    // when:
+    MinecraftVersion actual = MinecraftVersion.getVersion("1.11.2");
+
+    // then:
+    assertThat(actual).isSameAs(MinecraftVersion._16w32a);
   }
 
-  @Override
-  protected AutoCompletionDialogPM createPM() {
-    return new AutoCompletionDialogPM(context);
+  @Test
+  public void test_getVersion__For_exact_snapshot_version() {
+    // when:
+    MinecraftVersion actual = MinecraftVersion.getVersion("16w32a");
+
+    // then:
+    assertThat(actual).isSameAs(MinecraftVersion._16w32a);
   }
 
-  @Override
-  protected AutoCompletionDialog createView(Window activeWindow) {
-    return new AutoCompletionDialog(activeWindow);
-  }
+  @Test
+  public void test_getVersion__For_later_snapshot_version() {
+    // when:
+    MinecraftVersion actual = MinecraftVersion.getVersion("16w38a");
 
-  private void recalculateViewSize() {
-    AutoCompletionDialog view = getView();
-    AutoCompletionDialogPM pm = getPresentationModel();
-    view.getBnList().setVisibleRowCount(Math.max(1, Math.min(pm.options.size(), 10)));
-    Dimension preferredSize = view.getPreferredSize();
-    preferredSize.width += 5;
-    view.setSize(preferredSize);
+    // then:
+    assertThat(actual).isSameAs(MinecraftVersion._16w32a);
   }
 }

@@ -19,8 +19,8 @@
  *
  *
  *
- * Minecraft Programming Language (MPL): Eine Sprache für die einfache Entwicklung von Anwendungen,
- * inklusive einer IDE.
+ * Minecraft Programming Language (MPL): Eine Sprache für die einfache Entwicklung von Commandoblock
+ * Anwendungen, inklusive einer IDE.
  *
  * © Copyright (C) 2016 Adrodoc55
  *
@@ -37,15 +37,22 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.main;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.compileroptions;
+
+import org.beanfabrics.swing.ModelSubscriberBeanInfo;
 
 /**
  * @author Adrodoc55
+ * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class InvalidOptionException extends Exception {
-  private static final long serialVersionUID = 1L;
+public class CompilerOptionsDialogBeanInfo extends ModelSubscriberBeanInfo {
+  @Override
+  protected Class<CompilerOptionsDialog> getBeanClass() {
+    return CompilerOptionsDialog.class;
+  }
 
-  public InvalidOptionException(String string) {
-    super(string);
+  @Override
+  protected boolean isPathBound() {
+    return false;
   }
 }

@@ -75,7 +75,7 @@ import org.beanfabrics.swing.BnComboBox;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowView;
 
 /**
- * The SearchAndReplaceDialog is a {@link View} on a {@link SearchAndReplaceDialogPM}.
+ * The {@link SearchAndReplaceDialog} is a {@link View} on a {@link SearchAndReplaceDialogPM}.
  *
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
@@ -107,7 +107,7 @@ public class SearchAndReplaceDialog extends JDialog
   private JButton btnClose;
 
   /**
-   * Constructs a new <code>SearchAndReplaceDialog</code>.
+   * Constructs a new {@link SearchAndReplaceDialog}.
    *
    * @param parent the {@code Window} from which the dialog is displayed or {@code null} if this
    *        dialog has no parent
@@ -178,31 +178,37 @@ public class SearchAndReplaceDialog extends JDialog
   }
 
   /** {@inheritDoc} */
+  @Override
   public SearchAndReplaceDialogPM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPresentationModel(SearchAndReplaceDialogPM pModel) {
     getLocalModelProvider().setPresentationModel(pModel);
   }
 
   /** {@inheritDoc} */
+  @Override
   public IModelProvider getModelProvider() {
     return this.link.getModelProvider();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setModelProvider(IModelProvider modelProvider) {
     this.link.setModelProvider(modelProvider);
   }
 
   /** {@inheritDoc} */
+  @Override
   public Path getPath() {
     return this.link.getPath();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPath(Path path) {
     this.link.setPath(path);
   }

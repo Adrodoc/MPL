@@ -65,6 +65,7 @@ import de.adrodoc55.minecraft.mpl.blocks.AirBlock;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -77,7 +78,8 @@ public class StructureConverter implements MplConverter {
   private final List<State> states = new ArrayList<>();
 
   @Override
-  public void write(MplCompilationResult result, String name, OutputStream out) throws IOException {
+  public void write(MplCompilationResult result, String name, OutputStream out,
+      MinecraftVersion version) throws IOException {
     try (GZIPOutputStream zip = new GZIPOutputStream(out);
         NbtOutputStream nbt = new NbtOutputStream(zip);) {
       nbt.write(convert(result));

@@ -62,6 +62,7 @@ import org.beanfabrics.swing.internal.BnStyledEditorKit;
 public class BnJaggedEditorKit extends BnStyledEditorKit {
   private static final long serialVersionUID = 1L;
 
+  @Override
   public JaggedViewFactory getViewFactory() {
     return new JaggedViewFactory();
   }
@@ -70,6 +71,7 @@ public class BnJaggedEditorKit extends BnStyledEditorKit {
    * @author Adrodoc55
    */
   public static class JaggedViewFactory implements ViewFactory {
+    @Override
     public View create(Element elem) {
       String kind = elem.getName();
       if (kind != null) {
@@ -130,6 +132,7 @@ public class BnJaggedEditorKit extends BnStyledEditorKit {
       super(elem);
     }
 
+    @Override
     public void paint(Graphics g, Shape allocation) {
       boolean underline = isUnderline();
       if (underline) {

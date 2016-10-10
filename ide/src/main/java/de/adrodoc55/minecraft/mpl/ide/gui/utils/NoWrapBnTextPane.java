@@ -78,6 +78,7 @@ public class NoWrapBnTextPane extends BnTextPane {
     addCaretListener(new VisibleCaretListener());
   }
 
+  @Override
   public boolean getScrollableTracksViewportWidth() {
     Component parent = getParent();
     ComponentUI ui = getUI();

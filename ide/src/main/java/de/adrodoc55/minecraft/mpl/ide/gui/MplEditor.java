@@ -83,12 +83,12 @@ import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.ide.autocompletion.AutoCompletion;
 import de.adrodoc55.minecraft.mpl.ide.autocompletion.AutoCompletionAction;
 import de.adrodoc55.minecraft.mpl.ide.gui.MplSyntaxFilterPM.CompilerExceptionWrapper;
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowControler;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowController;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowView;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialog;
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialogControler;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialogController;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.autocompletion.AutoCompletionDialogPM.Context;
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.hover.HoverDialogControler;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.hover.HoverDialogController;
 import de.adrodoc55.minecraft.mpl.ide.gui.editor.BnEditorTextPane;
 import de.adrodoc55.minecraft.mpl.ide.gui.editor.EditorPM;
 import de.adrodoc55.minecraft.mpl.ide.gui.editor.UndoableBnStyledDocument;
@@ -146,14 +146,15 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
   private MplSyntaxFilter mplSyntaxFilter;
   private TextLineNumber textLineNumber;
 
-  private List<WindowControler<?, ?>> ctrl = new ArrayList<>();
-  private HoverDialogControler hoverCtrl = new HoverDialogControler();
-  private AutoCompletionDialogControler autoCtrl = new AutoCompletionDialogControler(new Context() {
-    @Override
-    public void choose(AutoCompletionAction action) {
-      action.performOn(getTextPane());
-    }
-  });
+  private List<WindowController<?, ?>> ctrl = new ArrayList<>();
+  private HoverDialogController hoverCtrl = new HoverDialogController();
+  private AutoCompletionDialogController autoCtrl =
+      new AutoCompletionDialogController(new Context() {
+        @Override
+        public void choose(AutoCompletionAction action) {
+          action.performOn(getTextPane());
+        }
+      });
 
   /**
    * Constructs a new <code>MplEditor</code>.
@@ -165,7 +166,7 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
     // Add listeners to dispose the temporary dialogs
     ctrl.add(autoCtrl);
     ctrl.add(hoverCtrl);
-    for (WindowControler<?, ?> controler : ctrl) {
+    for (WindowController<?, ?> controler : ctrl) {
       addAncestorListener(new AncestorAdapter() {
         @Override
         public void ancestorMoved(AncestorEvent event) {
@@ -209,31 +210,37 @@ public class MplEditor extends JComponent implements View<MplEditorPM>, ModelSub
   }
 
   /** {@inheritDoc} */
+  @Override
   public MplEditorPM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPresentationModel(MplEditorPM pModel) {
     getLocalModelProvider().setPresentationModel(pModel);
   }
 
   /** {@inheritDoc} */
+  @Override
   public IModelProvider getModelProvider() {
     return this.link.getModelProvider();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setModelProvider(IModelProvider modelProvider) {
     this.link.setModelProvider(modelProvider);
   }
 
   /** {@inheritDoc} */
+  @Override
   public Path getPath() {
     return this.link.getPath();
   }
 
   /** {@inheritDoc} */
+  @Override
   public void setPath(Path path) {
     this.link.setPath(path);
   }

@@ -43,6 +43,7 @@ import static de.adrodoc55.TestBase.$String
 import static de.adrodoc55.TestBase.$int
 import static de.adrodoc55.TestBase.some
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$Identifier
+import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplCompilerContext
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.*
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.*
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY
@@ -277,12 +278,12 @@ class MplInterpreterSpec2 extends MplSpecBase {
     processes.size() == 2
 
     MplProcess process1 = processes.find { it.name == id1 }
-    List<ChainPart> chainParts1 = process1.chainParts
+    Deque<ChainPart> chainParts1 = process1.chainParts
     chainParts1[0] == new MplCommand("/say I am the first process", source())
     chainParts1.size() == 1
 
     MplProcess process2 = processes.find { it.name == id2 }
-    List<ChainPart> chainParts2 = process2.chainParts
+    Deque<ChainPart> chainParts2 = process2.chainParts
     chainParts2[0] == new MplCommand("/say I am the second process", source())
     chainParts2.size() == 1
   }
@@ -435,7 +436,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     File programFile = newTempFile()
     File neighbourFile = new File(programFile.parentFile, 'neighbour.mpl')
     neighbourFile.createNewFile()
-    MplInterpreter interpreter = new MplInterpreter(programFile, new MplCompilerContext())
+    MplInterpreter interpreter = new MplInterpreter(programFile, some($MplCompilerContext()))
 
     expect:
     interpreter.imports.containsAll([programFile, neighbourFile])
@@ -448,7 +449,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     File programFile = newTempFile()
     File neighbourFile = new File(programFile.parentFile, 'neighbour.txt')
     neighbourFile.createNewFile()
-    MplInterpreter interpreter = new MplInterpreter(programFile, new MplCompilerContext())
+    MplInterpreter interpreter = new MplInterpreter(programFile, some($MplCompilerContext()))
 
     expect:
     interpreter.imports.containsAll([programFile])
@@ -462,7 +463,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     File otherFile = new File(programFile.parentFile, 'folder/other.txt')
     otherFile.parentFile.mkdirs()
     otherFile.createNewFile()
-    MplInterpreter interpreter = new MplInterpreter(programFile, new MplCompilerContext())
+    MplInterpreter interpreter = new MplInterpreter(programFile, some($MplCompilerContext()))
 
     when:
     interpreter.addFileImport(null, otherFile)
