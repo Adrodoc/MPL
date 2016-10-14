@@ -171,7 +171,7 @@ public class MplInterpreter extends MplBaseListener {
   private final MplCompilerContext context;
   private final File programFile;
   private final List<String> lines;
-  private final SetMultimap<String, MplProcessReference> references = HashMultimap.create();
+  private final SetMultimap<String, MplReference> references = HashMultimap.create();
   private final Set<File> imports = new HashSet<>();
 
   private MplInterpreter(File programFile, MplCompilerContext context) throws IOException {
@@ -201,7 +201,7 @@ public class MplInterpreter extends MplBaseListener {
    *
    * @return the references
    */
-  public SetMultimap<String, MplProcessReference> getReferences() {
+  public SetMultimap<String, MplReference> getReferences() {
     return Multimaps.unmodifiableSetMultimap(references);
   }
 
