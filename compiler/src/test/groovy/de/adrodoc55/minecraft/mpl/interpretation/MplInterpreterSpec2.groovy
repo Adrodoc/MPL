@@ -568,8 +568,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplProgram program = interpreter.program
     lastContext.errors.isEmpty()
 
-    SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
-    Set<MplProcessReference> references = referenceMap.get(id1);
+    SetMultimap<String, MplReference> referenceMap = interpreter.references
+    Set<MplReference> references = referenceMap.get(id1);
     references[0].imports.containsAll([lastTempFile])
     references[0].imports.size() == 1
     references[0].processName == id2
@@ -595,8 +595,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplProgram program = interpreter.program
     lastContext.errors.isEmpty()
 
-    SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
-    Set<MplProcessReference> references = referenceMap.get(id1);
+    SetMultimap<String, MplReference> referenceMap = interpreter.references
+    Set<MplReference> references = referenceMap.get(id1);
     references[0].imports.containsAll([lastTempFile])
     references[0].imports.size() == 1
     references[0].processName == id2
@@ -664,8 +664,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplProgram program = interpreter.program
     lastContext.errors.isEmpty()
 
-    SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
-    Set<MplProcessReference> references = referenceMap.get(id1);
+    SetMultimap<String, MplReference> referenceMap = interpreter.references
+    Set<MplReference> references = referenceMap.get(id1);
     references[0].imports.containsAll([lastTempFile, newFile])
     references[0].imports.size() == 2
     references[0].processName == id2
@@ -697,8 +697,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplProgram program = interpreter.program
     lastContext.errors.isEmpty()
 
-    SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
-    Set<MplProcessReference> references = referenceMap.get(id1);
+    SetMultimap<String, MplReference> referenceMap = interpreter.references
+    Set<MplReference> references = referenceMap.get(id1);
     references[0].imports.containsAll([lastTempFile, newFile])
     references[0].imports.size() == 2
     references[0].processName == id2
@@ -733,8 +733,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplProgram program = interpreter.program
     lastContext.errors.isEmpty()
 
-    SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
-    Set<MplProcessReference> references = referenceMap.get(id1);
+    SetMultimap<String, MplReference> referenceMap = interpreter.references
+    Set<MplReference> references = referenceMap.get(id1);
     references[0].imports.containsAll([lastTempFile])
     references[0].imports.size() == 1
     references[0].processName == id2
@@ -769,8 +769,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplProgram program = interpreter.program
     lastContext.errors.isEmpty()
 
-    SetMultimap<String, MplProcessReference> referenceMap = interpreter.references
-    Set<MplProcessReference> references = referenceMap.get(id2);
+    SetMultimap<String, MplReference> referenceMap = interpreter.references
+    Set<MplReference> references = referenceMap.get(id2);
     references[0].imports.containsAll([lastTempFile])
     references[0].imports.size() == 1
     references[0].processName == id1
@@ -2552,14 +2552,14 @@ class MplInterpreterSpec2 extends MplSpecBase {
     value = valueForType(actualType)
   }
 
-  List<List<MplType>> typeCombinations() {
+  private List<List<MplType>> typeCombinations() {
     List<List<MplType>> result = [MplType.values(), MplType.values()].combinations()
     result.removeIf { List<MplType> list -> list[0] == list[1] }
     result.removeIf { List<MplType> list -> list[0] == MplType.VALUE && list[1] == MplType.INTEGER }
     return result
   }
 
-  String valueForType(MplType type) {
+  private String valueForType(MplType type) {
     if (type == MplType.INTEGER) {
       return String.valueOf(some($int()))
     } else if (type == MplType.SELECTOR) {

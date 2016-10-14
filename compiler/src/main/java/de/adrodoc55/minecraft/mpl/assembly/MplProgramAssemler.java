@@ -61,7 +61,6 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInclude;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter;
-import de.adrodoc55.minecraft.mpl.interpretation.MplProcessReference;
 import de.adrodoc55.minecraft.mpl.interpretation.MplReference;
 
 /**
@@ -138,7 +137,7 @@ public class MplProgramAssemler {
   }
 
   /**
-   * Resolves the specified {@link MplProcessReference}. If {@code reference} could be resolved, a
+   * Resolves the specified {@link MplReference}. If {@code reference} could be resolved, a
    * {@link MplInclude} is added to {@link #context}. If it could not be resolved, a
    * {@link CompilerException} is posted using the reference source.
    *
@@ -181,9 +180,4 @@ public class MplProgramAssemler {
       context.addError(reference.createAmbigiousException(files));
     }
   }
-
-  public boolean refIsContained(MplProcessReference reference, MplProgram program) {
-    return program.containsProcess(reference.getProcessName());
-  }
-
 }
