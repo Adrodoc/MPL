@@ -144,9 +144,8 @@ public class Command implements ChainLink, Modifiable {
   }
 
   @Override
-  public MplBlock toBlock(Coordinate3D coordinate) {
-    // FIXME: Direction korrigieren
-    return new CommandBlock(this, Direction3D.UP, coordinate);
+  public MplBlock toBlock(Coordinate3D coordinate, Direction3D direction) {
+    return new CommandBlock(this, direction, coordinate);
   }
 
   public boolean isInternal() {

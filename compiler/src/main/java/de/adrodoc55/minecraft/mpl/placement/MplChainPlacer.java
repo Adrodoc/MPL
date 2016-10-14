@@ -305,16 +305,11 @@ public abstract class MplChainPlacer {
       Direction3D d = getDirection(pos, nextPos, orientation);
       Coordinate3D coord = toCoordinate(pos, orientation);
 
-      // FIXME: Use ChainLink.toBlock
       if (entry.getValue() == ChainLinkType.NO_OPERATION) {
         blocks.add(new CommandBlock(new NoOperationCommand(), d, coord));
       } else {
         ChainLink chainLink = chainLinks.pop();
-        if (chainLink instanceof Command) {
-          blocks.add(new CommandBlock((Command) chainLink, d, coord));
-        } else if (chainLink instanceof MplSkip) {
-          blocks.add(new Transmitter(((MplSkip) chainLink).isInternal(), coord));
-        }
+        blocks.add(chainLink.toBlock(coord, d));
       }
     }
 
