@@ -37,248 +37,41 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-grammar Mpl;
+lexer grammar MplLexer;
 
-file
+COLON
 :
-  (
-    scriptFile
-    | projectFile
-  ) EOF
+  ':'
 ;
 
-scriptFile
+COMMA
 :
-  (
-    orientation
-    | install
-    | uninstall
-    | chain
-  )*
+  ','
 ;
 
-projectFile
+EQUALS_SIGN
 :
-  include* importDeclaration*
-  (
-    project
-    | install
-    | uninstall
-    | process
-  )*
+  '='
 ;
 
-importDeclaration
+OPENING_BRACKET
 :
-  IMPORT STRING
+  '('
 ;
 
-project
+CLOSING_BRACKET
 :
-// TODO: Prefix, Orientation, max
-  PROJECT IDENTIFIER '{' orientation* '}'
+  ')'
 ;
 
-orientation
+OPENING_CURLY_BRACKET
 :
-  ORIENTATION STRING
+  '{'
 ;
 
-include
+CLOSING_CURLY_BRACKET
 :
-  INCLUDE STRING
-;
-
-install
-:
-  INSTALL '{' chain? '}'
-;
-
-uninstall
-:
-  UNINSTALL '{' chain? '}'
-;
-
-process
-:
-  TAG*
-  (
-    REMOTE
-    | INLINE
-  )?
-  (
-    IMPULSE
-    | REPEAT
-  )? PROCESS IDENTIFIER '{' chain? '}'
-;
-
-chain
-:
-  (
-    ifDeclaration
-    | whileDeclaration
-    | mplCommand
-    | skipDeclaration
-    | variableDeclaration
-  )+
-;
-
-ifDeclaration
-:
-  IF NOT? ':' COMMAND then? elseDeclaration?
-;
-
-then
-:
-  THEN '{' chain? '}'
-;
-
-elseDeclaration
-:
-  ELSE '{' chain? '}'
-;
-
-whileDeclaration
-:
-  (
-    IDENTIFIER ':'
-  )? WHILE NOT? ':' COMMAND REPEAT '{' chain? '}'
-  |
-  (
-    IDENTIFIER ':'
-  )? REPEAT '{' chain? '}'
-  (
-    DO WHILE NOT? ':' COMMAND
-  )?
-;
-
-mplCommand
-:
-  modifierList?
-  (
-    command
-    | call
-    | start
-    | stop
-    | waitfor
-    | notifyDeclaration
-    | intercept
-    | breakpoint
-    | breakDeclaration
-    | continueDeclaration
-  )
-;
-
-modifierList
-:
-  (
-    modus
-    (
-      ',' conditional
-    )?
-    (
-      ',' auto
-    )?
-    | conditional
-    (
-      ',' auto
-    )?
-    | auto
-  ) ':'
-;
-
-modus
-:
-  IMPULSE
-  | CHAIN
-  | REPEAT
-;
-
-conditional
-:
-  UNCONDITIONAL
-  | CONDITIONAL
-  | INVERT
-;
-
-auto
-:
-  NEEDS_REDSTONE
-  | ALWAYS_ACTIVE
-;
-
-command
-:
-  COMMAND
-;
-
-call
-:
-  IDENTIFIER '(' ')'
-;
-
-start
-:
-  START
-  (
-    IDENTIFIER
-    | SELECTOR
-  )
-;
-
-stop
-:
-  STOP
-  (
-    IDENTIFIER
-    | SELECTOR
-  )?
-;
-
-waitfor
-:
-  WAITFOR IDENTIFIER?
-;
-
-notifyDeclaration
-:
-  NOTIFY IDENTIFIER
-;
-
-intercept
-:
-  INTERCEPT IDENTIFIER
-;
-
-breakpoint
-:
-  BREAKPOINT
-;
-
-breakDeclaration
-:
-  BREAK IDENTIFIER?
-;
-
-continueDeclaration
-:
-  CONTINUE IDENTIFIER?
-;
-
-skipDeclaration
-:
-  SKIP_TOKEN
-;
-
-variableDeclaration
-:
-  TYPE IDENTIFIER '='
-  (
-    STRING
-    | SELECTOR
-    | INTEGER
-    | SELECTOR IDENTIFIER
-  )
+  '}'
 ;
 
 COMMENT
@@ -291,9 +84,9 @@ MULTILINE_COMMENT
   '/*' .*? '*/' -> channel ( HIDDEN )
 ;
 
-COMMAND
+SLASH
 :
-  '/' ~( '\r' | '\n' )*
+  '/' -> pushMode ( COMMAND )
 ;
 
 IMPORT
@@ -500,4 +293,24 @@ IDENTIFIER
 UNRECOGNIZED
 :
   .
+;
+
+mode COMMAND;
+
+NEW_LINE
+:
+  (
+    '\r'
+    | '\n'
+  )+ -> popMode , skip
+;
+
+INSERT
+:
+  '${' ~( '}' )* '}'
+;
+
+COMMAND_STRING
+:
+  ~( '$' )+
 ;

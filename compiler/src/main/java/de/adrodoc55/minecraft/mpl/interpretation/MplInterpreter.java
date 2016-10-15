@@ -74,7 +74,6 @@ import com.google.common.collect.SetMultimap;
 
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
-import de.adrodoc55.minecraft.mpl.antlr.MplBaseListener;
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.AutoContext;
@@ -91,8 +90,8 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.ImportDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.InstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.InterceptContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModifiableCommandContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModusContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplCommandContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.NotifyDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.OrientationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProcessContext;
@@ -106,6 +105,7 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.UninstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.VariableDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.WaitforContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.WhileDeclarationContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParserBaseListener;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
@@ -136,7 +136,7 @@ import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer.ChainPartBuffer
 /**
  * @author Adrodoc55
  */
-public class MplInterpreter extends MplBaseListener {
+public class MplInterpreter extends MplParserBaseListener {
 
   public static MplInterpreter interpret(File programFile, MplCompilerContext context)
       throws IOException {
@@ -440,12 +440,12 @@ public class MplInterpreter extends MplBaseListener {
   private ModifierBuffer modifierBuffer;
 
   @Override
-  public void enterMplCommand(MplCommandContext ctx) {
+  public void enterModifiableCommand(ModifiableCommandContext ctx) {
     modifierBuffer = new ModifierBuffer();
   }
 
   @Override
-  public void exitMplCommand(MplCommandContext ctx) {
+  public void exitModifiableCommand(ModifiableCommandContext ctx) {
     modifierBuffer = null;
   }
 
