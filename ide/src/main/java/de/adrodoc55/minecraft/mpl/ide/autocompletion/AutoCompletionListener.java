@@ -43,17 +43,17 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import de.adrodoc55.minecraft.mpl.antlr.MplBaseListener;
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProcessContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProjectContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProjectFileContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ScriptFileContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParserBaseListener;
 
 /**
  * @author Adrodoc55
  */
-public class AutoCompletionListener extends MplBaseListener {
+public class AutoCompletionListener extends MplParserBaseListener {
   private final int index;
   private final AutoCompletionContext result = new AutoCompletionContext();
 
