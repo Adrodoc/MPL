@@ -39,278 +39,298 @@
  */
 lexer grammar MplLexer;
 
-COLON
-:
-  ':'
-;
+ COLON
+ :
+   ':'
+ ;
 
-COMMA
-:
-  ','
-;
+ COMMA
+ :
+   ','
+ ;
 
-EQUALS_SIGN
-:
-  '='
-;
+ EQUALS_SIGN
+ :
+   '='
+ ;
 
-OPENING_BRACKET
-:
-  '('
-;
+ OPENING_BRACKET
+ :
+   '('
+ ;
 
-CLOSING_BRACKET
-:
-  ')'
-;
+ CLOSING_BRACKET
+ :
+   ')'
+ ;
 
-OPENING_CURLY_BRACKET
-:
-  '{'
-;
+ OPENING_CURLY_BRACKET
+ :
+   '{'
+ ;
 
-CLOSING_CURLY_BRACKET
-:
-  '}'
-;
+ CLOSING_CURLY_BRACKET
+ :
+   '}'
+ ;
 
-COMMENT
-:
-  '//' ~( '\r' | '\n' )* -> channel ( HIDDEN )
-;
+ COMMENT
+ :
+   '//' ~( '\r' | '\n' )* -> channel ( HIDDEN )
+ ;
 
-MULTILINE_COMMENT
-:
-  '/*' .*? '*/' -> channel ( HIDDEN )
-;
+ MULTILINE_COMMENT
+ :
+   '/*' .*? '*/' -> channel ( HIDDEN )
+ ;
 
-SLASH
-:
-  '/' -> pushMode ( COMMAND )
-;
+ SLASH
+ :
+   '/' -> pushMode ( COMMAND )
+ ;
 
-IMPORT
-:
-  'import'
-;
+ IMPORT
+ :
+   'import'
+ ;
 
-PROJECT
-:
-  'project'
-;
+ PROJECT
+ :
+   'project'
+ ;
 
-INCLUDE
-:
-  'include'
-;
+ INCLUDE
+ :
+   'include'
+ ;
 
-ORIENTATION
-:
-  'orientation'
-;
+ ORIENTATION
+ :
+   'orientation'
+ ;
 
-INSTALL
-:
-  'install'
-;
+ INSTALL
+ :
+   'install'
+ ;
 
-UNINSTALL
-:
-  'uninstall'
-;
+ UNINSTALL
+ :
+   'uninstall'
+ ;
 
-PROCESS
-:
-  'process'
-;
+ PROCESS
+ :
+   'process'
+ ;
 
-IMPULSE
-:
-  'impulse'
-;
+ IMPULSE
+ :
+   'impulse'
+ ;
 
-CHAIN
-:
-  'chain'
-;
+ CHAIN
+ :
+   'chain'
+ ;
 
-REPEAT
-:
-  'repeat'
-;
+ REPEAT
+ :
+   'repeat'
+ ;
 
-UNCONDITIONAL
-:
-  'unconditional'
-;
+ UNCONDITIONAL
+ :
+   'unconditional'
+ ;
 
-CONDITIONAL
-:
-  'conditional'
-;
+ CONDITIONAL
+ :
+   'conditional'
+ ;
 
-INVERT
-:
-  'invert'
-;
+ INVERT
+ :
+   'invert'
+ ;
 
-ALWAYS_ACTIVE
-:
-  'always active'
-;
+ ALWAYS_ACTIVE
+ :
+   'always active'
+ ;
 
-NEEDS_REDSTONE
-:
-  'needs redstone'
-;
+ NEEDS_REDSTONE
+ :
+   'needs redstone'
+ ;
 
-START
-:
-  'start'
-;
+ START
+ :
+   'start'
+ ;
 
-STOP
-:
-  'stop'
-;
+ STOP
+ :
+   'stop'
+ ;
 
-WAITFOR
-:
-  'waitfor'
-;
+ WAITFOR
+ :
+   'waitfor'
+ ;
 
-NOTIFY
-:
-  'notify'
-;
+ NOTIFY
+ :
+   'notify'
+ ;
 
-INTERCEPT
-:
-  'intercept'
-;
+ INTERCEPT
+ :
+   'intercept'
+ ;
 
-BREAKPOINT
-:
-  'breakpoint'
-;
+ BREAKPOINT
+ :
+   'breakpoint'
+ ;
 
-SKIP_TOKEN
-:
-  'skip'
-;
+ SKIP_TOKEN
+ :
+   'skip'
+ ;
 
-IF
-:
-  'if'
-;
+ IF
+ :
+   'if'
+ ;
 
-NOT
-:
-  'not'
-;
+ NOT
+ :
+   'not'
+ ;
 
-THEN
-:
-  'then'
-;
+ THEN
+ :
+   'then'
+ ;
 
-ELSE
-:
-  'else'
-;
+ ELSE
+ :
+   'else'
+ ;
 
-DO
-:
-  'do'
-;
+ DO
+ :
+   'do'
+ ;
 
-WHILE
-:
-  'while'
-;
+ WHILE
+ :
+   'while'
+ ;
 
-BREAK
-:
-  'break'
-;
+ BREAK
+ :
+   'break'
+ ;
 
-CONTINUE
-:
-  'continue'
-;
+ CONTINUE
+ :
+   'continue'
+ ;
 
-REMOTE
-:
-  'remote'
-;
+ REMOTE
+ :
+   'remote'
+ ;
 
-INLINE
-:
-  'inline'
-;
+ INLINE
+ :
+   'inline'
+ ;
 
-TAG
-:
-  '#' IDENTIFIER
-;
+ TAG
+ :
+   '#' IDENTIFIER
+ ;
 
-TYPE
-:
-  'String'
-  | 'Selector'
-  | 'Integer'
-  | 'Value'
-;
+ TYPE
+ :
+   'String'
+   | 'Selector'
+   | 'Integer'
+   | 'Value'
+ ;
 
-INTEGER
-:
-  '-'? [0-9]+
-;
+ UNSIGNED_INTEGER
+ :
+   [0-9]+
+ ;
 
-SELECTOR
-:
-  '@' [a-z]
-  (
-    '[' [a-zA-Z0-9,!=_]* ']'
-  )?
-;
+ INTEGER
+ :
+   '-'? UNSIGNED_INTEGER
+ ;
 
-STRING
-:
-  '"' ~( '\r' | '\n' )*? '"'
-;
+ SELECTOR
+ :
+   '@' [a-z]
+   (
+     '[' [a-zA-Z0-9,!=_]* ']'
+   )?
+ ;
 
-WS
-:
-  [ \t\r\n]+ -> skip
-;
+ STRING
+ :
+   '"' ~( '\r' | '\n' )*? '"'
+ ;
 
-IDENTIFIER
-:
-  [a-zA-Z0-9_]+
-;
+ WS
+ :
+   [ \t\r\n]+ -> skip
+ ;
 
-UNRECOGNIZED
-:
-  .
-;
+ IDENTIFIER
+ :
+   [a-zA-Z0-9_]+
+ ;
 
-mode COMMAND;
+ UNRECOGNIZED
+ :
+   .
+ ;
 
-NEW_LINE
-:
-  (
-    '\r'
-    | '\n'
-  )+ -> popMode , skip
-;
+ mode COMMAND;
 
-INSERT
-:
-  '${' ~( '}' )* '}'
-;
+ NEW_LINE
+ :
+   (
+     '\r'
+     | '\n'
+   )+ -> popMode , skip
+ ;
 
-COMMAND_STRING
-:
-  ~( '$' )+
-;
+ DOLLAR
+ :
+   '$'
+ ;
+
+ PLUS
+ :
+   '+'
+ ;
+
+ MINUS
+ :
+   '-'
+ ;
+
+ INSERT
+ :
+   '${' ~( '}' )* '}'
+ ;
+
+ COMMAND_STRING
+ :
+   ~( '$' )+
+ ;

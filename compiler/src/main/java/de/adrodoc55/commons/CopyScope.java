@@ -104,7 +104,7 @@ public class CopyScope {
 
   /**
    * Copy all elements in {@code originals}. This is a shortcut for
-   * {@link #copyInto(Iterable, Collection)}
+   * {@link #copyInto(Iterable, Collection)} using a new {@link ArrayList}.
    *
    * @param <C> the type of {@link Copyable}s
    * @param originals the elements to copy
@@ -166,7 +166,7 @@ public class CopyScope {
 
   /**
    * Copy all elements in {@code originals}. This is a shortcut for
-   * {@link #copyObjectsInto(Iterable, Collection)}
+   * {@link #copyObjectsInto(Iterable, Collection)} using a new {@link ArrayList}.
    *
    * @param <O> the type to copy
    * @param originals the elements to copy
@@ -209,7 +209,7 @@ public class CopyScope {
 
   /**
    * This class caches the copies and originals of a {@link CopyScope} and provides read only access
-   * to the chached objects.
+   * to the cached objects.
    *
    * @author Adrodoc55
    */

@@ -77,34 +77,35 @@ import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.AutoContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.BreakDeclarationContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.BreakpointContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.CallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.CommandContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ConditionalContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.ContinueDeclarationContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.ElseDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.FileContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.IfDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ImportDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.InsertContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.InstallContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.InterceptContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModifiableCommandContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModusContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.NotifyDeclarationContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplBreakContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplBreakpointContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplCallContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplContinueContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplElseContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplIfContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplInterceptContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplNotifyContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplSkipContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplStartContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplStopContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplThenContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplWaitforContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplWhileContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.OrientationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProcessContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ProjectContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ScriptFileContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.SkipDeclarationContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.StartContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.StopContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.ThenContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.UninstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.VariableDeclarationContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.WaitforContext;
-import de.adrodoc55.minecraft.mpl.antlr.MplParser.WhileDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParserBaseListener;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
@@ -124,6 +125,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.minecraft.mpl.ast.variable.Insertable;
 import de.adrodoc55.minecraft.mpl.ast.variable.MplVariable;
 import de.adrodoc55.minecraft.mpl.ast.variable.type.MplType;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -132,6 +134,11 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer.ChainPartBufferImpl;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.GlobalVariableInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.Insert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.LocalVariableInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeOriginInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 
 /**
  * @author Adrodoc55
@@ -210,6 +217,15 @@ public class MplInterpreter extends MplParserBaseListener {
   public MplSource toSource(@Nonnull Token token) {
     String line = token.getLine() > 0 ? lines.get(token.getLine() - 1) : "";
     return new MplSource(programFile, token, line);
+  }
+
+  @Override
+  public void visitTerminal(TerminalNode node) {
+    switch (node.getSymbol().getType()) {
+      case MplLexer.COMMAND_STRING:
+        visitCommandString(node);
+        break;
+    }
   }
 
   @Override
@@ -541,16 +557,55 @@ public class MplInterpreter extends MplParserBaseListener {
     }
   }
 
+  private List<Insert> inserts;
+
   @Override
   public void enterCommand(CommandContext ctx) {
+    inserts = new ArrayList<>();
+    TerminalNode first = ctx.getChild(TerminalNode.class, 1);
+    if (first.getSymbol().getType() == MplLexer.COMMAND_STRING) {
+
+    }
+    List<TerminalNode> strings = ctx.COMMAND_STRING();
+    for (TerminalNode string : strings) {
+      string.getSymbol();
+    }
+
     String commandString = ctx.COMMAND().getText();
     MplCommand command =
         new MplCommand(commandString, modifierBuffer, toSource(ctx.COMMAND().getSymbol()));
     addModifiableChainPart(command);
+    inserts = null;
   }
 
   @Override
-  public void enterCall(CallContext ctx) {
+  public void enterInsert(InsertContext ctx) {
+    TerminalNode identifierNode = ctx.IDENTIFIER();
+    String identifier = identifierNode.getText();
+    TerminalNode integer = ctx.UNSIGNED_INTEGER();
+    if (integer != null) {
+      inserts.add(new RelativeThisInsert(Integer.parseInt(integer.getText())));
+      return;
+    } // TODO: RelativeOriginInsert
+
+    MplVariable<?> variable = variableScope.findVariable(identifier);
+    if (variable != null) {
+      if (variable instanceof Insertable) {
+        inserts.add(new LocalVariableInsert((Insertable) variable));
+      } else {
+        context.addError(new CompilerException(toSource(identifierNode.getSymbol()), ""));
+      }
+    } else {
+      inserts.add(new GlobalVariableInsert(identifier, imports));
+    }
+  }
+
+  private void visitCommandString(TerminalNode node) {
+
+  }
+
+  @Override
+  public void enterMplCall(MplCallContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String process = identifier.getText();
     MplCall call = new MplCall(process, toSource(identifier.getSymbol()));
@@ -572,7 +627,7 @@ public class MplInterpreter extends MplParserBaseListener {
   private String lastStartIdentifier;
 
   @Override
-  public void enterStart(StartContext ctx) {
+  public void enterMplStart(MplStartContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String selector;
     MplSource source;
@@ -602,7 +657,7 @@ public class MplInterpreter extends MplParserBaseListener {
   }
 
   @Override
-  public void enterStop(StopContext ctx) {
+  public void enterMplStop(MplStopContext ctx) {
     Token token = ctx.STOP().getSymbol();
     MplSource source = toSource(token);
 
@@ -635,7 +690,7 @@ public class MplInterpreter extends MplParserBaseListener {
   }
 
   @Override
-  public void enterWaitfor(WaitforContext ctx) {
+  public void enterMplWaitfor(MplWaitforContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String event;
     MplSource source = toSource(ctx.WAITFOR().getSymbol());
@@ -658,7 +713,7 @@ public class MplInterpreter extends MplParserBaseListener {
   }
 
   @Override
-  public void enterNotifyDeclaration(NotifyDeclarationContext ctx) {
+  public void enterMplNotify(MplNotifyContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String event = identifier.getText();
     MplSource source = toSource(identifier.getSymbol());
@@ -670,7 +725,7 @@ public class MplInterpreter extends MplParserBaseListener {
   }
 
   @Override
-  public void enterIntercept(InterceptContext ctx) {
+  public void enterMplIntercept(MplInterceptContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String process = identifier.getText();
     MplSource source = toSource(identifier.getSymbol());
@@ -682,7 +737,7 @@ public class MplInterpreter extends MplParserBaseListener {
   }
 
   @Override
-  public void enterBreakpoint(BreakpointContext ctx) {
+  public void enterMplBreakpoint(MplBreakpointContext ctx) {
     int line = ctx.BREAKPOINT().getSymbol().getLine();
     String message = programFile.getName() + " : line " + line;
     MplBreakpoint breakpoint =
@@ -694,7 +749,7 @@ public class MplInterpreter extends MplParserBaseListener {
   }
 
   @Override
-  public void enterSkipDeclaration(SkipDeclarationContext ctx) {
+  public void enterMplSkip(MplSkipContext ctx) {
     if (process != null && process.isRepeating() && chainBuffer.getChainParts().isEmpty()) {
       MplSource source = toSource(ctx.SKIP_TOKEN().getSymbol());
       context.addError(
@@ -705,24 +760,24 @@ public class MplInterpreter extends MplParserBaseListener {
   }
 
   @Override
-  public void enterIfDeclaration(IfDeclarationContext ctx) {
+  public void enterMplIf(MplIfContext ctx) {
     boolean not = ctx.NOT() != null;
     String condition = ctx.COMMAND().getText();
     chainBuffer = new MplIf(chainBuffer, not, condition, toSource(ctx.IF().getSymbol()));
   }
 
   @Override
-  public void enterThen(ThenContext ctx) {
+  public void enterMplThen(MplThenContext ctx) {
     ((MplIf) chainBuffer).enterThen();
   }
 
   @Override
-  public void enterElseDeclaration(ElseDeclarationContext ctx) {
+  public void enterMplElse(MplElseContext ctx) {
     ((MplIf) chainBuffer).enterElse();
   }
 
   @Override
-  public void exitIfDeclaration(IfDeclarationContext ctx) {
+  public void exitMplIf(MplIfContext ctx) {
     MplIf mplIf = (MplIf) chainBuffer;
     chainBuffer = mplIf.exit();
     chainBuffer.add(mplIf);
@@ -731,7 +786,7 @@ public class MplInterpreter extends MplParserBaseListener {
   private Deque<MplWhile> loops = new ArrayDeque<>();
 
   @Override
-  public void enterWhileDeclaration(WhileDeclarationContext ctx) {
+  public void enterMplWhile(MplWhileContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String label = identifier != null ? identifier.getText() : null;
     boolean not = ctx.NOT() != null;
@@ -746,7 +801,7 @@ public class MplInterpreter extends MplParserBaseListener {
   }
 
   @Override
-  public void exitWhileDeclaration(WhileDeclarationContext ctx) {
+  public void exitMplWhile(MplWhileContext ctx) {
     loops.pop();
     MplWhile mplWhile = (MplWhile) chainBuffer;
     chainBuffer = mplWhile.exit();
@@ -754,7 +809,7 @@ public class MplInterpreter extends MplParserBaseListener {
   }
 
   @Override
-  public void enterBreakDeclaration(BreakDeclarationContext ctx) {
+  public void enterMplBreak(MplBreakContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String label = identifier != null ? identifier.getText() : null;
 
@@ -779,7 +834,7 @@ public class MplInterpreter extends MplParserBaseListener {
   }
 
   @Override
-  public void enterContinueDeclaration(ContinueDeclarationContext ctx) {
+  public void enterMplContinue(MplContinueContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String label = identifier != null ? identifier.getText() : null;
 
