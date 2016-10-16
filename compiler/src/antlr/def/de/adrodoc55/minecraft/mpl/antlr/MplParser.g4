@@ -39,253 +39,269 @@
  */
 parser grammar MplParser;
 
-options {
-  tokenVocab = MplLexer;
-}
+ options {
+   tokenVocab = MplLexer;
+ }
 
-file
-:
-  (
-    scriptFile
-    | projectFile
-  ) EOF
-;
+ file
+ :
+   (
+     scriptFile
+     | projectFile
+   ) EOF
+ ;
 
-scriptFile
-:
-  (
-    orientation
-    | install
-    | uninstall
-    | chain
-  )*
-;
+ scriptFile
+ :
+   (
+     orientation
+     | install
+     | uninstall
+     | chain
+   )*
+ ;
 
-projectFile
-:
-  include* importDeclaration*
-  (
-    project
-    | install
-    | uninstall
-    | process
-  )*
-;
+ projectFile
+ :
+   include* importDeclaration*
+   (
+     project
+     | install
+     | uninstall
+     | process
+   )*
+ ;
 
-importDeclaration
-:
-  IMPORT STRING
-;
+ importDeclaration
+ :
+   IMPORT STRING
+ ;
 
-project
-:
-// TODO: Prefix, Orientation, max
-  PROJECT IDENTIFIER OPENING_CURLY_BRACKET orientation* CLOSING_CURLY_BRACKET
-;
+ project
+ :
+ // TODO: Prefix, Orientation, max
+   PROJECT IDENTIFIER OPENING_CURLY_BRACKET orientation* CLOSING_CURLY_BRACKET
+ ;
 
-orientation
-:
-  ORIENTATION STRING
-;
+ orientation
+ :
+   ORIENTATION STRING
+ ;
 
-include
-:
-  INCLUDE STRING
-;
+ include
+ :
+   INCLUDE STRING
+ ;
 
-install
-:
-  INSTALL OPENING_CURLY_BRACKET chain? CLOSING_CURLY_BRACKET
-;
+ install
+ :
+   INSTALL OPENING_CURLY_BRACKET chain? CLOSING_CURLY_BRACKET
+ ;
 
-uninstall
-:
-  UNINSTALL OPENING_CURLY_BRACKET chain? CLOSING_CURLY_BRACKET
-;
+ uninstall
+ :
+   UNINSTALL OPENING_CURLY_BRACKET chain? CLOSING_CURLY_BRACKET
+ ;
 
-process
-:
-  TAG*
-  (
-    REMOTE
-    | INLINE
-  )?
-  (
-    IMPULSE
-    | REPEAT
-  )? PROCESS IDENTIFIER OPENING_CURLY_BRACKET chain? CLOSING_CURLY_BRACKET
-;
+ process
+ :
+   TAG*
+   (
+     REMOTE
+     | INLINE
+   )?
+   (
+     IMPULSE
+     | REPEAT
+   )? PROCESS IDENTIFIER OPENING_CURLY_BRACKET chain? CLOSING_CURLY_BRACKET
+ ;
 
-chain
-:
-  (
-    ifDeclaration
-    | whileDeclaration
-    | modifiableCommand
-    | skipDeclaration
-    | variableDeclaration
-  )+
-;
+ chain
+ :
+   (
+     mplIf
+     | mplWhile
+     | modifiableCommand
+     | mplSkip
+     | variableDeclaration
+   )+
+ ;
 
-ifDeclaration
-:
-  IF NOT? COLON command then? elseDeclaration?
-;
+ mplIf
+ :
+   IF NOT? COLON command mplThen? mplElse?
+ ;
 
-then
-:
-  THEN OPENING_CURLY_BRACKET chain? CLOSING_CURLY_BRACKET
-;
+ mplThen
+ :
+   THEN OPENING_CURLY_BRACKET chain? CLOSING_CURLY_BRACKET
+ ;
 
-elseDeclaration
-:
-  ELSE OPENING_CURLY_BRACKET chain? CLOSING_CURLY_BRACKET
-;
+ mplElse
+ :
+   ELSE OPENING_CURLY_BRACKET chain? CLOSING_CURLY_BRACKET
+ ;
 
-whileDeclaration
-:
-  (
-    IDENTIFIER COLON
-  )? WHILE NOT? COLON command REPEAT OPENING_CURLY_BRACKET chain?
-  CLOSING_CURLY_BRACKET
-  |
-  (
-    IDENTIFIER COLON
-  )? REPEAT OPENING_CURLY_BRACKET chain? CLOSING_CURLY_BRACKET
-  (
-    DO WHILE NOT? COLON command
-  )?
-;
+ mplWhile
+ :
+   (
+     IDENTIFIER COLON
+   )? WHILE NOT? COLON command REPEAT OPENING_CURLY_BRACKET chain?
+   CLOSING_CURLY_BRACKET
+   |
+   (
+     IDENTIFIER COLON
+   )? REPEAT OPENING_CURLY_BRACKET chain? CLOSING_CURLY_BRACKET
+   (
+     DO WHILE NOT? COLON command
+   )?
+ ;
 
-modifiableCommand
-:
-  modifierList?
-  (
-    command
-    | call
-    | start
-    | stop
-    | waitfor
-    | notifyDeclaration
-    | intercept
-    | breakpoint
-    | breakDeclaration
-    | continueDeclaration
-  )
-;
+ modifiableCommand
+ :
+   modifierList?
+   (
+     mplCommand
+     | mplCall
+     | mplStart
+     | mplStop
+     | mplWaitfor
+     | mplNotify
+     | mplIntercept
+     | mplBreakpoint
+     | mplBreak
+     | mplContinue
+   )
+ ;
 
-modifierList
-:
-  (
-    modus
-    (
-      COMMA conditional
-    )?
-    (
-      COMMA auto
-    )?
-    | conditional
-    (
-      COMMA auto
-    )?
-    | auto
-  ) COLON
-;
+ modifierList
+ :
+   (
+     modus
+     (
+       COMMA conditional
+     )?
+     (
+       COMMA auto
+     )?
+     | conditional
+     (
+       COMMA auto
+     )?
+     | auto
+   ) COLON
+ ;
 
-modus
-:
-  IMPULSE
-  | CHAIN
-  | REPEAT
-;
+ modus
+ :
+   IMPULSE
+   | CHAIN
+   | REPEAT
+ ;
 
-conditional
-:
-  UNCONDITIONAL
-  | CONDITIONAL
-  | INVERT
-;
+ conditional
+ :
+   UNCONDITIONAL
+   | CONDITIONAL
+   | INVERT
+ ;
 
-auto
-:
-  NEEDS_REDSTONE
-  | ALWAYS_ACTIVE
-;
+ auto
+ :
+   NEEDS_REDSTONE
+   | ALWAYS_ACTIVE
+ ;
 
-command
-:
-  SLASH
-  (
-    COMMAND_STRING
-    | INSERT
-  )*
-;
+ command
+ :
+   SLASH
+   (
+     COMMAND_STRING
+     | insert
+   )*
+ ;
 
-call
-:
-  IDENTIFIER OPENING_BRACKET CLOSING_BRACKET
-;
+ insert
+ :
+   DOLLAR OPENING_CURLY_BRACKET IDENTIFIER
+   (
+     (
+       PLUS
+       | MINUS
+     ) UNSIGNED_INTEGER
+   )? CLOSING_CURLY_BRACKET
+ ;
 
-start
-:
-  START
-  (
-    IDENTIFIER
-    | SELECTOR
-  )
-;
+ mplCommand
+ :
+   command
+ ;
 
-stop
-:
-  STOP
-  (
-    IDENTIFIER
-    | SELECTOR
-  )?
-;
+ mplCall
+ :
+   IDENTIFIER OPENING_BRACKET CLOSING_BRACKET
+ ;
 
-waitfor
-:
-  WAITFOR IDENTIFIER?
-;
+ mplStart
+ :
+   START
+   (
+     IDENTIFIER
+     | SELECTOR
+   )
+ ;
 
-notifyDeclaration
-:
-  NOTIFY IDENTIFIER
-;
+ mplStop
+ :
+   STOP
+   (
+     IDENTIFIER
+     | SELECTOR
+   )?
+ ;
 
-intercept
-:
-  INTERCEPT IDENTIFIER
-;
+ mplWaitfor
+ :
+   WAITFOR IDENTIFIER?
+ ;
 
-breakpoint
-:
-  BREAKPOINT
-;
+ mplNotify
+ :
+   NOTIFY IDENTIFIER
+ ;
 
-breakDeclaration
-:
-  BREAK IDENTIFIER?
-;
+ mplIntercept
+ :
+   INTERCEPT IDENTIFIER
+ ;
 
-continueDeclaration
-:
-  CONTINUE IDENTIFIER?
-;
+ mplBreakpoint
+ :
+   BREAKPOINT
+ ;
 
-skipDeclaration
-:
-  SKIP_TOKEN
-;
+ mplBreak
+ :
+   BREAK IDENTIFIER?
+ ;
 
-variableDeclaration
-:
-  TYPE IDENTIFIER EQUALS_SIGN
-  (
-    STRING
-    | SELECTOR
-    | INTEGER
-    | SELECTOR IDENTIFIER
-  )
-;
+ mplContinue
+ :
+   CONTINUE IDENTIFIER?
+ ;
+
+ mplSkip
+ :
+   SKIP_TOKEN
+ ;
+
+ variableDeclaration
+ :
+   TYPE IDENTIFIER EQUALS_SIGN
+   (
+     STRING
+     | SELECTOR
+     | INTEGER
+     | SELECTOR IDENTIFIER
+   )
+ ;

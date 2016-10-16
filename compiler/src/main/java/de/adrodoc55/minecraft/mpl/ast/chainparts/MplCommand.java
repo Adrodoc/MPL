@@ -39,9 +39,10 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import javax.annotation.Nonnull;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
@@ -49,6 +50,8 @@ import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
+import de.adrodoc55.minecraft.mpl.interpretation.VariableScope;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.Insert;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -63,7 +66,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @Getter
 @Setter
 public class MplCommand extends ModifiableChainPart {
-  private String command;
+  private final ImmutableList<Object> commandParts;
 
   public MplCommand(String command, @Nonnull MplSource source) {
     this(command, new ModifierBuffer(), source);
@@ -72,19 +75,31 @@ public class MplCommand extends ModifiableChainPart {
   @GenerateMplPojoBuilder
   public MplCommand(String command, ExtendedModifiable modifier, @Nonnull MplSource source) {
     super(modifier, source);
-    this.command = checkNotNull(command, "command == null!");
+    commandParts = ImmutableList.of(command);
   }
 
   @Deprecated
-  protected MplCommand(MplCommand original) {
+  protected MplCommand(MplCommand original, CopyScope scope) {
     super(original);
-    command = original.command;
+    commandParts = ImmutableList.copyOf(scope.copyObjects(original.commandParts));
   }
 
   @Deprecated
   @Override
   public MplCommand createFlatCopy(CopyScope scope) {
-    return new MplCommand(this);
+    return new MplCommand(this, scope);
+  }
+
+  public String getCommand() {
+    return Joiner.on(' ').join(commandParts);
+  }
+
+  public void resolve(VariableScope scope) {
+    for (Object object : commandParts) {
+      if (object instanceof Insert) {
+        ((Insert) object).resolve(scope);
+      }
+    }
   }
 
   @Override
