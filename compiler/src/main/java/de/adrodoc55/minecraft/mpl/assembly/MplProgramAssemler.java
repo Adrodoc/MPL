@@ -86,7 +86,8 @@ public class MplProgramAssemler {
   }
 
   public MplProgram assemble(File programFile) throws IOException {
-    MplInterpreter main = interpret(programFile, context);
+    // Don't cache the first interpreter, because it's program is mutable and will be changed
+    MplInterpreter main = MplInterpreter.interpret(programFile, context);
     MplProgram program = main.getProgram();
     programBuilder = new MplProgramBuilder(program, programFile);
     resolveReferences(main.getReferences().values());

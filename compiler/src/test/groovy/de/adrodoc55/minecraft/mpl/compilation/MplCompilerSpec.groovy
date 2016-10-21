@@ -435,6 +435,38 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
+  public void "a process in a file that has already been processed and is referenced from a different file is not ambigious"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    include "p1.mpl"
+    include "p2.mpl"
+    """
+    new File(folder, 'p1.mpl').text = """
+    remote process p1 {
+      /this is the p1 process
+    }
+    """
+    new File(folder, 'p2.mpl').text = """
+    remote process p2 {
+      /this is the p2 process
+      start p1
+    }
+    """
+    when:
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
+    then:
+    notThrown Exception
+    result.processes.size() == 2
+    MplProcess p1 = result.processes.find { it.name == 'p1' }
+    p1.chainParts.contains(new MplCommand('/this is the p1 process', source()))
+
+    MplProcess p2 = result.processes.find { it.name == 'p2' }
+    p2.chainParts.contains(new MplCommand('/this is the p2 process', source()))
+  }
+
+  @Test
   public void "a process from an included file will be included"() {
     given:
     File folder = tempFolder.root
@@ -611,7 +643,7 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
-  public void "including two processes with the same name throws ambigious process Exception"() {
+  public void "including two processes with the same name throws duplicate process Exception"() {
     given:
     String id1 = some($Identifier())
     String id2 = some($Identifier())
