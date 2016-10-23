@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.coordinate;
 
+import static com.google.common.base.CaseFormat.LOWER_CAMEL;
+import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
+
 /**
  * @author Adrodoc55
  */
@@ -97,5 +100,10 @@ public enum Direction3D {
 
   public Axis3D getAxis() {
     return axis;
+  }
+
+  @Override
+  public String toString() {
+    return UPPER_UNDERSCORE.to(LOWER_CAMEL, super.toString());
   }
 }

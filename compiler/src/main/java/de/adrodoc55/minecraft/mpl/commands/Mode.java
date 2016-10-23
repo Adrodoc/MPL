@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.commands;
 
+import static com.google.common.base.CaseFormat.LOWER_CAMEL;
+import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -72,5 +75,10 @@ public enum Mode {
 
   public boolean getNeedsRedstoneByDefault() {
     return needsRedstoneByDefault;
+  }
+
+  @Override
+  public String toString() {
+    return UPPER_UNDERSCORE.to(LOWER_CAMEL, super.toString());
   }
 }

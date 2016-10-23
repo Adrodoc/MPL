@@ -42,6 +42,7 @@ package de.adrodoc55.minecraft.mpl.main;
 import static com.google.common.base.CaseFormat.LOWER_CAMEL;
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 
+import de.adrodoc55.minecraft.mpl.conversion.CbseConverter;
 import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
 import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
 import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
@@ -53,8 +54,9 @@ import de.adrodoc55.minecraft.mpl.conversion.StructureConverter;
  */
 enum CompilationType {
   STRUCTURE(new StructureConverter()), //
-  SCHEMATIC(new SchematicConverter()), //
   COMMAND(new CommandConverter()), //
+  SCHEMATIC(new SchematicConverter()), //
+  CBSE(new CbseConverter()), //
   FILTER(new PythonConverter()),//
   ;
   private final MplConverter converter;
