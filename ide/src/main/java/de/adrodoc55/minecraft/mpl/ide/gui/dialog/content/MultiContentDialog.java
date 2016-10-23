@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.command;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.content;
 
 import java.awt.BorderLayout;
 import java.awt.Window;
@@ -72,26 +72,28 @@ import org.beanfabrics.model.IListPM;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowView;
 
 /**
- * The {@link CommandDialog} is a {@link View} on a {@link CommandDialogPM}.
+ * The {@link MultiContentDialog} is a {@link View} on a {@link MultiContentDialogPM}.
  *
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
 @SuppressWarnings("serial")
-public class CommandDialog extends JDialog implements WindowView<CommandDialogPM>, ModelSubscriber {
+public class MultiContentDialog extends JDialog
+    implements WindowView<MultiContentDialogPM>, ModelSubscriber {
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
   private JScrollPane scrollPane;
-  private JPanel commandPanel;
+  private JPanel contentsPanel;
 
   /**
-   * Constructs a new {@link CommandDialog}.
+   * Constructs a new {@link MultiContentDialog}.
    *
    * @param parent the {@code Window} from which the dialog is displayed or {@code null} if this
    *        dialog has no parent
+   * @param title the window title
    */
-  public CommandDialog(Window parent) {
-    super(parent, "Import Commands");
+  public MultiContentDialog(Window parent, String title) {
+    super(parent, title);
     init();
     setModal(true);
     setResizable(false);
@@ -122,20 +124,20 @@ public class CommandDialog extends JDialog implements WindowView<CommandDialogPM
   protected ModelProvider getLocalModelProvider() {
     if (localModelProvider == null) {
       localModelProvider = new ModelProvider(); // @wb:location=10,430
-      localModelProvider.setPresentationModelType(CommandDialogPM.class);
+      localModelProvider.setPresentationModelType(MultiContentDialogPM.class);
     }
     return localModelProvider;
   }
 
   /** {@inheritDoc} */
   @Override
-  public CommandDialogPM getPresentationModel() {
+  public MultiContentDialogPM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
   @Override
-  public void setPresentationModel(CommandDialogPM pModel) {
+  public void setPresentationModel(MultiContentDialogPM pModel) {
     ListListener l = new ListListener() {
       @Override
       public void elementsSelected(ElementsSelectedEvent evt) {}
@@ -146,7 +148,7 @@ public class CommandDialog extends JDialog implements WindowView<CommandDialogPM
         int length = evt.getLength();
         this.remove(beginIndex, length);
         @SuppressWarnings("unchecked")
-        IListPM<CommandPM> list = (IListPM<CommandPM>) evt.getSource();
+        IListPM<ContentPM> list = (IListPM<ContentPM>) evt.getSource();
         this.add(list, beginIndex, length);
       }
 
@@ -165,7 +167,7 @@ public class CommandDialog extends JDialog implements WindowView<CommandDialogPM
         int beginIndex = evt.getBeginIndex();
         int length = evt.getLength();
         @SuppressWarnings("unchecked")
-        IListPM<CommandPM> list = (IListPM<CommandPM>) evt.getSource();
+        IListPM<ContentPM> list = (IListPM<ContentPM>) evt.getSource();
         this.add(list, beginIndex, length);
       }
 
@@ -175,33 +177,33 @@ public class CommandDialog extends JDialog implements WindowView<CommandDialogPM
       private void remove(int beginIndex, int length) {
         for (int i = 0; i < length; i++) {
           int index = beginIndex + i;
-          getCommandPanel().remove(index);
+          getContentsPanel().remove(index);
         }
         revalidate();
         repaint();
         setDefaultButton();
       }
 
-      private void add(IListPM<CommandPM> list, int beginIndex, int length) {
+      private void add(IListPM<ContentPM> list, int beginIndex, int length) {
         for (int i = 0; i < length; i++) {
           int index = beginIndex + i;
-          CommandPM commandPm = list.getAt(index);
-          this.addCommand(index, commandPm);
+          ContentPM contentPm = list.getAt(index);
+          this.addContent(index, contentPm);
         }
         revalidate();
         repaint();
         setDefaultButton();
       }
 
-      private void addCommand(int i, CommandPM commandPm) {
-        CommandPanel panel = new CommandPanel();
-        panel.setPresentationModel(commandPm);
-        getCommandPanel().add(panel, i);
+      private void addContent(int i, ContentPM contentPm) {
+        ContentPanel panel = new ContentPanel();
+        panel.setPresentationModel(contentPm);
+        getContentsPanel().add(panel, i);
       }
 
       private void setDefaultButton() {
         try {
-          CommandPanel first = (CommandPanel) getCommandPanel().getComponent(0);
+          ContentPanel first = (ContentPanel) getContentsPanel().getComponent(0);
           getRootPane().setDefaultButton(first.getBnbtnCopyAndClose());
         } catch (ArrayIndexOutOfBoundsException | ClassCastException ex) {
           // Do nothing
@@ -209,7 +211,7 @@ public class CommandDialog extends JDialog implements WindowView<CommandDialogPM
       }
 
     };
-    pModel.commands.addListListener(l);
+    pModel.contents.addListListener(l);
     getLocalModelProvider().setPresentationModel(pModel);
   }
 
@@ -240,17 +242,17 @@ public class CommandDialog extends JDialog implements WindowView<CommandDialogPM
   private JScrollPane getScrollPane() {
     if (scrollPane == null) {
       scrollPane = new JScrollPane();
-      scrollPane.setViewportView(getCommandPanel());
+      scrollPane.setViewportView(getContentsPanel());
     }
     return scrollPane;
   }
 
-  private JPanel getCommandPanel() {
-    if (commandPanel == null) {
-      commandPanel = new JPanel();
-      commandPanel.setLayout(new BoxLayout(commandPanel, BoxLayout.Y_AXIS));
+  private JPanel getContentsPanel() {
+    if (contentsPanel == null) {
+      contentsPanel = new JPanel();
+      contentsPanel.setLayout(new BoxLayout(contentsPanel, BoxLayout.Y_AXIS));
     }
-    return commandPanel;
+    return contentsPanel;
   }
 
 }

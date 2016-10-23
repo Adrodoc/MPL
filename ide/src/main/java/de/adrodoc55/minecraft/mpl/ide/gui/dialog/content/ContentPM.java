@@ -37,28 +37,60 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.command;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.content;
 
-import java.awt.Window;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowController;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+
+import org.beanfabrics.model.AbstractPM;
+import org.beanfabrics.model.OperationPM;
+import org.beanfabrics.model.PMManager;
+import org.beanfabrics.model.TextPM;
+import org.beanfabrics.support.Operation;
 
 /**
  * @author Adrodoc55
  */
-public class CommandDialogController extends WindowController<CommandDialog, CommandDialogPM> {
-  @Override
-  protected CommandDialogPM createPM() {
-    return new CommandDialogPM(new CommandDialogPM.Context() {
-      @Override
-      public void close() {
-        getView().dispose();
-      }
-    });
+public class ContentPM extends AbstractPM {
+  public static interface Context {
+    void close(ContentPM pm);
   }
 
-  @Override
-  protected CommandDialog createView(Window activeWindow) {
-    return new CommandDialog(activeWindow);
+  private final Context context;
+
+  final TextPM title = new TextPM();
+  final TextPM content = new TextPM();
+  final OperationPM copyToClipboard = new OperationPM();
+  final OperationPM copyAndClose = new OperationPM();
+  final OperationPM close = new OperationPM();
+
+  public ContentPM(String title, String content, Context context) {
+    this.context = checkNotNull(context, "context == null!");
+    this.title.setEditable(false);
+    this.content.setEditable(false);
+    this.title.setText(title);
+    this.content.setText(content);
+    PMManager.setup(this);
+  }
+
+  @Operation
+  public void copyToClipboard() {
+    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+    StringSelection contents = new StringSelection(content.getText());
+    clipboard.setContents(contents, null);
+  }
+
+  @Operation
+  public void copyAndClose() {
+    copyToClipboard();
+    close();
+  }
+
+  @Operation
+  public void close() {
+    context.close(this);
   }
 }

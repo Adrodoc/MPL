@@ -37,60 +37,22 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.command;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.content;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
-
-import org.beanfabrics.model.AbstractPM;
-import org.beanfabrics.model.OperationPM;
-import org.beanfabrics.model.PMManager;
-import org.beanfabrics.model.TextPM;
-import org.beanfabrics.support.Operation;
+import org.beanfabrics.swing.ModelSubscriberBeanInfo;
 
 /**
  * @author Adrodoc55
+ * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class CommandPM extends AbstractPM {
-  public static interface Context {
-    void close(CommandPM pm);
+public class ContentPanelBeanInfo extends ModelSubscriberBeanInfo {
+  @Override
+  protected Class<ContentPanel> getBeanClass() {
+    return ContentPanel.class;
   }
 
-  private final Context context;
-
-  final TextPM title = new TextPM();
-  final TextPM oneCommand = new TextPM();
-  final OperationPM copyToClipboard = new OperationPM();
-  final OperationPM copyAndClose = new OperationPM();
-  final OperationPM close = new OperationPM();
-
-  public CommandPM(int number, String command, Context context) {
-    this.context = checkNotNull(context, "context == null!");
-    this.title.setEditable(false);
-    this.oneCommand.setEditable(false);
-    this.title.setText("Command " + number);
-    this.oneCommand.setText(command);
-    PMManager.setup(this);
-  }
-
-  @Operation
-  public void copyToClipboard() {
-    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-    StringSelection contents = new StringSelection(oneCommand.getText());
-    clipboard.setContents(contents, null);
-  }
-
-  @Operation
-  public void copyAndClose() {
-    copyToClipboard();
-    close();
-  }
-
-  @Operation
-  public void close() {
-    context.close(this);
+  @Override
+  protected boolean isPathBound() {
+    return false;
   }
 }

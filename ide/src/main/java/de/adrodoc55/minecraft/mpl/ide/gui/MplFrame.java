@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.gui;
 
+import static de.adrodoc55.minecraft.mpl.ide.gui.MplFramePM.COMPILE_TO_CBSE;
 import static de.adrodoc55.minecraft.mpl.ide.gui.MplFramePM.COMPILE_TO_COMMAND;
 import static de.adrodoc55.minecraft.mpl.ide.gui.MplFramePM.COMPILE_TO_FILTER;
 import static de.adrodoc55.minecraft.mpl.ide.gui.MplFramePM.COMPILE_TO_SCHEMATIC;
@@ -99,6 +100,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnMenuItem bnmntmCompileToStructureUnder;
   private BnMenuItem bnmntmCompileToSchematic;
   private BnMenuItem bnmntmCompileToSchematicUnder;
+  private BnMenuItem bnmntmCompileToCbse;
   private BnMenuItem bnmntmCompileToFilter;
   private BnMenuItem bnmntmCompileToFilterUnder;
   private JMenu mnOptions;
@@ -110,6 +112,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnButton bnbtnCompileToCommand;
   private BnButton bnbtnCompilerToStructure;
   private BnButton bnbtnCompileToSchematic;
+  private BnButton bnbtnCompileToCbse;
   private BnButton bnbtnCompileToFilter;
   private JTabbedPane tabbedPane;
 
@@ -297,6 +300,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
       mnFile.add(getBnmntmCompileToStructureUnder());
       mnFile.add(getBnmntmCompileToSchematic());
       mnFile.add(getBnmntmCompileToSchematicUnder());
+      mnFile.add(getBnmntmCompileToCbse());
       mnFile.add(getBnmntmCompileToFilter());
       mnFile.add(getBnmntmCompileToFilterUnder());
     }
@@ -393,6 +397,16 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
     return bnmntmCompileToSchematicUnder;
   }
 
+  private BnMenuItem getBnmntmCompileToCbse() {
+    if (bnmntmCompileToCbse == null) {
+      bnmntmCompileToCbse = new BnMenuItem();
+      bnmntmCompileToCbse.setPath(new Path("this.compileToCbse"));
+      bnmntmCompileToCbse.setModelProvider(getLocalModelProvider());
+      bnmntmCompileToCbse.setText(COMPILE_TO_CBSE);
+    }
+    return bnmntmCompileToCbse;
+  }
+
   private BnMenuItem getBnmntmCompileToFilter() {
     if (bnmntmCompileToFilter == null) {
       bnmntmCompileToFilter = new BnMenuItem();
@@ -440,6 +454,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
       toolBar.add(getBnbtnCompileToCommand());
       toolBar.add(getBnbtnCompilerToStructure());
       toolBar.add(getBnbtnCompileToSchematic());
+      toolBar.add(getBnbtnCompileToCbse());
       toolBar.add(getBnbtnCompileToFilter());
     }
     return toolBar;
@@ -506,6 +521,16 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
       bnbtnCompileToSchematic.setModelProvider(getLocalModelProvider());
     }
     return bnbtnCompileToSchematic;
+  }
+
+  private BnButton getBnbtnCompileToCbse() {
+    if (bnbtnCompileToCbse == null) {
+      bnbtnCompileToCbse = new BnButton();
+      bnbtnCompileToCbse.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/cbse_16.png")));
+      bnbtnCompileToCbse.setPath(new Path("this.compileToCbse"));
+      bnbtnCompileToCbse.setModelProvider(getLocalModelProvider());
+    }
+    return bnbtnCompileToCbse;
   }
 
   private BnButton getBnbtnCompileToFilter() {

@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.command;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.content;
 
 import org.beanfabrics.swing.ModelSubscriberBeanInfo;
 
@@ -45,10 +45,10 @@ import org.beanfabrics.swing.ModelSubscriberBeanInfo;
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class CommandPanelBeanInfo extends ModelSubscriberBeanInfo {
+public class MultiContentDialogBeanInfo extends ModelSubscriberBeanInfo {
   @Override
-  protected Class<CommandPanel> getBeanClass() {
-    return CommandPanel.class;
+  protected Class<MultiContentDialog> getBeanClass() {
+    return MultiContentDialog.class;
   }
 
   @Override

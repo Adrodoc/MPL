@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.command;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.content;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -62,13 +62,13 @@ import org.beanfabrics.swing.BnLabel;
 import org.beanfabrics.swing.BnTextArea;
 
 /**
- * The OneCommandPanel is a {@link View} on a {@link CommandPM}.
+ * The {@link ContentPanel} is a {@link View} on a {@link ContentPM}.
  *
  * @author Adrodoc55
  * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
 @SuppressWarnings("serial")
-public class CommandPanel extends JPanel implements View<CommandPM>, ModelSubscriber {
+public class ContentPanel extends JPanel implements View<ContentPM>, ModelSubscriber {
   private final Link link = new Link(this);
   private ModelProvider localModelProvider;
   private JPanel buttonPanel;
@@ -80,9 +80,9 @@ public class CommandPanel extends JPanel implements View<CommandPM>, ModelSubscr
   private BnButton bnbtnCopyAndClose;
 
   /**
-   * Constructs a new <code>OneCommandPanel</code>.
+   * Constructs a new {@link ContentPanel}.
    */
-  public CommandPanel() {
+  public ContentPanel() {
     super();
     setBorder(new CompoundBorder(new LineBorder(new Color(192, 192, 192), 1, true),
         new EmptyBorder(5, 5, 5, 5)));
@@ -100,20 +100,20 @@ public class CommandPanel extends JPanel implements View<CommandPM>, ModelSubscr
   protected ModelProvider getLocalModelProvider() {
     if (localModelProvider == null) {
       localModelProvider = new ModelProvider(); // @wb:location=10,430
-      localModelProvider.setPresentationModelType(CommandPM.class);
+      localModelProvider.setPresentationModelType(ContentPM.class);
     }
     return localModelProvider;
   }
 
   /** {@inheritDoc} */
   @Override
-  public CommandPM getPresentationModel() {
+  public ContentPM getPresentationModel() {
     return getLocalModelProvider().getPresentationModel();
   }
 
   /** {@inheritDoc} */
   @Override
-  public void setPresentationModel(CommandPM pModel) {
+  public void setPresentationModel(ContentPM pModel) {
     getLocalModelProvider().setPresentationModel(pModel);
   }
 
@@ -184,7 +184,7 @@ public class CommandPanel extends JPanel implements View<CommandPM>, ModelSubscr
       bnTextArea.setSelectAllOnFocusGainedEnabled(true);
       bnTextArea.setRows(5);
       bnTextArea.setLineWrap(true);
-      bnTextArea.setPath(new Path("this.oneCommand"));
+      bnTextArea.setPath(new Path("this.content"));
       bnTextArea.setModelProvider(getLocalModelProvider());
     }
     return bnTextArea;

@@ -37,47 +37,37 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.command;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.content;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.List;
+import java.awt.Window;
 
-import org.beanfabrics.model.AbstractPM;
-import org.beanfabrics.model.ListPM;
-import org.beanfabrics.model.PMManager;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.WindowController;
 
 /**
  * @author Adrodoc55
  */
-public class CommandDialogPM extends AbstractPM {
-  public static interface Context {
-    void close();
+public class MultiContentDialogController
+    extends WindowController<MultiContentDialog, MultiContentDialogPM> {
+  private final String title;
+
+  public MultiContentDialogController(String title) {
+    this.title = checkNotNull(title, "title == null!");;
   }
 
-  private final Context context;
-  final ListPM<CommandPM> commands = new ListPM<>();
-
-  public CommandDialogPM(Context context) {
-    this.context = checkNotNull(context, "context = null!");
-    PMManager.setup(this);
+  @Override
+  protected MultiContentDialogPM createPM() {
+    return new MultiContentDialogPM(new MultiContentDialogPM.Context() {
+      @Override
+      public void close() {
+        getView().dispose();
+      }
+    });
   }
 
-  public void setCommands(List<String> commands) {
-    this.commands.clear();
-    int i = 1;
-    for (String command : commands) {
-      CommandPM element = new CommandPM(i++, command, new CommandPM.Context() {
-        @Override
-        public void close(CommandPM pm) {
-          ListPM<CommandPM> commands = CommandDialogPM.this.commands;
-          commands.remove(pm);
-          if (commands.isEmpty()) {
-            context.close();
-          }
-        }
-      });
-      this.commands.add(element);
-    }
+  @Override
+  protected MultiContentDialog createView(Window activeWindow) {
+    return new MultiContentDialog(activeWindow, title);
   }
 }

@@ -37,22 +37,47 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.gui.dialog.command;
+package de.adrodoc55.minecraft.mpl.ide.gui.dialog.content;
 
-import org.beanfabrics.swing.ModelSubscriberBeanInfo;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
+
+import org.beanfabrics.model.AbstractPM;
+import org.beanfabrics.model.ListPM;
+import org.beanfabrics.model.PMManager;
 
 /**
  * @author Adrodoc55
- * @created by the Beanfabrics Component Wizard, www.beanfabrics.org
  */
-public class CommandDialogBeanInfo extends ModelSubscriberBeanInfo {
-  @Override
-  protected Class<CommandDialog> getBeanClass() {
-    return CommandDialog.class;
+public class MultiContentDialogPM extends AbstractPM {
+  public static interface Context {
+    void close();
   }
 
-  @Override
-  protected boolean isPathBound() {
-    return false;
+  private final Context context;
+  final ListPM<ContentPM> contents = new ListPM<>();
+
+  public MultiContentDialogPM(Context context) {
+    this.context = checkNotNull(context, "context = null!");
+    PMManager.setup(this);
+  }
+
+  public void setContents(List<String> contents) {
+    this.contents.clear();
+    int i = 1;
+    for (String content : contents) {
+      ContentPM element = new ContentPM("Output " + i++, content, new ContentPM.Context() {
+        @Override
+        public void close(ContentPM pm) {
+          ListPM<ContentPM> contents = MultiContentDialogPM.this.contents;
+          contents.remove(pm);
+          if (contents.isEmpty()) {
+            context.close();
+          }
+        }
+      });
+      this.contents.add(element);
+    }
   }
 }

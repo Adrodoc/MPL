@@ -45,6 +45,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -68,17 +69,18 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
+import de.adrodoc55.minecraft.mpl.conversion.CbseConverter;
 import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
 import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
 import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
 import de.adrodoc55.minecraft.mpl.conversion.SchematicConverter;
 import de.adrodoc55.minecraft.mpl.conversion.StructureConverter;
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialog;
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialogController;
-import de.adrodoc55.minecraft.mpl.ide.gui.dialog.command.CommandDialogPM;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.compilerexception.ExceptionDialog;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.compileroptions.CompilerOptionsDialogController;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.compileroptions.CompilerOptionsDialogPM;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.content.MultiContentDialog;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.content.MultiContentDialogController;
+import de.adrodoc55.minecraft.mpl.ide.gui.dialog.content.MultiContentDialogPM;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogController;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.searchandreplace.SearchAndReplaceDialogPM;
 import de.adrodoc55.minecraft.mpl.ide.gui.dialog.unsaved.UnsavedResourcesDialog;
@@ -92,6 +94,7 @@ public class MplFramePM extends AbstractPM {
   public static final String COMPILE_TO_COMMAND = "Compile to Command";
   public static final String COMPILE_TO_STRUCTURE = "Compile to Structure";
   public static final String COMPILE_TO_SCHEMATIC = "Compile to Schematic";
+  public static final String COMPILE_TO_CBSE = "Compile to Command Block Structure Editor File";
   public static final String COMPILE_TO_FILTER = "Compile to MCEdit Filter";
 
   final ListPM<MplEditorPM> editors = new ListPM<MplEditorPM>();
@@ -104,6 +107,7 @@ public class MplFramePM extends AbstractPM {
   final OperationPM compileToStructureUnder = new OperationPM();
   final OperationPM compileToSchematic = new OperationPM();
   final OperationPM compileToSchematicUnder = new OperationPM();
+  final OperationPM compileToCbse = new OperationPM();
   final OperationPM compileToFilter = new OperationPM();
   final OperationPM compileToFilterUnder = new OperationPM();
   final OperationPM openOptionsDialog = new OperationPM();
@@ -133,6 +137,7 @@ public class MplFramePM extends AbstractPM {
     compileToStructureUnder.setDescription(COMPILE_TO_STRUCTURE);
     compileToSchematic.setDescription(COMPILE_TO_SCHEMATIC);
     compileToSchematicUnder.setDescription(COMPILE_TO_SCHEMATIC);
+    compileToCbse.setDescription(COMPILE_TO_CBSE);
     compileToFilter.setDescription(COMPILE_TO_FILTER);
     compileToFilterUnder.setDescription(COMPILE_TO_FILTER);
     PMManager.setup(this);
@@ -227,10 +232,10 @@ public class MplFramePM extends AbstractPM {
     CompilerOptionsDialogPM optionPm = optionCtrl.getPresentationModel();
     MinecraftVersion version = optionPm.getSavedVersion();
     List<String> commands = CommandConverter.convert(result, version);
-    CommandDialogController ctrl = new CommandDialogController();
-    CommandDialogPM pm = ctrl.getPresentationModel();
-    CommandDialog view = ctrl.getView();
-    pm.setCommands(commands);
+    MultiContentDialogController ctrl = new MultiContentDialogController("Import Commands");
+    MultiContentDialogPM pm = ctrl.getPresentationModel();
+    MultiContentDialog view = ctrl.getView();
+    pm.setContents(commands);
     view.setVisible(true);
   }
 
@@ -262,6 +267,21 @@ public class MplFramePM extends AbstractPM {
   public void compileToSchematicUnder() {
     chooseCompilationDir(COMPILE_TO_SCHEMATIC);
     compileToSchematic();
+  }
+
+  @Operation
+  public void compileToCbse() {
+    MplCompilationResult result = compile();
+    if (result == null) {
+      return;
+    }
+    String cbse = CbseConverter.convert(result);
+    MultiContentDialogController ctrl =
+        new MultiContentDialogController("Command block structure editor");
+    MultiContentDialogPM pm = ctrl.getPresentationModel();
+    MultiContentDialog view = ctrl.getView();
+    pm.setContents(Arrays.asList(cbse));
+    view.setVisible(true);
   }
 
   @Operation
