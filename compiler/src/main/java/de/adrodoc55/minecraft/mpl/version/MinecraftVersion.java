@@ -147,7 +147,7 @@ public enum MinecraftVersion implements Comparables<MinecraftVersion> {
     String result = getSnapshotVersion();
     String majorVersion = getMajorVersion();
     if (majorVersion != null) {
-      result += " (" + majorVersion + ")";
+      result += " (" + majorVersion + "+)";
     }
     return result;
   }
