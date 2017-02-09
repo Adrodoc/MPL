@@ -59,7 +59,7 @@ public class CompilationFailedException extends Exception {
   private final ImmutableListMultimap<File, CompilerException> errors;
 
   public CompilationFailedException(Iterable<CompilerException> errors) {
-    this.errors = Multimaps.index(errors, e -> e.getSource().file);
+    this.errors = Multimaps.index(errors, e -> e.getSource().getFile());
   }
 
   public CompilationFailedException(String message, NotEnoughSpaceException ex) {

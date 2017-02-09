@@ -150,7 +150,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
   }
 
   private static MplSource defaultSource(File programFile) {
-    return new MplSource(programFile, new CommonToken(MplLexer.PROCESS), "");
+    return new MplSource(programFile, "", new CommonToken(MplLexer.PROCESS));
   }
 
   private CommandChain visitInstall(MplProgram program) {

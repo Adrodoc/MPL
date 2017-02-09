@@ -39,37 +39,42 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.File;
 
-import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
 @Immutable
+@Data
+@RequiredArgsConstructor
 public class MplSource {
-  public final @Nonnull File file;
-  public final @Nonnull Token token;
-  public final @Nonnull String line;
+  private final @Nonnull File file;
+  private final @Nonnull String line;
+  private final int lineNumber;
+  private final int charPositionInLine;
+  private final @Nullable String text;
+  private final int startIndex;
+  private final int stopIndex;
 
   @GenerateMplPojoBuilder
-  public MplSource(@Nonnull File file, @Nonnull Token token, @Nonnull String line)
-      throws NullPointerException {
-    this.file = checkNotNull(file, "file == null!");
-    this.token = checkNotNull(token, "token == null!");
-    this.line = checkNotNull(line, "line == null!");
+  public MplSource(File file, String line, Token token) {
+    this(file, line, token.getLine(), token.getCharPositionInLine(), token.getText(),
+        token.getStartIndex(), token.getStopIndex());
   }
 
-  @Nonnegative
-  public int getLineNumber() {
-    return token.getLine();
+  public MplSource(File file, String line, ParserRuleContext ctx) {
+    this(file, line, ctx.getStart().getLine(), ctx.getStart().getCharPositionInLine(),
+        ctx.getText(), ctx.getStart().getStartIndex(), ctx.getStop().getStopIndex());
   }
 }

@@ -43,11 +43,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.antlr.v4.runtime.Token;
 import org.beanfabrics.model.AbstractPM;
 import org.beanfabrics.model.PMManager;
 
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import lombok.Getter;
 
 /**
@@ -90,7 +90,7 @@ public class MplSyntaxFilterPM extends AbstractPM {
    * @author Adrodoc55
    */
   static class CompilerExceptionWrapper {
-    private Token token;
+    private MplSource source;
 
     private int startOffset;
     private int stopOffset;
@@ -99,18 +99,18 @@ public class MplSyntaxFilterPM extends AbstractPM {
     private final String message;
 
     public CompilerExceptionWrapper(CompilerException ex) {
-      this.token = ex.getSource().token;
+      this.source = ex.getSource();
       this.startOffset = 0;
       this.stopOffset = 0;
       this.message = ex.getLocalizedMessage();
     }
 
     public int getStartIndex() {
-      return token.getStartIndex() + startOffset;
+      return source.getStartIndex() + startOffset;
     }
 
     public int getStopIndex() {
-      return token.getStopIndex() + 1 + stopOffset;
+      return source.getStopIndex() + 1 + stopOffset;
     }
 
     public void addStartOffset(int offset) {
