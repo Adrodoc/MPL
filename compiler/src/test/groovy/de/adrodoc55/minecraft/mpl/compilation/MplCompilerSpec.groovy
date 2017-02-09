@@ -1100,7 +1100,7 @@ class MplCompilerSpec extends MplSpecBase {
     CompilationFailedException ex = thrown()
     ex.errors.get(programFile)[0].message == "Cannot ${action} an inline process"
     ex.errors.get(programFile)[0].source.file == programFile
-    ex.errors.get(programFile)[0].source.text == 'other'
+    ex.errors.get(programFile)[0].source.text == "other"
     ex.errors.get(programFile)[0].source.lineNumber == 3
     ex.errors.size() == 1
 

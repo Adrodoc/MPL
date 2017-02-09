@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.compilation;
 
 import java.io.File;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -47,6 +48,11 @@ import javax.annotation.concurrent.Immutable;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ParseTree;
+
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -75,6 +81,16 @@ public class MplSource {
 
   public MplSource(File file, String line, ParserRuleContext ctx) {
     this(file, line, ctx.getStart().getLine(), ctx.getStart().getCharPositionInLine(),
-        ctx.getText(), ctx.getStart().getStartIndex(), ctx.getStop().getStopIndex());
+        reconstructText(ctx), ctx.getStart().getStartIndex(), ctx.getStop().getStopIndex());
+  }
+
+  private static String reconstructText(ParserRuleContext ctx) {
+    List<String> children = Lists.transform(ctx.children, new Function<ParseTree, String>() {
+      @Override
+      public String apply(ParseTree input) {
+        return input.getText();
+      }
+    });
+    return Joiner.on(' ').join(children);
   }
 }

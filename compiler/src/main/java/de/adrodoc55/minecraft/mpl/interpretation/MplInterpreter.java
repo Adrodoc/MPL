@@ -55,12 +55,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
-
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
@@ -214,9 +213,18 @@ public class MplInterpreter extends MplParserBaseListener {
 
   // ----------------------------------------------------------------------------------------------------
 
-  public MplSource toSource(@Nonnull Token token) {
-    String line = token.getLine() > 0 ? lines.get(token.getLine() - 1) : "";
+  private String getLine(int lineNumber) {
+    return lineNumber > 0 ? lines.get(lineNumber - 1) : "";
+  }
+
+  public MplSource toSource(Token token) {
+    String line = getLine(token.getLine());
     return new MplSource(programFile, line, token);
+  }
+
+  public MplSource toSource(ParserRuleContext ctx) {
+    String line = getLine(ctx.getStart().getLine());
+    return new MplSource(programFile, line, ctx);
   }
 
   @Override
@@ -246,7 +254,7 @@ public class MplInterpreter extends MplParserBaseListener {
   @Override
   public void enterProject(ProjectContext ctx) {
     Token oldToken = program.getToken();
-    Token newToken = ctx.PROJECT().getSymbol();
+    Token newToken = ctx.IDENTIFIER().getSymbol();
     if (oldToken != null) {
       String message = "A file can only contain a single project";
       MplSource oldSource = toSource(oldToken);
@@ -255,7 +263,7 @@ public class MplInterpreter extends MplParserBaseListener {
       context.addError(new CompilerException(newSource, message));
       return;
     }
-    String name = ctx.IDENTIFIER().getText();
+    String name = newToken.getText();
     program.setName(name);
     program.setToken(newToken);
   }
@@ -294,7 +302,7 @@ public class MplInterpreter extends MplParserBaseListener {
       context.addError(new CompilerException(source, "Duplicate include"));
     }
     List<File> files = new ArrayList<File>();
-    if (!addFile(files, includeFile, token)) {
+    if (!addFile(files, includeFile, source)) {
       return;
     }
     for (File file : files) {
@@ -310,13 +318,12 @@ public class MplInterpreter extends MplParserBaseListener {
    * @param file the file to import
    */
   private void addFileImport(ImportDeclarationContext ctx, File file) {
-    Token token = ctx != null ? ctx.STRING().getSymbol() : null;
+    MplSource source = ctx != null ? toSource(ctx.STRING().getSymbol()) : null;
     if (imports.contains(file)) {
-      MplSource source = toSource(token);
       context.addError(new CompilerException(source, "Duplicate import"));
       return;
     }
-    addFile(imports, file, token);
+    addFile(imports, file, source);
   }
 
   /**
@@ -325,10 +332,10 @@ public class MplInterpreter extends MplParserBaseListener {
    *
    * @param files the Collection to add to
    * @param file the File
-   * @param token the Token to display potential Exceptions
+   * @param source the {@link MplSource} to display potential Exceptions
    * @return true if something was added to the Collection, false otherwise
    */
-  private boolean addFile(Collection<File> files, File file, Token token) {
+  private boolean addFile(Collection<File> files, File file, MplSource source) {
     if (file.isFile()) {
       files.add(file);
       return true;
@@ -343,11 +350,9 @@ public class MplInterpreter extends MplParserBaseListener {
       return added;
     } else if (!file.exists()) {
       String path = FileUtils.getCanonicalPath(file);
-      MplSource source = toSource(token);
       context.addError(new CompilerException(source, "Could not find '" + path + "'"));
       return false;
     } else {
-      MplSource source = toSource(token);
       context.addError(new CompilerException(source,
           "Can only import Files and Directories, not: '" + file + "'"));
       return false;
@@ -600,9 +605,7 @@ public class MplInterpreter extends MplParserBaseListener {
 
   @Override
   public void exitMplCommand(MplCommandContext ctx) {
-    // FIXME Use whole context instead of token
-    Token token = ctx.command().SLASH().getSymbol();
-    MplCommand command = new MplCommand(commandWithInserts, modifierBuffer, toSource(token));
+    MplCommand command = new MplCommand(commandWithInserts, modifierBuffer, toSource(ctx));
     addModifiableChainPart(command);
   }
 
@@ -610,15 +613,14 @@ public class MplInterpreter extends MplParserBaseListener {
   public void enterMplCall(MplCallContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String process = identifier.getText();
-    MplCall call = new MplCall(process, toSource(identifier.getSymbol()));
+    MplSource source = toSource(identifier.getSymbol());
+    MplCall call = new MplCall(process, source);
     chainBuffer.add(call);
 
     if (program.isScript()) {
       return;
     }
     String srcProcess = this.process != null ? this.process.getName() : null;
-    Token token = identifier.getSymbol();
-    MplSource source = toSource(token);
     references.put(srcProcess, new MplProcessReference(process, imports, source));
   }
 
@@ -695,7 +697,7 @@ public class MplInterpreter extends MplParserBaseListener {
   public void enterMplWaitfor(MplWaitforContext ctx) {
     TerminalNode identifier = ctx.IDENTIFIER();
     String event;
-    MplSource source = toSource(ctx.WAITFOR().getSymbol());
+    MplSource source = toSource(ctx);
     if (identifier != null) {
       event = identifier.getText();
       source = toSource(identifier.getSymbol());
@@ -742,8 +744,7 @@ public class MplInterpreter extends MplParserBaseListener {
   public void enterMplBreakpoint(MplBreakpointContext ctx) {
     int line = ctx.BREAKPOINT().getSymbol().getLine();
     String message = programFile.getName() + " : line " + line;
-    MplBreakpoint breakpoint =
-        new MplBreakpoint(message, modifierBuffer, toSource(ctx.BREAKPOINT().getSymbol()));
+    MplBreakpoint breakpoint = new MplBreakpoint(message, modifierBuffer, toSource(ctx));
     addModifiableChainPart(breakpoint);
 
     checkNoModifier(breakpoint.getName(), modifierBuffer.getModeToken());
@@ -753,7 +754,7 @@ public class MplInterpreter extends MplParserBaseListener {
   @Override
   public void enterMplSkip(MplSkipContext ctx) {
     if (process != null && process.isRepeating() && chainBuffer.getChainParts().isEmpty()) {
-      MplSource source = toSource(ctx.SKIP_TOKEN().getSymbol());
+      MplSource source = toSource(ctx);
       context.addError(
           new CompilerException(source, "skip cannot be the first command of a repeating process"));
       return;
@@ -819,10 +820,10 @@ public class MplInterpreter extends MplParserBaseListener {
 
     MplWhile loop;
     if (label == null) {
-      MplSource source = toSource(ctx.BREAK().getSymbol());
+      MplSource source = toSource(ctx);
       loop = findParentLoop(source);
     } else {
-      MplSource source = toSource(ctx.IDENTIFIER().getSymbol());
+      MplSource source = toSource(identifier.getSymbol());
       loop = findParentLoop(label, source);
     }
     if (loop == null) {
@@ -844,10 +845,10 @@ public class MplInterpreter extends MplParserBaseListener {
 
     MplWhile loop;
     if (label == null) {
-      MplSource source = toSource(ctx.CONTINUE().getSymbol());
+      MplSource source = toSource(ctx);
       loop = findParentLoop(source);
     } else {
-      MplSource source = toSource(ctx.IDENTIFIER().getSymbol());
+      MplSource source = toSource(identifier.getSymbol());
       loop = findParentLoop(label, source);
     }
     if (loop == null) {
