@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation;
 
+import static de.adrodoc55.commons.ArrayUtils.nonNullElementsIn;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
 
@@ -220,6 +221,13 @@ public class MplInterpreter extends MplParserBaseListener {
   public MplSource toSource(Token token) {
     String line = getLine(token.getLine());
     return new MplSource(programFile, line, token);
+  }
+
+  public MplSource toSource(TerminalNode... nodes) {
+    List<TerminalNode> nonNullNodes = nonNullElementsIn(nodes);
+    TerminalNode first = nonNullNodes.get(0);
+    String line = getLine(first.getSymbol().getLine());
+    return new MplSource(programFile, line, nonNullNodes);
   }
 
   public MplSource toSource(ParserRuleContext ctx) {
@@ -907,13 +915,20 @@ public class MplInterpreter extends MplParserBaseListener {
       value = MplLexerUtils.getContainedString(string.getSymbol());
     } else if (integer != null) {
       actualType = MplType.INTEGER;
+      value = integer.getText();
       actualSource = toSource(integer.getSymbol());
+
       TerminalNode minus = ctx.MINUS();
-      String sign = minus != null ? minus.getText() : "";
-      value = sign + integer.getText();
+      if (minus != null) {
+        String sign = minus != null ? minus.getText() : "";
+        value = sign + integer.getText();
+        Token minusToken = minus.getSymbol();
+        actualSource = new MplSource(programFile, getLine(minusToken.getLine()), minusToken,
+            integer.getSymbol(), value);
+      }
     } else if (scoreboard != null) {
       actualType = MplType.VALUE;
-      actualSource = toSource(scoreboard.getSymbol());
+      actualSource = toSource(selector, scoreboard);
       value = selector.getText() + " " + scoreboard.getText();
     } else if (selector != null) {
       actualType = MplType.SELECTOR;

@@ -39,7 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.conversion;
 
-import static de.adrodoc55.commons.FileUtils.UTF_8;
+import static com.google.common.base.Charsets.UTF_8;
 import static de.adrodoc55.minecraft.mpl.MplUtils.getBoundaries;
 
 import java.io.IOException;
@@ -110,10 +110,7 @@ public class CommandConverter implements MplConverter {
     Coordinate3D b = bd.toCoordinate();
 
     // @formatter:off
-    return new Coordinate3D()
-        .plus(a.mult(1))
-        .plus(b.mult(-2))
-        .plus(c.mult(1));
+    return new Coordinate3D().plus(a.mult(1)).plus(b.mult(-2)).plus(c.mult(1));
     // @formatter:on
   }
 

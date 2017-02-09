@@ -2543,7 +2543,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     lastContext.errors[0].message == "Type mismatch: cannot convert from ${actualType} to ${declaredType}"
     lastContext.errors[0].source.file == lastTempFile
-    // lastContext.errors[0].source.token.text == value
+    lastContext.errors[0].source.text == value
     lastContext.errors[0].source.lineNumber == 2
     lastContext.errors.size() == 1
 
