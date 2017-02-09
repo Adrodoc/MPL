@@ -216,7 +216,7 @@ public class MplInterpreter extends MplParserBaseListener {
 
   public MplSource toSource(@Nonnull Token token) {
     String line = token.getLine() > 0 ? lines.get(token.getLine() - 1) : "";
-    return new MplSource(programFile, token, line);
+    return new MplSource(programFile, line, token);
   }
 
   @Override
@@ -867,7 +867,7 @@ public class MplInterpreter extends MplParserBaseListener {
     loop = loops.peek();
     if (loop == null) {
       context.addError(
-          new CompilerException(source, source.token.getText() + " can only be used in a loop"));
+          new CompilerException(source, source.getText() + " can only be used in a loop"));
     }
     return loop;
   }

@@ -76,12 +76,12 @@ public class CompilerException extends Exception {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    String path = FileUtils.getCanonicalPath(source.file);
-    sb.append(path).append(':').append(source.token.getLine()).append(":\n");
+    String path = FileUtils.getCanonicalPath(source.getFile());
+    sb.append(path).append(':').append(source.getLineNumber()).append(":\n");
     sb.append(this.getLocalizedMessage()).append("\n");
-    int count = source.token.getCharPositionInLine();
+    int count = source.getCharPositionInLine();
     if (count >= 0) {
-      sb.append(source.line).append("\n");
+      sb.append(source.getLine()).append("\n");
       sb.append(new String(new char[count]).replace('\0', ' '));
       sb.append("^\n");
     }

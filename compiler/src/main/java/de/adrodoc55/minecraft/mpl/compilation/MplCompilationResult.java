@@ -66,7 +66,7 @@ public class MplCompilationResult {
       @Nonnull Iterable<CompilerException> warnings) {
     this.orientation = checkNotNull(orientation, "orientation == null!");
     this.blocks = checkNotNull(blocks, "blocks == null!");
-    this.warnings = Multimaps.index(warnings, e -> e.getSource().file);
+    this.warnings = Multimaps.index(warnings, e -> e.getSource().getFile());
   }
 
   @Nonnull

@@ -98,7 +98,7 @@ public class MplProgramAssemler {
         .anyMatch(p -> p.getType() == ProcessType.REMOTE);
     if (context.getErrors().isEmpty() && !containsRemoteProcess) {
       context.addError(
-          new CompilerException(new MplSource(programFile, new CommonToken(MplLexer.PROCESS), ""),
+          new CompilerException(new MplSource(programFile, "", new CommonToken(MplLexer.PROCESS)),
               "This file does not include any remote processes"));
     }
     return result;
@@ -155,7 +155,7 @@ public class MplProgramAssemler {
         MplProgram program = interpreter.getProgram();
         if (reference.isContainedIn(program)) {
           // Referencing a process in the same file is never ambigious
-          if (file.equals(source.file)) {
+          if (file.equals(source.getFile())) {
             found.clear();
             found.add(interpreter);
             break;

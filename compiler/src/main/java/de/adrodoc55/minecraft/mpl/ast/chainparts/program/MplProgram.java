@@ -127,9 +127,9 @@ public class MplProgram implements Named {
     String newMessage = oldMessage;
     MplSource oldSource = previous.getSource();
     MplSource newSource = process.getSource();
-    if (!newSource.file.equals(oldSource.file)) {
-      oldMessage += "; was also found in " + FileUtils.getCanonicalPath(newSource.file);
-      newMessage += "; was also found in " + FileUtils.getCanonicalPath(oldSource.file);
+    if (!newSource.getFile().equals(oldSource.getFile())) {
+      oldMessage += "; was also found in " + FileUtils.getCanonicalPath(newSource.getFile());
+      newMessage += "; was also found in " + FileUtils.getCanonicalPath(oldSource.getFile());
     }
     context.addError(new CompilerException(oldSource, oldMessage));
     context.addError(new CompilerException(newSource, newMessage));

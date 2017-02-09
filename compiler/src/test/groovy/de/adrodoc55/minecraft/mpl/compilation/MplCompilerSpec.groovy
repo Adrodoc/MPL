@@ -66,7 +66,7 @@ class MplCompilerSpec extends MplSpecBase {
   File lastProgramFile
 
   MplSource source() {
-    new MplSource(lastProgramFile, new CommonToken(0), "")
+    new MplSource(lastProgramFile, "", new CommonToken(0))
   }
 
   private MplProgram assembleProgram(File programFile) {
@@ -113,8 +113,8 @@ class MplCompilerSpec extends MplSpecBase {
     CompilationFailedException ex = thrown()
     Collection<CompilerException> exs = ex.errors.values()
     exs[0].source.file == new File(folder, 'main.mpl')
-    exs[0].source.token.line == 0
-    exs[0].source.token.text == null
+    exs[0].source.lineNumber == 0
+    exs[0].source.text == null
     exs[0].message == "This file does not include any remote processes"
     exs.size() == 1
   }
@@ -669,12 +669,12 @@ class MplCompilerSpec extends MplSpecBase {
     CompilationFailedException ex = thrown()
     Collection<CompilerException> exs = ex.errors.values()
     exs[0].source.file == new File(folder, 'other1.mpl')
-    exs[0].source.token.line == 2
-    exs[0].source.token.text == id2
+    exs[0].source.lineNumber == 2
+    exs[0].source.text == id2
     exs[0].message == "Duplicate process ${id2}; was also found in ${new File(folder, 'other2.mpl')}"
     exs[1].source.file == new File(folder, 'other2.mpl')
-    exs[1].source.token.line == 2
-    exs[1].source.token.text == id2
+    exs[1].source.lineNumber == 2
+    exs[1].source.text == id2
     exs[1].message == "Duplicate process ${id2}; was also found in ${new File(folder, 'other1.mpl')}"
     exs.size() == 2
   }
@@ -701,8 +701,8 @@ class MplCompilerSpec extends MplSpecBase {
     CompilationFailedException ex = thrown()
     List<CompilerException> exs = ex.errors.get(new File(folder, 'main.mpl'))
     exs[0].source.file == new File(folder, 'main.mpl')
-    exs[0].source.token.line == 2
-    exs[0].source.token.text == '"newFolder/scriptFile.mpl"'
+    exs[0].source.lineNumber == 2
+    exs[0].source.text == '"newFolder/scriptFile.mpl"'
     exs[0].message == "Can't include script 'scriptFile.mpl'. Scripts may not be included."
     exs.size() == 1
   }
@@ -1132,8 +1132,8 @@ class MplCompilerSpec extends MplSpecBase {
     CompilationFailedException ex = thrown()
     ex.errors.get(programFile)[0].message == "Cannot ${action} an inline process"
     ex.errors.get(programFile)[0].source.file == programFile
-    ex.errors.get(programFile)[0].source.token.text == 'other'
-    ex.errors.get(programFile)[0].source.token.line == 3
+    ex.errors.get(programFile)[0].source.text == 'other'
+    ex.errors.get(programFile)[0].source.lineNumber == 3
     ex.errors.size() == 1
 
     where:
@@ -1157,8 +1157,8 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.warnings.get(programFile)[0].message == "Could not resolve process unknown"
     result.warnings.get(programFile)[0].source.file == programFile
-    result.warnings.get(programFile)[0].source.token.text == 'unknown'
-    result.warnings.get(programFile)[0].source.token.line == 3
+    result.warnings.get(programFile)[0].source.text == 'unknown'
+    result.warnings.get(programFile)[0].source.lineNumber == 3
     result.warnings.size() == 1
 
     where:
@@ -1181,8 +1181,8 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.warnings.get(programFile)[0].message == "Could not resolve process unknown"
     result.warnings.get(programFile)[0].source.file == programFile
-    result.warnings.get(programFile)[0].source.token.text == 'unknown'
-    result.warnings.get(programFile)[0].source.token.line == 3
+    result.warnings.get(programFile)[0].source.text == 'unknown'
+    result.warnings.get(programFile)[0].source.lineNumber == 3
     result.warnings.size() == 1
   }
 
@@ -1268,8 +1268,8 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.warnings.get(programFile)[0].message == "The event unknown is never triggered"
     result.warnings.get(programFile)[0].source.file == programFile
-    result.warnings.get(programFile)[0].source.token.text == 'unknown'
-    result.warnings.get(programFile)[0].source.token.line == 3
+    result.warnings.get(programFile)[0].source.text == 'unknown'
+    result.warnings.get(programFile)[0].source.lineNumber == 3
     result.warnings.size() == 1
   }
 
@@ -1387,8 +1387,8 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.warnings.get(programFile)[0].message == "The event unknown is never used"
     result.warnings.get(programFile)[0].source.file == programFile
-    result.warnings.get(programFile)[0].source.token.text == 'unknown'
-    result.warnings.get(programFile)[0].source.token.line == 3
+    result.warnings.get(programFile)[0].source.text == 'unknown'
+    result.warnings.get(programFile)[0].source.lineNumber == 3
     result.warnings.size() == 1
   }
 
