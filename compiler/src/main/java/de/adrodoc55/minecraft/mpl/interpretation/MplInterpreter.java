@@ -89,6 +89,7 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModusContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplBreakContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplBreakpointContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplCallContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplCommandContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplContinueContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplElseContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.MplIfContext;
@@ -107,6 +108,7 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.ScriptFileContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.UninstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.VariableDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParserBaseListener;
+import de.adrodoc55.minecraft.mpl.ast.CommandWithInserts;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
@@ -585,16 +587,23 @@ public class MplInterpreter extends MplParserBaseListener {
   }
 
   private void visitCommandString(TerminalNode node) {
-
+    commandParts.add(node.getText());
   }
+
+  private CommandWithInserts commandWithInserts;
 
   @Override
   public void exitCommand(CommandContext ctx) {
-    // FIXME Use whole context instead of token
-    Token token = ctx.SLASH().getSymbol();
-    MplCommand command = new MplCommand(commandParts, modifierBuffer, toSource(token));
-    addModifiableChainPart(command);
+    commandWithInserts = new CommandWithInserts(commandParts);
     commandParts = null;
+  }
+
+  @Override
+  public void exitMplCommand(MplCommandContext ctx) {
+    // FIXME Use whole context instead of token
+    Token token = ctx.command().SLASH().getSymbol();
+    MplCommand command = new MplCommand(commandWithInserts, modifierBuffer, toSource(token));
+    addModifiableChainPart(command);
   }
 
   @Override
@@ -885,7 +894,7 @@ public class MplInterpreter extends MplParserBaseListener {
     List<TerminalNode> identifiers = ctx.IDENTIFIER();
     TerminalNode identifier = identifiers.get(0);
     TerminalNode string = ctx.STRING();
-    TerminalNode integer = ctx.INTEGER();
+    TerminalNode integer = ctx.UNSIGNED_INTEGER();
     TerminalNode selector = ctx.SELECTOR();
     TerminalNode scoreboard = identifiers.size() > 1 ? identifiers.get(1) : null;
     MplType<?> actualType;
@@ -898,7 +907,9 @@ public class MplInterpreter extends MplParserBaseListener {
     } else if (integer != null) {
       actualType = MplType.INTEGER;
       actualSource = toSource(integer.getSymbol());
-      value = integer.getText();
+      TerminalNode minus = ctx.MINUS();
+      String sign = minus != null ? minus.getText() : "";
+      value = sign + integer.getText();
     } else if (scoreboard != null) {
       actualType = MplType.VALUE;
       actualSource = toSource(scoreboard.getSymbol());

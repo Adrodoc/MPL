@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.coordinate.Axis3D.X;
 import static de.adrodoc55.minecraft.coordinate.Axis3D.Y;
 import static de.adrodoc55.minecraft.coordinate.Axis3D.Z;
@@ -56,6 +57,15 @@ import de.adrodoc55.minecraft.coordinate.Orientation3D;
 public class MplUtils {
   protected MplUtils() throws Exception {
     throw new Exception("Utils Classes cannot be instantiated!");
+  }
+
+  public static String commandWithoutLeadingSlash(String command) {
+    checkNotNull(command, "command == null!");
+    if (command.startsWith("/")) {
+      return command.substring(1);
+    } else {
+      return command;
+    }
   }
 
   /**

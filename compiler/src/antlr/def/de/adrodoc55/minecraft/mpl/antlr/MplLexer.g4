@@ -84,6 +84,11 @@ lexer grammar MplLexer;
    '/*' .*? '*/' -> channel ( HIDDEN )
  ;
 
+ MINUS
+ :
+   '-'
+ ;
+ 
  SLASH
  :
    '/' -> pushMode ( COMMAND )
@@ -267,11 +272,6 @@ lexer grammar MplLexer;
    [0-9]+
  ;
 
- INTEGER
- :
-   '-'? UNSIGNED_INTEGER
- ;
-
  SELECTOR
  :
    '@' [a-z]
@@ -312,25 +312,31 @@ lexer grammar MplLexer;
 
  DOLLAR
  :
-   '$'
- ;
-
- PLUS
- :
-   '+'
- ;
-
- MINUS
- :
-   '-'
- ;
-
- INSERT
- :
-   '${' ~( '}' )* '}'
+   '$' -> pushMode ( INSERT )
  ;
 
  COMMAND_STRING
  :
-   ~( '$' )+
+   ~( '$'
+   	  | '\r'
+      | '\n'
+    )+
  ;
+
+ mode INSERT;
+ 
+ PLUS_INSERT
+ :
+   '+'
+ ;
+
+ MINUS_INSERT
+ :
+   '-'
+ ;
+ 
+ CLOSING_CURLY_BRACKET_INSERT
+ :
+   '}' -> popMode
+ ;
+ 

@@ -41,17 +41,14 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import javax.annotation.Nonnull;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
-
 import de.adrodoc55.commons.CopyScope;
+import de.adrodoc55.minecraft.mpl.ast.CommandWithInserts;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.VariableScope;
-import de.adrodoc55.minecraft.mpl.interpretation.insert.Insert;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -66,7 +63,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @Getter
 @Setter
 public class MplCommand extends ModifiableChainPart {
-  private final ImmutableList<Object> commandParts;
+  private final CommandWithInserts command;
 
   public MplCommand(String command, @Nonnull MplSource source) {
     this(command, new ModifierBuffer(), source);
@@ -74,19 +71,19 @@ public class MplCommand extends ModifiableChainPart {
 
   @GenerateMplPojoBuilder
   public MplCommand(String command, ExtendedModifiable modifier, @Nonnull MplSource source) {
-    this(ImmutableList.of(command), modifier, source);
+    this(new CommandWithInserts(command), modifier, source);
   }
 
-  public MplCommand(Iterable<?> commandParts, ExtendedModifiable modifier,
+  public MplCommand(CommandWithInserts command, ExtendedModifiable modifier,
       @Nonnull MplSource source) {
     super(modifier, source);
-    this.commandParts = ImmutableList.copyOf(commandParts);
+    this.command = command;
   }
 
   @Deprecated
   protected MplCommand(MplCommand original, CopyScope scope) {
     super(original);
-    commandParts = ImmutableList.copyOf(scope.copyObjects(original.commandParts));
+    command = scope.copy(original.command);
   }
 
   @Deprecated
@@ -96,15 +93,11 @@ public class MplCommand extends ModifiableChainPart {
   }
 
   public String getCommand() {
-    return Joiner.on("").join(commandParts);
+    return command.getCommand();
   }
 
   public void resolve(VariableScope scope) {
-    for (Object object : commandParts) {
-      if (object instanceof Insert) {
-        ((Insert) object).resolve(scope);
-      }
-    }
+    command.resolve(scope);
   }
 
   @Override
