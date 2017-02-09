@@ -49,10 +49,11 @@ import javax.annotation.concurrent.Immutable;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Iterables;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -75,22 +76,29 @@ public class MplSource {
 
   @GenerateMplPojoBuilder
   public MplSource(File file, String line, Token token) {
-    this(file, line, token.getLine(), token.getCharPositionInLine(), token.getText(),
-        token.getStartIndex(), token.getStopIndex());
+    this(file, line, token, token, token.getText());
+  }
+
+  public MplSource(File file, String line, List<TerminalNode> nodes) {
+    this(file, line, nodes.get(0).getSymbol(), nodes.get(nodes.size() - 1).getSymbol(),
+        reconstructText(nodes));
   }
 
   public MplSource(File file, String line, ParserRuleContext ctx) {
-    this(file, line, ctx.getStart().getLine(), ctx.getStart().getCharPositionInLine(),
-        reconstructText(ctx), ctx.getStart().getStartIndex(), ctx.getStop().getStopIndex());
+    this(file, line, ctx.getStart(), ctx.getStop(), reconstructText(ctx.children));
   }
 
-  private static String reconstructText(ParserRuleContext ctx) {
-    List<String> children = Lists.transform(ctx.children, new Function<ParseTree, String>() {
+  public MplSource(File file, String line, Token start, Token stop, String text) {
+    this(file, line, start.getLine(), start.getCharPositionInLine(), text, start.getStartIndex(),
+        stop.getStopIndex());
+  }
+
+  private static String reconstructText(Iterable<? extends ParseTree> children) {
+    return Joiner.on(' ').join(Iterables.transform(children, new Function<ParseTree, String>() {
       @Override
       public String apply(ParseTree input) {
         return input.getText();
       }
-    });
-    return Joiner.on(' ').join(children);
+    }));
   }
 }

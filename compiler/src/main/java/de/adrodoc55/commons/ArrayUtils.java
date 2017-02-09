@@ -39,51 +39,27 @@
  */
 package de.adrodoc55.commons;
 
-import static com.google.common.base.Charsets.UTF_8;
+import static java.util.Collections.emptyList;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.UndeclaredThrowableException;
-import java.net.URL;
-
-import com.google.common.io.Resources;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Adrodoc55
  */
-public class FileUtils {
-  protected FileUtils() throws Exception {
+public class ArrayUtils {
+  protected ArrayUtils() throws Exception {
     throw new Exception("Utils Classes cannot be instantiated!");
   }
 
-  public static String getFilenameWithoutExtension(File file) {
-    return getFilenameWithoutExtension(file.getName());
-  }
-
-  public static String getFilenameWithoutExtension(String fileName) {
-    int idx = fileName.lastIndexOf('.');
-    String name = (idx == -1) ? fileName : fileName.substring(0, idx);
-    return name;
-  }
-
-  public static String toUnixLineEnding(String text) {
-    return text.replace("\r\n", "\n").replace("\r", "\n");
-  }
-
-  public static String getCanonicalPath(File file) {
-    try {
-      return file.getCanonicalPath();
-    } catch (IOException ex) {
-      return file.getAbsolutePath();
+  public static <T> List<T> nonNullElementsIn(T[] array) {
+    if (array == null)
+      return emptyList();
+    List<T> nonNullElements = new ArrayList<>();
+    for (T o : array) {
+      if (o != null)
+        nonNullElements.add(o);
     }
+    return nonNullElements;
   }
-
-  public static String getUtf8String(URL url) {
-    try {
-      return Resources.toString(url, UTF_8);
-    } catch (IOException ex) {
-      throw new UndeclaredThrowableException(ex);
-    }
-  }
-
 }
