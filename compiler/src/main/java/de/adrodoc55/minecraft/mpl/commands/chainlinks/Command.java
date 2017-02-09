@@ -39,7 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static de.adrodoc55.minecraft.mpl.MplUtils.commandWithoutLeadingSlash;
 
 import javax.annotation.Nonnull;
 
@@ -125,12 +125,7 @@ public class Command implements ChainLink, Modifiable {
   }
 
   public void setCommand(String command) {
-    checkNotNull(command, "command == null!");
-    if (command.startsWith("/")) {
-      this.command = command.substring(1);
-    } else {
-      this.command = command;
-    }
+    this.command = commandWithoutLeadingSlash(command);
   }
 
   @Override

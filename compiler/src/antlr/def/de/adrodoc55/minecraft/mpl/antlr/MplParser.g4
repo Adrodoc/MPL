@@ -226,8 +226,8 @@ parser grammar MplParser;
    DOLLAR OPENING_CURLY_BRACKET IDENTIFIER
    (
      (
-       PLUS
-       | MINUS
+       PLUS_INSERT
+       | MINUS_INSERT
      ) UNSIGNED_INTEGER
    )? CLOSING_CURLY_BRACKET
  ;
@@ -301,7 +301,7 @@ parser grammar MplParser;
    (
      STRING
      | SELECTOR
-     | INTEGER
+     | MINUS? UNSIGNED_INTEGER
      | SELECTOR IDENTIFIER
    )
  ;
