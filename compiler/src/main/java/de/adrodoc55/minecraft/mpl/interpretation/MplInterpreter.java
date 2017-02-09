@@ -135,9 +135,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer.ChainPartBufferImpl;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.GlobalVariableInsert;
-import de.adrodoc55.minecraft.mpl.interpretation.insert.Insert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.LocalVariableInsert;
-import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeOriginInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 
 /**
@@ -557,25 +555,11 @@ public class MplInterpreter extends MplParserBaseListener {
     }
   }
 
-  private List<Insert> inserts;
+  private List<Object> commandParts;
 
   @Override
   public void enterCommand(CommandContext ctx) {
-    inserts = new ArrayList<>();
-    TerminalNode first = ctx.getChild(TerminalNode.class, 1);
-    if (first.getSymbol().getType() == MplLexer.COMMAND_STRING) {
-
-    }
-    List<TerminalNode> strings = ctx.COMMAND_STRING();
-    for (TerminalNode string : strings) {
-      string.getSymbol();
-    }
-
-    String commandString = ctx.COMMAND().getText();
-    MplCommand command =
-        new MplCommand(commandString, modifierBuffer, toSource(ctx.COMMAND().getSymbol()));
-    addModifiableChainPart(command);
-    inserts = null;
+    commandParts = new ArrayList<>();
   }
 
   @Override
@@ -584,24 +568,33 @@ public class MplInterpreter extends MplParserBaseListener {
     String identifier = identifierNode.getText();
     TerminalNode integer = ctx.UNSIGNED_INTEGER();
     if (integer != null) {
-      inserts.add(new RelativeThisInsert(Integer.parseInt(integer.getText())));
+      commandParts.add(new RelativeThisInsert(Integer.parseInt(integer.getText())));
       return;
     } // TODO: RelativeOriginInsert
 
     MplVariable<?> variable = variableScope.findVariable(identifier);
     if (variable != null) {
       if (variable instanceof Insertable) {
-        inserts.add(new LocalVariableInsert((Insertable) variable));
+        commandParts.add(new LocalVariableInsert((Insertable) variable));
       } else {
         context.addError(new CompilerException(toSource(identifierNode.getSymbol()), ""));
       }
     } else {
-      inserts.add(new GlobalVariableInsert(identifier, imports));
+      commandParts.add(new GlobalVariableInsert(identifier, imports));
     }
   }
 
   private void visitCommandString(TerminalNode node) {
 
+  }
+
+  @Override
+  public void exitCommand(CommandContext ctx) {
+    // FIXME Use whole context instead of token
+    Token token = ctx.SLASH().getSymbol();
+    MplCommand command = new MplCommand(commandParts, modifierBuffer, toSource(token));
+    addModifiableChainPart(command);
+    commandParts = null;
   }
 
   @Override
@@ -762,7 +755,8 @@ public class MplInterpreter extends MplParserBaseListener {
   @Override
   public void enterMplIf(MplIfContext ctx) {
     boolean not = ctx.NOT() != null;
-    String condition = ctx.COMMAND().getText();
+    // FIXME: MplIf needs to support any dependable command as condition
+    String condition = ctx.command().getText();
     chainBuffer = new MplIf(chainBuffer, not, condition, toSource(ctx.IF().getSymbol()));
   }
 
@@ -791,7 +785,8 @@ public class MplInterpreter extends MplParserBaseListener {
     String label = identifier != null ? identifier.getText() : null;
     boolean not = ctx.NOT() != null;
     boolean trailing = ctx.DO() != null;
-    TerminalNode command = ctx.COMMAND();
+    // FIXME: MplWhile needs to support any dependable command as condition
+    CommandContext command = ctx.command();
     String condition = command != null ? command.getText() : null;
 
     MplWhile mplWhile = new MplWhile(chainBuffer, label, not, trailing, condition,

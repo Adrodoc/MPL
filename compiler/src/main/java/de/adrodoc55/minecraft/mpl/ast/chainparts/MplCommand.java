@@ -74,8 +74,13 @@ public class MplCommand extends ModifiableChainPart {
 
   @GenerateMplPojoBuilder
   public MplCommand(String command, ExtendedModifiable modifier, @Nonnull MplSource source) {
+    this(ImmutableList.of(command), modifier, source);
+  }
+
+  public MplCommand(Iterable<?> commandParts, ExtendedModifiable modifier,
+      @Nonnull MplSource source) {
     super(modifier, source);
-    commandParts = ImmutableList.of(command);
+    this.commandParts = ImmutableList.copyOf(commandParts);
   }
 
   @Deprecated
@@ -91,7 +96,7 @@ public class MplCommand extends ModifiableChainPart {
   }
 
   public String getCommand() {
-    return Joiner.on(' ').join(commandParts);
+    return Joiner.on("").join(commandParts);
   }
 
   public void resolve(VariableScope scope) {
