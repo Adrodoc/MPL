@@ -107,11 +107,11 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     lastContext.errors[0].message == "A file can only contain a single project"
     lastContext.errors[0].source.file == lastTempFile
-    lastContext.errors[0].source.text == 'project'
+    lastContext.errors[0].source.text == id1
     lastContext.errors[0].source.lineNumber == 2
     lastContext.errors[1].message == "A file can only contain a single project"
     lastContext.errors[1].source.file == lastTempFile
-    lastContext.errors[1].source.text == 'project'
+    lastContext.errors[1].source.text == id2
     lastContext.errors[1].source.lineNumber == 3
     lastContext.errors.size() == 2
   }
