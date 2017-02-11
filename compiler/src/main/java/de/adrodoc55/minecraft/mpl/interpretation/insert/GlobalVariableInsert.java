@@ -54,9 +54,8 @@ public class GlobalVariableInsert implements Insert {
   }
 
   @Override
-  public String resolve(VariableScope scope) {
-    // TODO Auto-generated method stub
-    return null;
+  public boolean resolve(VariableScope scope) {
+    return false;
   }
 
 }
