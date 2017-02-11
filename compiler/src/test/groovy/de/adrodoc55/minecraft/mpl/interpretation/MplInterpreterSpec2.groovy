@@ -2572,6 +2572,78 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
   
   @Test
+  public void "Inserting an Integer variable"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    Integer ${id} = ${value}
+    /say The value is \${${id}}!
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+    MplProgram program = interpreter.program
+    
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplCommand command =  process.chainParts[0]
+    command.command == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+  
+  @Test
+  public void "Inserting a Selector variable"() {
+    given:
+    String id = some($Identifier())
+    String value = "@e[name=${some($Identifier())}]"
+    String programString = """
+    Selector ${id} = ${value}
+    /say The value is \${${id}}!
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+    MplProgram program = interpreter.program
+    
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplCommand command =  process.chainParts[0]
+    command.command == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+  
+  @Test
+  public void "Inserting a String variable"() {
+    given:
+    String id = some($Identifier())
+    String value = some($String())
+    String programString = """
+    String ${id} = "${value}"
+    /say The value is \${${id}}!
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+    MplProgram program = interpreter.program
+    
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplCommand command =  process.chainParts[0]
+    command.command == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
   public void "Inserting a Value variable"() {
     given:
     String id = some($Identifier())
@@ -2591,4 +2663,5 @@ class MplInterpreterSpec2 extends MplSpecBase {
     lastContext.errors[0].source.lineNumber == 3
     lastContext.errors.size() == 1
   }
+  
 }

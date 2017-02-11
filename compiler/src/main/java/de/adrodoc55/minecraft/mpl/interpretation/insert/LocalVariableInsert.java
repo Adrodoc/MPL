@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation.insert;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import de.adrodoc55.minecraft.mpl.ast.variable.Insertable;
 import de.adrodoc55.minecraft.mpl.interpretation.VariableScope;
 
@@ -49,11 +51,16 @@ public class LocalVariableInsert implements Insert {
   private final Insertable insertable;
 
   public LocalVariableInsert(Insertable insertable) {
-    this.insertable = insertable;
+    this.insertable = checkNotNull(insertable, "insertable == null!");
   }
 
   @Override
-  public String resolve(VariableScope scope) {
+  public boolean resolve(VariableScope scope) {
+    return true;
+  }
+
+  @Override
+  public String toString() {
     return insertable.toInsert();
   }
 }

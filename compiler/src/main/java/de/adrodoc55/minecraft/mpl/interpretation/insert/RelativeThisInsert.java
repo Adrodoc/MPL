@@ -52,8 +52,8 @@ public class RelativeThisInsert implements Insert {
   }
 
   @Override
-  public String resolve(VariableScope scope) {
+  public boolean resolve(VariableScope scope) {
     // TODO Auto-generated method stub
-    return null;
+    return false;
   }
 }

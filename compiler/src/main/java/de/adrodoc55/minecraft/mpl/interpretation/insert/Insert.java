@@ -45,5 +45,12 @@ import de.adrodoc55.minecraft.mpl.interpretation.VariableScope;
  * @author Adrodoc55
  */
 public interface Insert {
-  String resolve(VariableScope scope);
+  /**
+   * Attempts to find it's value in the specified {@link VariableScope}. Returns {@code true} if
+   * this {@link Insert} found it's value in the scope or already contained its value.
+   * 
+   * @param scope
+   * @return {@code true} if this {@link Insert} is resolved
+   */
+  boolean resolve(VariableScope scope);
 }
