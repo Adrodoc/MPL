@@ -570,45 +570,39 @@ public class MplInterpreter extends MplParserBaseListener {
     }
   }
 
-  private List<Object> commandParts;
+  private CommandWithInserts commandWithInserts;
 
   @Override
   public void enterCommand(CommandContext ctx) {
-    commandParts = new ArrayList<>();
+    commandWithInserts = new CommandWithInserts();
   }
 
   @Override
   public void enterInsert(InsertContext ctx) {
-    TerminalNode identifierNode = ctx.IDENTIFIER();
+    TerminalNode identifierNode = ctx.IDENTIFIER_INSERT();
     String identifier = identifierNode.getText();
-    TerminalNode integer = ctx.UNSIGNED_INTEGER();
+    TerminalNode integer = ctx.UNSIGNED_INTEGER_INSERT();
     if (integer != null) {
-      commandParts.add(new RelativeThisInsert(Integer.parseInt(integer.getText())));
+      commandWithInserts.add(new RelativeThisInsert(Integer.parseInt(integer.getText())));
       return;
     } // TODO: RelativeOriginInsert
 
     MplVariable<?> variable = variableScope.findVariable(identifier);
     if (variable != null) {
       if (variable instanceof Insertable) {
-        commandParts.add(new LocalVariableInsert((Insertable) variable));
+        commandWithInserts.add(new LocalVariableInsert((Insertable) variable));
       } else {
-        context.addError(new CompilerException(toSource(identifierNode.getSymbol()), ""));
+        context.addError(new CompilerException(toSource(identifierNode.getSymbol()),
+            "The variable '" + variable.getIdentifier() + "' of type " + variable.getType()
+                + " cannot be inserted"));
       }
     } else {
-      commandParts.add(new GlobalVariableInsert(identifier, imports));
+      commandWithInserts.add(new GlobalVariableInsert(identifier, imports));
     }
   }
 
   private void visitCommandString(TerminalNode node) {
-    commandParts.add(node.getText());
-  }
-
-  private CommandWithInserts commandWithInserts;
-
-  @Override
-  public void exitCommand(CommandContext ctx) {
-    commandWithInserts = new CommandWithInserts(commandParts);
-    commandParts = null;
+    commandWithInserts.add(node.getText());
   }
 
   @Override

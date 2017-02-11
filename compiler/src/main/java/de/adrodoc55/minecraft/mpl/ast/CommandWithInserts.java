@@ -39,8 +39,10 @@
  */
 package de.adrodoc55.minecraft.mpl.ast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.commons.CopyScope.Copyable;
@@ -56,25 +58,39 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class CommandWithInserts implements Copyable {
-  private final ImmutableList<Object> commandParts;
+  private final List<Object> commandParts = new ArrayList<>();
+  private final List<Insert> inserts = new ArrayList<>();
+
+  public CommandWithInserts() {}
 
   public CommandWithInserts(String command) {
-    this(ImmutableList.of(MplUtils.commandWithoutLeadingSlash(command)));
-  }
-
-  public CommandWithInserts(Iterable<?> commandParts) {
-    this.commandParts = ImmutableList.copyOf(commandParts);
+    add(MplUtils.commandWithoutLeadingSlash(command));
   }
 
   @Deprecated
-  protected CommandWithInserts(CommandWithInserts original, CopyScope scope) {
-    commandParts = ImmutableList.copyOf(scope.copyObjects(original.commandParts));
-  }
+  protected CommandWithInserts(CommandWithInserts original) {}
 
   @Deprecated
   @Override
   public Copyable createFlatCopy(CopyScope scope) throws NullPointerException {
-    return new CommandWithInserts(this, scope);
+    return new CommandWithInserts(this);
+  }
+
+  @Deprecated
+  @Override
+  public void completeDeepCopy(CopyScope scope) throws NullPointerException {
+    CommandWithInserts original = scope.getCache().getOriginal(this);
+    commandParts.addAll(scope.copyObjects(original.commandParts));
+    inserts.addAll(scope.copyObjects(original.inserts));
+  }
+
+  public void add(String string) {
+    commandParts.add(string);
+  }
+
+  public void add(Insert insert) {
+    commandParts.add(insert);
+    inserts.add(insert);
   }
 
   public String getCommand() {
@@ -82,10 +98,8 @@ public class CommandWithInserts implements Copyable {
   }
 
   public void resolve(VariableScope scope) {
-    for (Object object : commandParts) {
-      if (object instanceof Insert) {
-        ((Insert) object).resolve(scope);
-      }
+    for (Insert insert : inserts) {
+      insert.resolve(scope);
     }
   }
 }
