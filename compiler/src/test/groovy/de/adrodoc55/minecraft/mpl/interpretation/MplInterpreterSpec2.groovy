@@ -2570,4 +2570,25 @@ class MplInterpreterSpec2 extends MplSpecBase {
       return '@e ' + some($Identifier())
     }
   }
+  
+  @Test
+  public void "Inserting a Value variable"() {
+    given:
+    String id = some($Identifier())
+    String selector = "@e[name=${some($Identifier())}]"
+    String scoreboard = some($Identifier())
+    String programString = """
+    Value ${id} = ${selector}  ${scoreboard}
+    /say The value is \${${id}}!
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors[0].message == "The variable '${id}' of type Value cannot be inserted"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 3
+    lastContext.errors.size() == 1
+  }
 }

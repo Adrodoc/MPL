@@ -84,6 +84,11 @@ lexer grammar MplLexer;
    '/*' .*? '*/' -> channel ( HIDDEN )
  ;
 
+ PLUS
+ :
+   '+'
+ ;
+ 
  MINUS
  :
    '-'
@@ -327,16 +332,36 @@ lexer grammar MplLexer;
  
  PLUS_INSERT
  :
-   '+'
+   PLUS
  ;
 
  MINUS_INSERT
  :
-   '-'
+   MINUS
+ ;
+ 
+ OPENING_CURLY_BRACKET_INSERT
+ :
+   OPENING_CURLY_BRACKET
  ;
  
  CLOSING_CURLY_BRACKET_INSERT
  :
-   '}' -> popMode
+   CLOSING_CURLY_BRACKET -> popMode
+ ;
+
+ THIS_INSERT
+ :
+   'this'
+ ;
+
+ UNSINGED_INTEGER_INSERT
+ :
+   UNSIGNED_INTEGER
+ ;
+
+ IDENTIFIER_INSERT
+ :
+   IDENTIFIER
  ;
  
