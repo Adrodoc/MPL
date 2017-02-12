@@ -152,6 +152,8 @@ remote process test_waitfor_in_repeat_process {
 
   // then:
   wait2ticks()
+  stop repeatProcessMitWaitfor
+  /kill @e[name=event_NOTIFY]
   /scoreboard players test MplTest MplTest 2 2
   conditional: notify continue_tests
   invert: start fail
