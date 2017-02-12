@@ -16,7 +16,7 @@ To use the command block generator you don't even need to know about any MPL spe
 
 How To Use
 ----------
-You can find a full tutorial for MPL [here](https://github.com/Adrodoc55/MPL/wiki/Tutorial).
+You can find a full tutorial for MPL [here](https://github.com/Adrodoc55/MPL/wiki/Tutorial-1.-Basics).
 
 There are multiple ways to compile `.mpl` files:
 * Open the file in the IDE and compile it by hand. You can find a detailed explanation in the tutorial.
