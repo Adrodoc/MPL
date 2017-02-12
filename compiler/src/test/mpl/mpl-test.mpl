@@ -141,6 +141,29 @@ remote process test_conditional_waitfor_with_false {
 }
 
 #Test
+remote process test_waitfor_in_repeat_process {
+  // given:
+  /scoreboard players set MplTest MplTest 0
+  start repeatProcessMitWaitfor
+  wait2ticks()
+
+  // when:
+  notify event
+
+  // then:
+  wait2ticks()
+  /scoreboard players test MplTest MplTest 2 2
+  conditional: notify continue_tests
+  invert: start fail
+}
+
+repeat process repeatProcessMitWaitfor {
+  /scoreboard players add MplTest MplTest 1
+  waitfor event
+}
+
+
+#Test
 remote process test_intercept {
   // given:
   /scoreboard players set MplTest MplTest 0
@@ -503,6 +526,8 @@ remote process add_one_to_MplTest_remote {
 inline process add_one_to_MplTest_inline {
   /scoreboard players add MplTest MplTest 1
 }
+
+impulse process wait2ticks {}
 
 remote process setting_MplTest_to_5_and_calling_add_one_to_MplTest {
   // 1 tick delay

@@ -280,7 +280,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     }
     if (process.isRepeating() && containsSkip) {
       result.addAll(getRestartBackref(result.get(0), false));
-      resolveReferences(result);
+      result = resolveReferences(result);
     }
     if (!process.isRepeating() && name != null && !"install".equals(name)
         && !"uninstall".equals(name)) {
@@ -988,7 +988,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     List<ChainLink> end = getTransmitterReceiverCombo(false);
     exit.setReferenced(end.get(0));
     result.addAll(end);
-    resolveReferences(result);
+    result = resolveReferences(result);
     // FIXME: Dirty Hack
     result.removeIf(it -> it == ifResult.get(0));
     return result;
