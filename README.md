@@ -74,7 +74,7 @@ MPL is built using [Gradle]. You don't have to install Gradle, because the proje
 
 [Sonatype OSS Maven Repository]: https://oss.sonatype.org/content/repositories/releases/de/adrodoc55/mpl
 [Maven Central]: http://search.maven.org/#search|ga|1|g%3Ade.adrodoc55.mpl
-[GNU General Public License]: http://www.gnu.org/licenses/
+[GNU General Public License]: http://www.gnu.org/licenses/gpl-3.0
 [Gradle]: http://gradle.org/
 [Gradle Wrapper]: https://docs.gradle.org/current/userguide/gradle_wrapper.html
 [Eclipse]: https://eclipse.org/
