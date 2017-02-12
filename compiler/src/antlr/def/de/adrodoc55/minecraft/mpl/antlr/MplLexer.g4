@@ -355,7 +355,7 @@ lexer grammar MplLexer;
    'this'
  ;
 
- UNSINGED_INTEGER_INSERT
+ UNSIGNED_INTEGER_INSERT
  :
    UNSIGNED_INTEGER
  ;
