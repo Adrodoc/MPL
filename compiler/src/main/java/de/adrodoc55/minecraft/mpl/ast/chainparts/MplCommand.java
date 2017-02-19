@@ -39,29 +39,17 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
 import javax.annotation.Nonnull;
 
 import com.google.common.base.Joiner;
 
 import de.adrodoc55.commons.CopyScope;
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
-import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstFlattener;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
-import de.adrodoc55.minecraft.mpl.interpretation.insert.GlobalVariableInsert;
-import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeOriginInsert;
-import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -76,125 +64,38 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @Getter
 @Setter
 public class MplCommand extends ModifiableChainPart {
-  private final List<Object> commandParts = new ArrayList<>();
-  private final List<RelativeThisInsert> thisInserts = new ArrayList<>();
-  private final List<RelativeOriginInsert> originInserts = new ArrayList<>();
-  private final List<GlobalVariableInsert> variableInserts = new ArrayList<>();
+  private final CommandPartBuffer commandParts;
 
   public MplCommand(String command, @Nonnull MplSource source) {
     this(command, new ModifierBuffer(), source);
   }
 
+  @Deprecated
   @GenerateMplPojoBuilder
   public MplCommand(String command, ExtendedModifiable modifier, @Nonnull MplSource source) {
     this(new CommandPartBuffer(command), modifier, source);
   }
 
-  public MplCommand(CommandPartBuffer command, ExtendedModifiable modifier,
+  public MplCommand(CommandPartBuffer commandParts, ExtendedModifiable modifier,
       @Nonnull MplSource source) {
     super(modifier, source);
-    commandParts.addAll(command.getCommandParts());
-    thisInserts.addAll(command.getThisInserts());
-    originInserts.addAll(command.getOriginInserts());
-    variableInserts.addAll(command.getVariableInserts());
+    this.commandParts = commandParts;
   }
 
   @Deprecated
-  protected MplCommand(MplCommand original) {
+  protected MplCommand(MplCommand original, CopyScope scope) {
     super(original);
+    commandParts = scope.copyObject(original.commandParts);
   }
 
   @Deprecated
   @Override
   public MplCommand createFlatCopy(CopyScope scope) {
-    return new MplCommand(this);
-  }
-
-  @Override
-  @SuppressWarnings("deprecation")
-  public void completeDeepCopy(CopyScope scope) throws NullPointerException {
-    super.completeDeepCopy(scope);
-    MplCommand original = scope.getCache().getOriginal(this);
-    commandParts.addAll(scope.copyObjects(original.commandParts));
-    thisInserts.addAll(scope.copyObjects(original.thisInserts));
-    originInserts.addAll(scope.copyObjects(original.originInserts));
-    variableInserts.addAll(scope.copyObjects(original.variableInserts));
+    return new MplCommand(this, scope);
   }
 
   public String getCommand() {
-    return Joiner.on("").join(commandParts);
-  }
-
-  @Override
-  public void targetThisInserts(Collection<ChainPart> ast) {
-    for (RelativeThisInsert insert : thisInserts) {
-      int relative = insert.getRelative();
-      if (relative == 0) {
-        insert.setTarget(this);
-        return;
-      }
-      Collection<ChainPart> flat = MplAstFlattener.flatten(ast);
-
-      Iterator<ChainPart> it;
-      if (relative > 0) {
-        it = flat.iterator();
-      } else {
-        it = new ArrayDeque<>(flat).descendingIterator();
-      }
-      while (it.hasNext()) {
-        ChainPart next = it.next();
-        if (this == next) {
-          ChainPart target = null;
-          for (int r = 0; r < Math.abs(relative); r++) {
-            if (it.hasNext()) {
-              target = it.next();
-            } else {
-              if (relative > 0) {
-                // after chain
-              } else {
-                // before chain
-              }
-            }
-          }
-          insert.setTarget(target);
-          return;
-        }
-      }
-      throw new IllegalArgumentException("This MplCommand is not contained in the specified ast");
-    }
-  }
-
-  @Override
-  public void resolveThisInserts(Collection<MplBlock> blocks) {
-    for (RelativeThisInsert insert : thisInserts) {
-      int relative = insert.getRelative();
-      if (relative == 0) {
-        insert.setCoordinate(new Coordinate3D());
-        return;
-      }
-      Iterator<MplBlock> it;
-      if (relative > 0) {
-        it = blocks.iterator();
-      } else {
-        it = new ArrayDeque<>(blocks).descendingIterator();
-      }
-
-      while (it.hasNext()) {
-        MplBlock thisBlock = it.next();
-        if (this == thisBlock.getChainPart()) {
-          while (it.hasNext()) {
-            MplBlock targetBlock = it.next();
-            if (insert.getTarget() == targetBlock.getChainPart()) {
-              insert.setCoordinate(targetBlock.getCoordinate().minus(thisBlock.getCoordinate()));
-              return;
-            }
-          }
-        }
-        throw new IllegalArgumentException(
-            "Failed to resolve insert, target is not contained in chain");
-      }
-      throw new IllegalArgumentException("This MplCommand is not contained in the chain");
-    }
+    return Joiner.on("").join(commandParts.getCommandParts());
   }
 
   @Override

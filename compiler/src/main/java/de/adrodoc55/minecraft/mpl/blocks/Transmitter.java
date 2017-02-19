@@ -39,10 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.blocks;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -52,20 +49,11 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class Transmitter extends MplBlock {
-  private final MplSkip skip;
+  private final boolean internal;
 
-  public Transmitter(MplSkip skip, Coordinate3D coordinate) {
+  public Transmitter(boolean internal, Coordinate3D coordinate) {
     super(coordinate);
-    this.skip = checkNotNull(skip, "skip == null!");
-  }
-
-  @Override
-  public MplSkip getChainPart() {
-    return skip;
-  }
-
-  public boolean isInternal() {
-    return skip.isInternal();
+    this.internal = internal;
   }
 
   @Override
@@ -76,5 +64,10 @@ public class Transmitter extends MplBlock {
   @Override
   public String getStringBlockId() {
     return "air";
+  }
+
+  @Override
+  public boolean isInternal() {
+    return internal;
   }
 }

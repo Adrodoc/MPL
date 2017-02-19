@@ -60,9 +60,10 @@ public class CommandAssert<S extends CommandAssert<S, A>, A extends Command>
     super(actual, selfType);
   }
 
+  @SuppressWarnings("deprecation")
   public AbstractCharSequenceAssert<?, String> command() {
     isNotNull();
-    return assertThat(actual.command).as(description("command"));
+    return assertThat(actual.getCommand()).as(description("command"));
   }
 
   public AbstractComparableAssert<?, Mode> mode() {

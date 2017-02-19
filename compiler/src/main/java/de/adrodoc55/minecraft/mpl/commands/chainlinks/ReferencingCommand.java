@@ -41,6 +41,7 @@ package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
+import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -49,6 +50,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@Deprecated
 public class ReferencingCommand extends InternalCommand {
   public static final String REF = "${this}";
 
@@ -90,8 +92,8 @@ public class ReferencingCommand extends InternalCommand {
     this.relative = relative;
   }
 
-  public ReferencingCommand(String command, Modifiable modifier, int relative) {
-    super(command, modifier);
+  public ReferencingCommand(CommandPartBuffer commandParts, Modifiable modifier, int relative) {
+    super(commandParts, modifier);
     this.relative = relative;
   }
 
@@ -99,7 +101,8 @@ public class ReferencingCommand extends InternalCommand {
   public String getCommand() {
     String operator = relative < 0 ? "-" : "+";
     int abs = Math.abs(relative);
-    return command.replace(REF, "${this " + operator + " " + abs + "}");
+//    return commandParts.replace(REF, "${this " + operator + " " + abs + "}");
+    return null;
   }
 
 }

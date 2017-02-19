@@ -41,10 +41,9 @@ package de.adrodoc55.minecraft.mpl.blocks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import javax.annotation.Nullable;
+import java.util.Collection;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -80,9 +79,11 @@ public abstract class MplBlock {
     return (int) coordinate.getZ();
   }
 
-  public @Nullable abstract ChainPart getChainPart();
-
   public abstract byte getByteBlockId();
 
   public abstract String getStringBlockId();
+
+  public abstract boolean isInternal();
+
+  public void resolveThisInserts(Collection<MplBlock> blocks) {}
 }

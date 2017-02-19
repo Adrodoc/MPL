@@ -39,13 +39,10 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
-import java.util.Collection;
-
 import de.adrodoc55.commons.CopyScope.Copyable;
 import de.adrodoc55.commons.Named;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.MplNode;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
@@ -101,8 +98,4 @@ public interface ChainPart extends MplNode, Named, Copyable, Dependable {
     throw new IllegalModifierException(
         "The class " + getClass() + " does not support the need for a redstone signal");
   }
-
-  default void targetThisInserts(Collection<ChainPart> chainParts) {}
-
-  default void resolveThisInserts(Collection<MplBlock> blocks) {}
 }

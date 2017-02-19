@@ -39,10 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.blocks;
 
-import javax.annotation.Nullable;
-
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -57,11 +54,6 @@ public class AirBlock extends MplBlock {
   }
 
   @Override
-  public @Nullable ChainPart getChainPart() {
-    return null;
-  }
-
-  @Override
   public byte getByteBlockId() {
     return 0;
   }
@@ -69,5 +61,10 @@ public class AirBlock extends MplBlock {
   @Override
   public String getStringBlockId() {
     return "air";
+  }
+
+  @Override
+  public boolean isInternal() {
+    return false;
   }
 }

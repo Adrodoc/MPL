@@ -39,19 +39,21 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
-import static de.adrodoc55.minecraft.mpl.MplUtils.commandWithoutLeadingSlash;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
+import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -66,11 +68,10 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @Getter
 @Setter
 public class Command implements ChainLink, Modifiable {
-  protected @Nonnull String command;
+  protected @Nonnull CommandPartBuffer commandParts;
   protected @Nonnull Mode mode;
   protected boolean conditional;
   protected boolean needsRedstone;
-  protected final @Nullable ChainPart chainPart;
 
   public Command() {
     this("");
@@ -92,41 +93,39 @@ public class Command implements ChainLink, Modifiable {
     this(command, mode, conditional, Mode.nonNull(mode).getNeedsRedstoneByDefault());
   }
 
-  public Command(String command, Mode mode, boolean conditional, boolean needsRedstone) {
-    this(null, command, mode, conditional, needsRedstone);
-  }
-
   @GenerateMplPojoBuilder
-  public Command(ChainPart chainPart, String command, Mode mode, boolean conditional,
-      boolean needsRedstone) {
+  public Command(String command, Mode mode, boolean conditional, boolean needsRedstone) {
     setCommand(command);
     setModifier(mode, conditional, needsRedstone);
-    this.chainPart = chainPart;
   }
 
   public Command(String command, Modifiable modifier) {
-    this(null, command, modifier);
+    this(new CommandPartBuffer(command), modifier);
   }
 
-  public Command(ChainPart chainPart, String command, Modifiable modifier) {
-    setCommand(command);
+  public Command(CommandPartBuffer commandParts, Modifiable modifier) {
+    this.commandParts = checkNotNull(commandParts, "commandParts == null!");
     setModifier(modifier);
-    this.chainPart = chainPart;
   }
 
   @Deprecated
   protected Command(Command original, CopyScope scope) {
-    command = original.command;
     mode = original.mode;
     conditional = original.conditional;
     needsRedstone = original.needsRedstone;
-    chainPart = scope.copy(original.chainPart);
   }
 
   @Deprecated
   @Override
   public Command createFlatCopy(CopyScope scope) {
     return new Command(this, scope);
+  }
+
+  @Deprecated
+  @Override
+  public void completeDeepCopy(CopyScope scope) {
+    Command original = scope.getCache().getOriginal(this);
+    commandParts = scope.copyObject(original.commandParts);
   }
 
   public void setModifier(Modifiable modifier) {
@@ -139,8 +138,14 @@ public class Command implements ChainLink, Modifiable {
     this.needsRedstone = needsRedstone;
   }
 
+  @Deprecated
+  @VisibleForTesting
+  public String getCommand() {
+    return Joiner.on("").join(commandParts.getCommandParts());
+  }
+
   public void setCommand(String command) {
-    this.command = commandWithoutLeadingSlash(command);
+    this.commandParts = new CommandPartBuffer(command);
   }
 
   @Override
@@ -151,10 +156,6 @@ public class Command implements ChainLink, Modifiable {
   @Override
   public @Nonnull Boolean getNeedsRedstone() {
     return needsRedstone;
-  }
-
-  public @Nullable ChainPart getChainPart() {
-    return chainPart;
   }
 
   @Override

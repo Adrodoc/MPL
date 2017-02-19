@@ -42,6 +42,7 @@ package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
+import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -78,6 +79,10 @@ public class InternalCommand extends Command {
 
   public InternalCommand(String command, Modifiable modifier) {
     super(command, modifier);
+  }
+
+  public InternalCommand(CommandPartBuffer commandParts, Modifiable modifier) {
+    super(commandParts, modifier);
   }
 
   @Deprecated

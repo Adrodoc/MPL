@@ -107,6 +107,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.ResolveableCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
@@ -356,7 +357,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     List<ChainLink> result = new ArrayList<>(2);
     addInvertingCommandIfInvert(result, command);
 
-    String cmd = command.getCommand();
+    CommandPartBuffer cmd = command.getCommandParts();
     result.add(new Command(cmd, command));
     return result;
   }
@@ -395,7 +396,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     addInvertingCommandIfInvert(result, start);
 
     String command = "execute " + selector + " ~ ~ ~ " + getStartCommand("~ ~ ~");
-    result.add(new Command(start, command, start));
+    result.add(new Command(command, start));
     return result;
   }
 
@@ -409,7 +410,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     addInvertingCommandIfInvert(result, stop);
 
     String command = "execute " + selector + " ~ ~ ~ " + getStopCommand("~ ~ ~");
-    result.add(new Command(stop,command, stop));
+    result.add(new Command(command, stop));
     return result;
   }
 

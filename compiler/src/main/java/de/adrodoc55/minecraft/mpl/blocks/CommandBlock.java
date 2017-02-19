@@ -41,13 +41,19 @@ package de.adrodoc55.minecraft.mpl.blocks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Iterator;
+
 import javax.annotation.Nonnull;
+
+import com.google.common.collect.Collections2;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -74,6 +80,7 @@ public class CommandBlock extends MplBlock {
     return command;
   }
 
+  @SuppressWarnings("deprecation")
   public String getCommand() {
     return command.getCommand();
   }
@@ -104,11 +111,6 @@ public class CommandBlock extends MplBlock {
 
   public void setNeedsRedstone(boolean needsRedstone) {
     command.setNeedsRedstone(needsRedstone);
-  }
-
-  @Override
-  public ChainPart getChainPart() {
-    return command.getChainPart();
   }
 
   @Override
@@ -149,4 +151,51 @@ public class CommandBlock extends MplBlock {
     }
     throw new IllegalArgumentException("Unknown Direction: " + direction);
   }
+
+  @Override
+  public boolean isInternal() {
+    return command.isInternal();
+  }
+
+  @Override
+  public void resolveThisInserts(Collection<MplBlock> blocks) {
+    for (RelativeThisInsert insert : command.getCommandParts().getThisInserts()) {
+      int relative = insert.getRelative();
+      if (relative == 0) {
+        insert.setCoordinate(new Coordinate3D());
+        return;
+      }
+      Collection<MplBlock> nonInternalBlocks = Collections2.filter(blocks, b -> !b.isInternal());
+
+      Iterator<MplBlock> it;
+      if (relative > 0) {
+        it = nonInternalBlocks.iterator();
+      } else {
+        it = new ArrayDeque<>(nonInternalBlocks).descendingIterator();
+      }
+
+      while (it.hasNext()) {
+        MplBlock thisBlock = it.next();
+        if (this == thisBlock) {
+          MplBlock target = null;
+          for (int r = 0; r < Math.abs(relative); r++) {
+            if (it.hasNext()) {
+              target = it.next();
+            } else {
+              if (relative > 0) {
+                // after chain
+              } else {
+                // before chain
+              }
+            }
+          }
+          insert.setCoordinate(target.getCoordinate().minus(getCoordinate()));
+        }
+        throw new IllegalArgumentException(
+            "Failed to resolve insert, target is not contained in chain");
+      }
+      throw new IllegalArgumentException("This CommandBlock is not contained in the chain");
+    }
+  }
+
 }
