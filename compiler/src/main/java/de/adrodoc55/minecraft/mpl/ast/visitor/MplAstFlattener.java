@@ -37,30 +37,30 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.interpretation.insert;
+package de.adrodoc55.minecraft.mpl.ast.visitor;
 
+import java.util.Arrays;
+import java.util.Collection;
+
+import de.adrodoc55.commons.collections.Collections;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 
 /**
- * @author Adrodoc55
+ * Adrodoc55
  */
-public class RelativeThisInsert {
-  private final int relative;
-  private ChainPart target;
-
-  public RelativeThisInsert(int relative) {
-    this.relative = relative;
+public class MplAstFlattener extends MplDeepAstVisitor<Collection<ChainPart>> {
+  public static Collection<ChainPart> flatten(Collection<ChainPart> ast) {
+    MplAstFlattener flattener = new MplAstFlattener();
+    return flattener.toResult(flattener.visit(ast));
   }
 
-  public int getRelative() {
-    return relative;
+  @Override
+  protected Collection<ChainPart> visit(ChainPart chainPart) {
+    return Arrays.asList(chainPart);
   }
 
-  public ChainPart getTarget() {
-    return target;
-  }
-
-  public void setTarget(ChainPart target) {
-    this.target = target;
+  @Override
+  protected Collection<ChainPart> toResult(Collection<Collection<ChainPart>> results) {
+    return Collections.concat(results);
   }
 }

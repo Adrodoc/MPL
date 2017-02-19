@@ -39,13 +39,19 @@
  */
 package de.adrodoc55.commons.collections;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.Serializable;
+import java.util.AbstractCollection;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+
+import com.google.common.collect.Iterables;
 
 /**
  * @author Adrodoc55
@@ -71,11 +77,11 @@ public class Collections {
    *
    * The returned collection will be serializable if the specified collection is serializable.
    *
-   * @param <T> the class of the objects in the collection
+   * @param <E> the class of the objects in the collection
    * @param c the collection for which an unmodifiable view is to be returned.
    * @return an unmodifiable view of the specified collection.
    */
-  public static <T> Collection<T> unmodifiableCollection(Collection<? extends T> c) {
+  public static <E> Collection<E> unmodifiableCollection(Collection<? extends E> c) {
     return new UnmodifiableCollection<>(c);
   }
 
@@ -185,6 +191,44 @@ public class Collections {
     @Override
     public Stream<E> parallelStream() {
       return (Stream<E>) delegate.parallelStream();
+    }
+  }
+
+  @SafeVarargs
+  public static <E> Collection<E> concat(Collection<? extends E>... collecions) {
+    return new CombinedCollection<>(Arrays.asList(collecions));
+  }
+
+  public static <E> Collection<E> concat(Iterable<? extends Collection<? extends E>> collecions) {
+    return new CombinedCollection<>(collecions);
+  }
+
+  static class CombinedCollection<E> extends AbstractCollection<E> {
+    private final Iterable<? extends Collection<? extends E>> collecions;
+
+    public CombinedCollection(Iterable<? extends Collection<? extends E>> collecions) {
+      this.collecions = checkNotNull(collecions, "collecions == null!");
+    }
+
+    @Override
+    public void clear() {
+      for (Collection<? extends E> collection : collecions) {
+        collection.clear();
+      }
+    }
+
+    @Override
+    public Iterator<E> iterator() {
+      return Iterables.<E>concat(collecions).iterator();
+    }
+
+    @Override
+    public int size() {
+      int result = 0;
+      for (Collection<? extends E> collection : collecions) {
+        result += collection.size();
+      }
+      return result;
     }
   }
 }

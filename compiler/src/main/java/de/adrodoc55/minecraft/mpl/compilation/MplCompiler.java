@@ -44,6 +44,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Deque;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -55,6 +56,8 @@ import com.google.common.collect.Maps;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.assembly.MplProgramAssemler;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplMainAstVisitor;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
@@ -103,6 +106,8 @@ public class MplCompiler {
     resetContext();
     MplProgram program = assemble(programFile);
     checkErrors();
+    targetThisInserts(program);
+    checkErrors();
     ChainContainer container = materialize(program);
     checkErrors();
     List<CommandBlockChain> chains = place(container);
@@ -126,6 +131,15 @@ public class MplCompiler {
 
   public MplProgram assemble(File programFile) throws IOException {
     return new MplProgramAssemler(provideContext()).assemble(programFile);
+  }
+
+  public void targetThisInserts(MplProgram program) {
+    for (MplProcess process : program.getAllProcesses()) {
+      Deque<ChainPart> chainParts = process.getChainParts();
+      for (ChainPart cp : chainParts) {
+        cp.targetThisInserts(chainParts);
+      }
+    }
   }
 
   public ChainContainer materialize(MplProgram program) {

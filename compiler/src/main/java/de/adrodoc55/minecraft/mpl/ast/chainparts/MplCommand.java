@@ -39,7 +39,10 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -48,6 +51,7 @@ import com.google.common.base.Joiner;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstFlattener;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
@@ -117,6 +121,45 @@ public class MplCommand extends ModifiableChainPart {
 
   public String getCommand() {
     return Joiner.on("").join(commandParts);
+  }
+
+  @Override
+  public void targetThisInserts(Collection<ChainPart> ast) {
+    for (RelativeThisInsert thisInsert : thisInserts) {
+      int relative = thisInsert.getRelative();
+      if (relative == 0) {
+        thisInsert.setTarget(this);
+        return;
+      }
+      ArrayDeque<ChainPart> flat = new ArrayDeque<>(MplAstFlattener.flatten(ast));
+
+      Iterator<ChainPart> it;
+      if (relative > 0) {
+        it = flat.iterator();
+      } else {
+        it = flat.descendingIterator();
+      }
+      while (it.hasNext()) {
+        ChainPart next = it.next();
+        if (this == next) {
+          ChainPart target = null;
+          for (int r = 0; r < Math.abs(relative); r++) {
+            if (it.hasNext()) {
+              target = it.next();
+            } else {
+              if (relative > 0) {
+                // after chain
+              } else {
+                // before chain
+              }
+            }
+          }
+          thisInsert.setTarget(target);
+          return;
+        }
+      }
+      throw new IllegalArgumentException("This MplCommand is not contained in the specified ast");
+    }
   }
 
   @Override
