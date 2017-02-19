@@ -55,6 +55,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -68,7 +69,9 @@ import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 
@@ -108,7 +111,6 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.ScriptFileContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.UninstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.VariableDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParserBaseListener;
-import de.adrodoc55.minecraft.mpl.ast.CommandWithInserts;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
@@ -138,6 +140,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer.ChainPartBufferImpl;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.GlobalVariableInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.LocalVariableInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeOriginInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 
 /**
@@ -237,11 +240,7 @@ public class MplInterpreter extends MplParserBaseListener {
 
   @Override
   public void visitTerminal(TerminalNode node) {
-    switch (node.getSymbol().getType()) {
-      case MplLexer.COMMAND_STRING:
-        visitCommandString(node);
-        break;
-    }
+    fire(TerminalNode.class, node);
   }
 
   @Override
@@ -570,11 +569,46 @@ public class MplInterpreter extends MplParserBaseListener {
     }
   }
 
-  private CommandWithInserts commandWithInserts;
+  private Multimap<Class<?>, Consumer<?>> eventHandlers = ArrayListMultimap.create();
+
+  private <E> void register(Class<E> key, Consumer<? super E> eventHandler) {
+    eventHandlers.put(key, eventHandler);
+  }
+
+  private <E> void fire(E event) {
+    Collection<Consumer<?>> handlers = eventHandlers.get(event.getClass());
+    for (Consumer<?> handler : handlers) {
+      @SuppressWarnings("unchecked")
+      Consumer<? super E> consumer = (Consumer<? super E>) handler;
+      consumer.accept(event);
+    }
+  }
+
 
   @Override
   public void enterCommand(CommandContext ctx) {
-    commandWithInserts = new CommandWithInserts();
+    List<Object> commandParts = new ArrayList<>();
+    List<RelativeThisInsert> thisInserts = new ArrayList<>();
+    List<RelativeOriginInsert> originInserts = new ArrayList<>();
+    register(TerminalNode.class, node -> {
+      if (node.getSymbol().getType() == MplLexer.COMMAND_STRING) {
+        commandParts.add(node.getText());
+      }
+    });
+    register(RelativeThisInsert.class, insert -> {
+      commandParts.add(insert);
+      thisInserts.add(insert);
+    });
+    register(RelativeOriginInsert.class, insert -> {
+      commandParts.add(insert);
+      originInserts.add(insert);
+    });
+    register(LocalVariableInsert.class, insert -> {
+      commandParts.add(insert);
+    });
+    register(GlobalVariableInsert.class, insert -> {
+      commandParts.add(insert);
+    });
   }
 
   @Override
@@ -585,7 +619,7 @@ public class MplInterpreter extends MplParserBaseListener {
       if (ctx.MINUS_INSERT() != null) {
         relative *= -1;
       }
-      commandWithInserts.add(new RelativeThisInsert(relative));
+      fire(new RelativeThisInsert(relative));
       return;
     } // TODO: RelativeOriginInsert
     TerminalNode identifierNode = ctx.IDENTIFIER_INSERT();
@@ -594,19 +628,15 @@ public class MplInterpreter extends MplParserBaseListener {
     MplVariable<?> variable = variableScope.findVariable(identifier);
     if (variable != null) {
       if (variable instanceof Insertable) {
-        commandWithInserts.add(new LocalVariableInsert((Insertable) variable));
+        fire(new LocalVariableInsert((Insertable) variable));
       } else {
         context.addError(new CompilerException(toSource(identifierNode.getSymbol()),
             "The variable '" + variable.getIdentifier() + "' of type " + variable.getType()
                 + " cannot be inserted"));
       }
     } else {
-      commandWithInserts.add(new GlobalVariableInsert(identifier, imports));
+      fire(new GlobalVariableInsert(identifier, imports));
     }
-  }
-
-  private void visitCommandString(TerminalNode node) {
-    commandWithInserts.add(node.getText());
   }
 
   @Override
