@@ -92,7 +92,7 @@ public class MplSkip implements ChainPart, ChainLink {
 
   @Override
   public MplBlock toBlock(Coordinate3D coordinate, Direction3D direction) {
-    return new Transmitter(internal, coordinate);
+    return new Transmitter(this, coordinate);
   }
 
   @Override

@@ -39,9 +39,6 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.variable.selector;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-
 import org.junit.Test;
 
 import de.adrodoc55.minecraft.mpl.MplTestBase;

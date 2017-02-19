@@ -45,6 +45,7 @@ import javax.annotation.Nonnull;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import lombok.EqualsAndHashCode;
@@ -103,6 +104,11 @@ public class CommandBlock extends MplBlock {
 
   public void setNeedsRedstone(boolean needsRedstone) {
     command.setNeedsRedstone(needsRedstone);
+  }
+
+  @Override
+  public ChainPart getChainPart() {
+    return command.getChainPart();
   }
 
   @Override

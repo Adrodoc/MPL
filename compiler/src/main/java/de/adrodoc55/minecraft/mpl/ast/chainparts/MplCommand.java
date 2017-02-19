@@ -50,9 +50,11 @@ import javax.annotation.Nonnull;
 import com.google.common.base.Joiner;
 
 import de.adrodoc55.commons.CopyScope;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstFlattener;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
@@ -125,19 +127,19 @@ public class MplCommand extends ModifiableChainPart {
 
   @Override
   public void targetThisInserts(Collection<ChainPart> ast) {
-    for (RelativeThisInsert thisInsert : thisInserts) {
-      int relative = thisInsert.getRelative();
+    for (RelativeThisInsert insert : thisInserts) {
+      int relative = insert.getRelative();
       if (relative == 0) {
-        thisInsert.setTarget(this);
+        insert.setTarget(this);
         return;
       }
-      ArrayDeque<ChainPart> flat = new ArrayDeque<>(MplAstFlattener.flatten(ast));
+      Collection<ChainPart> flat = MplAstFlattener.flatten(ast);
 
       Iterator<ChainPart> it;
       if (relative > 0) {
         it = flat.iterator();
       } else {
-        it = flat.descendingIterator();
+        it = new ArrayDeque<>(flat).descendingIterator();
       }
       while (it.hasNext()) {
         ChainPart next = it.next();
@@ -154,11 +156,44 @@ public class MplCommand extends ModifiableChainPart {
               }
             }
           }
-          thisInsert.setTarget(target);
+          insert.setTarget(target);
           return;
         }
       }
       throw new IllegalArgumentException("This MplCommand is not contained in the specified ast");
+    }
+  }
+
+  @Override
+  public void resolveThisInserts(Collection<MplBlock> blocks) {
+    for (RelativeThisInsert insert : thisInserts) {
+      int relative = insert.getRelative();
+      if (relative == 0) {
+        insert.setCoordinate(new Coordinate3D());
+        return;
+      }
+      Iterator<MplBlock> it;
+      if (relative > 0) {
+        it = blocks.iterator();
+      } else {
+        it = new ArrayDeque<>(blocks).descendingIterator();
+      }
+
+      while (it.hasNext()) {
+        MplBlock thisBlock = it.next();
+        if (this == thisBlock.getChainPart()) {
+          while (it.hasNext()) {
+            MplBlock targetBlock = it.next();
+            if (insert.getTarget() == targetBlock.getChainPart()) {
+              insert.setCoordinate(targetBlock.getCoordinate().minus(thisBlock.getCoordinate()));
+              return;
+            }
+          }
+        }
+        throw new IllegalArgumentException(
+            "Failed to resolve insert, target is not contained in chain");
+      }
+      throw new IllegalArgumentException("This MplCommand is not contained in the chain");
     }
   }
 

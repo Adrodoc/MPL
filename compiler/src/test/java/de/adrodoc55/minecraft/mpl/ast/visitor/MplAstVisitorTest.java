@@ -39,28 +39,6 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.visitor;
 
-import static de.adrodoc55.TestBase.$String;
-import static de.adrodoc55.TestBase.$boolean;
-import static de.adrodoc55.TestBase.$listOf;
-import static de.adrodoc55.TestBase.$oneOf;
-import static de.adrodoc55.TestBase.listOf;
-import static de.adrodoc55.TestBase.several;
-import static de.adrodoc55.TestBase.some;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$Mode;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplBreak;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplBreakpoint;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplCall;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplCommand;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplContinue;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplIf;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplNotify;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplProcess;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplProgram;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplSkip;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStart;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplStop;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWaitfor;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWhile;
 import static de.adrodoc55.minecraft.mpl.MplTestUtils.findByName;
 import static de.adrodoc55.minecraft.mpl.MplTestUtils.makeValid;
 import static de.adrodoc55.minecraft.mpl.MplTestUtils.mapToCommands;
@@ -77,7 +55,6 @@ import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNormali
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newTestforSuccessCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,6 +66,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import de.adrodoc55.minecraft.mpl.MplTestBase;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall;
@@ -114,7 +92,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public abstract class MplAstVisitorTest {
+public abstract class MplAstVisitorTest extends MplTestBase {
   protected MplCompilerContext context;
   protected MplMainAstVisitor underTest;
 
@@ -242,10 +220,10 @@ public abstract class MplAstVisitorTest {
     CommandChain result = underTest.visitProcess(process);
 
     // then:
-    assertThat(result.getCommands()).containsSequence(//
-        new Command(first.getCommand(), first), //
-        newInvertingCommand(first.getMode()), // Important line!
-        new Command(second.getCommand(), second));
+    List<ChainLink> commands = result.getCommands();
+    assertThat(commands.get(0)).hasCommand(first.getCommand()).hasModifiers(first);
+    assertThat(commands.get(1)).isInvertingCommandFor(first.getMode()); // Important line!
+    assertThat(commands.get(2)).hasCommand(second.getCommand()).hasModifiers(second);
   }
 
   @Test

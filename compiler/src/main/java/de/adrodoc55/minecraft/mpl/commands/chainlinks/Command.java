@@ -42,10 +42,12 @@ package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 import static de.adrodoc55.minecraft.mpl.MplUtils.commandWithoutLeadingSlash;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -68,6 +70,7 @@ public class Command implements ChainLink, Modifiable {
   protected @Nonnull Mode mode;
   protected boolean conditional;
   protected boolean needsRedstone;
+  protected final @Nullable ChainPart chainPart;
 
   public Command() {
     this("");
@@ -89,29 +92,41 @@ public class Command implements ChainLink, Modifiable {
     this(command, mode, conditional, Mode.nonNull(mode).getNeedsRedstoneByDefault());
   }
 
-  @GenerateMplPojoBuilder
   public Command(String command, Mode mode, boolean conditional, boolean needsRedstone) {
+    this(null, command, mode, conditional, needsRedstone);
+  }
+
+  @GenerateMplPojoBuilder
+  public Command(ChainPart chainPart, String command, Mode mode, boolean conditional,
+      boolean needsRedstone) {
     setCommand(command);
     setModifier(mode, conditional, needsRedstone);
+    this.chainPart = chainPart;
   }
 
   public Command(String command, Modifiable modifier) {
+    this(null, command, modifier);
+  }
+
+  public Command(ChainPart chainPart, String command, Modifiable modifier) {
     setCommand(command);
     setModifier(modifier);
+    this.chainPart = chainPart;
   }
 
   @Deprecated
-  protected Command(Command original) {
+  protected Command(Command original, CopyScope scope) {
     command = original.command;
     mode = original.mode;
     conditional = original.conditional;
     needsRedstone = original.needsRedstone;
+    chainPart = scope.copy(original.chainPart);
   }
 
   @Deprecated
   @Override
   public Command createFlatCopy(CopyScope scope) {
-    return new Command(this);
+    return new Command(this, scope);
   }
 
   public void setModifier(Modifiable modifier) {
@@ -136,6 +151,10 @@ public class Command implements ChainLink, Modifiable {
   @Override
   public @Nonnull Boolean getNeedsRedstone() {
     return needsRedstone;
+  }
+
+  public @Nullable ChainPart getChainPart() {
+    return chainPart;
   }
 
   @Override

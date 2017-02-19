@@ -19,6 +19,8 @@ dependencies {
   compileOnly libs.lombok
 
   testCompile project(':compiler').sourceSets.test.output
+  testCompile libs.assertj
+  testCompile libs.junit
   testCompile libs.spock
 }
 

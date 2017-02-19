@@ -56,7 +56,6 @@ import java.util.List;
 
 import org.antlr.v4.runtime.CommonToken;
 
-import de.adrodoc55.TestBase;
 import de.adrodoc55.minecraft.coordinate.Coordinate3DBuilder;
 import de.adrodoc55.minecraft.coordinate.Orientation3DBuilder;
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
@@ -96,7 +95,7 @@ import net.karneim.pojobuilder.Builder;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 import net.karneim.pojobuilder.GeneratePojoBuilder;
 
-public class MplTestBase extends TestBase {
+public class MplTestBase extends MplAssertionFactory {
 
   public static Builder<String> $Identifier() {
     return new Builder<String>() {
@@ -141,7 +140,7 @@ public class MplTestBase extends TestBase {
     return new MplCompilerContextBuilder()//
         .withOptions(new CompilerOptions())//
         .withVersion(MinecraftVersion.getDefault())//
-        ;
+    ;
   }
 
   public static CommandBuilder $Command() {
@@ -150,7 +149,7 @@ public class MplTestBase extends TestBase {
         .withMode($Mode())//
         .withConditional($boolean())//
         .withNeedsRedstone($boolean())//
-        ;
+    ;
   }
 
   private static ModifierBufferBuilder $ModifierBuffer() {
@@ -158,7 +157,7 @@ public class MplTestBase extends TestBase {
         .withMode($Mode())//
         .withConditional($Conditional())//
         .withNeedsRedstone($boolean())//
-        ;
+    ;
   }
 
   protected static MplSourceBuilder $MplSource() {
@@ -166,7 +165,7 @@ public class MplTestBase extends TestBase {
         .withFile(new File(""))//
         .withToken(new CommonToken(MplLexer.PROCESS))//
         .withLine($String())//
-        ;
+    ;
   }
 
   public static MplCommandBuilder $MplCommand() {
@@ -174,7 +173,7 @@ public class MplTestBase extends TestBase {
         .withModifier($ModifierBuffer())//
         .withCommand($CommandString())//
         .withSource($MplSource())//
-        ;
+    ;
   }
 
   public static MplProgramBuilder $MplProgram() {
@@ -189,7 +188,7 @@ public class MplTestBase extends TestBase {
         .withUninstall($MplProcess()//
             .withRepeating(false))//
         .withMax($Coordinate3D())//
-        ;
+    ;
   }
 
   public static MplProcessBuilder $MplProcess() {
@@ -199,7 +198,7 @@ public class MplTestBase extends TestBase {
         .withTags(new ArrayList<>())//
         .withType(REMOTE)//
         .withSource($MplSource())//
-        ;
+    ;
   }
 
   public static MplCallBuilder $MplCall() {
@@ -207,7 +206,7 @@ public class MplTestBase extends TestBase {
         .withModifier($ModifierBuffer())//
         .withProcess($Identifier())//
         .withSource($MplSource())//
-        ;
+    ;
   }
 
   public static MplStartBuilder $MplStart() {
@@ -215,7 +214,7 @@ public class MplTestBase extends TestBase {
         .withModifier($ModifierBuffer())//
         .withSelector($Selector())//
         .withSource($MplSource())//
-        ;
+    ;
   }
 
   public static MplStopBuilder $MplStop() {
@@ -223,7 +222,7 @@ public class MplTestBase extends TestBase {
         .withModifier($ModifierBuffer())//
         .withSelector($Selector())//
         .withSource($MplSource())//
-        ;
+    ;
   }
 
   public static MplWaitforBuilder $MplWaitfor() {
@@ -231,7 +230,7 @@ public class MplTestBase extends TestBase {
         .withModifier($ModifierBuffer())//
         .withEvent($String())//
         .withSource($MplSource())//
-        ;
+    ;
   }
 
   public static MplNotifyBuilder $MplNotify() {
@@ -239,7 +238,7 @@ public class MplTestBase extends TestBase {
         .withModifier($ModifierBuffer())//
         .withEvent($String())//
         .withSource($MplSource())//
-        ;
+    ;
   }
 
   public static MplInterceptBuilder $MplIntercept() {
@@ -247,7 +246,7 @@ public class MplTestBase extends TestBase {
         .withModifier($ModifierBuffer())//
         .withEvent($String())//
         .withSource($MplSource())//
-        ;
+    ;
   }
 
   public static MplBreakpointBuilder $MplBreakpoint() {
@@ -255,13 +254,13 @@ public class MplTestBase extends TestBase {
         .withModifier($ModifierBuffer())//
         .withMessage($String())//
         .withSource($MplSource())//
-        ;
+    ;
   }
 
   public static MplSkipBuilder $MplSkip() {
     return new MplSkipBuilder()//
         .withInternal($boolean())//
-        ;
+    ;
   }
 
   public static MplIfBuilder $MplIf() {
@@ -269,7 +268,7 @@ public class MplTestBase extends TestBase {
         .withNot($boolean())//
         .withCondition($CommandString())//
         .withSource($MplSource())//
-        ;
+    ;
   }
 
   public static MplWhileBuilder $MplWhile() {
@@ -278,7 +277,7 @@ public class MplTestBase extends TestBase {
         .withTrailing($boolean())//
         .withCondition($CommandString())//
         .withSource($MplSource())//
-        ;
+    ;
   }
 
   public static MplBreakBuilder $MplBreak() {
@@ -286,7 +285,7 @@ public class MplTestBase extends TestBase {
         .withModifier($ModifierBuffer())//
         .withLabel($String())//
         .withSource($MplSource())//
-        ;
+    ;
   }
 
   public static MplContinueBuilder $MplContinue() {
@@ -294,7 +293,7 @@ public class MplTestBase extends TestBase {
         .withModifier($ModifierBuffer())//
         .withLabel($String())//
         .withSource($MplSource())//
-        ;
+    ;
   }
 
   public static OneOf<MplType<?>> $MplType() {
@@ -306,7 +305,7 @@ public class MplTestBase extends TestBase {
         .withDeclarationSource($MplSource())//
         .withIdentifier($Identifier())//
         .withValue($String())//
-        ;
+    ;
   }
 
   public static Orientation3DBuilder $Orientation3D() {
@@ -314,7 +313,7 @@ public class MplTestBase extends TestBase {
         .withA($oneOf(EAST, WEST))//
         .withB($oneOf(UP, DOWN))//
         .withC($oneOf(SOUTH, NORTH))//
-        ;
+    ;
   }
 
   public static Coordinate3DBuilder $Coordinate3D() {
@@ -322,7 +321,7 @@ public class MplTestBase extends TestBase {
         .withX(many())//
         .withY(many())//
         .withZ(many())//
-        ;
+    ;
   }
 
   public static ChainContainerBuilder $ChainContainer(CompilerOption... options) {
@@ -343,7 +342,7 @@ public class MplTestBase extends TestBase {
                 .withCommands(new ArrayList<>())))//
         .withChains(new ArrayList<>())//
         .withHashCode($String())//
-        ;
+    ;
   }
 
   public static CommandChainBuilder $CommandChain(CompilerOption... options) {
@@ -354,7 +353,7 @@ public class MplTestBase extends TestBase {
     return new CommandChainBuilder()//
         .withName($String())//
         .withCommands($validChainCommands(options))//
-        ;
+    ;
   }
 
   public static ValidCommandChainBuilder $validChainCommands(CompilerOption... options) {

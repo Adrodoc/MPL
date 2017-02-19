@@ -37,62 +37,22 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+package de.adrodoc55.commons;
 
-import de.adrodoc55.commons.CopyScope;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
-import de.adrodoc55.minecraft.mpl.commands.Modifiable;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import org.assertj.core.api.AbstractAssert;
 
-/**
- * @author Adrodoc55
- */
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class InternalCommand extends Command {
-
-  public InternalCommand() {
-    super();
+public class ExtendedAbstractAssert<S extends ExtendedAbstractAssert<S, A>, A>
+    extends AbstractAssert<S, A> {
+  public ExtendedAbstractAssert(A actual, Class<?> selfType) {
+    super(actual, selfType);
   }
 
-  public InternalCommand(String command) {
-    super(command);
+  protected String description() {
+    String description = descriptionText();
+    return description != null ? description : "actual";
   }
 
-  public InternalCommand(String command, Mode mode) {
-    super(command, mode);
-  }
-
-  public InternalCommand(String command, boolean conditional) {
-    super(command, conditional);
-  }
-
-  public InternalCommand(String command, Mode mode, boolean conditional) {
-    super(command, mode, conditional);
-  }
-
-  public InternalCommand(String command, Mode mode, boolean conditional, boolean needsRedstone) {
-    super(command, mode, conditional, needsRedstone);
-  }
-
-  public InternalCommand(String command, Modifiable modifier) {
-    super(command, modifier);
-  }
-
-  @Deprecated
-  protected InternalCommand(InternalCommand original, CopyScope scope) {
-    super(original, scope);
-  }
-
-  @Deprecated
-  @Override
-  public InternalCommand createFlatCopy(CopyScope scope) {
-    return new InternalCommand(this, scope);
-  }
-
-  @Override
-  public boolean isInternal() {
-    return true;
+  protected String description(String description, Object... args) {
+    return description() + "." + String.format(description, args);
   }
 }

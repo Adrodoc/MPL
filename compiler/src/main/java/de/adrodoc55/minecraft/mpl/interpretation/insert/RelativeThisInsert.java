@@ -39,28 +39,33 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation.insert;
 
+import javax.annotation.Nullable;
+
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Adrodoc55
  */
+@Getter
+@Setter
 public class RelativeThisInsert {
   private final int relative;
-  private ChainPart target;
+  private @Nullable ChainPart target;
+  private @Nullable Coordinate3D coordinate;
 
   public RelativeThisInsert(int relative) {
     this.relative = relative;
   }
 
-  public int getRelative() {
-    return relative;
-  }
-
-  public ChainPart getTarget() {
-    return target;
-  }
-
-  public void setTarget(ChainPart target) {
-    this.target = target;
+  @Override
+  public String toString() {
+    if (coordinate != null)
+      return coordinate.toRelativeString();
+    if (target != null)
+      return "Unresolved this insert for target " + target;
+    return "Untargeted this insert with relative " + relative;
   }
 }

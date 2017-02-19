@@ -39,18 +39,6 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.visitor;
 
-import static de.adrodoc55.TestBase.$boolean;
-import static de.adrodoc55.TestBase.$oneOf;
-import static de.adrodoc55.TestBase.listOf;
-import static de.adrodoc55.TestBase.some;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$Mode;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplBreakpoint;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplCommand;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplIf;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplIntercept;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplProcess;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWaitfor;
-import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplWhile;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
@@ -62,7 +50,6 @@ import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.util.List;

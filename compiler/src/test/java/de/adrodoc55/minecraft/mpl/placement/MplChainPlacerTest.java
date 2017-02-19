@@ -39,8 +39,6 @@
  */
 package de.adrodoc55.minecraft.mpl.placement;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.LinkedList;
 import java.util.List;
 

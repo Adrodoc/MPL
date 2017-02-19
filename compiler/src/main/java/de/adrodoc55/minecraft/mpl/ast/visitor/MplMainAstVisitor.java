@@ -395,7 +395,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     addInvertingCommandIfInvert(result, start);
 
     String command = "execute " + selector + " ~ ~ ~ " + getStartCommand("~ ~ ~");
-    result.add(new Command(command, start));
+    result.add(new Command(start, command, start));
     return result;
   }
 
@@ -409,7 +409,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     addInvertingCommandIfInvert(result, stop);
 
     String command = "execute " + selector + " ~ ~ ~ " + getStopCommand("~ ~ ~");
-    result.add(new Command(command, stop));
+    result.add(new Command(stop,command, stop));
     return result;
   }
 

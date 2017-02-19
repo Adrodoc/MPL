@@ -53,13 +53,13 @@ public class NoOperationCommand extends InternalCommand {
   }
 
   @Deprecated
-  protected NoOperationCommand(NoOperationCommand original) {
-    super(original);
+  protected NoOperationCommand(NoOperationCommand original, CopyScope scope) {
+    super(original, scope);
   }
 
   @Deprecated
   @Override
   public NoOperationCommand createFlatCopy(CopyScope scope) {
-    return new NoOperationCommand(this);
+    return new NoOperationCommand(this, scope);
   }
 }
