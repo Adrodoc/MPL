@@ -39,16 +39,23 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.annotation.Nonnull;
 
+import com.google.common.base.Joiner;
+
 import de.adrodoc55.commons.CopyScope;
-import de.adrodoc55.minecraft.mpl.ast.CommandWithInserts;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
-import de.adrodoc55.minecraft.mpl.interpretation.VariableScope;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.GlobalVariableInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeOriginInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -63,7 +70,10 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @Getter
 @Setter
 public class MplCommand extends ModifiableChainPart {
-  private final CommandWithInserts command;
+  private final List<Object> commandParts = new ArrayList<>();
+  private final List<RelativeThisInsert> thisInserts = new ArrayList<>();
+  private final List<RelativeOriginInsert> originInserts = new ArrayList<>();
+  private final List<GlobalVariableInsert> variableInserts = new ArrayList<>();
 
   public MplCommand(String command, @Nonnull MplSource source) {
     this(command, new ModifierBuffer(), source);
@@ -71,33 +81,42 @@ public class MplCommand extends ModifiableChainPart {
 
   @GenerateMplPojoBuilder
   public MplCommand(String command, ExtendedModifiable modifier, @Nonnull MplSource source) {
-    this(new CommandWithInserts(command), modifier, source);
+    this(new CommandPartBuffer(command), modifier, source);
   }
 
-  public MplCommand(CommandWithInserts command, ExtendedModifiable modifier,
+  public MplCommand(CommandPartBuffer command, ExtendedModifiable modifier,
       @Nonnull MplSource source) {
     super(modifier, source);
-    this.command = command;
+    commandParts.addAll(command.getCommandParts());
+    thisInserts.addAll(command.getThisInserts());
+    originInserts.addAll(command.getOriginInserts());
+    variableInserts.addAll(command.getVariableInserts());
   }
 
   @Deprecated
-  protected MplCommand(MplCommand original, CopyScope scope) {
+  protected MplCommand(MplCommand original) {
     super(original);
-    command = scope.copy(original.command);
   }
 
   @Deprecated
   @Override
   public MplCommand createFlatCopy(CopyScope scope) {
-    return new MplCommand(this, scope);
+    return new MplCommand(this);
+  }
+
+  @Override
+  @SuppressWarnings("deprecation")
+  public void completeDeepCopy(CopyScope scope) throws NullPointerException {
+    super.completeDeepCopy(scope);
+    MplCommand original = scope.getCache().getOriginal(this);
+    commandParts.addAll(scope.copyObjects(original.commandParts));
+    thisInserts.addAll(scope.copyObjects(original.thisInserts));
+    originInserts.addAll(scope.copyObjects(original.originInserts));
+    variableInserts.addAll(scope.copyObjects(original.variableInserts));
   }
 
   public String getCommand() {
-    return command.getCommand();
-  }
-
-  public void resolve(VariableScope scope) {
-    command.resolve(scope);
+    return Joiner.on("").join(commandParts);
   }
 
   @Override

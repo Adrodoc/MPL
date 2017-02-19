@@ -108,7 +108,6 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.ScriptFileContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.UninstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.VariableDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParserBaseListener;
-import de.adrodoc55.minecraft.mpl.ast.CommandWithInserts;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
@@ -137,7 +136,6 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer.ChainPartBufferImpl;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.GlobalVariableInsert;
-import de.adrodoc55.minecraft.mpl.interpretation.insert.LocalVariableInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 
 /**
@@ -570,11 +568,11 @@ public class MplInterpreter extends MplParserBaseListener {
     }
   }
 
-  private CommandWithInserts commandWithInserts;
+  private CommandPartBuffer commandPartBuffer;
 
   @Override
   public void enterCommand(CommandContext ctx) {
-    commandWithInserts = new CommandWithInserts();
+    commandPartBuffer = new CommandPartBuffer();
   }
 
   @Override
@@ -585,7 +583,7 @@ public class MplInterpreter extends MplParserBaseListener {
       if (ctx.MINUS_INSERT() != null) {
         relative *= -1;
       }
-      commandWithInserts.add(new RelativeThisInsert(relative));
+      commandPartBuffer.add(new RelativeThisInsert(relative));
       return;
     } // TODO: RelativeOriginInsert
     TerminalNode identifierNode = ctx.IDENTIFIER_INSERT();
@@ -594,24 +592,24 @@ public class MplInterpreter extends MplParserBaseListener {
     MplVariable<?> variable = variableScope.findVariable(identifier);
     if (variable != null) {
       if (variable instanceof Insertable) {
-        commandWithInserts.add(new LocalVariableInsert((Insertable) variable));
+        commandPartBuffer.add(((Insertable) variable).toInsert());
       } else {
         context.addError(new CompilerException(toSource(identifierNode.getSymbol()),
             "The variable '" + variable.getIdentifier() + "' of type " + variable.getType()
                 + " cannot be inserted"));
       }
     } else {
-      commandWithInserts.add(new GlobalVariableInsert(identifier, imports));
+      commandPartBuffer.add(new GlobalVariableInsert(identifier, imports));
     }
   }
 
   private void visitCommandString(TerminalNode node) {
-    commandWithInserts.add(node.getText());
+    commandPartBuffer.add(node.getText());
   }
 
   @Override
   public void exitMplCommand(MplCommandContext ctx) {
-    MplCommand command = new MplCommand(commandWithInserts, modifierBuffer, toSource(ctx));
+    MplCommand command = new MplCommand(commandPartBuffer, modifierBuffer, toSource(ctx));
     addModifiableChainPart(command);
   }
 

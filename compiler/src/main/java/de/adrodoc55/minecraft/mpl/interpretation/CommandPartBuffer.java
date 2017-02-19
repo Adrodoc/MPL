@@ -37,18 +37,16 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast;
+package de.adrodoc55.minecraft.mpl.interpretation;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import com.google.common.base.Joiner;
-
-import de.adrodoc55.commons.CopyScope;
-import de.adrodoc55.commons.CopyScope.Copyable;
 import de.adrodoc55.minecraft.mpl.MplUtils;
-import de.adrodoc55.minecraft.mpl.interpretation.VariableScope;
-import de.adrodoc55.minecraft.mpl.interpretation.insert.Insert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.GlobalVariableInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeOriginInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -57,49 +55,50 @@ import lombok.ToString;
  */
 @EqualsAndHashCode
 @ToString
-public class CommandWithInserts implements Copyable {
+public class CommandPartBuffer {
   private final List<Object> commandParts = new ArrayList<>();
-  private final List<Insert> inserts = new ArrayList<>();
+  private final List<RelativeThisInsert> thisInserts = new ArrayList<>();
+  private final List<RelativeOriginInsert> originInserts = new ArrayList<>();
+  private final List<GlobalVariableInsert> variableInserts = new ArrayList<>();
 
-  public CommandWithInserts() {}
+  public CommandPartBuffer() {}
 
-  public CommandWithInserts(String command) {
+  public CommandPartBuffer(String command) {
     add(MplUtils.commandWithoutLeadingSlash(command));
   }
 
-  @Deprecated
-  protected CommandWithInserts(CommandWithInserts original) {}
-
-  @Deprecated
-  @Override
-  public Copyable createFlatCopy(CopyScope scope) throws NullPointerException {
-    return new CommandWithInserts(this);
-  }
-
-  @Deprecated
-  @Override
-  public void completeDeepCopy(CopyScope scope) throws NullPointerException {
-    CommandWithInserts original = scope.getCache().getOriginal(this);
-    commandParts.addAll(scope.copyObjects(original.commandParts));
-    inserts.addAll(scope.copyObjects(original.inserts));
+  public List<Object> getCommandParts() {
+    return Collections.unmodifiableList(commandParts);
   }
 
   public void add(String string) {
     commandParts.add(string);
   }
 
-  public void add(Insert insert) {
+  public List<RelativeThisInsert> getThisInserts() {
+    return Collections.unmodifiableList(thisInserts);
+  }
+
+  public void add(RelativeThisInsert insert) {
     commandParts.add(insert);
-    inserts.add(insert);
+    thisInserts.add(insert);
   }
 
-  public String getCommand() {
-    return Joiner.on("").join(commandParts);
+  public List<RelativeOriginInsert> getOriginInserts() {
+    return Collections.unmodifiableList(originInserts);
   }
 
-  public void resolve(VariableScope scope) {
-    for (Insert insert : inserts) {
-      insert.resolve(scope);
-    }
+  public void add(RelativeOriginInsert insert) {
+    commandParts.add(insert);
+    originInserts.add(insert);
+  }
+
+  public List<GlobalVariableInsert> getVariableInserts() {
+    return Collections.unmodifiableList(variableInserts);
+  }
+
+  public void add(GlobalVariableInsert insert) {
+    commandParts.add(insert);
+    variableInserts.add(insert);
   }
 }
