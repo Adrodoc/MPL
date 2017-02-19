@@ -579,13 +579,17 @@ public class MplInterpreter extends MplParserBaseListener {
 
   @Override
   public void enterInsert(InsertContext ctx) {
-    TerminalNode identifierNode = ctx.IDENTIFIER_INSERT();
-    String identifier = identifierNode.getText();
     TerminalNode integer = ctx.UNSIGNED_INTEGER_INSERT();
-    if (integer != null) {
-      commandWithInserts.add(new RelativeThisInsert(Integer.parseInt(integer.getText())));
+    if (ctx.THIS_INSERT() != null) {
+      int relative = Integer.parseInt(integer.getText());
+      if (ctx.MINUS_INSERT() != null) {
+        relative *= -1;
+      }
+      commandWithInserts.add(new RelativeThisInsert(relative));
       return;
     } // TODO: RelativeOriginInsert
+    TerminalNode identifierNode = ctx.IDENTIFIER_INSERT();
+    String identifier = identifierNode.getText();
 
     MplVariable<?> variable = variableScope.findVariable(identifier);
     if (variable != null) {
@@ -823,7 +827,7 @@ public class MplInterpreter extends MplParserBaseListener {
     MplWhile loop;
     if (label == null) {
       MplSource source = toSource(ctx);
-      loop = findParentLoop(source);
+      loop = findParentLoop(source, ctx.BREAK().getText());
     } else {
       MplSource source = toSource(identifier.getSymbol());
       loop = findParentLoop(label, source);
@@ -848,7 +852,7 @@ public class MplInterpreter extends MplParserBaseListener {
     MplWhile loop;
     if (label == null) {
       MplSource source = toSource(ctx);
-      loop = findParentLoop(source);
+      loop = findParentLoop(source, ctx.CONTINUE().getText());
     } else {
       MplSource source = toSource(identifier.getSymbol());
       loop = findParentLoop(label, source);
@@ -865,12 +869,11 @@ public class MplInterpreter extends MplParserBaseListener {
     checkNoModifier(mplContinue.getName(), modifierBuffer.getNeedsRedstoneToken());
   }
 
-  public MplWhile findParentLoop(MplSource source) {
+  public MplWhile findParentLoop(MplSource source, String name) {
     MplWhile loop;
     loop = loops.peek();
     if (loop == null) {
-      context.addError(
-          new CompilerException(source, source.getText() + " can only be used in a loop"));
+      context.addError(new CompilerException(source, name + " can only be used in a loop"));
     }
     return loop;
   }

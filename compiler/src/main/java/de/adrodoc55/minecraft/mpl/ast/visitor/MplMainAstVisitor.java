@@ -989,7 +989,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     exit.setReferenced(end.get(0));
     result.addAll(end);
     resolveReferences(result);
-    // FIXME: Dirty Hack
+    // FIXME: Dirty Hack: The condition of an if should be an instance of Dependable
     result.removeIf(it -> it == ifResult.get(0));
     return result;
   }
