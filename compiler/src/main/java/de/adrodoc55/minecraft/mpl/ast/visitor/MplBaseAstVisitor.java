@@ -99,12 +99,17 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
   }
 
   @CheckReturnValue
-  protected CommandPartBuffer getStartCommand(ChainLink target) {
+  protected CommandPartBuffer getStartCommand(TargetingThisInsert insert) {
     CommandPartBuffer result = new CommandPartBuffer();
     result.add(getStartCommandHeader());
-    result.add(new TargetingThisInsert(target));
+    result.add(insert);
     result.add(getStartCommandTrailer());
     return result;
+  }
+
+  @CheckReturnValue
+  protected CommandPartBuffer getStartCommand(ChainLink target) {
+    return getStartCommand(new TargetingThisInsert(target));
   }
 
   @CheckReturnValue
@@ -136,12 +141,17 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
   }
 
   @CheckReturnValue
-  protected CommandPartBuffer getStopCommand(ChainLink target) {
+  protected CommandPartBuffer getStopCommand(TargetingThisInsert insert) {
     CommandPartBuffer result = new CommandPartBuffer();
     result.add(getStopCommandHeader());
-    result.add(new TargetingThisInsert(target));
+    result.add(insert);
     result.add(getStopCommandTrailer());
     return result;
+  }
+
+  @CheckReturnValue
+  protected CommandPartBuffer getStopCommand(ChainLink target) {
+    return getStopCommand(new TargetingThisInsert(target));
   }
 
   @CheckReturnValue

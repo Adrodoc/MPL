@@ -1108,14 +1108,14 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
    */
   @CheckReturnValue
   private Command newLoopStartingCommand(MplWhile loop) {
-    ResolveableCommand startLoop = new ResolveableCommand(getStartCommand(REF));
+    TargetingThisInsert insert = new TargetingThisInsert();
     loopRefs.add(new LoopRef(loop) {
       @Override
       public void setEntryLink(ChainLink entryLink) {
-        startLoop.setReferenced(entryLink);
+        insert.setTarget(entryLink);
       }
     });
-    return startLoop;
+    return new InternalCommand(getStartCommand(insert), modifier());
   }
 
   /**
@@ -1126,14 +1126,14 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
    */
   @CheckReturnValue
   private Command newLoopStoppingCommand(MplWhile loop) {
-    ResolveableCommand stopLoop = new ResolveableCommand(getStopCommand(REF));
+    TargetingThisInsert insert = new TargetingThisInsert();
     loopRefs.add(new LoopRef(loop) {
       @Override
       public void setEntryLink(ChainLink entryLink) {
-        stopLoop.setReferenced(entryLink);
+        insert.setTarget(entryLink);
       }
     });
-    return stopLoop;
+    return new InternalCommand(getStopCommand(insert), modifier());
   }
 
   /**
@@ -1144,14 +1144,14 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
    */
   @CheckReturnValue
   private Command newExitLoopCommand(MplWhile loop) {
-    ResolveableCommand skipLoop = new ResolveableCommand(getStartCommand(REF));
+    TargetingThisInsert insert = new TargetingThisInsert();
     loopRefs.add(new LoopRef(loop) {
       @Override
       public void setExitLink(ChainLink exitLink) {
-        skipLoop.setReferenced(exitLink);
+        insert.setTarget(exitLink);
       }
     });
-    return skipLoop;
+    return new InternalCommand(getStartCommand(insert), modifier());
   }
 
 }

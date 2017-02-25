@@ -54,8 +54,10 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TargetingThisInsert {
-  private final ChainLink target;
+  private @Nullable ChainLink target;
   private @Nullable Coordinate3D coordinate;
+
+  public TargetingThisInsert() {}
 
   public TargetingThisInsert(ChainLink target) {
     this.target = checkNotNull(target, "target == null!");
