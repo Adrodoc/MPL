@@ -110,7 +110,7 @@ public class MplTestBase extends MplAssertionFactory {
     return new Builder<String>() {
       @Override
       public String build() {
-        return "/command " + some($String());
+        return "command " + some($String());
       }
     };
   }

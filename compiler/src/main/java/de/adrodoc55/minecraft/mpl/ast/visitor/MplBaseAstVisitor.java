@@ -66,7 +66,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.ResolveableCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
-import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetingThisInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetedThisInsert;
 
 /**
  * @author Adrodoc55
@@ -99,7 +99,7 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
   }
 
   @CheckReturnValue
-  protected CommandPartBuffer getStartCommand(TargetingThisInsert insert) {
+  protected CommandPartBuffer getStartCommand(TargetedThisInsert insert) {
     CommandPartBuffer result = new CommandPartBuffer();
     result.add(getStartCommandHeader());
     result.add(insert);
@@ -109,7 +109,7 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
 
   @CheckReturnValue
   protected CommandPartBuffer getStartCommand(ChainLink target) {
-    return getStartCommand(new TargetingThisInsert(target));
+    return getStartCommand(new TargetedThisInsert(target));
   }
 
   @CheckReturnValue
@@ -141,7 +141,7 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
   }
 
   @CheckReturnValue
-  protected CommandPartBuffer getStopCommand(TargetingThisInsert insert) {
+  protected CommandPartBuffer getStopCommand(TargetedThisInsert insert) {
     CommandPartBuffer result = new CommandPartBuffer();
     result.add(getStopCommandHeader());
     result.add(insert);
@@ -151,7 +151,7 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
 
   @CheckReturnValue
   protected CommandPartBuffer getStopCommand(ChainLink target) {
-    return getStopCommand(new TargetingThisInsert(target));
+    return getStopCommand(new TargetedThisInsert(target));
   }
 
   @CheckReturnValue
@@ -209,6 +209,9 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
 
   // TODO: Alles auf solche Referenzen umstellen
   protected static List<ChainLink> resolveReferences(List<ChainLink> chainLinks) {
+    for (ChainLink chainLink : chainLinks) {
+      chainLink.resolveTargetedThisInserts(chainLinks);
+    }
     return new ArrayList<>(Lists.transform(chainLinks, it -> {
       if (it instanceof ResolveableCommand) {
         try {

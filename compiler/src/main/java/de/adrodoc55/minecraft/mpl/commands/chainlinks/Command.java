@@ -41,10 +41,13 @@ package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Collection;
+
 import javax.annotation.Nonnull;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
@@ -54,6 +57,7 @@ import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetedThisInsert;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -171,5 +175,26 @@ public class Command implements ChainLink, Modifiable {
 
   public boolean isInternal() {
     return false;
+  }
+
+  @Override
+  public void resolveTargetedThisInserts(Collection<ChainLink> chainLinks) {
+    for (TargetedThisInsert insert : commandParts.getTargetingThisInsert()) {
+      ChainLink target = insert.getTarget();
+      int self = Iterables.indexOf(chainLinks, it -> it == this);
+      if (self == -1) {
+        throwNotFoundException("This");
+      }
+      int ref = Iterables.indexOf(chainLinks, it -> it == target);
+      if (ref == -1) {
+        throwNotFoundException("The referenced chainLink");
+      }
+      insert.setRelative(ref - self);
+    }
+  }
+
+  private void throwNotFoundException(String string) throws IllegalArgumentException {
+    throw new IllegalArgumentException(
+        "Failed to resolve reference. " + string + " was not found in the specified chainLinks");
   }
 }

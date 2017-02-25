@@ -43,7 +43,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nullable;
 
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import lombok.Getter;
 import lombok.Setter;
@@ -53,13 +52,13 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class TargetingThisInsert {
+public class TargetedThisInsert extends RelativeThisInsert {
   private @Nullable ChainLink target;
-  private @Nullable Coordinate3D coordinate;
+  private boolean relativeWasSet;
 
-  public TargetingThisInsert() {}
+  public TargetedThisInsert() {}
 
-  public TargetingThisInsert(ChainLink target) {
+  public TargetedThisInsert(ChainLink target) {
     setTarget(target);
   }
 
@@ -68,9 +67,17 @@ public class TargetingThisInsert {
   }
 
   @Override
+  public void setRelative(int relative) {
+    super.setRelative(relative);
+    relativeWasSet = true;
+  }
+
+  @Override
   public String toString() {
     if (coordinate != null)
       return coordinate.toRelativeString();
+    if (relativeWasSet)
+      return super.toString();
     return "Unresolved this insert, target=" + target;
   }
 }

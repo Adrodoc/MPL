@@ -46,6 +46,7 @@ import org.assertj.core.api.AbstractCharSequenceAssert;
 import org.assertj.core.api.AbstractComparableAssert;
 
 import de.adrodoc55.commons.ExtendedAbstractAssert;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
@@ -92,6 +93,11 @@ public class CommandAssert<S extends CommandAssert<S, A>, A extends Command>
     return myself;
   }
 
+  public S hasConditional(boolean conditional) {
+    conditional().isEqualTo(conditional);
+    return myself;
+  }
+
   public S isConditional() {
     conditional().isTrue();
     return myself;
@@ -99,6 +105,11 @@ public class CommandAssert<S extends CommandAssert<S, A>, A extends Command>
 
   public S isNotConditional() {
     conditional().isFalse();
+    return myself;
+  }
+
+  public S hasNeedsRedstone(boolean needsRedstone) {
+    needsRedstone().isEqualTo(needsRedstone);
     return myself;
   }
 
@@ -127,6 +138,12 @@ public class CommandAssert<S extends CommandAssert<S, A>, A extends Command>
     mode().isEqualTo(modifiers.getMode());
     conditional().isEqualTo(modifiers.isConditional());
     needsRedstone().isEqualTo(modifiers.getNeedsRedstone());
+    return myself;
+  }
+
+  public S matches(MplCommand expected) {
+    hasCommand(expected.getCommand());
+    hasModifiers(expected);
     return myself;
   }
 

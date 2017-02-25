@@ -41,6 +41,7 @@ package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import org.assertj.core.api.AbstractAssert;
 
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 
 public class ChainLinkAssert extends AbstractAssert<ChainLinkAssert, ChainLink> {
@@ -56,6 +57,10 @@ public class ChainLinkAssert extends AbstractAssert<ChainLinkAssert, ChainLink> 
 
   public CommandAssert<?, Command> hasCommand(String command) {
     return asCommand().hasCommand(command);
+  }
+
+  public CommandAssert<?, Command> matches(MplCommand expected) {
+    return asCommand().matches(expected);
   }
 
   public CommandAssert<?, Command> isInvertingCommandFor(Mode mode) {

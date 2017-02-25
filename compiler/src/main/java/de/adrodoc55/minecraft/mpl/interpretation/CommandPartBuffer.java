@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.interpretation;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,7 +48,7 @@ import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.GlobalVariableInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeOriginInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
-import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetingThisInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetedThisInsert;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -58,10 +59,10 @@ import lombok.ToString;
 @ToString
 public class CommandPartBuffer {
   private final List<Object> commandParts = new ArrayList<>();
-  private final List<RelativeThisInsert> thisInserts = new ArrayList<>();
-  private final List<TargetingThisInsert> targetingThisInserts = new ArrayList<>();
-  private final List<RelativeOriginInsert> originInserts = new ArrayList<>();
-  private final List<GlobalVariableInsert> variableInserts = new ArrayList<>();
+  private final Collection<RelativeThisInsert> thisInserts = new ArrayList<>();
+  private final Collection<TargetedThisInsert> targetingThisInserts = new ArrayList<>();
+  private final Collection<RelativeOriginInsert> originInserts = new ArrayList<>();
+  private final Collection<GlobalVariableInsert> variableInserts = new ArrayList<>();
 
   public CommandPartBuffer() {}
 
@@ -82,8 +83,8 @@ public class CommandPartBuffer {
     return this;
   }
 
-  public List<RelativeThisInsert> getThisInserts() {
-    return Collections.unmodifiableList(thisInserts);
+  public Collection<RelativeThisInsert> getThisInserts() {
+    return Collections.unmodifiableCollection(thisInserts);
   }
 
   public void add(RelativeThisInsert insert) {
@@ -96,22 +97,22 @@ public class CommandPartBuffer {
     return this;
   }
 
-  public List<TargetingThisInsert> getTargetingThisInsert() {
-    return Collections.unmodifiableList(targetingThisInserts);
+  public Collection<TargetedThisInsert> getTargetingThisInsert() {
+    return Collections.unmodifiableCollection(targetingThisInserts);
   }
 
-  public void add(TargetingThisInsert insert) {
+  public void add(TargetedThisInsert insert) {
     commandParts.add(insert);
     targetingThisInserts.add(insert);
   }
 
-  public CommandPartBuffer with(TargetingThisInsert insert) {
+  public CommandPartBuffer with(TargetedThisInsert insert) {
     add(insert);
     return this;
   }
 
-  public List<RelativeOriginInsert> getOriginInserts() {
-    return Collections.unmodifiableList(originInserts);
+  public Collection<RelativeOriginInsert> getOriginInserts() {
+    return Collections.unmodifiableCollection(originInserts);
   }
 
   public void add(RelativeOriginInsert insert) {
@@ -124,8 +125,8 @@ public class CommandPartBuffer {
     return this;
   }
 
-  public List<GlobalVariableInsert> getVariableInserts() {
-    return Collections.unmodifiableList(variableInserts);
+  public Collection<GlobalVariableInsert> getVariableInserts() {
+    return Collections.unmodifiableCollection(variableInserts);
   }
 
   public void add(GlobalVariableInsert insert) {

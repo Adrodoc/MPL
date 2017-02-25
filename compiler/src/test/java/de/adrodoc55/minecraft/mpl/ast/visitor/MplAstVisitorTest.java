@@ -234,7 +234,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> commands = result.getCommands();
     assertThat(commands.get(i++)).hasCommand(first.getCommand()).hasModifiers(first);
     assertThat(commands.get(i++)).isInvertingCommandFor(first.getMode()); // Important line!
-    assertThat(commands.get(i++)).hasCommand(second.getCommand()).hasModifiers(second);
+    assertThat(commands.get(i++)).matches(second);
   }
 
   @Test
@@ -259,7 +259,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> commands = result.getCommands();
     assertThat(commands.get(i++)).hasCommand(first.getCommand()).hasModifiers(modifier(REPEAT));
     assertThat(commands.get(i++)).isInvertingCommandFor(REPEAT); // Important line!
-    assertThat(commands.get(i++)).hasCommand(second.getCommand()).hasModifiers(second);
+    assertThat(commands.get(i++)).matches(second);
   }
 
   // @formatter:off
@@ -424,7 +424,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     int i = 0;
     assertThat(result.get(i++)).isNotInternal()
         .hasCommand("execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"))
-        .hasMode(mode).isNotConditional().needsRedstone().isEqualTo(needsRedstone);
+        .hasMode(mode).isNotConditional().hasNeedsRedstone(needsRedstone);
     assertThat(result).hasSize(i);
   }
 
@@ -443,7 +443,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     int i = 0;
     assertThat(result.get(i++)).isNotInternal()
         .hasCommand("execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"))
-        .hasMode(mode).isConditional().needsRedstone().isEqualTo(needsRedstone);
+        .hasMode(mode).isConditional().hasNeedsRedstone(needsRedstone);
     assertThat(result).hasSize(i);
   }
 
@@ -475,7 +475,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     assertThat(result.get(i++)).isInvertingCommandFor(modeForInverting);
     assertThat(result.get(i++)).isNotInternal()
         .hasCommand("execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"))
-        .hasMode(mode).isConditional().needsRedstone().isEqualTo(needsRedstone);
+        .hasMode(mode).isConditional().hasNeedsRedstone(needsRedstone);
     assertThat(result).hasSize(i);
   }
 
@@ -505,7 +505,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     int i = 0;
     assertThat(result.get(i++)).isNotInternal()
         .hasCommand("execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"))
-        .hasMode(mode).isNotConditional().needsRedstone().isEqualTo(needsRedstone);
+        .hasMode(mode).isNotConditional().hasNeedsRedstone(needsRedstone);
     assertThat(result).hasSize(i);
   }
 
@@ -524,7 +524,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     int i = 0;
     assertThat(result.get(i++)).isNotInternal()
         .hasCommand("execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"))
-        .hasMode(mode).isConditional().needsRedstone().isEqualTo(needsRedstone);
+        .hasMode(mode).isConditional().hasNeedsRedstone(needsRedstone);
     assertThat(result).hasSize(i);
   }
 
@@ -556,7 +556,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     assertThat(result.get(i++)).isInvertingCommandFor(modeForInverting);
     assertThat(result.get(i++)).isNotInternal()
         .hasCommand("execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"))
-        .hasMode(mode).isConditional().needsRedstone().isEqualTo(needsRedstone);
+        .hasMode(mode).isConditional().hasNeedsRedstone(needsRedstone);
     assertThat(result).hasSize(i);
   }
 
@@ -703,10 +703,10 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition(), mplIf.getMode(), mplIf.isConditional(),
-            mplIf.getNeedsRedstone()) //
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition())
+        .hasModifiers(mplIf);
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -734,10 +734,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        newInvertingCommand(mode),
-        new Command(mplIf.getCondition(), mplIf.getMode(), true, mplIf.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isInvertingCommandFor(mode);
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition())
+        .hasMode(mplIf.getMode()).isConditional().hasNeedsRedstone(mplIf.getNeedsRedstone());
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -792,10 +793,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        new Command(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isNotInternal().hasCommand(then1.getCommand())
+        .hasMode(then1.getMode()).isConditional().hasNeedsRedstone(then1.getNeedsRedstone());
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -810,11 +812,12 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        newInvertingCommand(CHAIN), //
-        new Command(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isInvertingCommandFor(CHAIN);
+    assertThat(result.get(i++)).isNotInternal().hasCommand(else1.getCommand())
+        .hasMode(else1.getMode()).isConditional().hasNeedsRedstone(else1.getNeedsRedstone());
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -829,11 +832,12 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        newInvertingCommand(CHAIN), //
-        new Command(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isInvertingCommandFor(CHAIN);
+    assertThat(result.get(i++)).isNotInternal().hasCommand(then1.getCommand())
+        .hasMode(then1.getMode()).isConditional().hasNeedsRedstone(then1.getNeedsRedstone());
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -848,10 +852,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        new Command(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isNotInternal().hasCommand(else1.getCommand())
+        .hasMode(else1.getMode()).isConditional().hasNeedsRedstone(else1.getNeedsRedstone());
+    assertThat(result).hasSize(i);
   }
 
   @Test

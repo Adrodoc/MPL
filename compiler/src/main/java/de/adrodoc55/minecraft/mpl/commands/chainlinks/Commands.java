@@ -46,7 +46,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
-import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetingThisInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetedThisInsert;
 
 /**
  * @author Adrodoc55
@@ -99,7 +99,7 @@ public class Commands {
   public static Command newTestforSuccessCommand(Command target, boolean success) {
     CommandPartBuffer cpb = new CommandPartBuffer();
     cpb.add(getTestforSuccessHeader());
-    cpb.add(new TargetingThisInsert(target));
+    cpb.add(new TargetedThisInsert(target));
     cpb.add(getTestforSuccessTrailer(success, target.getMode()));
     return new InternalCommand(cpb, modifier());
   }

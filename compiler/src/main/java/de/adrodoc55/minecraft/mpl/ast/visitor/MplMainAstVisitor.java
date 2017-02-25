@@ -110,7 +110,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
-import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetingThisInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetedThisInsert;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -428,7 +428,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     MinecraftVersion version = context.getVersion();
     CommandPartBuffer summonCpb = new CommandPartBuffer();
     summonCpb.add("summon " + version.markerEntity() + " ");
-    summonCpb.add(new TargetingThisInsert(trc.get(0)));
+    summonCpb.add(new TargetedThisInsert(trc.get(0)));
     summonCpb.add(
         " {CustomName:" + event + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
     InternalCommand summon = new InternalCommand(summonCpb, modifier());
@@ -539,7 +539,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
 
     CommandPartBuffer summonCpb = new CommandPartBuffer();
     summonCpb.add("summon " + version.markerEntity() + " ");
-    summonCpb.add(new TargetingThisInsert(trc.get(0)));
+    summonCpb.add(new TargetedThisInsert(trc.get(0)));
     summonCpb
         .add(" {CustomName:" + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
     ChainLink summon = new InternalCommand(summonCpb, modifier(Conditional.valueOf(conditional)));
@@ -1108,7 +1108,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
    */
   @CheckReturnValue
   private Command newLoopStartingCommand(MplWhile loop) {
-    TargetingThisInsert insert = new TargetingThisInsert();
+    TargetedThisInsert insert = new TargetedThisInsert();
     loopRefs.add(new LoopRef(loop) {
       @Override
       public void setEntryLink(ChainLink entryLink) {
@@ -1126,7 +1126,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
    */
   @CheckReturnValue
   private Command newLoopStoppingCommand(MplWhile loop) {
-    TargetingThisInsert insert = new TargetingThisInsert();
+    TargetedThisInsert insert = new TargetedThisInsert();
     loopRefs.add(new LoopRef(loop) {
       @Override
       public void setEntryLink(ChainLink entryLink) {
@@ -1144,7 +1144,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
    */
   @CheckReturnValue
   private Command newExitLoopCommand(MplWhile loop) {
-    TargetingThisInsert insert = new TargetingThisInsert();
+    TargetedThisInsert insert = new TargetedThisInsert();
     loopRefs.add(new LoopRef(loop) {
       @Override
       public void setExitLink(ChainLink exitLink) {

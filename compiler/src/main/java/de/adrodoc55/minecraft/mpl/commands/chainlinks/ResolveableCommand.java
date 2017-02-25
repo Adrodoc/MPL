@@ -15,6 +15,7 @@ import lombok.ToString;
 @ToString(callSuper = true)
 @Getter
 @Setter
+@Deprecated
 public class ResolveableCommand extends InternalCommand {
   private @Nullable ChainLink referenced;
 
