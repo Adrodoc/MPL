@@ -77,6 +77,11 @@ public class CommandPartBuffer {
     commandParts.add(string);
   }
 
+  public CommandPartBuffer with(String string) {
+    add(string);
+    return this;
+  }
+
   public List<RelativeThisInsert> getThisInserts() {
     return Collections.unmodifiableList(thisInserts);
   }
@@ -84,6 +89,11 @@ public class CommandPartBuffer {
   public void add(RelativeThisInsert insert) {
     commandParts.add(insert);
     thisInserts.add(insert);
+  }
+
+  public CommandPartBuffer with(RelativeThisInsert insert) {
+    add(insert);
+    return this;
   }
 
   public List<TargetingThisInsert> getTargetingThisInsert() {
@@ -95,6 +105,11 @@ public class CommandPartBuffer {
     targetingThisInserts.add(insert);
   }
 
+  public CommandPartBuffer with(TargetingThisInsert insert) {
+    add(insert);
+    return this;
+  }
+
   public List<RelativeOriginInsert> getOriginInserts() {
     return Collections.unmodifiableList(originInserts);
   }
@@ -104,6 +119,11 @@ public class CommandPartBuffer {
     originInserts.add(insert);
   }
 
+  public CommandPartBuffer with(RelativeOriginInsert insert) {
+    add(insert);
+    return this;
+  }
+
   public List<GlobalVariableInsert> getVariableInserts() {
     return Collections.unmodifiableList(variableInserts);
   }
@@ -111,5 +131,10 @@ public class CommandPartBuffer {
   public void add(GlobalVariableInsert insert) {
     commandParts.add(insert);
     variableInserts.add(insert);
+  }
+
+  public CommandPartBuffer with(GlobalVariableInsert insert) {
+    add(insert);
+    return this;
   }
 }

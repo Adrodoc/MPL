@@ -56,6 +56,7 @@ import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DELETE_ON_UNINSTALL;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
+import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 
 import java.io.File;
 import java.util.ArrayDeque;
@@ -102,7 +103,6 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ResolveableCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
@@ -110,6 +110,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetingThisInsert;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -206,7 +207,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
 
     commands.add(new MplCommand(
         "tellraw @a [{\"text\":\"[tp to breakpoint]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/tp @p @e[name=breakpoint_NOTIFY,c=-1]\"}},{\"text\":\" \"},{\"text\":\"[continue program]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/execute @e[name=breakpoint_CONTINUE"
-            + NOTIFY + "] ~ ~ ~ " + getStartCommand("~ ~ ~") + "\"}}]",
+            + NOTIFY + "] ~ ~ ~ " + getStartCommand() + "\"}}]",
         breakpoint));
 
     commands.add(new MplWaitfor("breakpoint_CONTINUE", breakpoint));
@@ -217,8 +218,9 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
         "/execute @e[tag=" + hash + "] ~ ~ ~ clone ~ ~ ~ ~ ~ ~ ~ ~-1 ~ force move", breakpoint));
     commands.add(new MplCommand("/tp @e[tag=" + hash + "] ~ ~-1 ~", breakpoint));
     if (!options.hasOption(TRANSMITTER)) {
-      commands.add(new MplCommand("/execute @e[tag=" + hash + "] ~ ~ ~ blockdata ~ ~ ~ {Command:"
-          + getStopCommand("~ ~ ~") + "}", breakpoint));
+      commands.add(new MplCommand(
+          "/execute @e[tag=" + hash + "] ~ ~ ~ blockdata ~ ~ ~ {Command:" + getStopCommand() + "}",
+          breakpoint));
     }
 
     commands.add(new MplNotify("breakpoint", breakpoint));
@@ -395,7 +397,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     checkNotInlineProcess(start, processName);
     addInvertingCommandIfInvert(result, start);
 
-    String command = "execute " + selector + " ~ ~ ~ " + getStartCommand("~ ~ ~");
+    String command = "execute " + selector + " ~ ~ ~ " + getStartCommand();
     result.add(new Command(command, start));
     return result;
   }
@@ -409,7 +411,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     checkNotInlineProcess(stop, processName);
     addInvertingCommandIfInvert(result, stop);
 
-    String command = "execute " + selector + " ~ ~ ~ " + getStopCommand("~ ~ ~");
+    String command = "execute " + selector + " ~ ~ ~ " + getStopCommand();
     result.add(new Command(command, stop));
     return result;
   }
@@ -421,32 +423,32 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     String event = waitfor.getEvent();
     checkNotInlineProcess(waitfor, event);
 
+    List<ChainLink> trc = getTransmitterReceiverCombo(false);
+
     MinecraftVersion version = context.getVersion();
-    ReferencingCommand summon =
-        new ReferencingCommand("summon " + version.markerEntity() + " " + REF + " {CustomName:"
-            + event + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
+    CommandPartBuffer summonCpb = new CommandPartBuffer();
+    summonCpb.add("summon " + version.markerEntity() + " ");
+    summonCpb.add(new TargetingThisInsert(trc.get(0)));
+    summonCpb.add(
+        " {CustomName:" + event + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
+    InternalCommand summon = new InternalCommand(summonCpb, modifier());
 
     if (waitfor.getConditional() == UNCONDITIONAL) {
-      summon.setRelative(1);
       result.add(summon);
     } else {
       summon.setConditional(true);
-      ReferencingCommand jump = new ReferencingCommand(getStartCommand(REF), true);
+      ChainLink noWait = new InternalCommand(getStartCommand(trc.get(0)), modifier(CONDITIONAL));
       if (waitfor.getConditional() == CONDITIONAL) {
-        summon.setRelative(3);
-        jump.setRelative(1);
         result.add(summon);
         result.add(newInvertingCommand(CHAIN));
-        result.add(jump);
+        result.add(noWait);
       } else { // conditional == INVERT
-        jump.setRelative(3);
-        summon.setRelative(1);
-        result.add(jump);
+        result.add(noWait);
         result.add(newInvertingCommand(CHAIN));
         result.add(summon);
       }
     }
-    result.addAll(getTransmitterReceiverCombo(false));
+    result.addAll(trc);
     return result;
   }
 
@@ -490,7 +492,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
 
     boolean conditional = notify.isConditional();
     result.add(new InternalCommand(
-        "execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + getStartCommand("~ ~ ~"), conditional));
+        "execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + getStartCommand(), conditional));
     result.add(new Command("kill @e[name=" + event + NOTIFY + "]", conditional));
     return result;
   }
@@ -530,33 +532,35 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     InternalCommand entitydata = new InternalCommand(
         "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}", conditional);
 
+
+    List<ChainLink> trc = getTransmitterReceiverCombo(false);
+
     MinecraftVersion version = context.getVersion();
-    ResolveableCommand summon =
-        new ResolveableCommand("summon " + version.markerEntity() + " " + REF + " {CustomName:"
-            + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", conditional);
 
+    CommandPartBuffer summonCpb = new CommandPartBuffer();
+    summonCpb.add("summon " + version.markerEntity() + " ");
+    summonCpb.add(new TargetingThisInsert(trc.get(0)));
+    summonCpb
+        .add(" {CustomName:" + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
+    ChainLink summon = new InternalCommand(summonCpb, modifier(Conditional.valueOf(conditional)));
 
-    ResolveableCommand jump = new ResolveableCommand(getStartCommand(REF), true);
     if (intercept.getConditional() == UNCONDITIONAL) {
       result.add(entitydata);
       result.add(summon);
     } else {
+      ChainLink noWait = new InternalCommand(getStartCommand(trc.get(0)), modifier(CONDITIONAL));
       if (intercept.getConditional() == CONDITIONAL) {
         result.add(entitydata);
         result.add(summon);
         result.add(newInvertingCommand(CHAIN));
-        result.add(jump);
+        result.add(noWait);
       } else { // conditional == INVERT
-        result.add(jump);
+        result.add(noWait);
         result.add(newInvertingCommand(CHAIN));
         result.add(entitydata);
         result.add(summon);
       }
     }
-    List<ChainLink> trc = getTransmitterReceiverCombo(false);
-    ChainLink ref = trc.get(0);
-    summon.setReferenced(ref);
-    jump.setReferenced(ref);
     result.addAll(trc);
     result.add(new InternalCommand("kill @e[name=" + event + ",r=2]"));
     result.add(new InternalCommand(

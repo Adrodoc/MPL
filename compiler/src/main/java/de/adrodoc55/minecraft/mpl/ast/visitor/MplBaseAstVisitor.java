@@ -79,61 +79,77 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
   }
 
   @CheckReturnValue
+  private String getStartCommandHeader() {
+    return options.hasOption(TRANSMITTER) ? "setblock " : "blockdata ";
+  }
+
+  @CheckReturnValue
+  private String getStartCommandTrailer() {
+    return options.hasOption(TRANSMITTER) ? " redstone_stone" : " {auto:1b}";
+  }
+
+  /**
+   * Returns a command that starts whatever is at the execution coordinates.
+   * 
+   * @return a command that starts whatever is at the execution coordinates
+   */
+  @CheckReturnValue
+  protected String getStartCommand() {
+    return getStartCommandHeader() + "~ ~ ~" + getStartCommandTrailer();
+  }
+
+  @CheckReturnValue
   protected CommandPartBuffer getStartCommand(ChainLink target) {
     CommandPartBuffer result = new CommandPartBuffer();
-    if (options.hasOption(TRANSMITTER)) {
-      result.add("setblock ");
-      result.add(new TargetingThisInsert(target));
-      result.add(" redstone_stone");
-    } else {
-      result.add("blockdata ");
-      result.add(new TargetingThisInsert(target));
-      result.add(" {auto:1b}");
-    }
+    result.add(getStartCommandHeader());
+    result.add(new TargetingThisInsert(target));
+    result.add(getStartCommandTrailer());
     return result;
+  }
+
+  @CheckReturnValue
+  private String getStopCommandHeader() {
+    return options.hasOption(TRANSMITTER) ? "setblock " : "blockdata ";
+  }
+
+  @CheckReturnValue
+  private String getStopCommandTrailer() {
+    if (options.hasOption(TRANSMITTER)) {
+      if (options.hasOption(DEBUG)) {
+        return " air";
+      } else {
+        return " stone";
+      }
+    } else {
+      return " {auto:0b}";
+    }
+  }
+
+  /**
+   * Returns a command that stops whatever is at the execution coordinates.
+   * 
+   * @return a command that stops whatever is at the execution coordinates
+   */
+  @CheckReturnValue
+  protected String getStopCommand() {
+    return getStopCommandHeader() + "~ ~ ~" + getStopCommandTrailer();
   }
 
   @CheckReturnValue
   protected CommandPartBuffer getStopCommand(ChainLink target) {
     CommandPartBuffer result = new CommandPartBuffer();
-    TargetingThisInsert insert = new TargetingThisInsert(target);
-    if (options.hasOption(TRANSMITTER)) {
-      if (options.hasOption(DEBUG)) {
-        result.add("setblock ");
-        result.add(insert);
-        result.add(" air");
-      } else {
-        result.add("setblock ");
-        result.add(insert);
-        result.add(" stone");
-      }
-    } else {
-      result.add("blockdata ");
-      result.add(insert);
-      result.add(" {auto:0b}");
-    }
+    result.add(getStopCommandHeader());
+    result.add(new TargetingThisInsert(target));
+    result.add(getStopCommandTrailer());
     return result;
   }
 
   @CheckReturnValue
   protected CommandPartBuffer getStopCommand(int relative) {
     CommandPartBuffer result = new CommandPartBuffer();
-    RelativeThisInsert insert = new RelativeThisInsert(relative);
-    if (options.hasOption(TRANSMITTER)) {
-      if (options.hasOption(DEBUG)) {
-        result.add("setblock ");
-        result.add(insert);
-        result.add(" air");
-      } else {
-        result.add("setblock ");
-        result.add(insert);
-        result.add(" stone");
-      }
-    } else {
-      result.add("blockdata ");
-      result.add(insert);
-      result.add(" {auto:0b}");
-    }
+    result.add(getStopCommandHeader());
+    result.add(new RelativeThisInsert(relative));
+    result.add(getStopCommandTrailer());
     return result;
   }
 
