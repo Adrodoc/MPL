@@ -39,13 +39,16 @@
  */
 package de.adrodoc55.minecraft.mpl.commands;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author Adrodoc55
  */
 public interface Modifiable {
+  @Nonnull
   Mode getMode();
 
-  Boolean isConditional();
+  boolean isConditional();
 
-  Boolean getNeedsRedstone();
+  boolean getNeedsRedstone();
 }

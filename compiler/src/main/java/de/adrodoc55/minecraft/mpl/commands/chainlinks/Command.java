@@ -103,7 +103,8 @@ public class Command implements ChainLink, Modifiable {
     this(new CommandPartBuffer(command), modifier);
   }
 
-  public Command(CommandPartBuffer commandParts, Mode mode, boolean conditional, boolean needsRedstone) {
+  public Command(CommandPartBuffer commandParts, Mode mode, boolean conditional,
+      boolean needsRedstone) {
     this.commandParts = checkNotNull(commandParts, "commandParts == null!");
     setModifier(mode, conditional, needsRedstone);
   }
@@ -154,12 +155,12 @@ public class Command implements ChainLink, Modifiable {
   }
 
   @Override
-  public @Nonnull Boolean isConditional() {
+  public boolean isConditional() {
     return conditional;
   }
 
   @Override
-  public @Nonnull Boolean getNeedsRedstone() {
+  public boolean getNeedsRedstone() {
     return needsRedstone;
   }
 

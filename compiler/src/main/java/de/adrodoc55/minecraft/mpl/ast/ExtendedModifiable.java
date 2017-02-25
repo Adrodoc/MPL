@@ -39,20 +39,20 @@
  */
 package de.adrodoc55.minecraft.mpl.ast;
 
+import javax.annotation.Nonnull;
+
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 
 /**
  * @author Adrodoc55
  */
 public interface ExtendedModifiable extends Modifiable {
+  @Nonnull
   Conditional getConditional();
 
   @Override
-  public default Boolean isConditional() {
+  public default boolean isConditional() {
     Conditional conditional = getConditional();
-    if (conditional == null) {
-      return null;
-    }
     return conditional.isConditional();
   }
 }
