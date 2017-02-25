@@ -40,11 +40,12 @@
 package de.adrodoc55.minecraft.mpl.ast.visitor;
 
 import static com.google.common.base.Preconditions.checkState;
-import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
+import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -139,8 +140,9 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
   @CheckReturnValue
   protected List<ChainLink> getRestartBackref(ChainLink target, boolean conditional) {
     List<ChainLink> result = new ArrayList<>(2);
-    result.add(new InternalCommand(getStopCommand(target), CHAIN, conditional, false));
-    result.add(new InternalCommand(getStartCommand(target), CHAIN, true, false));
+    result.add(
+        new InternalCommand(getStopCommand(target), modifier(Conditional.valueOf(conditional))));
+    result.add(new InternalCommand(getStartCommand(target), modifier(CONDITIONAL)));
     return result;
   }
 
@@ -149,11 +151,11 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
     if (options.hasOption(TRANSMITTER)) {
       List<ChainLink> result = new ArrayList<>(2);
       result.add(new MplSkip(internal));
-      result.add(new InternalCommand(getStopCommand(-1), IMPULSE, false, true));
+      result.add(new InternalCommand(getStopCommand(-1), modifier(IMPULSE)));
       return result;
     } else {
       List<ChainLink> result = new ArrayList<>(1);
-      result.add(new InternalCommand(getStopCommand(0), IMPULSE, false, true));
+      result.add(new InternalCommand(getStopCommand(0), modifier(IMPULSE)));
       return result;
     }
   }

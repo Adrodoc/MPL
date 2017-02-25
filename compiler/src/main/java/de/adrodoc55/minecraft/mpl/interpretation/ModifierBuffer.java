@@ -55,6 +55,46 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  */
 @GenerateMplPojoBuilder
 public class ModifierBuffer implements ExtendedModifiable {
+  public static ModifierBuffer modifier() {
+    return new ModifierBuffer();
+  }
+
+  public static ModifierBuffer modifier(Mode mode) {
+    ModifierBuffer result = modifier();
+    result.setMode(mode);
+    return result;
+  }
+
+  public static ModifierBuffer modifier(Conditional conditional) {
+    ModifierBuffer result = modifier();
+    result.setConditional(conditional);
+    return result;
+  }
+
+  public static ModifierBuffer modifier(boolean needsRedstone) {
+    ModifierBuffer result = modifier();
+    result.setNeedsRedstone(needsRedstone);
+    return result;
+  }
+
+  public static ModifierBuffer modifier(Mode mode, Conditional conditional) {
+    ModifierBuffer result = modifier(mode);
+    result.setConditional(conditional);
+    return result;
+  }
+
+  public static ModifierBuffer modifier(Conditional conditional, boolean needsRedstone) {
+    ModifierBuffer result = modifier(conditional);
+    result.setNeedsRedstone(needsRedstone);
+    return result;
+  }
+
+  public static ModifierBuffer modifier(Mode mode, Conditional conditional, boolean needsRedstone) {
+    ModifierBuffer result = modifier(mode, conditional);
+    result.setNeedsRedstone(needsRedstone);
+    return result;
+  }
+
   private @Nullable Mode mode;
   private @Nullable Conditional conditional;
   private @Nullable Boolean needsRedstone;
