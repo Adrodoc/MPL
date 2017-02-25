@@ -806,23 +806,23 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       result.add(new Command(condition));
     }
 
-    ResolveableCommand init = new ResolveableCommand(getStartCommand(REF));
-    ResolveableCommand skip = new ResolveableCommand(getStartCommand(REF), true);
+    ResolveableCommand initLoop = new ResolveableCommand(getStartCommand(REF));
+    ResolveableCommand skipLoop = new ResolveableCommand(getStartCommand(REF), true);
 
     if (!hasInitialCondition && !mplWhile.isConditional()) {
-      result.add(init);
+      result.add(initLoop);
     } else {
-      init.setConditional(true);
+      initLoop.setConditional(true);
 
       boolean isNormal = hasInitialCondition && !mplWhile.isNot();
       if (isNormal || !hasInitialCondition && mplWhile.getConditional() == CONDITIONAL) {
-        result.add(init);
+        result.add(initLoop);
         result.add(newInvertingCommand(CHAIN));
-        result.add(skip);
+        result.add(skipLoop);
       } else {
-        result.add(skip);
+        result.add(skipLoop);
         result.add(newInvertingCommand(CHAIN));
-        result.add(init);
+        result.add(initLoop);
       }
     }
     ((Command) result.get(firstIndex)).setModifier(mplWhile);
@@ -862,7 +862,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       }
     }
     ChainLink entryLink = result.get(entryIndex);
-    init.setReferenced(entryLink);
+    initLoop.setReferenced(entryLink);
 
     if (!dontRestart) {
       if (condition == null) {
@@ -883,7 +883,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     List<ChainLink> exit = getTransmitterReceiverCombo(true);
     result.addAll(exit);
     ChainLink exitLink = exit.get(0);
-    skip.setReferenced(exitLink);
+    skipLoop.setReferenced(exitLink);
 
     for (Iterator<LoopRef> it = loopRefs.iterator(); it.hasNext();) {
       LoopRef ref = it.next();

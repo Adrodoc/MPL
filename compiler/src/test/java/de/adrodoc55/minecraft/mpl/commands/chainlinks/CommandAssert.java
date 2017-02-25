@@ -78,6 +78,10 @@ public class CommandAssert<S extends CommandAssert<S, A>, A extends Command>
     return assertThat(actual.needsRedstone).as(description("needsRedstone"));
   }
 
+  public AbstractBooleanAssert<?> internal() {
+    return assertThat(actual.isInternal()).as(description("internal"));
+  }
+
   public S hasCommand(String command) {
     command().isEqualTo(command);
     return myself;
@@ -108,6 +112,16 @@ public class CommandAssert<S extends CommandAssert<S, A>, A extends Command>
     return myself;
   }
 
+  public S isInternal() {
+    internal().isTrue();
+    return myself;
+  }
+
+  public S isNotInternal() {
+    internal().isFalse();
+    return myself;
+  }
+
   public S hasModifiers(Modifiable modifiers) {
     isNotNull();
     mode().isEqualTo(modifiers.getMode());
@@ -124,6 +138,7 @@ public class CommandAssert<S extends CommandAssert<S, A>, A extends Command>
   public S isTestforSuccessCommand(Mode referencedMode, boolean success) {
     command().isEqualTo("testforblock " + new RelativeThisInsert(-1) + " "
         + referencedMode.getStringBlockId() + " -1 {SuccessCount:" + (success ? 1 : 0) + "}");
+    isInternal();
     return myself;
   }
 }

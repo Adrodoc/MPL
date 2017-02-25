@@ -85,7 +85,7 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
 
   @CheckReturnValue
   private String getStartCommandTrailer() {
-    return options.hasOption(TRANSMITTER) ? " redstone_stone" : " {auto:1b}";
+    return options.hasOption(TRANSMITTER) ? " redstone_block" : " {auto:1b}";
   }
 
   /**

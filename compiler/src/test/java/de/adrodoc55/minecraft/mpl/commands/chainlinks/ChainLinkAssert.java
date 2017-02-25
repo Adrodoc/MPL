@@ -61,4 +61,12 @@ public class ChainLinkAssert extends AbstractAssert<ChainLinkAssert, ChainLink> 
   public CommandAssert<?, Command> isInvertingCommandFor(Mode mode) {
     return asCommand().isInvertingCommandFor(mode);
   }
+
+  public CommandAssert<?, Command> isInternal() {
+    return asCommand().isInternal();
+  }
+
+  public CommandAssert<?, Command> isNotInternal() {
+    return asCommand().isNotInternal();
+  }
 }
