@@ -39,7 +39,6 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
-import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.assertj.core.api.AbstractBooleanAssert;
@@ -49,6 +48,7 @@ import org.assertj.core.api.AbstractComparableAssert;
 import de.adrodoc55.commons.ExtendedAbstractAssert;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 
 public class CommandAssert<S extends CommandAssert<S, A>, A extends Command>
     extends ExtendedAbstractAssert<S, A> {
@@ -122,8 +122,8 @@ public class CommandAssert<S extends CommandAssert<S, A>, A extends Command>
   }
 
   public S isTestforSuccessCommand(Mode referencedMode, boolean success) {
-    command().isEqualTo("testforblock " + REF + " " + referencedMode.getStringBlockId()
-        + " -1 {SuccessCount:" + (success ? 1 : 0) + "}");
+    command().isEqualTo("testforblock " + new RelativeThisInsert(-1) + " "
+        + referencedMode.getStringBlockId() + " -1 {SuccessCount:" + (success ? 1 : 0) + "}");
     return myself;
   }
 }

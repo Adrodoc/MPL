@@ -39,10 +39,14 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
-import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;
+import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 
+import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetingThisInsert;
 
 /**
  * @author Adrodoc55
@@ -83,17 +87,28 @@ public class Commands {
     return newTestforSuccessCommand(relative, referencedMode, success, false);
   }
 
-  public static Command newTestforSuccessCommand(int relative, Mode referencedMode, boolean success,
+  public static Command newTestforSuccessCommand(int relative, Mode targetMode, boolean success,
       boolean conditional) {
-    String command = "testforblock " + REF + " " + referencedMode.getStringBlockId()
-        + " -1 {SuccessCount:" + (success ? 1 : 0) + "}";
-    return new ReferencingCommand(command, Mode.DEFAULT, conditional, false, relative);
+    CommandPartBuffer cpb = new CommandPartBuffer();
+    cpb.add(getTestforSuccessHeader());
+    cpb.add(new RelativeThisInsert(relative));
+    cpb.add(getTestforSuccessTrailer(success, targetMode));
+    return new InternalCommand(cpb, modifier(Conditional.valueOf(conditional)));
   }
 
-  public static Command newTestforSuccessCommand(Command referenced, boolean success) {
-    String command = "testforblock " + REF + " " + referenced.getMode().getStringBlockId()
-        + " -1 {SuccessCount:" + (success ? 1 : 0) + "}";
-    return new ResolveableCommand(command, referenced);
+  public static Command newTestforSuccessCommand(Command target, boolean success) {
+    CommandPartBuffer cpb = new CommandPartBuffer();
+    cpb.add(getTestforSuccessHeader());
+    cpb.add(new TargetingThisInsert(target));
+    cpb.add(getTestforSuccessTrailer(success, target.getMode()));
+    return new InternalCommand(cpb, modifier());
   }
 
+  private static String getTestforSuccessHeader() {
+    return "testforblock ";
+  }
+
+  private static String getTestforSuccessTrailer(boolean success, Mode targetMode) {
+    return " " + targetMode.getStringBlockId() + " -1 {SuccessCount:" + (success ? 1 : 0) + "}";
+  }
 }

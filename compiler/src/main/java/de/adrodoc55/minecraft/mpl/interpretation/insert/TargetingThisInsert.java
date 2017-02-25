@@ -60,6 +60,10 @@ public class TargetingThisInsert {
   public TargetingThisInsert() {}
 
   public TargetingThisInsert(ChainLink target) {
+    setTarget(target);
+  }
+
+  public void setTarget(ChainLink target) {
     this.target = checkNotNull(target, "target == null!");
   }
 
