@@ -44,17 +44,20 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
 @Getter
 @Setter
-public class TargetedThisInsert extends RelativeThisInsert {
+@EqualsAndHashCode
+@ToString
+public class TargetedThisInsert {
   private @Nullable ChainLink target;
-  private boolean relativeWasSet;
 
   public TargetedThisInsert() {}
 
@@ -64,20 +67,5 @@ public class TargetedThisInsert extends RelativeThisInsert {
 
   public void setTarget(ChainLink target) {
     this.target = checkNotNull(target, "target == null!");
-  }
-
-  @Override
-  public void setRelative(int relative) {
-    super.setRelative(relative);
-    relativeWasSet = true;
-  }
-
-  @Override
-  public String toString() {
-    if (coordinate != null)
-      return coordinate.toRelativeString();
-    if (relativeWasSet)
-      return super.toString();
-    return "Unresolved this insert, target=" + target;
   }
 }

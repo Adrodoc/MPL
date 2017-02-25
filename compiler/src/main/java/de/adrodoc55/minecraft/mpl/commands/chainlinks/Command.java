@@ -41,8 +41,6 @@ package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Collection;
-
 import javax.annotation.Nonnull;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -57,6 +55,7 @@ import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetedThisInsert;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -178,19 +177,22 @@ public class Command implements ChainLink, Modifiable {
   }
 
   @Override
-  public void resolveTargetedThisInserts(Collection<ChainLink> chainLinks) {
-    for (TargetedThisInsert insert : commandParts.getTargetingThisInsert()) {
-      ChainLink target = insert.getTarget();
-      int self = Iterables.indexOf(chainLinks, it -> it == this);
-      if (self == -1) {
-        throwNotFoundException("This");
-      }
-      int ref = Iterables.indexOf(chainLinks, it -> it == target);
-      if (ref == -1) {
-        throwNotFoundException("The referenced chainLink");
-      }
-      insert.setRelative(ref - self);
+  public void resolveTargetedThisInserts(Iterable<? extends ChainLink> chainLinks) {
+    commandParts.resolveTargetedThisInserts(insert -> resolve(insert, chainLinks));
+  }
+
+  private RelativeThisInsert resolve(TargetedThisInsert insert,
+      Iterable<? extends ChainLink> chainLinks) {
+    int self = Iterables.indexOf(chainLinks, it -> it == this);
+    if (self == -1) {
+      throwNotFoundException("This");
     }
+    ChainLink target = insert.getTarget();
+    int ref = Iterables.indexOf(chainLinks, it -> it == target);
+    if (ref == -1) {
+      throwNotFoundException("The referenced chainLink");
+    }
+    return new RelativeThisInsert(ref - self);
   }
 
   private void throwNotFoundException(String string) throws IllegalArgumentException {

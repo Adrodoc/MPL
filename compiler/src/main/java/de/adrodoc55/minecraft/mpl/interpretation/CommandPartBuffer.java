@@ -39,10 +39,15 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation;
 
+import static com.google.common.collect.Iterators.consumingIterator;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+
+import com.google.common.base.Function;
 
 import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.GlobalVariableInsert;
@@ -137,5 +142,16 @@ public class CommandPartBuffer {
   public CommandPartBuffer with(GlobalVariableInsert insert) {
     add(insert);
     return this;
+  }
+
+  public void resolveTargetedThisInserts(
+      Function<TargetedThisInsert, RelativeThisInsert> resolver) {
+    Iterator<TargetedThisInsert> it = consumingIterator(targetingThisInserts.iterator());
+    while (it.hasNext()) {
+      TargetedThisInsert insert = it.next();
+      RelativeThisInsert result = resolver.apply(insert);
+      thisInserts.add(result);
+      commandParts.replaceAll(o -> o == insert ? result : o);
+    }
   }
 }
