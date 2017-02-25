@@ -53,7 +53,9 @@ import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOpt
 import java.io.File;
 import java.util.List;
 
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
@@ -73,6 +75,7 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
   @Override
   protected MplCompilerContext newContext() {

@@ -47,6 +47,7 @@ import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.GlobalVariableInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeOriginInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetingThisInsert;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -58,6 +59,7 @@ import lombok.ToString;
 public class CommandPartBuffer {
   private final List<Object> commandParts = new ArrayList<>();
   private final List<RelativeThisInsert> thisInserts = new ArrayList<>();
+  private final List<TargetingThisInsert> targetingThisInserts = new ArrayList<>();
   private final List<RelativeOriginInsert> originInserts = new ArrayList<>();
   private final List<GlobalVariableInsert> variableInserts = new ArrayList<>();
 
@@ -82,6 +84,15 @@ public class CommandPartBuffer {
   public void add(RelativeThisInsert insert) {
     commandParts.add(insert);
     thisInserts.add(insert);
+  }
+
+  public List<TargetingThisInsert> getTargetingThisInsert() {
+    return Collections.unmodifiableList(targetingThisInserts);
+  }
+
+  public void add(TargetingThisInsert insert) {
+    commandParts.add(insert);
+    targetingThisInserts.add(insert);
   }
 
   public List<RelativeOriginInsert> getOriginInserts() {

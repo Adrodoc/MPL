@@ -220,10 +220,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     CommandChain result = underTest.visitProcess(process);
 
     // then:
+    int i = context.getOptions().hasOption(TRANSMITTER) ? 2 : 1;
     List<ChainLink> commands = result.getCommands();
-    assertThat(commands.get(0)).hasCommand(first.getCommand()).hasModifiers(first);
-    assertThat(commands.get(1)).isInvertingCommandFor(first.getMode()); // Important line!
-    assertThat(commands.get(2)).hasCommand(second.getCommand()).hasModifiers(second);
+    assertThat(commands.get(i++)).hasCommand(first.getCommand()).hasModifiers(first);
+    assertThat(commands.get(i++)).isInvertingCommandFor(first.getMode()); // Important line!
+    assertThat(commands.get(i++)).hasCommand(second.getCommand()).hasModifiers(second);
   }
 
   @Test

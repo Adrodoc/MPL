@@ -37,8 +37,8 @@ public class ResolveableCommand extends InternalCommand {
   }
 
   @Deprecated
-  protected ResolveableCommand(ResolveableCommand original) {
-    super(original);
+  protected ResolveableCommand(ResolveableCommand original, CopyScope scope) {
+    super(original, scope);
     // Don't copy reference to preserve the same instance
     referenced = original.referenced;
   }
@@ -46,7 +46,7 @@ public class ResolveableCommand extends InternalCommand {
   @Deprecated
   @Override
   public ResolveableCommand createFlatCopy(CopyScope scope) throws NullPointerException {
-    return new ResolveableCommand(this);
+    return new ResolveableCommand(this, scope);
   }
 
   public ReferencingCommand resolve(List<ChainLink> chainLinks) {
@@ -68,7 +68,7 @@ public class ResolveableCommand extends InternalCommand {
     if (ref == -1) {
       throwNotFoundException("The referenced command");
     }
-    return new ReferencingCommand(getCommand(), this, ref - self);
+    return new ReferencingCommand(getCommandParts(), this, ref - self);
   }
 
   private void throwNotFoundException(String string) throws IllegalArgumentException {

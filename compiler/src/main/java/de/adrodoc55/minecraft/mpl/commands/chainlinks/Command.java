@@ -103,6 +103,11 @@ public class Command implements ChainLink, Modifiable {
     this(new CommandPartBuffer(command), modifier);
   }
 
+  public Command(CommandPartBuffer commandParts, Mode mode, boolean conditional, boolean needsRedstone) {
+    this.commandParts = checkNotNull(commandParts, "commandParts == null!");
+    setModifier(mode, conditional, needsRedstone);
+  }
+
   public Command(CommandPartBuffer commandParts, Modifiable modifier) {
     this.commandParts = checkNotNull(commandParts, "commandParts == null!");
     setModifier(modifier);

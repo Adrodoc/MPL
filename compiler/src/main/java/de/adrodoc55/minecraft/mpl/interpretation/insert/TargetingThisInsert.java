@@ -37,72 +37,34 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+package de.adrodoc55.minecraft.mpl.interpretation.insert;
 
-import de.adrodoc55.commons.CopyScope;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
-import de.adrodoc55.minecraft.mpl.commands.Modifiable;
-import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import javax.annotation.Nullable;
+
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class InternalCommand extends Command {
+@Getter
+@Setter
+public class TargetingThisInsert {
+  private final ChainLink target;
+  private @Nullable Coordinate3D coordinate;
 
-  public InternalCommand() {
-    super();
-  }
-
-  public InternalCommand(String command) {
-    super(command);
-  }
-
-  public InternalCommand(String command, Mode mode) {
-    super(command, mode);
-  }
-
-  public InternalCommand(String command, boolean conditional) {
-    super(command, conditional);
-  }
-
-  public InternalCommand(String command, Mode mode, boolean conditional) {
-    super(command, mode, conditional);
-  }
-
-  public InternalCommand(String command, Mode mode, boolean conditional, boolean needsRedstone) {
-    super(command, mode, conditional, needsRedstone);
-  }
-
-  public InternalCommand(String command, Modifiable modifier) {
-    super(command, modifier);
-  }
-
-  public InternalCommand(CommandPartBuffer commandParts, Mode mode, boolean conditional,
-      boolean needsRedstone) {
-    super(commandParts, mode, conditional, needsRedstone);
-  }
-
-  public InternalCommand(CommandPartBuffer commandParts, Modifiable modifier) {
-    super(commandParts, modifier);
-  }
-
-  @Deprecated
-  protected InternalCommand(InternalCommand original, CopyScope scope) {
-    super(original, scope);
-  }
-
-  @Deprecated
-  @Override
-  public InternalCommand createFlatCopy(CopyScope scope) {
-    return new InternalCommand(this, scope);
+  public TargetingThisInsert(ChainLink target) {
+    this.target = checkNotNull(target, "target == null!");
   }
 
   @Override
-  public boolean isInternal() {
-    return true;
+  public String toString() {
+    if (coordinate != null)
+      return coordinate.toRelativeString();
+    return "Unresolved this insert, target=" + target;
   }
 }
