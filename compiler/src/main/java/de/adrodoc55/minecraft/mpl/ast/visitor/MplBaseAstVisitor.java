@@ -173,7 +173,7 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
   }
 
   @CheckReturnValue
-  protected List<ChainLink> getTransmitterReceiverCombo(boolean internal) {
+  protected List<ChainLink> newJumpDestination(boolean internal) {
     if (options.hasOption(TRANSMITTER)) {
       List<ChainLink> result = new ArrayList<>(2);
       result.add(new MplSkip(internal));

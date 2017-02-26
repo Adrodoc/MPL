@@ -52,7 +52,6 @@ import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNormalizingCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newTestforSuccessCommand;
-import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DELETE_ON_UNINSTALL;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
@@ -103,7 +102,6 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ResolveableCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
@@ -273,7 +271,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
           throw new IllegalStateException(ex.getMessage(), ex);
         }
       } else {
-        result.addAll(getTransmitterReceiverCombo(false));
+        result.addAll(newJumpDestination(false));
       }
     } else if (options.hasOption(TRANSMITTER)) {
       result.add(new MplSkip());
@@ -423,7 +421,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     String event = waitfor.getEvent();
     checkNotInlineProcess(waitfor, event);
 
-    List<ChainLink> trc = getTransmitterReceiverCombo(false);
+    List<ChainLink> trc = newJumpDestination(false);
 
     MinecraftVersion version = context.getVersion();
     CommandPartBuffer summonCpb = new CommandPartBuffer();
@@ -533,7 +531,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
         "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}", conditional);
 
 
-    List<ChainLink> trc = getTransmitterReceiverCombo(false);
+    List<ChainLink> trc = newJumpDestination(false);
 
     MinecraftVersion version = context.getVersion();
 
@@ -806,8 +804,11 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       result.add(new Command(condition));
     }
 
-    ResolveableCommand initLoop = new ResolveableCommand(getStartCommand(REF));
-    ResolveableCommand skipLoop = new ResolveableCommand(getStartCommand(REF), true);
+    TargetedThisInsert initLoopInsert = new TargetedThisInsert();
+    InternalCommand initLoop = new InternalCommand(getStartCommand(initLoopInsert), modifier());
+    TargetedThisInsert skipLoopInsert = new TargetedThisInsert();
+    InternalCommand skipLoop =
+        new InternalCommand(getStartCommand(initLoopInsert), modifier(CONDITIONAL));
 
     if (!hasInitialCondition && !mplWhile.isConditional()) {
       result.add(initLoop);
@@ -862,7 +863,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       }
     }
     ChainLink entryLink = result.get(entryIndex);
-    initLoop.setReferenced(entryLink);
+    initLoopInsert.setTarget(entryLink);
 
     if (!dontRestart) {
       if (condition == null) {
@@ -880,10 +881,10 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
         }
       }
     }
-    List<ChainLink> exit = getTransmitterReceiverCombo(true);
+    List<ChainLink> exit = newJumpDestination(true);
     result.addAll(exit);
     ChainLink exitLink = exit.get(0);
-    skipLoop.setReferenced(exitLink);
+    skipLoopInsert.setTarget(exitLink);
 
     for (Iterator<LoopRef> it = loopRefs.iterator(); it.hasNext();) {
       LoopRef ref = it.next();
@@ -925,7 +926,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       result.addAll(breakLoop);
       return result;
     }
-    ResolveableCommand dontBreak = new ResolveableCommand(getStartCommand(REF), true);
+    List<ChainLink> dest = newJumpDestination(false);
+    Command dontBreak = new InternalCommand(getStartCommand(dest.get(0)), modifier(CONDITIONAL));
     if (conditional == CONDITIONAL) {
       List<Command> breakLoop = getBreakLoop(loop);
       breakLoop.get(0).setModifier(mplBreak);
@@ -938,9 +940,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       result.add(newInvertingCommand(CHAIN));
       result.addAll(getBreakLoop(loop, true));
     }
-    List<ChainLink> trc = getTransmitterReceiverCombo(false);
-    dontBreak.setReferenced(trc.get(0));
-    result.addAll(trc);
+    result.addAll(dest);
     return resolveReferences(result);
   }
 
@@ -981,7 +981,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       outerIf.add(newMplContinueLoop(loop, source));
     }
     outerIf.enterElse();
-    ResolveableCommand exit = new ResolveableCommand(getStartCommand(REF), true);
+    List<ChainLink> end = newJumpDestination(false);
+    InternalCommand exit = new InternalCommand(getStartCommand(end.get(0)), modifier(CONDITIONAL));
     outerIf.add(new InternalMplCommand(source, exit));
 
     if (conditional == INVERT) {
@@ -990,8 +991,6 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     List<ChainLink> ifResult = outerIf.accept(this);
     result.addAll(ifResult);
 
-    List<ChainLink> end = getTransmitterReceiverCombo(false);
-    exit.setReferenced(end.get(0));
     result.addAll(end);
     resolveReferences(result);
     // FIXME: Dirty Hack: The condition of an if should be an instance of Dependable
