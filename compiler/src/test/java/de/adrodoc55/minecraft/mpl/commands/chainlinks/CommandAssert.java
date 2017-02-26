@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
+import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.assertj.core.api.AbstractBooleanAssert;
@@ -68,18 +71,22 @@ public class CommandAssert<S extends CommandAssert<S, A>, A extends Command>
   }
 
   public AbstractComparableAssert<?, Mode> mode() {
+    isNotNull();
     return assertThat(actual.mode).as(description("mode"));
   }
 
   public AbstractBooleanAssert<?> conditional() {
+    isNotNull();
     return assertThat(actual.conditional).as(description("conditional"));
   }
 
   public AbstractBooleanAssert<?> needsRedstone() {
+    isNotNull();
     return assertThat(actual.needsRedstone).as(description("needsRedstone"));
   }
 
   public AbstractBooleanAssert<?> internal() {
+    isNotNull();
     return assertThat(actual.isInternal()).as(description("internal"));
   }
 
@@ -142,20 +149,50 @@ public class CommandAssert<S extends CommandAssert<S, A>, A extends Command>
   }
 
   public S matches(MplCommand expected) {
+    isNotInternal();
     hasCommand(expected.getCommand());
     hasModifiers(expected);
     return myself;
   }
 
+  public S matchesAsConditional(MplCommand expected) {
+    isNotInternal();
+    hasCommand(expected.getCommand());
+    hasMode(expected.getMode());
+    isConditional();
+    hasNeedsRedstone(expected.getNeedsRedstone());
+    return myself;
+  }
+
   public S isInvertingCommandFor(Mode mode) {
     isTestforSuccessCommand(mode, false);
+    isNotConditional();
     return myself;
   }
 
   public S isTestforSuccessCommand(Mode referencedMode, boolean success) {
-    command().isEqualTo("testforblock " + new RelativeThisInsert(-1) + " "
-        + referencedMode.getStringBlockId() + " -1 {SuccessCount:" + (success ? 1 : 0) + "}");
+    isTestforSuccessCommand(-1, referencedMode, success);
+    return myself;
+  }
+
+  public S isTestforSuccessCommand(int relative, boolean success) {
+    isTestforSuccessCommand(relative, CHAIN, success);
+    return myself;
+  }
+
+  public S isTestforSuccessCommand(int relative, Mode referencedMode, boolean success) {
     isInternal();
+    hasCommand("testforblock " + new RelativeThisInsert(relative) + " "
+        + referencedMode.getStringBlockId() + " -1 {SuccessCount:" + (success ? 1 : 0) + "}");
+    hasMode(CHAIN);
+    doesNotNeedRedstone();
+    return myself;
+  }
+
+  public S isNormalizingCommand() {
+    isInternal();
+    hasCommand("testforblock ~ ~ ~ chain_command_block");
+    hasModifiers(modifier(CHAIN, CONDITIONAL));
     return myself;
   }
 }

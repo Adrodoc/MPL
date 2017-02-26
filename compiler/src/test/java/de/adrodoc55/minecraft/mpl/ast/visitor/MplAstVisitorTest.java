@@ -697,7 +697,8 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     MplIf mplIf = some($MplIf()//
         .withMode($Mode())//
         .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL))//
-        .withNeedsRedstone($boolean()));
+        .withNeedsRedstone($boolean())//
+    );
 
     // when:
     List<ChainLink> result = mplIf.accept(underTest);
@@ -728,7 +729,8 @@ public abstract class MplAstVisitorTest extends MplTestBase {
           public Mode getModeForInverting() {
             return mode;
           }
-        }));
+        })//
+    );
 
     // when:
     List<ChainLink> result = mplIf.accept(underTest);
@@ -746,7 +748,8 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     // given:
     MplIf mplIf = some($MplIf()//
         .withNot(false)//
-        .withThenParts(listOf(some($MplSkip()))));
+        .withThenParts(listOf(some($MplSkip())))//
+    );
 
     // when:
     Exception act = null;
@@ -766,7 +769,8 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     // given:
     MplIf mplIf = some($MplIf()//
         .withNot(false)//
-        .withElseParts(listOf(some($MplSkip()))));
+        .withElseParts(listOf(some($MplSkip())))//
+    );
 
     // when:
     Exception act = null;
@@ -787,7 +791,8 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     MplCommand then1 = some($MplCommand().withConditional(UNCONDITIONAL));
     MplIf mplIf = some($MplIf()//
         .withNot(false)//
-        .withThenParts(listOf(then1)));
+        .withThenParts(listOf(then1))//
+    );
 
     // when:
     List<ChainLink> result = mplIf.accept(underTest);
@@ -795,8 +800,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     // then:
     int i = 0;
     assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isNotInternal().hasCommand(then1.getCommand())
-        .hasMode(then1.getMode()).isConditional().hasNeedsRedstone(then1.getNeedsRedstone());
+    assertThat(result.get(i++)).matchesAsConditional(then1);
     assertThat(result).hasSize(i);
   }
 
@@ -806,7 +810,8 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     MplCommand else1 = some($MplCommand().withConditional(UNCONDITIONAL));
     MplIf mplIf = some($MplIf()//
         .withNot(false)//
-        .withElseParts(listOf(else1)));
+        .withElseParts(listOf(else1))//
+    );
 
     // when:
     List<ChainLink> result = mplIf.accept(underTest);
@@ -815,8 +820,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     int i = 0;
     assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
     assertThat(result.get(i++)).isInvertingCommandFor(CHAIN);
-    assertThat(result.get(i++)).isNotInternal().hasCommand(else1.getCommand())
-        .hasMode(else1.getMode()).isConditional().hasNeedsRedstone(else1.getNeedsRedstone());
+    assertThat(result.get(i++)).matchesAsConditional(else1);
     assertThat(result).hasSize(i);
   }
 
@@ -826,7 +830,8 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     MplCommand then1 = some($MplCommand().withConditional(UNCONDITIONAL));
     MplIf mplIf = some($MplIf()//
         .withNot(true)//
-        .withThenParts(listOf(then1)));
+        .withThenParts(listOf(then1))//
+    );
 
     // when:
     List<ChainLink> result = mplIf.accept(underTest);
@@ -835,8 +840,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     int i = 0;
     assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
     assertThat(result.get(i++)).isInvertingCommandFor(CHAIN);
-    assertThat(result.get(i++)).isNotInternal().hasCommand(then1.getCommand())
-        .hasMode(then1.getMode()).isConditional().hasNeedsRedstone(then1.getNeedsRedstone());
+    assertThat(result.get(i++)).matchesAsConditional(then1);
     assertThat(result).hasSize(i);
   }
 
@@ -846,7 +850,8 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     MplCommand else1 = some($MplCommand().withConditional(UNCONDITIONAL));
     MplIf mplIf = some($MplIf()//
         .withNot(true)//
-        .withElseParts(listOf(else1)));
+        .withElseParts(listOf(else1))//
+    );
 
     // when:
     List<ChainLink> result = mplIf.accept(underTest);
@@ -854,8 +859,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     // then:
     int i = 0;
     assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isNotInternal().hasCommand(else1.getCommand())
-        .hasMode(else1.getMode()).isConditional().hasNeedsRedstone(else1.getNeedsRedstone());
+    assertThat(result.get(i++)).matchesAsConditional(else1);
     assertThat(result).hasSize(i);
   }
 
@@ -867,18 +871,19 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     MplIf mplIf = some($MplIf()//
         .withNot(false)//
         .withThenParts(listOf(then1))//
-        .withElseParts(listOf(else1)));
+        .withElseParts(listOf(else1))//
+    );
 
     // when:
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        new Command(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).matchesAsConditional(then1);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-2, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else1);
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -889,21 +894,22 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     MplCommand then3 = some($MplCommand().withConditional(UNCONDITIONAL));
     MplIf mplIf = some($MplIf()//
         .withNot(false)//
-        .withThenParts(listOf(then1, then2, then3)));
+        .withThenParts(listOf(then1, then2, then3))//
+    );
 
     // when:
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        newNormalizingCommand(), //
-        new Command(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}"), //
-        new Command(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:1}"), //
-        new Command(then3.getCommand(), then3.getMode(), true, then3.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isNormalizingCommand();
+    assertThat(result.get(i++)).matchesAsConditional(then1);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-2, true).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then2);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-4, true).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then3);
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -914,21 +920,22 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     MplCommand then3 = some($MplCommand().withConditional(UNCONDITIONAL));
     MplIf mplIf = some($MplIf()//
         .withNot(true)//
-        .withThenParts(listOf(then1, then2, then3)));
+        .withThenParts(listOf(then1, then2, then3))//
+    );
 
     // when:
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 5} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(then3.getCommand(), then3.getMode(), true, then3.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isTestforSuccessCommand(-1, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then1);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-3, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then2);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-5, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then3);
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -939,21 +946,22 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     MplCommand else3 = some($MplCommand().withConditional(UNCONDITIONAL));
     MplIf mplIf = some($MplIf()//
         .withNot(false)//
-        .withElseParts(listOf(else1, else2, else3)));
+        .withElseParts(listOf(else1, else2, else3))//
+    );
 
     // when:
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 5} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(else3.getCommand(), else3.getMode(), true, else3.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isTestforSuccessCommand(-1, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else1);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-3, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else2);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-5, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else3);
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -964,21 +972,22 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     MplCommand else3 = some($MplCommand().withConditional(UNCONDITIONAL));
     MplIf mplIf = some($MplIf()//
         .withNot(true)//
-        .withElseParts(listOf(else1, else2, else3)));
+        .withElseParts(listOf(else1, else2, else3))//
+    );
 
     // when:
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        newNormalizingCommand(), //
-        new Command(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}"), //
-        new Command(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:1}"), //
-        new Command(else3.getCommand(), else3.getMode(), true, else3.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isNormalizingCommand();
+    assertThat(result.get(i++)).matchesAsConditional(else1);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-2, true).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else2);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-4, true).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else3);
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -993,29 +1002,30 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     MplIf mplIf = some($MplIf()//
         .withNot(false)//
         .withThenParts(listOf(then1, then2, then3))//
-        .withElseParts(listOf(else1, else2, else3)));
+        .withElseParts(listOf(else1, else2, else3))//
+    );
 
     // when:
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        newNormalizingCommand(), //
-        // then
-        new Command(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}"), //
-        new Command(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:1}"), //
-        new Command(then3.getCommand(), then3.getMode(), true, then3.getNeedsRedstone()), //
-        // else
-        new InternalCommand("/testforblock ${this - 6} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 8} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 10} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(else3.getCommand(), else3.getMode(), true, else3.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isNormalizingCommand();
+    // then
+    assertThat(result.get(i++)).matchesAsConditional(then1);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-2, true).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then2);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-4, true).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then3);
+    // else
+    assertThat(result.get(i++)).isTestforSuccessCommand(-6, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else1);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-8, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else2);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-10, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else3);
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -1030,30 +1040,31 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     MplIf mplIf = some($MplIf()//
         .withNot(true)//
         .withThenParts(listOf(then1, then2, then3))//
-        .withElseParts(listOf(else1, else2, else3)));
+        .withElseParts(listOf(else1, else2, else3))//
+    );
 
     // when:
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        newNormalizingCommand(), //
-        // then
-        new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 5} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(then3.getCommand(), then3.getMode(), true, then3.getNeedsRedstone()), //
-        // else
-        new InternalCommand("/testforblock ${this - 7} chain_command_block -1 {SuccessCount:1}"), //
-        new Command(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 9} chain_command_block -1 {SuccessCount:1}"), //
-        new Command(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 11} chain_command_block -1 {SuccessCount:1}"), //
-        new Command(else3.getCommand(), else3.getMode(), true, else3.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isNormalizingCommand();
+    // then
+    assertThat(result.get(i++)).isTestforSuccessCommand(-1, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then1);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-3, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then2);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-5, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then3);
+    // else
+    assertThat(result.get(i++)).isTestforSuccessCommand(-7, true).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else1);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-9, true).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else2);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-11, true).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else3);
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -1070,14 +1081,14 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        newNormalizingCommand(), //
-        new Command(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
-        new Command(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}"), //
-        new Command(then3.getCommand(), then3.getMode(), true, then3.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isNormalizingCommand();
+    assertThat(result.get(i++)).matchesAsConditional(then1);
+    assertThat(result.get(i++)).matchesAsConditional(then2);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-3, true).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then3);
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -1093,11 +1104,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        new Command(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
-        new Command(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).matchesAsConditional(then1);
+    assertThat(result.get(i++)).matchesAsConditional(then2);
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -1121,17 +1132,16 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        newNormalizingCommand(), //
-        new Command(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
-        newInvertingCommand(then1.getMode()), //
-        new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}",
-            true), //
-        new Command(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 5} chain_command_block -1 {SuccessCount:1}"), //
-        new Command(then3.getCommand(), then3.getMode(), true, then3.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isNormalizingCommand();
+    assertThat(result.get(i++)).matchesAsConditional(then1);
+    assertThat(result.get(i++)).isInvertingCommandFor(then1.getMode());
+    assertThat(result.get(i++)).isTestforSuccessCommand(-3, true).isConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then2);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-5, true).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then3);
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -1148,14 +1158,14 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
-        new Command(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(else3.getCommand(), else3.getMode(), true, else3.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isTestforSuccessCommand(-1, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else1);
+    assertThat(result.get(i++)).matchesAsConditional(else2);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-4, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else3);
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -1179,17 +1189,16 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
-        newInvertingCommand(else1.getMode()), //
-        new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}",
-            true), //
-        new Command(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 6} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(else3.getCommand(), else3.getMode(), true, else3.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isTestforSuccessCommand(-1, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else1);
+    assertThat(result.get(i++)).isInvertingCommandFor(else1.getMode());
+    assertThat(result.get(i++)).isTestforSuccessCommand(-4, false).isConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else2);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-6, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else3);
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -1206,14 +1215,14 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
-        new Command(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(then3.getCommand(), then3.getMode(), true, then3.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isTestforSuccessCommand(-1, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then1);
+    assertThat(result.get(i++)).matchesAsConditional(then2);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-4, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then3);
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -1236,17 +1245,16 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        new InternalCommand("/testforblock ${this - 1} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(then1.getCommand(), then1.getMode(), true, then1.getNeedsRedstone()), //
-        newInvertingCommand(then1.getMode()), //
-        new InternalCommand("/testforblock ${this - 4} chain_command_block -1 {SuccessCount:0}",
-            true), //
-        new Command(then2.getCommand(), then2.getMode(), true, then2.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 6} chain_command_block -1 {SuccessCount:0}"), //
-        new Command(then3.getCommand(), then3.getMode(), true, then3.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isTestforSuccessCommand(-1, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then1);
+    assertThat(result.get(i++)).isInvertingCommandFor(then1.getMode());
+    assertThat(result.get(i++)).isTestforSuccessCommand(-4, false).isConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then2);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-6, false).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(then3);
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -1263,14 +1271,14 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        newNormalizingCommand(), //
-        new Command(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
-        new Command(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}"), //
-        new Command(else3.getCommand(), else3.getMode(), true, else3.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isNormalizingCommand();
+    assertThat(result.get(i++)).matchesAsConditional(else1);
+    assertThat(result.get(i++)).matchesAsConditional(else2);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-3, true).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else3);
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -1286,11 +1294,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        new Command(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
-        new Command(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).matchesAsConditional(else1);
+    assertThat(result.get(i++)).matchesAsConditional(else2);
+    assertThat(result).hasSize(i);
   }
 
   @Test
@@ -1314,17 +1322,16 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        newNormalizingCommand(), //
-        new Command(else1.getCommand(), else1.getMode(), true, else1.getNeedsRedstone()), //
-        newInvertingCommand(else1.getMode()), //
-        new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}",
-            true), //
-        new Command(else2.getCommand(), else2.getMode(), true, else2.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 5} chain_command_block -1 {SuccessCount:1}"), //
-        new Command(else3.getCommand(), else3.getMode(), true, else3.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isNormalizingCommand();
+    assertThat(result.get(i++)).matchesAsConditional(else1);
+    assertThat(result.get(i++)).isInvertingCommandFor(else1.getMode());
+    assertThat(result.get(i++)).isTestforSuccessCommand(-3, true).isConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else2);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-5, true).isNotConditional();
+    assertThat(result.get(i++)).matchesAsConditional(else3);
+    assertThat(result).hasSize(i);
   }
 
   /**
@@ -1359,17 +1366,15 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        newNormalizingCommand(), //
-        new Command(outer.getCondition(), true), //
-        new Command(innerThen.getCommand(), innerThen.getMode(), true,
-            innerThen.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}",
-            true), //
-        new Command(innerElse.getCommand(), innerElse.getMode(), true, innerElse.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isNormalizingCommand();
+    assertThat(result.get(i++)).isNotInternal().hasCommand(outer.getCondition()).isConditional();
+    assertThat(result.get(i++)).matchesAsConditional(innerThen);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-3, true).isNotConditional();
+    assertThat(result.get(i++)).isTestforSuccessCommand(-3, false).isConditional();
+    assertThat(result.get(i++)).matchesAsConditional(innerElse);
+    assertThat(result).hasSize(i);
   }
 
   /**
@@ -1409,22 +1414,19 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplIf.getCondition()), //
-        newNormalizingCommand(), //
-        new Command(outer1.getCommand(), outer1.getMode(), true, outer1.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 2} chain_command_block -1 {SuccessCount:1}"), //
-        new Command(outer2.getCondition(), true), //
-        new Command(innerThen.getCommand(), innerThen.getMode(), true,
-            innerThen.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 5} chain_command_block -1 {SuccessCount:1}"), //
-        new InternalCommand("/testforblock ${this - 3} chain_command_block -1 {SuccessCount:0}",
-            true), //
-        new Command(innerElse.getCommand(), innerElse.getMode(), true,
-            innerElse.getNeedsRedstone()), //
-        new InternalCommand("/testforblock ${this - 8} chain_command_block -1 {SuccessCount:1}"), //
-        new Command(outer3.getCommand(), outer3.getMode(), true, outer3.getNeedsRedstone())//
-    );
+    int i = 0;
+    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(result.get(i++)).isNormalizingCommand();
+    assertThat(result.get(i++)).matchesAsConditional(outer1);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-2, true).isNotConditional();
+    assertThat(result.get(i++)).isNotInternal().hasCommand(outer2.getCondition()).isConditional();
+    assertThat(result.get(i++)).matchesAsConditional(innerThen);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-5, true).isNotConditional();
+    assertThat(result.get(i++)).isTestforSuccessCommand(-3, false).isConditional();
+    assertThat(result.get(i++)).matchesAsConditional(innerElse);
+    assertThat(result.get(i++)).isTestforSuccessCommand(-8, true).isConditional();
+    assertThat(result.get(i++)).matchesAsConditional(outer3);
+    assertThat(result).hasSize(i);
   }
 
   // @formatter:off

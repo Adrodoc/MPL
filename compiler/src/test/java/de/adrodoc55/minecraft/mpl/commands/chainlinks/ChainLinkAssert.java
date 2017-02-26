@@ -59,19 +59,31 @@ public class ChainLinkAssert extends AbstractAssert<ChainLinkAssert, ChainLink> 
     return asCommand().hasCommand(command);
   }
 
-  public CommandAssert<?, Command> matches(MplCommand expected) {
-    return asCommand().matches(expected);
-  }
-
-  public CommandAssert<?, Command> isInvertingCommandFor(Mode mode) {
-    return asCommand().isInvertingCommandFor(mode);
-  }
-
   public CommandAssert<?, Command> isInternal() {
     return asCommand().isInternal();
   }
 
   public CommandAssert<?, Command> isNotInternal() {
     return asCommand().isNotInternal();
+  }
+
+  public CommandAssert<?, Command> matches(MplCommand expected) {
+    return asCommand().matches(expected);
+  }
+
+  public CommandAssert<?, Command> matchesAsConditional(MplCommand expected) {
+    return asCommand().matchesAsConditional(expected);
+  }
+
+  public CommandAssert<?, Command> isInvertingCommandFor(Mode mode) {
+    return asCommand().isInvertingCommandFor(mode);
+  }
+
+  public CommandAssert<?, Command> isTestforSuccessCommand(int relative, boolean success) {
+    return asCommand().isTestforSuccessCommand(relative, success);
+  }
+
+  public CommandAssert<?, Command> isNormalizingCommand() {
+    return asCommand().isNormalizingCommand();
   }
 }
