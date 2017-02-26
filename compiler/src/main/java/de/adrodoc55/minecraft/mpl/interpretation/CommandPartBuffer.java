@@ -39,15 +39,11 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation;
 
-import static com.google.common.collect.Iterators.consumingIterator;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
-import com.google.common.base.Function;
 
 import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.GlobalVariableInsert;
@@ -144,14 +140,22 @@ public class CommandPartBuffer {
     return this;
   }
 
-  public void resolveTargetedThisInserts(
-      Function<TargetedThisInsert, RelativeThisInsert> resolver) {
-    Iterator<TargetedThisInsert> it = consumingIterator(targetingThisInserts.iterator());
+  public interface TargetedThisInsertResolver {
+    RelativeThisInsert resolve(TargetedThisInsert insert) throws UnableToResolveInsertException;
+  }
+
+  public void resolveTargetedThisInserts(TargetedThisInsertResolver resolver) {
+    Iterator<TargetedThisInsert> it = targetingThisInserts.iterator();
     while (it.hasNext()) {
-      TargetedThisInsert insert = it.next();
-      RelativeThisInsert result = resolver.apply(insert);
-      thisInserts.add(result);
-      commandParts.replaceAll(o -> o == insert ? result : o);
+      try {
+        TargetedThisInsert insert = it.next();
+        RelativeThisInsert result = resolver.resolve(insert);
+        thisInserts.add(result);
+        commandParts.replaceAll(o -> o == insert ? result : o);
+        it.remove();
+      } catch (UnableToResolveInsertException ex) {
+        // Ignore inserts that can't be resolved yet.
+      }
     }
   }
 }

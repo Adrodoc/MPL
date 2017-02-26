@@ -1424,7 +1424,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     assertThat(result.get(i++)).isTestforSuccessCommand(-5, true).isNotConditional();
     assertThat(result.get(i++)).isTestforSuccessCommand(-3, false).isConditional();
     assertThat(result.get(i++)).matchesAsConditional(innerElse);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-8, true).isConditional();
+    assertThat(result.get(i++)).isTestforSuccessCommand(-8, true).isNotConditional();
     assertThat(result.get(i++)).matchesAsConditional(outer3);
     assertThat(result).hasSize(i);
   }

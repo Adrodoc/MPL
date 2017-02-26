@@ -55,6 +55,7 @@ import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
+import de.adrodoc55.minecraft.mpl.interpretation.UnableToResolveInsertException;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetedThisInsert;
 import lombok.EqualsAndHashCode;
@@ -182,7 +183,7 @@ public class Command implements ChainLink, Modifiable {
   }
 
   private RelativeThisInsert resolve(TargetedThisInsert insert,
-      Iterable<? extends ChainLink> chainLinks) {
+      Iterable<? extends ChainLink> chainLinks) throws UnableToResolveInsertException {
     int self = Iterables.indexOf(chainLinks, it -> it == this);
     if (self == -1) {
       throwNotFoundException("This");
@@ -195,8 +196,8 @@ public class Command implements ChainLink, Modifiable {
     return new RelativeThisInsert(ref - self);
   }
 
-  private void throwNotFoundException(String string) throws IllegalArgumentException {
-    throw new IllegalArgumentException(
+  private void throwNotFoundException(String string) throws UnableToResolveInsertException {
+    throw new UnableToResolveInsertException(
         "Failed to resolve reference. " + string + " was not found in the specified chainLinks");
   }
 }
