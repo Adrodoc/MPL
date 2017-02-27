@@ -44,24 +44,33 @@ import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.assertj.core.api.AbstractCharSequenceAssert;
 import org.assertj.core.api.AbstractComparableAssert;
+import org.assertj.core.api.AbstractListAssert;
+import org.assertj.core.api.ObjectAssert;
 
-import de.adrodoc55.commons.ExtendedAbstractAssert;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 
-public class CommandAssert<S extends CommandAssert<S, A>, A extends Command>
-    extends ExtendedAbstractAssert<S, A> {
-  public CommandAssert(A actual) {
-    this(actual, CommandAssert.class);
+public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
+  public CommandAssert(Command actual) {
+    super(actual, CommandAssert.class);
   }
 
-  public CommandAssert(A actual, Class<?> selfType) {
-    super(actual, selfType);
+  @Override
+  public CommandAssert asCommand() {
+    return myself;
+  }
+
+  @Override
+  public AbstractListAssert<?, List<? extends Object>, Object, ObjectAssert<Object>> commandParts() {
+    isNotNull();
+    return assertThat(actual.getCommandParts().getCommandParts()).as(description("commandParts"));
   }
 
   @SuppressWarnings("deprecation")
@@ -85,62 +94,55 @@ public class CommandAssert<S extends CommandAssert<S, A>, A extends Command>
     return assertThat(actual.needsRedstone).as(description("needsRedstone"));
   }
 
-  public AbstractBooleanAssert<?> internal() {
-    isNotNull();
-    return assertThat(actual.isInternal()).as(description("internal"));
+  @Override
+  public CommandAssert hasCommandParts(Object... commandParts) {
+    commandParts().containsExactly(commandParts);
+    return myself;
   }
 
-  public S hasCommand(String command) {
+  @Override
+  public CommandAssert hasCommand(String command) {
     command().isEqualTo(command);
     return myself;
   }
 
-  public S hasMode(Mode mode) {
+  public CommandAssert hasMode(Mode mode) {
     mode().isEqualTo(mode);
     return myself;
   }
 
-  public S hasConditional(boolean conditional) {
+  public CommandAssert hasConditional(boolean conditional) {
     conditional().isEqualTo(conditional);
     return myself;
   }
 
-  public S isConditional() {
+  public CommandAssert isConditional() {
     conditional().isTrue();
     return myself;
   }
 
-  public S isNotConditional() {
+  public CommandAssert isNotConditional() {
     conditional().isFalse();
     return myself;
   }
 
-  public S hasNeedsRedstone(boolean needsRedstone) {
+  public CommandAssert hasNeedsRedstone(boolean needsRedstone) {
     needsRedstone().isEqualTo(needsRedstone);
     return myself;
   }
 
-  public S doesNeedRedstone() {
+  public CommandAssert doesNeedRedstone() {
     needsRedstone().isTrue();
     return myself;
   }
 
-  public S doesNotNeedRedstone() {
+  public CommandAssert doesNotNeedRedstone() {
     needsRedstone().isFalse();
     return myself;
   }
 
-  public S isInternal() {
-    internal().isTrue();
-    return myself;
-  }
-
-  public S isNotInternal() {
-    internal().isFalse();
-    return myself;
-  }
-
-  public S hasModifiers(Modifiable modifiers) {
+  @Override
+  public CommandAssert hasModifiers(Modifiable modifiers) {
     isNotNull();
     mode().isEqualTo(modifiers.getMode());
     conditional().isEqualTo(modifiers.isConditional());
@@ -148,14 +150,16 @@ public class CommandAssert<S extends CommandAssert<S, A>, A extends Command>
     return myself;
   }
 
-  public S matches(MplCommand expected) {
+  @Override
+  public CommandAssert matches(MplCommand expected) {
     isNotInternal();
     hasCommand(expected.getCommand());
     hasModifiers(expected);
     return myself;
   }
 
-  public S matchesAsConditional(MplCommand expected) {
+  @Override
+  public CommandAssert matchesAsConditional(MplCommand expected) {
     isNotInternal();
     hasCommand(expected.getCommand());
     hasMode(expected.getMode());
@@ -164,23 +168,25 @@ public class CommandAssert<S extends CommandAssert<S, A>, A extends Command>
     return myself;
   }
 
-  public S isInvertingCommandFor(Mode mode) {
+  @Override
+  public CommandAssert isInvertingCommandFor(Mode mode) {
     isTestforSuccessCommand(mode, false);
     isNotConditional();
     return myself;
   }
 
-  public S isTestforSuccessCommand(Mode referencedMode, boolean success) {
+  public CommandAssert isTestforSuccessCommand(Mode referencedMode, boolean success) {
     isTestforSuccessCommand(-1, referencedMode, success);
     return myself;
   }
 
-  public S isTestforSuccessCommand(int relative, boolean success) {
+  @Override
+  public CommandAssert isTestforSuccessCommand(int relative, boolean success) {
     isTestforSuccessCommand(relative, CHAIN, success);
     return myself;
   }
 
-  public S isTestforSuccessCommand(int relative, Mode referencedMode, boolean success) {
+  public CommandAssert isTestforSuccessCommand(int relative, Mode referencedMode, boolean success) {
     isInternal();
     hasCommand("testforblock " + new RelativeThisInsert(relative) + " "
         + referencedMode.getStringBlockId() + " -1 {SuccessCount:" + (success ? 1 : 0) + "}");
@@ -189,7 +195,8 @@ public class CommandAssert<S extends CommandAssert<S, A>, A extends Command>
     return myself;
   }
 
-  public S isNormalizingCommand() {
+  @Override
+  public CommandAssert isNormalizingCommand() {
     isInternal();
     hasCommand("testforblock ~ ~ ~ chain_command_block");
     hasModifiers(modifier(CHAIN, CONDITIONAL));

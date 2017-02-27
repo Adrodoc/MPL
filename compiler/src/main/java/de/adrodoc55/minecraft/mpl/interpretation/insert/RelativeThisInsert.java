@@ -42,6 +42,7 @@ package de.adrodoc55.minecraft.mpl.interpretation.insert;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -50,6 +51,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@EqualsAndHashCode
 public class RelativeThisInsert {
   protected final int relative;
   protected @Nullable Coordinate3D coordinate;

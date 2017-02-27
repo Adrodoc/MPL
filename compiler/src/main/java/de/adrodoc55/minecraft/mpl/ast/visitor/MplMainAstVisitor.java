@@ -421,12 +421,12 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     String event = waitfor.getEvent();
     checkNotInlineProcess(waitfor, event);
 
-    List<ChainLink> trc = newJumpDestination(false);
+    List<ChainLink> dest = newJumpDestination(false);
 
     MinecraftVersion version = context.getVersion();
     CommandPartBuffer summonCpb = new CommandPartBuffer();
     summonCpb.add("summon " + version.markerEntity() + " ");
-    summonCpb.add(new TargetedThisInsert(trc.get(0)));
+    summonCpb.add(new TargetedThisInsert(dest.get(0)));
     summonCpb.add(
         " {CustomName:" + event + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
     InternalCommand summon = new InternalCommand(summonCpb, modifier());
@@ -435,7 +435,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       result.add(summon);
     } else {
       summon.setConditional(true);
-      ChainLink noWait = new InternalCommand(getStartCommand(trc.get(0)), modifier(CONDITIONAL));
+      ChainLink noWait = new InternalCommand(getStartCommand(dest.get(0)), modifier(CONDITIONAL));
       if (waitfor.getConditional() == CONDITIONAL) {
         result.add(summon);
         result.add(newInvertingCommand(CHAIN));
@@ -446,8 +446,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
         result.add(summon);
       }
     }
-    result.addAll(trc);
-    return result;
+    result.addAll(dest);
+    return resolveReferences(result);
   }
 
   /**

@@ -173,6 +173,7 @@ public class Command implements ChainLink, Modifiable {
     return new CommandBlock(this, direction, coordinate);
   }
 
+  @Override
   public boolean isInternal() {
     return false;
   }

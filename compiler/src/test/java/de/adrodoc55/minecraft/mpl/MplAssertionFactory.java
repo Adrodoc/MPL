@@ -46,7 +46,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLinkAssert;
 
 public class MplAssertionFactory extends TestBase {
-  public static ChainLinkAssert assertThat(@Nullable ChainLink actual) {
-    return new ChainLinkAssert(actual);
+  public static <CL extends ChainLink> ChainLinkAssert<?, CL> assertThat(@Nullable CL actual) {
+    return new ChainLinkAssert<>(actual);
   }
 }

@@ -169,23 +169,6 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
   // @formatter:on
 
   @Test
-  public void test_unconditional_Waitfor() {
-    // given:
-    MplWaitfor mplWaitfor = some($MplWaitfor()//
-        .withConditional(UNCONDITIONAL));
-
-    // when:
-    List<ChainLink> result = mplWaitfor.accept(underTest);
-
-    assertThat(result).containsExactly(//
-        new InternalCommand(
-            "/summon " + markerEntity() + " ${this + 1} {CustomName:" + mplWaitfor.getEvent()
-                + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE));
-  }
-
-  @Test
   public void test_conditional_Waitfor() {
     // given:
     MplWaitfor mplWaitfor = some($MplWaitfor()//

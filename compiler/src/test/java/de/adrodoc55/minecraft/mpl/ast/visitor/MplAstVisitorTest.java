@@ -58,7 +58,10 @@ import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOpt
 import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 import org.assertj.core.api.Condition;
 import org.junit.Before;
@@ -67,6 +70,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import de.adrodoc55.minecraft.mpl.ChainLinkIterableAssert;
 import de.adrodoc55.minecraft.mpl.MplTestBase;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
@@ -91,6 +95,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class MplAstVisitorTest extends MplTestBase {
@@ -114,6 +119,10 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   protected abstract String getOnCommand(String ref);
 
   protected abstract String getOffCommand(String ref);
+
+  public ChainLinkIterableAssert assertThatNext(@Nullable Iterator<ChainLink> actual) {
+    return new ChainLinkIterableAssert(actual, context.getOptions());
+  }
 
   // @formatter:off
   // ----------------------------------------------------------------------------------------------------
@@ -559,6 +568,38 @@ public abstract class MplAstVisitorTest extends MplTestBase {
         .hasMode(mode).isConditional().hasNeedsRedstone(needsRedstone);
     assertThat(result).hasSize(i);
   }
+
+  // @formatter:off
+  // ----------------------------------------------------------------------------------------------------
+  //   __        __      _  _     __
+  //   \ \      / /__ _ (_)| |_  / _|  ___   _ __
+  //    \ \ /\ / // _` || || __|| |_  / _ \ | '__|
+  //     \ V  V /| (_| || || |_ |  _|| (_) || |
+  //      \_/\_/  \__,_||_| \__||_|   \___/ |_|
+  //
+  // ----------------------------------------------------------------------------------------------------
+  // @formatter:on
+
+  @Test
+  public void test_unconditional_Waitfor() {
+    // given:
+    MplWaitfor mplWaitfor = some($MplWaitfor()//
+        .withConditional(UNCONDITIONAL));
+
+    // when:
+    List<ChainLink> result = mplWaitfor.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal()
+        .hasCommandParts("summon " + markerEntity() + " ", new RelativeThisInsert(+1),
+            " {CustomName:" + mplWaitfor.getEvent() + NOTIFY
+                + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+        .hasModifiers(modifier());
+    assertThatNext(it).isJumpDestination();
+    assertThat(it).isEmpty();
+  }
+  // TODO: Andere Waitfor, Intercept und Breakpoint Tests aus Subklassen hochziehen
 
   // @formatter:off
   // ----------------------------------------------------------------------------------------------------

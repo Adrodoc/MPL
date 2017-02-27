@@ -39,51 +39,86 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
-import org.assertj.core.api.AbstractAssert;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import org.assertj.core.api.AbstractBooleanAssert;
+import org.assertj.core.api.AbstractListAssert;
+import org.assertj.core.api.ObjectAssert;
+
+import de.adrodoc55.commons.ExtendedAbstractAssert;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 
-public class ChainLinkAssert extends AbstractAssert<ChainLinkAssert, ChainLink> {
-  public ChainLinkAssert(ChainLink actual) {
-    super(actual, ChainLinkAssert.class);
+public class ChainLinkAssert<S extends ChainLinkAssert<S, A>, A extends ChainLink>
+    extends ExtendedAbstractAssert<S, A> {
+  public ChainLinkAssert(A actual) {
+    this(actual, ChainLinkAssert.class);
   }
 
-  public <S extends CommandAssert<S, Command>> CommandAssert<S, Command> asCommand() {
+  public ChainLinkAssert(A actual, Class<?> selfType) {
+    super(actual, selfType);
+  }
+
+  public CommandAssert asCommand() {
     isNotNull();
     isInstanceOf(Command.class);
-    return new CommandAssert<S, Command>((Command) actual);
+    return new CommandAssert((Command) actual);
   }
 
-  public CommandAssert<?, Command> hasCommand(String command) {
+  public AbstractBooleanAssert<?> internal() {
+    isNotNull();
+    return assertThat(actual.isInternal()).as(description("internal"));
+  }
+
+  public S isInternal() {
+    internal().isTrue();
+    return myself;
+  }
+
+  public S isNotInternal() {
+    internal().isFalse();
+    return myself;
+  }
+
+  public AbstractListAssert<?, ?, Object, ObjectAssert<Object>> commandParts() {
+    return asCommand().commandParts();
+  }
+
+  public CommandAssert hasCommandParts(Object... commandParts) {
+    return asCommand().hasCommandParts(commandParts);
+  }
+
+  public CommandAssert hasCommand(String command) {
     return asCommand().hasCommand(command);
   }
 
-  public CommandAssert<?, Command> isInternal() {
-    return asCommand().isInternal();
+  public CommandAssert hasModifiers(Modifiable modifiers) {
+    return asCommand().hasModifiers(modifiers);
   }
 
-  public CommandAssert<?, Command> isNotInternal() {
-    return asCommand().isNotInternal();
-  }
-
-  public CommandAssert<?, Command> matches(MplCommand expected) {
+  public CommandAssert matches(MplCommand expected) {
     return asCommand().matches(expected);
   }
 
-  public CommandAssert<?, Command> matchesAsConditional(MplCommand expected) {
+  public CommandAssert matchesAsConditional(MplCommand expected) {
     return asCommand().matchesAsConditional(expected);
   }
 
-  public CommandAssert<?, Command> isInvertingCommandFor(Mode mode) {
+  public CommandAssert isInvertingCommandFor(Mode mode) {
     return asCommand().isInvertingCommandFor(mode);
   }
 
-  public CommandAssert<?, Command> isTestforSuccessCommand(int relative, boolean success) {
+  public CommandAssert isTestforSuccessCommand(int relative, boolean success) {
     return asCommand().isTestforSuccessCommand(relative, success);
   }
 
-  public CommandAssert<?, Command> isNormalizingCommand() {
+  public CommandAssert isNormalizingCommand() {
     return asCommand().isNormalizingCommand();
+  }
+
+  public S isSkip() {
+    isInstanceOf(MplSkip.class);
+    return myself;
   }
 }

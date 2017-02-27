@@ -81,6 +81,7 @@ public class MplSkip implements ChainPart, ChainLink {
     return new MplSkip(this);
   }
 
+  @Override
   public boolean isInternal() {
     return internal;
   }
