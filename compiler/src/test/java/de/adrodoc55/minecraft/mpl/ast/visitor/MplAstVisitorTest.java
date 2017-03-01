@@ -70,7 +70,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import de.adrodoc55.minecraft.mpl.ChainLinkIterableAssert;
 import de.adrodoc55.minecraft.mpl.MplTestBase;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
@@ -90,6 +89,7 @@ import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLinkIterableAssert;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
@@ -119,6 +119,18 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   protected abstract String getOnCommand(String ref);
 
   protected abstract String getOffCommand(String ref);
+
+  private String getStartCommandHeader() {
+    return context.getOptions().hasOption(TRANSMITTER) ? "setblock " : "blockdata ";
+  }
+
+  private String getStartCommandTrailer() {
+    return context.getOptions().hasOption(TRANSMITTER) ? " redstone_block" : " {auto:1b}";
+  }
+
+  private Object[] getStartCommand(Object ref) {
+    return new Object[] {getStartCommandHeader(), ref, getStartCommandTrailer()};
+  }
 
   public ChainLinkIterableAssert assertThatNext(@Nullable Iterator<ChainLink> actual) {
     return new ChainLinkIterableAssert(actual, context.getOptions());
@@ -595,11 +607,57 @@ public abstract class MplAstVisitorTest extends MplTestBase {
         .hasCommandParts("summon " + markerEntity() + " ", new RelativeThisInsert(+1),
             " {CustomName:" + mplWaitfor.getEvent() + NOTIFY
                 + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-        .hasModifiers(modifier());
-    assertThatNext(it).isJumpDestination();
+        .hasModifiers(mplWaitfor);
+    assertThatNext(it).isNotInternal().isJumpDestination();
     assertThat(it).isEmpty();
   }
-  // TODO: Andere Waitfor, Intercept und Breakpoint Tests aus Subklassen hochziehen
+
+  @Test
+  public void test_conditional_Waitfor() {
+    // given:
+    MplWaitfor mplWaitfor = some($MplWaitfor()//
+        .withConditional(CONDITIONAL));
+
+    // when:
+    List<ChainLink> result = mplWaitfor.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal()
+        .hasCommandParts("summon " + markerEntity() + " ", new RelativeThisInsert(+3),
+            " {CustomName:" + mplWaitfor.getEvent() + NOTIFY
+                + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+        .hasModifiers(mplWaitfor);
+    assertThat(it.next()).isInvertingCommandFor(mplWaitfor.getMode());
+    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(+1)))//
+        .hasModifiers(modifier(CONDITIONAL));
+    assertThatNext(it).isNotInternal().isJumpDestination();
+    assertThat(it).isEmpty();
+  }
+
+  @Test
+  public void test_invert_Waitfor() {
+    // given:
+    MplWaitfor mplWaitfor = some($MplWaitfor()//
+        .withConditional(INVERT));
+
+    // when:
+    List<ChainLink> result = mplWaitfor.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(+3)))//
+        .hasModifiers(mplWaitfor);
+    assertThat(it.next()).isInvertingCommandFor(mplWaitfor.getMode());
+    assertThat(it.next()).isInternal()
+        .hasCommandParts("summon " + markerEntity() + " ", new RelativeThisInsert(+1),
+            " {CustomName:" + mplWaitfor.getEvent() + NOTIFY
+                + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+        .hasModifiers(modifier(CONDITIONAL));
+    assertThatNext(it).isNotInternal().isJumpDestination();
+    assertThat(it).isEmpty();
+  }
+  // TODO: Intercept und Breakpoint Tests aus Subklassen hochziehen
 
   // @formatter:off
   // ----------------------------------------------------------------------------------------------------

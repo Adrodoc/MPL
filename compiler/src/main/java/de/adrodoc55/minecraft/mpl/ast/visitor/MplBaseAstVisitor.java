@@ -181,7 +181,11 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
       return result;
     } else {
       List<ChainLink> result = new ArrayList<>(1);
-      result.add(new InternalCommand(getStopCommand(), modifier(IMPULSE)));
+      if (internal) {
+        result.add(new InternalCommand(getStopCommand(), modifier(IMPULSE)));
+      } else {
+        result.add(new Command(getStopCommand(), modifier(IMPULSE)));
+      }
       return result;
     }
   }

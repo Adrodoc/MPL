@@ -71,6 +71,11 @@ public class ChainLinkAssert<S extends ChainLinkAssert<S, A>, A extends ChainLin
     return assertThat(actual.isInternal()).as(description("internal"));
   }
 
+  public S hasInternal(boolean internal) {
+    internal().isEqualTo(internal);
+    return myself;
+  }
+
   public S isInternal() {
     internal().isTrue();
     return myself;

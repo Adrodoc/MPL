@@ -43,7 +43,6 @@ import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept.INTERCEPTED;
-import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
@@ -63,7 +62,6 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
@@ -155,59 +153,6 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         new Command(first.getCommand(), first), //
         new Command(second.getCommand(), second)//
     );
-  }
-
-  // @formatter:off
-  // ----------------------------------------------------------------------------------------------------
-  //   __        __      _  _     __
-  //   \ \      / /__ _ (_)| |_  / _|  ___   _ __
-  //    \ \ /\ / // _` || || __|| |_  / _ \ | '__|
-  //     \ V  V /| (_| || || |_ |  _|| (_) || |
-  //      \_/\_/  \__,_||_| \__||_|   \___/ |_|
-  //
-  // ----------------------------------------------------------------------------------------------------
-  // @formatter:on
-
-  @Test
-  public void test_conditional_Waitfor() {
-    // given:
-    MplWaitfor mplWaitfor = some($MplWaitfor()//
-        .withConditional(CONDITIONAL));
-
-    // when:
-    List<ChainLink> result = mplWaitfor.accept(underTest);
-
-    // then:
-    assertThat(result).containsExactly(//
-        new InternalCommand(
-            "/summon " + markerEntity() + " ${this + 3} {CustomName:" + mplWaitfor.getEvent()
-                + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
-            true), //
-        newInvertingCommand(CHAIN), //
-        new InternalCommand(getOnCommand("${this + 1}"), true), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE));
-  }
-
-  @Test
-  public void test_invert_Waitfor() {
-    // given:
-    MplWaitfor mplWaitfor = some($MplWaitfor()//
-        .withConditional(INVERT));
-
-    // when:
-    List<ChainLink> result = mplWaitfor.accept(underTest);
-
-    // then:
-    assertThat(result).containsExactly(//
-        new InternalCommand(getOnCommand("${this + 3}"), true), //
-        newInvertingCommand(CHAIN), //
-        new InternalCommand(
-            "/summon " + markerEntity() + " ${this + 1} {CustomName:" + mplWaitfor.getEvent()
-                + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
-            true), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE));
   }
 
   // @formatter:off

@@ -432,17 +432,20 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     InternalCommand summon = new InternalCommand(summonCpb, modifier());
 
     if (waitfor.getConditional() == UNCONDITIONAL) {
+      summon.setModifier(waitfor);
       result.add(summon);
     } else {
-      summon.setConditional(true);
-      ChainLink noWait = new InternalCommand(getStartCommand(dest.get(0)), modifier(CONDITIONAL));
+      Command noWait = new InternalCommand(getStartCommand(dest.get(0)), modifier(CONDITIONAL));
       if (waitfor.getConditional() == CONDITIONAL) {
+        summon.setModifier(waitfor);
         result.add(summon);
-        result.add(newInvertingCommand(CHAIN));
+        result.add(newInvertingCommand(waitfor.getMode()));
         result.add(noWait);
       } else { // conditional == INVERT
+        noWait.setModifier(waitfor);
+        summon.setConditional(true);
         result.add(noWait);
-        result.add(newInvertingCommand(CHAIN));
+        result.add(newInvertingCommand(waitfor.getMode()));
         result.add(summon);
       }
     }
