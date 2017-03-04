@@ -60,10 +60,10 @@ import lombok.ToString;
 @ToString
 public class CommandPartBuffer {
   private final List<Object> commandParts = new ArrayList<>();
-  private final Collection<RelativeThisInsert> thisInserts = new ArrayList<>();
-  private final Collection<TargetedThisInsert> targetingThisInserts = new ArrayList<>();
-  private final Collection<RelativeOriginInsert> originInserts = new ArrayList<>();
-  private final Collection<GlobalVariableInsert> variableInserts = new ArrayList<>();
+  private final List<RelativeThisInsert> thisInserts = new ArrayList<>();
+  private final List<TargetedThisInsert> targetingThisInserts = new ArrayList<>();
+  private final List<RelativeOriginInsert> originInserts = new ArrayList<>();
+  private final List<GlobalVariableInsert> variableInserts = new ArrayList<>();
 
   public CommandPartBuffer() {}
 
@@ -85,7 +85,7 @@ public class CommandPartBuffer {
   }
 
   public Collection<RelativeThisInsert> getThisInserts() {
-    return Collections.unmodifiableCollection(thisInserts);
+    return Collections.unmodifiableList(thisInserts);
   }
 
   public void add(RelativeThisInsert insert) {
@@ -99,7 +99,7 @@ public class CommandPartBuffer {
   }
 
   public Collection<TargetedThisInsert> getTargetingThisInsert() {
-    return Collections.unmodifiableCollection(targetingThisInserts);
+    return Collections.unmodifiableList(targetingThisInserts);
   }
 
   public void add(TargetedThisInsert insert) {
@@ -113,7 +113,7 @@ public class CommandPartBuffer {
   }
 
   public Collection<RelativeOriginInsert> getOriginInserts() {
-    return Collections.unmodifiableCollection(originInserts);
+    return Collections.unmodifiableList(originInserts);
   }
 
   public void add(RelativeOriginInsert insert) {
@@ -127,7 +127,7 @@ public class CommandPartBuffer {
   }
 
   public Collection<GlobalVariableInsert> getVariableInserts() {
-    return Collections.unmodifiableCollection(variableInserts);
+    return Collections.unmodifiableList(variableInserts);
   }
 
   public void add(GlobalVariableInsert insert) {
