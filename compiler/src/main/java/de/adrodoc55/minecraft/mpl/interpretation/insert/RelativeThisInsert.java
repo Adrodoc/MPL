@@ -64,6 +64,6 @@ public class RelativeThisInsert {
   public String toString() {
     if (coordinate != null)
       return coordinate.toRelativeString();
-    return "Unresolved this insert, relative=" + relative;
+    return "${this + " + relative + "}";
   }
 }
