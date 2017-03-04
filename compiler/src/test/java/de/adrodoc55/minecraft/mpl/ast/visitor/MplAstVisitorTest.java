@@ -442,11 +442,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplStart.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal()
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal()
         .hasCommand("execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"))
         .hasMode(mode).isNotConditional().hasNeedsRedstone(needsRedstone);
-    assertThat(result).hasSize(i);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -461,11 +461,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplStart.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal()
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal()
         .hasCommand("execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"))
         .hasMode(mode).isConditional().hasNeedsRedstone(needsRedstone);
-    assertThat(result).hasSize(i);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -492,12 +492,12 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplStart.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isInvertingCommandFor(modeForInverting);
-    assertThat(result.get(i++)).isNotInternal()
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInvertingCommandFor(modeForInverting);
+    assertThat(it.next()).isNotInternal()
         .hasCommand("execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"))
         .hasMode(mode).isConditional().hasNeedsRedstone(needsRedstone);
-    assertThat(result).hasSize(i);
+    assertThat(it).isEmpty();
   }
 
   // @formatter:off
@@ -523,11 +523,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplStop.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal()
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal()
         .hasCommand("execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"))
         .hasMode(mode).isNotConditional().hasNeedsRedstone(needsRedstone);
-    assertThat(result).hasSize(i);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -542,11 +542,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplStop.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal()
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal()
         .hasCommand("execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"))
         .hasMode(mode).isConditional().hasNeedsRedstone(needsRedstone);
-    assertThat(result).hasSize(i);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -573,12 +573,12 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplStop.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isInvertingCommandFor(modeForInverting);
-    assertThat(result.get(i++)).isNotInternal()
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInvertingCommandFor(modeForInverting);
+    assertThat(it.next()).isNotInternal()
         .hasCommand("execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"))
         .hasMode(mode).isConditional().hasNeedsRedstone(needsRedstone);
-    assertThat(result).hasSize(i);
+    assertThat(it).isEmpty();
   }
 
   // @formatter:off
@@ -680,14 +680,14 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplNotify.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isInternal()
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal()
         .hasCommand(
             "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~"))
         .hasModifiers(modifier());
-    assertThat(result.get(i++)).isNotInternal()
+    assertThat(it.next()).isNotInternal()
         .hasCommand("kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]").hasModifiers(modifier());
-    assertThat(result).hasSize(i);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -700,15 +700,15 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplNotify.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isInternal()
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal()
         .hasCommand(
             "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~"))
         .hasModifiers(modifier(CONDITIONAL));
-    assertThat(result.get(i++)).isNotInternal()
+    assertThat(it.next()).isNotInternal()
         .hasCommand("kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]")
         .hasModifiers(modifier(CONDITIONAL));
-    assertThat(result).hasSize(i);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -733,16 +733,16 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplNotify.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isInvertingCommandFor(mode);
-    assertThat(result.get(i++)).isInternal()
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInvertingCommandFor(mode);
+    assertThat(it.next()).isInternal()
         .hasCommand(
             "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~"))
         .hasModifiers(modifier(CONDITIONAL));
-    assertThat(result.get(i++)).isNotInternal()
+    assertThat(it.next()).isNotInternal()
         .hasCommand("kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]")
         .hasModifiers(modifier(CONDITIONAL));
-    assertThat(result).hasSize(i);
+    assertThat(it).isEmpty();
   }
 
   // @formatter:off
@@ -803,10 +803,9 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition())
-        .hasModifiers(mplIf);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition()).hasModifiers(mplIf);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -835,11 +834,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isInvertingCommandFor(mode);
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition())
-        .hasMode(mplIf.getMode()).isConditional().hasNeedsRedstone(mplIf.getNeedsRedstone());
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInvertingCommandFor(mode);
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition()).hasMode(mplIf.getMode())
+        .isConditional().hasNeedsRedstone(mplIf.getNeedsRedstone());
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -897,10 +896,10 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).matchesAsConditional(then1);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).matchesAsConditional(then1);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -916,11 +915,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isInvertingCommandFor(CHAIN);
-    assertThat(result.get(i++)).matchesAsConditional(else1);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+    assertThat(it.next()).matchesAsConditional(else1);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -936,11 +935,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isInvertingCommandFor(CHAIN);
-    assertThat(result.get(i++)).matchesAsConditional(then1);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+    assertThat(it.next()).matchesAsConditional(then1);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -956,10 +955,10 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).matchesAsConditional(else1);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).matchesAsConditional(else1);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -977,12 +976,12 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).matchesAsConditional(then1);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-2, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else1);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).matchesAsConditional(then1);
+    assertThat(it.next()).isTestforSuccessCommand(-2, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else1);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -1000,15 +999,15 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isNormalizingCommand();
-    assertThat(result.get(i++)).matchesAsConditional(then1);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-2, true).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then2);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-4, true).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then3);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isNormalizingCommand();
+    assertThat(it.next()).matchesAsConditional(then1);
+    assertThat(it.next()).isTestforSuccessCommand(-2, true).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(then2);
+    assertThat(it.next()).isTestforSuccessCommand(-4, true).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(then3);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -1026,15 +1025,15 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isTestforSuccessCommand(-1, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then1);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-3, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then2);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-5, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then3);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isTestforSuccessCommand(-1, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(then1);
+    assertThat(it.next()).isTestforSuccessCommand(-3, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(then2);
+    assertThat(it.next()).isTestforSuccessCommand(-5, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(then3);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -1052,15 +1051,15 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isTestforSuccessCommand(-1, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else1);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-3, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else2);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-5, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else3);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isTestforSuccessCommand(-1, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else1);
+    assertThat(it.next()).isTestforSuccessCommand(-3, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else2);
+    assertThat(it.next()).isTestforSuccessCommand(-5, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else3);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -1078,15 +1077,15 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isNormalizingCommand();
-    assertThat(result.get(i++)).matchesAsConditional(else1);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-2, true).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else2);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-4, true).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else3);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isNormalizingCommand();
+    assertThat(it.next()).matchesAsConditional(else1);
+    assertThat(it.next()).isTestforSuccessCommand(-2, true).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else2);
+    assertThat(it.next()).isTestforSuccessCommand(-4, true).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else3);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -1108,23 +1107,23 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isNormalizingCommand();
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isNormalizingCommand();
     // then
-    assertThat(result.get(i++)).matchesAsConditional(then1);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-2, true).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then2);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-4, true).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then3);
+    assertThat(it.next()).matchesAsConditional(then1);
+    assertThat(it.next()).isTestforSuccessCommand(-2, true).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(then2);
+    assertThat(it.next()).isTestforSuccessCommand(-4, true).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(then3);
     // else
-    assertThat(result.get(i++)).isTestforSuccessCommand(-6, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else1);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-8, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else2);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-10, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else3);
-    assertThat(result).hasSize(i);
+    assertThat(it.next()).isTestforSuccessCommand(-6, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else1);
+    assertThat(it.next()).isTestforSuccessCommand(-8, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else2);
+    assertThat(it.next()).isTestforSuccessCommand(-10, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else3);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -1146,24 +1145,24 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isNormalizingCommand();
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isNormalizingCommand();
     // then
-    assertThat(result.get(i++)).isTestforSuccessCommand(-1, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then1);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-3, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then2);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-5, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then3);
+    assertThat(it.next()).isTestforSuccessCommand(-1, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(then1);
+    assertThat(it.next()).isTestforSuccessCommand(-3, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(then2);
+    assertThat(it.next()).isTestforSuccessCommand(-5, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(then3);
     // else
-    assertThat(result.get(i++)).isTestforSuccessCommand(-7, true).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else1);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-9, true).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else2);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-11, true).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else3);
-    assertThat(result).hasSize(i);
+    assertThat(it.next()).isTestforSuccessCommand(-7, true).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else1);
+    assertThat(it.next()).isTestforSuccessCommand(-9, true).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else2);
+    assertThat(it.next()).isTestforSuccessCommand(-11, true).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else3);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -1180,14 +1179,14 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isNormalizingCommand();
-    assertThat(result.get(i++)).matchesAsConditional(then1);
-    assertThat(result.get(i++)).matchesAsConditional(then2);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-3, true).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then3);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isNormalizingCommand();
+    assertThat(it.next()).matchesAsConditional(then1);
+    assertThat(it.next()).matchesAsConditional(then2);
+    assertThat(it.next()).isTestforSuccessCommand(-3, true).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(then3);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -1203,11 +1202,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).matchesAsConditional(then1);
-    assertThat(result.get(i++)).matchesAsConditional(then2);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).matchesAsConditional(then1);
+    assertThat(it.next()).matchesAsConditional(then2);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -1231,16 +1230,16 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isNormalizingCommand();
-    assertThat(result.get(i++)).matchesAsConditional(then1);
-    assertThat(result.get(i++)).isInvertingCommandFor(then1.getMode());
-    assertThat(result.get(i++)).isTestforSuccessCommand(-3, true).isConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then2);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-5, true).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then3);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isNormalizingCommand();
+    assertThat(it.next()).matchesAsConditional(then1);
+    assertThat(it.next()).isInvertingCommandFor(then1.getMode());
+    assertThat(it.next()).isTestforSuccessCommand(-3, true).isConditional();
+    assertThat(it.next()).matchesAsConditional(then2);
+    assertThat(it.next()).isTestforSuccessCommand(-5, true).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(then3);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -1257,14 +1256,14 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isTestforSuccessCommand(-1, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else1);
-    assertThat(result.get(i++)).matchesAsConditional(else2);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-4, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else3);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isTestforSuccessCommand(-1, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else1);
+    assertThat(it.next()).matchesAsConditional(else2);
+    assertThat(it.next()).isTestforSuccessCommand(-4, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else3);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -1288,16 +1287,16 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isTestforSuccessCommand(-1, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else1);
-    assertThat(result.get(i++)).isInvertingCommandFor(else1.getMode());
-    assertThat(result.get(i++)).isTestforSuccessCommand(-4, false).isConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else2);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-6, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else3);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isTestforSuccessCommand(-1, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else1);
+    assertThat(it.next()).isInvertingCommandFor(else1.getMode());
+    assertThat(it.next()).isTestforSuccessCommand(-4, false).isConditional();
+    assertThat(it.next()).matchesAsConditional(else2);
+    assertThat(it.next()).isTestforSuccessCommand(-6, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else3);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -1314,14 +1313,14 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isTestforSuccessCommand(-1, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then1);
-    assertThat(result.get(i++)).matchesAsConditional(then2);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-4, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then3);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isTestforSuccessCommand(-1, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(then1);
+    assertThat(it.next()).matchesAsConditional(then2);
+    assertThat(it.next()).isTestforSuccessCommand(-4, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(then3);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -1344,16 +1343,16 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isTestforSuccessCommand(-1, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then1);
-    assertThat(result.get(i++)).isInvertingCommandFor(then1.getMode());
-    assertThat(result.get(i++)).isTestforSuccessCommand(-4, false).isConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then2);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-6, false).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(then3);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isTestforSuccessCommand(-1, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(then1);
+    assertThat(it.next()).isInvertingCommandFor(then1.getMode());
+    assertThat(it.next()).isTestforSuccessCommand(-4, false).isConditional();
+    assertThat(it.next()).matchesAsConditional(then2);
+    assertThat(it.next()).isTestforSuccessCommand(-6, false).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(then3);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -1370,14 +1369,14 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isNormalizingCommand();
-    assertThat(result.get(i++)).matchesAsConditional(else1);
-    assertThat(result.get(i++)).matchesAsConditional(else2);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-3, true).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else3);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isNormalizingCommand();
+    assertThat(it.next()).matchesAsConditional(else1);
+    assertThat(it.next()).matchesAsConditional(else2);
+    assertThat(it.next()).isTestforSuccessCommand(-3, true).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else3);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -1393,11 +1392,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).matchesAsConditional(else1);
-    assertThat(result.get(i++)).matchesAsConditional(else2);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).matchesAsConditional(else1);
+    assertThat(it.next()).matchesAsConditional(else2);
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -1421,16 +1420,16 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isNormalizingCommand();
-    assertThat(result.get(i++)).matchesAsConditional(else1);
-    assertThat(result.get(i++)).isInvertingCommandFor(else1.getMode());
-    assertThat(result.get(i++)).isTestforSuccessCommand(-3, true).isConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else2);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-5, true).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(else3);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isNormalizingCommand();
+    assertThat(it.next()).matchesAsConditional(else1);
+    assertThat(it.next()).isInvertingCommandFor(else1.getMode());
+    assertThat(it.next()).isTestforSuccessCommand(-3, true).isConditional();
+    assertThat(it.next()).matchesAsConditional(else2);
+    assertThat(it.next()).isTestforSuccessCommand(-5, true).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(else3);
+    assertThat(it).isEmpty();
   }
 
   /**
@@ -1465,15 +1464,15 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isNormalizingCommand();
-    assertThat(result.get(i++)).isNotInternal().hasCommand(outer.getCondition()).isConditional();
-    assertThat(result.get(i++)).matchesAsConditional(innerThen);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-3, true).isNotConditional();
-    assertThat(result.get(i++)).isTestforSuccessCommand(-3, false).isConditional();
-    assertThat(result.get(i++)).matchesAsConditional(innerElse);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isNormalizingCommand();
+    assertThat(it.next()).isNotInternal().hasCommand(outer.getCondition()).isConditional();
+    assertThat(it.next()).matchesAsConditional(innerThen);
+    assertThat(it.next()).isTestforSuccessCommand(-3, true).isNotConditional();
+    assertThat(it.next()).isTestforSuccessCommand(-3, false).isConditional();
+    assertThat(it.next()).matchesAsConditional(innerElse);
+    assertThat(it).isEmpty();
   }
 
   /**
@@ -1513,19 +1512,19 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplIf.accept(underTest);
 
     // then:
-    int i = 0;
-    assertThat(result.get(i++)).isNotInternal().hasCommand(mplIf.getCondition());
-    assertThat(result.get(i++)).isNormalizingCommand();
-    assertThat(result.get(i++)).matchesAsConditional(outer1);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-2, true).isNotConditional();
-    assertThat(result.get(i++)).isNotInternal().hasCommand(outer2.getCondition()).isConditional();
-    assertThat(result.get(i++)).matchesAsConditional(innerThen);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-5, true).isNotConditional();
-    assertThat(result.get(i++)).isTestforSuccessCommand(-3, false).isConditional();
-    assertThat(result.get(i++)).matchesAsConditional(innerElse);
-    assertThat(result.get(i++)).isTestforSuccessCommand(-8, true).isNotConditional();
-    assertThat(result.get(i++)).matchesAsConditional(outer3);
-    assertThat(result).hasSize(i);
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommand(mplIf.getCondition());
+    assertThat(it.next()).isNormalizingCommand();
+    assertThat(it.next()).matchesAsConditional(outer1);
+    assertThat(it.next()).isTestforSuccessCommand(-2, true).isNotConditional();
+    assertThat(it.next()).isNotInternal().hasCommand(outer2.getCondition()).isConditional();
+    assertThat(it.next()).matchesAsConditional(innerThen);
+    assertThat(it.next()).isTestforSuccessCommand(-5, true).isNotConditional();
+    assertThat(it.next()).isTestforSuccessCommand(-3, false).isConditional();
+    assertThat(it.next()).matchesAsConditional(innerElse);
+    assertThat(it.next()).isTestforSuccessCommand(-8, true).isNotConditional();
+    assertThat(it.next()).matchesAsConditional(outer3);
+    assertThat(it).isEmpty();
   }
 
   // @formatter:off
