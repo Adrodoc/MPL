@@ -1064,7 +1064,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   }
 
   @Test
-  public void test_If_mit_nur_einem_else_wird_zu_einem_invert() {
+  public void test_If_with_one_Else_results_in_an_Invert() {
     // given:
     MplCommand else1 = some($MplCommand().withConditional(UNCONDITIONAL));
     MplIf mplIf = some($MplIf()//
@@ -1084,7 +1084,36 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   }
 
   @Test
-  public void test_If_not_mit_nur_einem_then_wird_zu_einem_invert() {
+  public void test_If_with_one_Else_in_a_repeat_Process_results_in_an_Invert_which_references_a_Repeating_Command() {
+    // given:
+    MplCommand else1 = some($MplCommand()//
+        .withConditional(UNCONDITIONAL));
+
+    MplIf mplIf = some($MplIf()//
+        .withNot(false)//
+        .withElseParts(listOf(else1)));
+
+    MplProcess process = some($MplProcess()//
+        .withRepeating(true)//
+        .withChainParts(listOf(mplIf)));
+
+    // when:
+    CommandChain result = underTest.visitProcess(process);
+
+    // then:
+    Iterator<ChainLink> it = result.getCommands().iterator();
+    if (context.getOptions().hasOption(TRANSMITTER))
+      assertThat(it.next()).isSkip().isNotInternal();
+
+    assertThat(it.next()).isNotInternal().hasCommandParts(mplIf.getCondition())
+        .hasModifiers(REPEAT);
+    assertThat(it.next()).isInvertingCommandFor(REPEAT); // Important line!
+    assertThat(it.next()).matchesAsConditional(else1);
+    assertThat(it).isEmpty();
+  }
+
+  @Test
+  public void test_If_not_with_one_Then_results_in_an_Invert() {
     // given:
     MplCommand then1 = some($MplCommand().withConditional(UNCONDITIONAL));
     MplIf mplIf = some($MplIf()//
@@ -1099,6 +1128,33 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     Iterator<ChainLink> it = result.iterator();
     assertThat(it.next()).isNotInternal().hasCommandParts(mplIf.getCondition());
     assertThat(it.next()).isInvertingCommandFor(CHAIN);
+    assertThat(it.next()).matchesAsConditional(then1);
+    assertThat(it).isEmpty();
+  }
+
+  @Test
+  public void test_If_not_with_one_Then_in_a_repeat_Process_results_in_an_Invert_which_references_a_Repeating_Command() {
+    // given:
+    MplCommand then1 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplIf mplIf = some($MplIf()//
+        .withNot(true)//
+        .withThenParts(listOf(then1)));
+
+    MplProcess process = some($MplProcess()//
+        .withRepeating(true)//
+        .withChainParts(listOf(mplIf)));
+
+    // when:
+    CommandChain result = underTest.visitProcess(process);
+
+    // then:
+    Iterator<ChainLink> it = result.getCommands().iterator();
+    if (context.getOptions().hasOption(TRANSMITTER))
+      assertThat(it.next()).isSkip().isNotInternal();
+
+    assertThat(it.next()).isNotInternal().hasCommandParts(mplIf.getCondition())
+        .hasModifiers(REPEAT);
+    assertThat(it.next()).isInvertingCommandFor(REPEAT); // Important line!
     assertThat(it.next()).matchesAsConditional(then1);
     assertThat(it).isEmpty();
   }

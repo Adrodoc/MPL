@@ -44,7 +44,6 @@ import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
-import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 
@@ -58,7 +57,6 @@ import org.junit.runners.MethodSorters;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
@@ -212,44 +210,6 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
         newInvertingCommand(CHAIN), //
         new InternalCommand(getOnCommand("${this + 1}"), true), //
         new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE));
-  }
-
-  // @formatter:off
-  // ----------------------------------------------------------------------------------------------------
-  //    ___   __             _____  _                              _____  _
-  //   |_ _| / _|           |_   _|| |__    ___  _ __             | ____|| | ___   ___
-  //    | | | |_              | |  | '_ \  / _ \| '_ \            |  _|  | |/ __| / _ \
-  //    | | |  _|  _  _  _    | |  | | | ||  __/| | | |  _  _  _  | |___ | |\__ \|  __/
-  //   |___||_|   (_)(_)(_)   |_|  |_| |_| \___||_| |_| (_)(_)(_) |_____||_||___/ \___|
-  //
-  // ----------------------------------------------------------------------------------------------------
-  // @formatter:on
-
-  @Test
-  public void test_commands_im_ersten_if_ohne_normalizer_in_einem_repeating_process_referenzieren_einen_repeating_command_block() {
-    // given:
-    MplCommand first = some($MplCommand()//
-        .withConditional(UNCONDITIONAL));
-
-    MplIf mplIf = some($MplIf()//
-        .withNot(true)//
-        .withThenParts(listOf(first)));
-
-    MplProcess process = some($MplProcess()//
-        .withRepeating(true)//
-        .withChainParts(listOf(mplIf)));
-
-    // when:
-    CommandChain result = underTest.visitProcess(process);
-
-    // then:
-    assertThat(result.getCommands()).containsExactly(//
-        new Command(mplIf.getCondition(), REPEAT), //
-        // then
-        new InternalCommand(
-            "/testforblock ${this - 1} repeating_command_block -1 {SuccessCount:0}"), //
-        new Command(first.getCommand(), first.getMode(), true, first.getNeedsRedstone())//
-    );
   }
 
   // @formatter:off
