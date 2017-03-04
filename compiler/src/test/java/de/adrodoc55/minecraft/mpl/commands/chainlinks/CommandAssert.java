@@ -73,7 +73,7 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
     return assertThat(actual.getCommandParts().getCommandParts()).as(description("commandParts"));
   }
 
-  @SuppressWarnings("deprecation")
+  @Deprecated
   public AbstractCharSequenceAssert<?, String> command() {
     isNotNull();
     return assertThat(actual.getCommand()).as(description("command"));
@@ -101,6 +101,7 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
   }
 
   @Override
+  @Deprecated
   public CommandAssert hasCommand(String command) {
     command().isEqualTo(command);
     return myself;

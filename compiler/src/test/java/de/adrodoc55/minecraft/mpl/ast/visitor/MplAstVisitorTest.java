@@ -46,6 +46,7 @@ import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
+import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept.INTERCEPTED;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
@@ -76,6 +77,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
@@ -742,6 +744,144 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     assertThat(it.next()).isNotInternal()
         .hasCommand("kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]")
         .hasModifiers(modifier(CONDITIONAL));
+    assertThat(it).isEmpty();
+  }
+
+  // @formatter:off
+  // ----------------------------------------------------------------------------------------------------
+  //    ___         _                                _
+  //   |_ _| _ __  | |_  ___  _ __  ___  ___  _ __  | |_
+  //    | | | '_ \ | __|/ _ \| '__|/ __|/ _ \| '_ \ | __|
+  //    | | | | | || |_|  __/| |  | (__|  __/| |_) || |_
+  //   |___||_| |_| \__|\___||_|   \___|\___|| .__/  \__|
+  //                                         |_|
+  // ----------------------------------------------------------------------------------------------------
+  // @formatter:on
+
+  @Test
+  public void test_unconditional_Intercept() {
+    // given:
+    String event = some($String());
+    MplIntercept mplIntercept = some($MplIntercept()//
+        .withEvent(event)//
+        .withConditional(UNCONDITIONAL));
+
+    // when:
+    List<ChainLink> result = mplIntercept.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal().hasModifiers(modifier()).hasCommandParts(
+        "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}");
+
+    assertThat(it.next()).isInternal().hasModifiers(modifier()).hasCommandParts(
+        "summon " + markerEntity() + " ", new RelativeThisInsert(+1),
+        " {CustomName:" + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
+
+    assertThatNext(it).isNotInternal().isJumpDestination();
+
+    assertThat(it.next()).isInternal().hasModifiers(modifier())
+        .hasCommandParts("kill @e[name=" + event + ",r=2]");
+
+    assertThat(it.next()).isInternal().hasModifiers(modifier()).hasCommandParts(
+        "entitydata @e[name=" + event + INTERCEPTED + "] {CustomName:" + event + "}");
+
+    assertThat(it).isEmpty();
+  }
+
+  @Test
+  public void test_conditional_Intercept() {
+    // given:
+    String event = some($String());
+    Mode mode = some($Mode());
+    MplIntercept mplIntercept = some($MplIntercept()//
+        .withEvent(event)//
+        .withConditional(CONDITIONAL)//
+        .withPrevious(new Dependable() {
+          @Override
+          public boolean canBeDependedOn() {
+            return true;
+          }
+
+          @Override
+          public Mode getModeForInverting() throws UnsupportedOperationException {
+            return mode;
+          }
+        }));
+
+    // when:
+    List<ChainLink> result = mplIntercept.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal().hasModifiers(modifier(CONDITIONAL)).hasCommandParts(
+        "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}");
+
+    assertThat(it.next()).isInternal().hasModifiers(modifier(CONDITIONAL)).hasCommandParts(
+        "summon " + markerEntity() + " ", new RelativeThisInsert(+3),
+        " {CustomName:" + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
+
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+
+    assertThat(it.next()).isInternal().hasModifiers(modifier(CONDITIONAL))
+        .hasCommandParts(getStartCommand(new RelativeThisInsert(+1)));
+
+    assertThatNext(it).isNotInternal().isJumpDestination();
+
+    assertThat(it.next()).isInternal().hasModifiers(modifier())
+        .hasCommandParts("kill @e[name=" + event + ",r=2]");
+
+    assertThat(it.next()).isInternal().hasModifiers(modifier()).hasCommandParts(
+        "entitydata @e[name=" + event + INTERCEPTED + "] {CustomName:" + event + "}");
+
+    assertThat(it).isEmpty();
+  }
+
+  @Test
+  public void test_invert_Intercept() {
+    // given:
+    String event = some($String());
+    Mode mode = some($Mode());
+    MplIntercept mplIntercept = some($MplIntercept()//
+        .withEvent(event)//
+        .withConditional(INVERT)//
+        .withPrevious(new Dependable() {
+          @Override
+          public boolean canBeDependedOn() {
+            return true;
+          }
+
+          @Override
+          public Mode getModeForInverting() throws UnsupportedOperationException {
+            return mode;
+          }
+        }));
+
+    // when:
+    List<ChainLink> result = mplIntercept.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal().hasModifiers(modifier(CONDITIONAL))
+        .hasCommandParts(getStartCommand(new RelativeThisInsert(+4)));
+
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+
+    assertThat(it.next()).isInternal().hasModifiers(modifier(CONDITIONAL)).hasCommandParts(
+        "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}");
+
+    assertThat(it.next()).isInternal().hasModifiers(modifier(CONDITIONAL)).hasCommandParts(
+        "summon " + markerEntity() + " ", new RelativeThisInsert(+1),
+        " {CustomName:" + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
+
+    assertThatNext(it).isNotInternal().isJumpDestination();
+
+    assertThat(it.next()).isInternal().hasModifiers(modifier())
+        .hasCommandParts("kill @e[name=" + event + ",r=2]");
+
+    assertThat(it.next()).isInternal().hasModifiers(modifier()).hasCommandParts(
+        "entitydata @e[name=" + event + INTERCEPTED + "] {CustomName:" + event + "}");
+
     assertThat(it).isEmpty();
   }
 

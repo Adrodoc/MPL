@@ -94,6 +94,7 @@ public class ChainLinkAssert<S extends ChainLinkAssert<S, A>, A extends ChainLin
     return asCommand().hasCommandParts(commandParts);
   }
 
+  @Deprecated
   public CommandAssert hasCommand(String command) {
     return asCommand().hasCommand(command);
   }

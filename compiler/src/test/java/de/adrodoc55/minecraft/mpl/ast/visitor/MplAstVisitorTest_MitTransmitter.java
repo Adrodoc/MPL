@@ -42,7 +42,6 @@ package de.adrodoc55.minecraft.mpl.ast.visitor;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
-import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept.INTERCEPTED;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
@@ -61,7 +60,6 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
@@ -153,113 +151,6 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
         new Command(first.getCommand(), first), //
         new Command(second.getCommand(), second)//
     );
-  }
-
-  // @formatter:off
-  // ----------------------------------------------------------------------------------------------------
-  //    ___         _                                _
-  //   |_ _| _ __  | |_  ___  _ __  ___  ___  _ __  | |_
-  //    | | | '_ \ | __|/ _ \| '__|/ __|/ _ \| '_ \ | __|
-  //    | | | | | || |_|  __/| |  | (__|  __/| |_) || |_
-  //   |___||_| |_| \__|\___||_|   \___|\___|| .__/  \__|
-  //                                         |_|
-  // ----------------------------------------------------------------------------------------------------
-  // @formatter:on
-
-  @Test
-  public void test_unconditional_Intercept() {
-    // given:
-    MplIntercept mplIntercept = some($MplIntercept()//
-        .withConditional(UNCONDITIONAL));
-
-    // when:
-    List<ChainLink> result = mplIntercept.accept(underTest);
-
-    // then:
-    assertThat(result).containsExactly(//
-        new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + "] {CustomName:"
-            + mplIntercept.getEvent() + INTERCEPTED + "}"), //
-        new InternalCommand("/summon " + markerEntity() + " ${this + 1} {CustomName:"
-            + mplIntercept.getEvent() + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE), //
-        new InternalCommand("/kill @e[name=" + mplIntercept.getEvent() + ",r=2]"), //
-        new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + INTERCEPTED
-            + "] {CustomName:" + mplIntercept.getEvent() + "}"));
-  }
-
-  @Test
-  public void test_conditional_Intercept() {
-    // given:
-    Mode mode = some($Mode());
-    MplIntercept mplIntercept = some($MplIntercept()//
-        .withConditional(CONDITIONAL)//
-        .withPrevious(new Dependable() {
-          @Override
-          public boolean canBeDependedOn() {
-            return true;
-          }
-
-          @Override
-          public Mode getModeForInverting() throws UnsupportedOperationException {
-            return mode;
-          }
-        }));
-
-    // when:
-    List<ChainLink> result = mplIntercept.accept(underTest);
-
-    // then:
-    assertThat(result).containsExactly(//
-        new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + "] {CustomName:"
-            + mplIntercept.getEvent() + INTERCEPTED + "}", true), //
-        new InternalCommand("/summon " + markerEntity() + " ${this + 3} {CustomName:"
-            + mplIntercept.getEvent() + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
-            true), //
-        newInvertingCommand(CHAIN), //
-        new InternalCommand(getOnCommand("${this + 1}"), true), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE), //
-        new InternalCommand("/kill @e[name=" + mplIntercept.getEvent() + ",r=2]"), //
-        new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + INTERCEPTED
-            + "] {CustomName:" + mplIntercept.getEvent() + "}"));
-  }
-
-  @Test
-  public void test_invert_Intercept() {
-    // given:
-    Mode mode = some($Mode());
-    MplIntercept mplIntercept = some($MplIntercept()//
-        .withConditional(INVERT)//
-        .withPrevious(new Dependable() {
-          @Override
-          public boolean canBeDependedOn() {
-            return true;
-          }
-
-          @Override
-          public Mode getModeForInverting() throws UnsupportedOperationException {
-            return mode;
-          }
-        }));
-
-    // when:
-    List<ChainLink> result = mplIntercept.accept(underTest);
-
-    // then:
-    assertThat(result).containsExactly(//
-        new InternalCommand(getOnCommand("${this + 4}"), true), //
-        newInvertingCommand(CHAIN), //
-        new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + "] {CustomName:"
-            + mplIntercept.getEvent() + INTERCEPTED + "}", true), //
-        new InternalCommand("/summon " + markerEntity() + " ${this + 1} {CustomName:"
-            + mplIntercept.getEvent() + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
-            true), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE), //
-        new InternalCommand("/kill @e[name=" + mplIntercept.getEvent() + ",r=2]"), //
-        new InternalCommand("/entitydata @e[name=" + mplIntercept.getEvent() + INTERCEPTED
-            + "] {CustomName:" + mplIntercept.getEvent() + "}"));
   }
 
   // @formatter:off
