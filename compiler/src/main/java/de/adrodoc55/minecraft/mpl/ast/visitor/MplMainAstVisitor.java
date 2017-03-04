@@ -811,7 +811,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     InternalCommand initLoop = new InternalCommand(getStartCommand(initLoopInsert), modifier());
     TargetedThisInsert skipLoopInsert = new TargetedThisInsert();
     InternalCommand skipLoop =
-        new InternalCommand(getStartCommand(initLoopInsert), modifier(CONDITIONAL));
+        new InternalCommand(getStartCommand(skipLoopInsert), modifier(CONDITIONAL));
 
     if (!hasInitialCondition && !mplWhile.isConditional()) {
       result.add(initLoop);

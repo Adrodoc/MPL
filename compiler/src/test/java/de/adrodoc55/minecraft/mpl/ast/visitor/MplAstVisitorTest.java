@@ -95,7 +95,6 @@ import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLinkIterableAssert;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
@@ -1787,9 +1786,9 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(result).startsWith(//
-        new Command(mplWhile.getCondition(), mplWhile)//
-    );
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommandParts(mplWhile.getCondition())
+        .hasModifiers(mplWhile);
   }
 
   @Test
@@ -1819,37 +1818,37 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(result).startsWith(//
-        newInvertingCommand(mode), //
-        new Command(mplWhile.getCondition(), mplWhile)//
-    );
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInvertingCommandFor(mode);
+    assertThat(it.next()).isNotInternal().hasCommandParts(mplWhile.getCondition())
+        .hasModifiers(mplWhile);
   }
 
   @Test
-  public void test_repeat_While_unconditional_modifier_gelten_fuer_init_command() {
+  public void test_repeat_While_unconditional_modifier_affect_init_command() {
     // given:
     MplWhile mplWhile = some($MplWhile()//
         .withTrailing(true)//
         .withMode($Mode())//
-        .withConditional($oneOf(UNCONDITIONAL))//
+        .withConditional(UNCONDITIONAL)//
         .withNeedsRedstone($boolean()));
 
     // when:
     List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(result).startsWith(//
-        new InternalCommand(getOnCommand("${this + 1}"), mplWhile)//
-    );
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(+1)))
+        .hasModifiers(mplWhile);
   }
 
   @Test
-  public void test_repeat_While_conditional_modifier_erzeugt_conditional_jump() {
+  public void test_repeat_While_conditional_modifier_creates_conditional_jump() {
     // given:
     MplWhile mplWhile = some($MplWhile()//
         .withTrailing(true)//
         .withMode($Mode())//
-        .withConditional($oneOf(CONDITIONAL))//
+        .withConditional(CONDITIONAL)//
         .withNeedsRedstone($boolean()));
 
     // when:
@@ -1860,11 +1859,12 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     if (underTest.options.hasOption(TRANSMITTER)) {
       ref--;
     }
-    assertThat(result).startsWith(//
-        new InternalCommand(getOnCommand("${this + 3}"), mplWhile), //
-        newInvertingCommand(CHAIN), //
-        new InternalCommand(getOnCommand("${this + " + ref + "}"), true)//
-    );
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(+3)))
+        .hasModifiers(mplWhile);
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(ref)))
+        .hasModifiers(modifier(CONDITIONAL));
   }
 
   @Test
@@ -1897,11 +1897,12 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     if (underTest.options.hasOption(TRANSMITTER)) {
       ref--;
     }
-    assertThat(result).startsWith(//
-        new InternalCommand(getOnCommand("${this + " + ref + "}"), mplWhile), //
-        newInvertingCommand(CHAIN), //
-        new InternalCommand(getOnCommand("${this + 1}"), true)//
-    );
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(ref)))
+        .hasModifiers(mplWhile);
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(+1)))
+        .hasModifiers(modifier(CONDITIONAL));
   }
 
   @Test
@@ -1919,9 +1920,9 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(result).startsWith(//
-        new InternalCommand(getOnCommand("${this + 1}"), mplWhile)//
-    );
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(+1)))
+        .hasModifiers(mplWhile);
   }
 
   @Test
@@ -1943,11 +1944,12 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     if (underTest.options.hasOption(TRANSMITTER)) {
       ref--;
     }
-    assertThat(result).startsWith(//
-        new InternalCommand(getOnCommand("${this + 3}"), mplWhile), //
-        newInvertingCommand(CHAIN), //
-        new InternalCommand(getOnCommand("${this + " + ref + "}"), true)//
-    );
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(+3)))
+        .hasModifiers(mplWhile);
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(ref)))
+        .hasModifiers(modifier(CONDITIONAL));
   }
 
   @Test
@@ -1982,11 +1984,12 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     if (underTest.options.hasOption(TRANSMITTER)) {
       ref--;
     }
-    assertThat(result).startsWith(//
-        new InternalCommand(getOnCommand("${this + " + ref + "}"), mplWhile), //
-        newInvertingCommand(CHAIN), //
-        new InternalCommand(getOnCommand("${this + 1}"), true)//
-    );
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(ref)))
+        .hasModifiers(mplWhile);
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(+1)))
+        .hasModifiers(modifier(CONDITIONAL));
   }
 
   @Test
