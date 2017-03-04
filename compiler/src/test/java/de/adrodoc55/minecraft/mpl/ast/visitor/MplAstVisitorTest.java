@@ -172,7 +172,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   }
 
   @Test
-  public void test_an_impulse_process_always_ends_with_notify() throws Exception {
+  public void test_an_impulse_process_ends_with_notify() throws Exception {
     // given:
     List<MplCommand> mplCommands = makeValid(listOf(several(), $MplCommand()));
     MplProcess process = some($MplProcess()//
@@ -184,13 +184,13 @@ public abstract class MplAstVisitorTest extends MplTestBase {
 
     // then:
     List<ChainLink> commands = result.getCommands();
-    int i = commands.size() - 3;
+    int i = commands.size() - 2;
     assertThat(commands.get(i++)).isInternal()
         .hasCommandParts(
-            "/execute @e[name=" + process.getName() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~"))
+            "execute @e[name=" + process.getName() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~"))
         .hasModifiers(modifier());
     assertThat(commands.get(i++)).isNotInternal()
-        .hasCommandParts("/kill @e[name=" + process.getName() + NOTIFY + "]")
+        .hasCommandParts("kill @e[name=" + process.getName() + NOTIFY + "]")
         .hasModifiers(modifier());
   }
 
