@@ -47,7 +47,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 
 import org.assertj.core.api.AbstractBooleanAssert;
-import org.assertj.core.api.AbstractCharSequenceAssert;
 import org.assertj.core.api.AbstractComparableAssert;
 import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.ObjectAssert;
@@ -73,12 +72,6 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
     return assertThat(actual.getCommandParts().getCommandParts()).as(description("commandParts"));
   }
 
-  @Deprecated
-  public AbstractCharSequenceAssert<?, String> command() {
-    isNotNull();
-    return assertThat(actual.getCommand()).as(description("command"));
-  }
-
   public AbstractComparableAssert<?, Mode> mode() {
     isNotNull();
     return assertThat(actual.mode).as(description("mode"));
@@ -97,13 +90,6 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
   @Override
   public CommandAssert hasCommandParts(Object... commandParts) {
     commandParts().containsExactly(commandParts);
-    return myself;
-  }
-
-  @Override
-  @Deprecated
-  public CommandAssert hasCommand(String command) {
-    command().isEqualTo(command);
     return myself;
   }
 
@@ -154,7 +140,7 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
   @Override
   public CommandAssert matches(MplCommand expected) {
     isNotInternal();
-    hasCommand(expected.getCommand());
+    hasCommandParts(expected.getCommand());
     hasModifiers(expected);
     return myself;
   }
@@ -162,7 +148,7 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
   @Override
   public CommandAssert matchesAsConditional(MplCommand expected) {
     isNotInternal();
-    hasCommand(expected.getCommand());
+    hasCommandParts(expected.getCommand());
     hasMode(expected.getMode());
     isConditional();
     hasNeedsRedstone(expected.getNeedsRedstone());
@@ -189,7 +175,7 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
 
   public CommandAssert isTestforSuccessCommand(int relative, Mode referencedMode, boolean success) {
     isInternal();
-    hasCommand("testforblock " + new RelativeThisInsert(relative) + " "
+    hasCommandParts("testforblock " + new RelativeThisInsert(relative) + " "
         + referencedMode.getStringBlockId() + " -1 {SuccessCount:" + (success ? 1 : 0) + "}");
     hasMode(CHAIN);
     doesNotNeedRedstone();
@@ -199,7 +185,7 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
   @Override
   public CommandAssert isNormalizingCommand() {
     isInternal();
-    hasCommand("testforblock ~ ~ ~ chain_command_block");
+    hasCommandParts("testforblock ~ ~ ~ chain_command_block");
     hasModifiers(modifier(CHAIN, CONDITIONAL));
     return myself;
   }
