@@ -129,6 +129,12 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
   }
 
   @Override
+  public CommandAssert hasModifiers(Mode mode) {
+    hasModifiers(modifier(mode));
+    return myself;
+  }
+
+  @Override
   public CommandAssert hasModifiers(Modifiable modifiers) {
     isNotNull();
     mode().isEqualTo(modifiers.getMode());

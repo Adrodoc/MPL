@@ -71,6 +71,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import com.google.common.collect.Iterators;
+
 import de.adrodoc55.minecraft.mpl.MplTestBase;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
@@ -174,7 +176,8 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   @Test
   public void test_an_impulse_process_ends_with_notify() throws Exception {
     // given:
-    List<MplCommand> mplCommands = makeValid(listOf(several(), $MplCommand()));
+    List<MplCommand> mplCommands = makeValid(listOf(several(), $MplCommand()//
+        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL))));
     MplProcess process = some($MplProcess()//
         .withRepeating(false)//
         .withChainParts(mplCommands));
@@ -183,15 +186,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     CommandChain result = underTest.visitProcess(process);
 
     // then:
-    List<ChainLink> commands = result.getCommands();
-    int i = commands.size() - 2;
-    assertThat(commands.get(i++)).isInternal()
-        .hasCommandParts(
-            "execute @e[name=" + process.getName() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~"))
-        .hasModifiers(modifier());
-    assertThat(commands.get(i++)).isNotInternal()
-        .hasCommandParts("kill @e[name=" + process.getName() + NOTIFY + "]")
-        .hasModifiers(modifier());
+    Iterator<ChainLink> it = result.getCommands().iterator();
+    assertThatNext(it).isNotInternal().isJumpDestination();
+    Iterators.advance(it, mplCommands.size());
+    assertThatNext(it).isNotInternal().isUnconditionalNotify(process.getName());
+    assertThat(it).isEmpty();
   }
 
   @Test
@@ -208,7 +207,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   }
 
   @Test
-  public void test_a_inline_process_is_ignored() throws Exception {
+  public void test_an_inline_process_is_ignored() throws Exception {
     // given:
     MplProcess process = some($MplProcess().withType(INLINE));
 
@@ -217,6 +216,29 @@ public abstract class MplAstVisitorTest extends MplTestBase {
 
     // then:
     assertThat(result).isNull();
+  }
+
+  @Test
+  public void test_a_repeat_process_uses_a_repeat_command_block() {
+    // given:
+    MplCommand first = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand second = some($MplCommand()//
+        .withPrevious(first)//
+        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
+    MplProcess process = some($MplProcess()//
+        .withRepeating(true)//
+        .withChainParts(listOf(first, second)));
+
+    // when:
+    CommandChain result = underTest.visitProcess(process);
+
+    // then:
+    Iterator<ChainLink> it = result.getCommands().iterator();
+    if (context.getOptions().hasOption(TRANSMITTER))
+      assertThat(it.next()).isSkip().isNotInternal();
+    assertThat(it.next()).hasCommandParts(first.getCommand()).hasModifiers(REPEAT);
+    assertThat(it.next()).matches(second);
+    assertThat(it).isEmpty();
   }
 
   // @formatter:off
@@ -248,11 +270,12 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     CommandChain result = underTest.visitProcess(process);
 
     // then:
-    int i = context.getOptions().hasOption(TRANSMITTER) ? 2 : 1;
-    List<ChainLink> commands = result.getCommands();
-    assertThat(commands.get(i++)).hasCommandParts(first.getCommand()).hasModifiers(first);
-    assertThat(commands.get(i++)).isInvertingCommandFor(first.getMode()); // Important line!
-    assertThat(commands.get(i++)).matches(second);
+    Iterator<ChainLink> it = result.getCommands().iterator();
+    assertThatNext(it).isNotInternal().isJumpDestination();
+    assertThat(it.next()).matches(first);
+    assertThat(it.next()).isInvertingCommandFor(first.getMode()); // Important line!
+    assertThat(it.next()).matches(second);
+    assertThatNext(it).isNotInternal().isUnconditionalNotify(process.getName());
   }
 
   @Test
@@ -273,12 +296,13 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     CommandChain result = underTest.visitProcess(process);
 
     // then:
-    int i = context.getOptions().hasOption(TRANSMITTER) ? 2 : 1;
-    List<ChainLink> commands = result.getCommands();
-    assertThat(commands.get(i++)).hasCommandParts(first.getCommand())
-        .hasModifiers(modifier(REPEAT));
-    assertThat(commands.get(i++)).isInvertingCommandFor(REPEAT); // Important line!
-    assertThat(commands.get(i++)).matches(second);
+    Iterator<ChainLink> it = result.getCommands().iterator();
+    if (context.getOptions().hasOption(TRANSMITTER))
+      assertThat(it.next()).isSkip().isNotInternal();
+    assertThat(it.next()).hasCommandParts(first.getCommand()).hasModifiers(REPEAT);
+    assertThat(it.next()).isInvertingCommandFor(REPEAT); // Important line!
+    assertThat(it.next()).matches(second);
+    assertThat(it).isEmpty();
   }
 
   // @formatter:off
@@ -679,11 +703,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
 
     // then:
     Iterator<ChainLink> it = result.iterator();
-    assertThat(it.next()).isInternal()
+    assertThat(it.next()).isNotInternal()
         .hasCommandParts(
             "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~"))
         .hasModifiers(modifier());
-    assertThat(it.next()).isNotInternal()
+    assertThat(it.next()).isInternal()
         .hasCommandParts("kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]")
         .hasModifiers(modifier());
     assertThat(it).isEmpty();
@@ -700,11 +724,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
 
     // then:
     Iterator<ChainLink> it = result.iterator();
-    assertThat(it.next()).isInternal()
+    assertThat(it.next()).isNotInternal()
         .hasCommandParts(
             "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~"))
         .hasModifiers(modifier(CONDITIONAL));
-    assertThat(it.next()).isNotInternal()
+    assertThat(it.next()).isInternal()
         .hasCommandParts("kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]")
         .hasModifiers(modifier(CONDITIONAL));
     assertThat(it).isEmpty();
@@ -734,11 +758,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     // then:
     Iterator<ChainLink> it = result.iterator();
     assertThat(it.next()).isInvertingCommandFor(mode);
-    assertThat(it.next()).isInternal()
+    assertThat(it.next()).isNotInternal()
         .hasCommandParts(
             "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~"))
         .hasModifiers(modifier(CONDITIONAL));
-    assertThat(it.next()).isNotInternal()
+    assertThat(it.next()).isInternal()
         .hasCommandParts("kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]")
         .hasModifiers(modifier(CONDITIONAL));
     assertThat(it).isEmpty();

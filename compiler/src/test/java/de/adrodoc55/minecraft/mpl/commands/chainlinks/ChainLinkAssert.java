@@ -94,6 +94,10 @@ public class ChainLinkAssert<S extends ChainLinkAssert<S, A>, A extends ChainLin
     return asCommand().hasCommandParts(commandParts);
   }
 
+  public CommandAssert hasModifiers(Mode mode) {
+    return asCommand().hasModifiers(mode);
+  }
+
   public CommandAssert hasModifiers(Modifiable modifiers) {
     return asCommand().hasModifiers(modifiers);
   }

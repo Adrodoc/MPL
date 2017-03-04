@@ -110,28 +110,6 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
   // @formatter:on
 
   @Test
-  public void test_a_repeat_process_uses_a_repeat_command_block() {
-    // given:
-    MplCommand first = some($MplCommand().withConditional(UNCONDITIONAL));
-    MplCommand second = some($MplCommand()//
-        .withPrevious(first)//
-        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
-    MplProcess process = some($MplProcess()//
-        .withRepeating(true)//
-        .withChainParts(listOf(first, second)));
-
-    // when:
-    CommandChain result = underTest.visitProcess(process);
-
-    // then:
-    assertThat(result.getCommands()).containsExactly(//
-        new MplSkip(), //
-        new Command(first.getCommand(), REPEAT), //
-        new Command(second.getCommand(), second)//
-    );
-  }
-
-  @Test
   public void test_a_nameless_process_doesnt_have_startup_commands() {
     // given:
     MplCommand first = some($MplCommand().withConditional(UNCONDITIONAL));

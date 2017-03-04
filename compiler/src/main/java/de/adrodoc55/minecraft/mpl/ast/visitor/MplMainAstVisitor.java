@@ -492,9 +492,9 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     addInvertingCommandIfInvert(result, notify);
 
     boolean conditional = notify.isConditional();
-    result.add(new InternalCommand(
-        "execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + getStartCommand(), conditional));
-    result.add(new Command("kill @e[name=" + event + NOTIFY + "]", conditional));
+    result.add(new Command("execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + getStartCommand(),
+        conditional));
+    result.add(new InternalCommand("kill @e[name=" + event + NOTIFY + "]", conditional));
     return result;
   }
 

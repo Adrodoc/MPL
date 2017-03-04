@@ -43,7 +43,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 
@@ -54,6 +53,7 @@ import javax.annotation.CheckReturnValue;
 
 import com.google.common.collect.Lists;
 
+import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
@@ -80,22 +80,17 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
 
   @CheckReturnValue
   private String getStartCommandHeader() {
-    return options.hasOption(TRANSMITTER) ? "setblock " : "blockdata ";
+    return MplUtils.getStartCommandHeader(options);
   }
 
   @CheckReturnValue
   private String getStartCommandTrailer() {
-    return options.hasOption(TRANSMITTER) ? " redstone_block" : " {auto:1b}";
+    return MplUtils.getStartCommandTrailer(options);
   }
 
-  /**
-   * Returns a command that starts whatever is at the execution coordinates.
-   * 
-   * @return a command that starts whatever is at the execution coordinates
-   */
   @CheckReturnValue
   protected String getStartCommand() {
-    return getStartCommandHeader() + "~ ~ ~" + getStartCommandTrailer();
+    return MplUtils.getStartCommand(options);
   }
 
   @CheckReturnValue
@@ -114,30 +109,17 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
 
   @CheckReturnValue
   private String getStopCommandHeader() {
-    return options.hasOption(TRANSMITTER) ? "setblock " : "blockdata ";
+    return MplUtils.getStopCommandHeader(options);
   }
 
   @CheckReturnValue
   private String getStopCommandTrailer() {
-    if (options.hasOption(TRANSMITTER)) {
-      if (options.hasOption(DEBUG)) {
-        return " air";
-      } else {
-        return " stone";
-      }
-    } else {
-      return " {auto:0b}";
-    }
+    return MplUtils.getStopCommandTrailer(options);
   }
 
-  /**
-   * Returns a command that stops whatever is at the execution coordinates.
-   * 
-   * @return a command that stops whatever is at the execution coordinates
-   */
   @CheckReturnValue
   protected String getStopCommand() {
-    return getStopCommandHeader() + "~ ~ ~" + getStopCommandTrailer();
+    return MplUtils.getStopCommand(options);
   }
 
   @CheckReturnValue
