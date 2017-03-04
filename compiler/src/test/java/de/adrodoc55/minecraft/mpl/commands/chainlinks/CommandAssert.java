@@ -175,8 +175,8 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
 
   public CommandAssert isTestforSuccessCommand(int relative, Mode referencedMode, boolean success) {
     isInternal();
-    hasCommandParts("testforblock " + new RelativeThisInsert(relative) + " "
-        + referencedMode.getStringBlockId() + " -1 {SuccessCount:" + (success ? 1 : 0) + "}");
+    hasCommandParts("testforblock ", new RelativeThisInsert(relative),
+        " " + referencedMode.getStringBlockId() + " -1 {SuccessCount:" + (success ? 1 : 0) + "}");
     hasMode(CHAIN);
     doesNotNeedRedstone();
     return myself;
