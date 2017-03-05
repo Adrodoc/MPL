@@ -63,6 +63,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 
 public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
@@ -83,17 +84,24 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
 
   public AbstractComparableAssert<?, Mode> mode() {
     isNotNull();
-    return assertThat(actual.mode).as(description("mode"));
+    return assertThat(actual.getMode()).as(description("mode"));
   }
 
   public AbstractBooleanAssert<?> conditional() {
     isNotNull();
-    return assertThat(actual.conditional).as(description("conditional"));
+    return assertThat(actual.isConditional()).as(description("conditional"));
   }
 
   public AbstractBooleanAssert<?> needsRedstone() {
     isNotNull();
-    return assertThat(actual.needsRedstone).as(description("needsRedstone"));
+    return assertThat(actual.getNeedsRedstone()).as(description("needsRedstone"));
+  }
+
+  @Override
+  public CommandAssert hasCommandParts(CommandPartBuffer commandParts) {
+    isNotNull();
+    assertThat(actual.getCommandParts()).as(description("commandParts")).isEqualTo(commandParts);
+    return myself;
   }
 
   @Override
@@ -167,7 +175,7 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
   @Override
   public CommandAssert matches(MplCommand expected) {
     isNotInternal();
-    hasCommandParts(expected.getCommand());
+    hasCommandParts(expected.getCommandParts());
     hasModifiers(expected);
     return myself;
   }
@@ -175,7 +183,7 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
   @Override
   public CommandAssert matchesAsImpulse(MplCommand expected) {
     isNotInternal();
-    hasCommandParts(expected.getCommand());
+    hasCommandParts(expected.getCommandParts());
     hasMode(IMPULSE);
     hasConditional(expected.isConditional());
     hasNeedsRedstone(expected.getNeedsRedstone());
@@ -185,7 +193,7 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
   @Override
   public CommandAssert matchesAsConditional(MplCommand expected) {
     isNotInternal();
-    hasCommandParts(expected.getCommand());
+    hasCommandParts(expected.getCommandParts());
     hasMode(expected.getMode());
     isConditional();
     hasNeedsRedstone(expected.getNeedsRedstone());

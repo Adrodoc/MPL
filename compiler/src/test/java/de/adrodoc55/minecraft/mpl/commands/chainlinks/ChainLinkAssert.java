@@ -54,6 +54,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 
 public class ChainLinkAssert<S extends ChainLinkAssert<S, A>, A extends ChainLink>
     extends ExtendedAbstractAssert<S, A> {
@@ -102,6 +103,10 @@ public class ChainLinkAssert<S extends ChainLinkAssert<S, A>, A extends ChainLin
 
   public AbstractListAssert<?, ?, Object, ObjectAssert<Object>> commandParts() {
     return asCommand().commandParts();
+  }
+
+  public CommandAssert hasCommandParts(CommandPartBuffer commandParts) {
+    return asCommand().hasCommandParts(commandParts);
   }
 
   public CommandAssert hasCommandParts(Object... commandParts) {

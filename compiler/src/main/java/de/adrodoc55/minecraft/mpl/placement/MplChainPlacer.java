@@ -41,6 +41,7 @@ package de.adrodoc55.minecraft.mpl.placement;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.coordinate.Axis3D.Y;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNoOperationCommand;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
@@ -269,7 +270,7 @@ public abstract class MplChainPlacer {
         tags += "," + tag;
       }
       result.add(index,
-          new Command("/summon " + version.markerEntity() + " ${origin + ("
+          newCommand("/summon " + version.markerEntity() + " ${origin + ("
               + chainStart.toAbsoluteString() + ")} {CustomName:" + name + ",Tags:["
               + container.getHashCode() + tags + "],NoGravity:1b,Invisible:1b,Invulnerable:1b"
               + (nonTransmitterDebug ? "" : ",Marker:1b")
@@ -283,7 +284,7 @@ public abstract class MplChainPlacer {
     ArrayList<ChainLink> result = new ArrayList<>(commands.size() + 1);
     result.addAll(commands);
     if (!commands.isEmpty()) {
-      result.add(new Command(
+      result.add(newCommand(
           "/kill @e[type=" + version.markerEntity() + ",tag=" + container.getHashCode() + "]"));
     }
     return new CommandChain(getUninstall().getName(), result);

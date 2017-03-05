@@ -53,6 +53,7 @@ import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetedThisInsert;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
@@ -68,6 +69,7 @@ public class CommandPartBuffer {
 
   public CommandPartBuffer() {}
 
+  @GenerateMplPojoBuilder
   public CommandPartBuffer(String command) {
     add(commandWithoutLeadingSlash(command));
   }

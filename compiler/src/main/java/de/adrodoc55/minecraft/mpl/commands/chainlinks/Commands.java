@@ -45,6 +45,7 @@ import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetedThisInsert;
@@ -57,12 +58,44 @@ public class Commands {
     throw new Exception("Utils Classes cannot be instantiated!");
   }
 
+  public static Command newCommand() {
+    return newCommand(new CommandPartBuffer(), modifier());
+  }
+
+  public static Command newCommand(String command) {
+    return newCommand(command, modifier());
+  }
+
+  public static Command newCommand(String command, Modifiable modifier) {
+    return newCommand(new CommandPartBuffer(command), modifier);
+  }
+
+  public static Command newCommand(CommandPartBuffer commandParts, Modifiable modifier) {
+    return new Command(commandParts, modifier, false);
+  }
+
+  public static Command newInternalCommand() {
+    return newInternalCommand(new CommandPartBuffer(), modifier());
+  }
+
+  public static Command newInternalCommand(String command) {
+    return newInternalCommand(command, modifier());
+  }
+
+  public static Command newInternalCommand(String command, Modifiable modifier) {
+    return newInternalCommand(new CommandPartBuffer(command), modifier);
+  }
+
+  public static Command newInternalCommand(CommandPartBuffer commandParts, Modifiable modifier) {
+    return new Command(commandParts, modifier, true);
+  }
+
   public static Command newNoOperationCommand() {
-    return new InternalCommand(new CommandPartBuffer(), modifier());
+    return newInternalCommand(new CommandPartBuffer(), modifier());
   }
 
   public static Command newNormalizingCommand() {
-    return new InternalCommand("testforblock ~ ~ ~ chain_command_block", modifier(CONDITIONAL));
+    return newInternalCommand("testforblock ~ ~ ~ chain_command_block", modifier(CONDITIONAL));
   }
 
   /**
@@ -98,7 +131,7 @@ public class Commands {
     cpb.add(getTestforSuccessHeader());
     cpb.add(new RelativeThisInsert(relative));
     cpb.add(getTestforSuccessTrailer(success, targetMode));
-    return new InternalCommand(cpb, modifier(Conditional.valueOf(conditional)));
+    return newInternalCommand(cpb, modifier(Conditional.valueOf(conditional)));
   }
 
   public static Command newTestforSuccessCommand(Command target, boolean success) {
@@ -106,7 +139,7 @@ public class Commands {
     cpb.add(getTestforSuccessHeader());
     cpb.add(new TargetedThisInsert(target));
     cpb.add(getTestforSuccessTrailer(success, target.getMode()));
-    return new InternalCommand(cpb, modifier());
+    return newInternalCommand(cpb, modifier());
   }
 
   private static String getTestforSuccessHeader() {

@@ -45,8 +45,12 @@ import static de.adrodoc55.minecraft.coordinate.Direction3D.NORTH;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.SOUTH;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.UP;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.WEST;
+import static de.adrodoc55.minecraft.mpl.MplUtils.getStopCommand;
+import static de.adrodoc55.minecraft.mpl.MplUtils.getStopCommandHeader;
+import static de.adrodoc55.minecraft.mpl.MplUtils.getStopCommandTrailer;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newCommand;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 
@@ -82,7 +86,6 @@ import de.adrodoc55.minecraft.mpl.chain.ChainContainerBuilder;
 import de.adrodoc55.minecraft.mpl.chain.CommandChainBuilder;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.CommandBuilder;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkipBuilder;
@@ -91,6 +94,7 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContextBuilder;
 import de.adrodoc55.minecraft.mpl.compilation.MplSourceBuilder;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
+import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBufferBuilder;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBufferBuilder;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
@@ -146,9 +150,15 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
+  public static CommandPartBufferBuilder $CommandPartBuffer() {
+    return new CommandPartBufferBuilder()//
+        .withCommand($CommandString())//
+    ;
+  }
+
   public static CommandBuilder $Command() {
     return new CommandBuilder()//
-        .withCommand($CommandString())//
+        .withCommandParts($CommandPartBuffer())//
         .withMode($Mode())//
         .withConditional($boolean())//
         .withNeedsRedstone($boolean())//
@@ -376,14 +386,12 @@ public class MplTestBase extends MplAssertionFactory {
     if (options.hasOption(TRANSMITTER)) {
       result.add(new MplSkip());
       CommandPartBuffer cpb = new CommandPartBuffer();
-      cpb.add(MplUtils.getStopCommandHeader(options));
+      cpb.add(getStopCommandHeader(options));
       cpb.add(new RelativeThisInsert(-1));
-      cpb.add(MplUtils.getStopCommandTrailer(options));
-      result.add(new Command(cpb, modifier(IMPULSE)));
+      cpb.add(getStopCommandTrailer(options));
+      result.add(newCommand(cpb, modifier(IMPULSE)));
     } else {
-      CommandPartBuffer cpb = new CommandPartBuffer();
-      cpb.add(MplUtils.getStopCommand(options));
-      result.add(new Command(cpb, modifier(IMPULSE)));
+      result.add(newCommand(getStopCommand(options), modifier(IMPULSE)));
     }
     if (commands != null && !commands.isEmpty()) {
       result.add(some($Command()));

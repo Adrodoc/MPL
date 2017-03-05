@@ -49,6 +49,8 @@ import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newCommand;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInternalCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNormalizingCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newTestforSuccessCommand;
@@ -100,7 +102,6 @@ import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
@@ -358,7 +359,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     addInvertingCommandIfInvert(result, command);
 
     CommandPartBuffer cmd = command.getCommandParts();
-    result.add(new Command(cmd, command));
+    result.add(newCommand(cmd, command));
     return result;
   }
 
@@ -396,7 +397,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     addInvertingCommandIfInvert(result, start);
 
     String command = "execute " + selector + " ~ ~ ~ " + getStartCommand();
-    result.add(new Command(command, start));
+    result.add(newCommand(command, start));
     return result;
   }
 
@@ -410,7 +411,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     addInvertingCommandIfInvert(result, stop);
 
     String command = "execute " + selector + " ~ ~ ~ " + getStopCommand();
-    result.add(new Command(command, stop));
+    result.add(newCommand(command, stop));
     return result;
   }
 
@@ -429,13 +430,13 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     summonCpb.add(new TargetedThisInsert(dest.get(0)));
     summonCpb.add(
         " {CustomName:" + event + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
-    InternalCommand summon = new InternalCommand(summonCpb, modifier());
+    Command summon = newInternalCommand(summonCpb, modifier());
 
     if (waitfor.getConditional() == UNCONDITIONAL) {
       summon.setModifier(waitfor);
       result.add(summon);
     } else {
-      Command noWait = new InternalCommand(getStartCommand(dest.get(0)), modifier(CONDITIONAL));
+      Command noWait = newInternalCommand(getStartCommand(dest.get(0)), modifier(CONDITIONAL));
       if (waitfor.getConditional() == CONDITIONAL) {
         summon.setModifier(waitfor);
         result.add(summon);
@@ -493,9 +494,9 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     addInvertingCommandIfInvert(result, notify);
 
     ModifierBuffer modifier = modifier(notify.getConditional());
-    result.add(new Command("execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + getStartCommand(),
-        modifier));
-    result.add(new InternalCommand("kill @e[name=" + event + NOTIFY + "]", modifier));
+    result.add(
+        newCommand("execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + getStartCommand(), modifier));
+    result.add(newInternalCommand("kill @e[name=" + event + NOTIFY + "]", modifier));
     return result;
   }
 
@@ -531,7 +532,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     checkNotInlineProcess(intercept, event);
     Conditional conditional = intercept.getConditional();
 
-    InternalCommand entitydata = new InternalCommand(
+    Command entitydata = newInternalCommand(
         "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}",
         modifier(conditional));
 
@@ -545,13 +546,13 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     summonCpb.add(new TargetedThisInsert(trc.get(0)));
     summonCpb
         .add(" {CustomName:" + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
-    ChainLink summon = new InternalCommand(summonCpb, modifier(conditional));
+    ChainLink summon = newInternalCommand(summonCpb, modifier(conditional));
 
     if (intercept.getConditional() == UNCONDITIONAL) {
       result.add(entitydata);
       result.add(summon);
     } else {
-      ChainLink noWait = new InternalCommand(getStartCommand(trc.get(0)), modifier(CONDITIONAL));
+      ChainLink noWait = newInternalCommand(getStartCommand(trc.get(0)), modifier(CONDITIONAL));
       if (intercept.getConditional() == CONDITIONAL) {
         result.add(entitydata);
         result.add(summon);
@@ -565,8 +566,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       }
     }
     result.addAll(trc);
-    result.add(new InternalCommand("kill @e[name=" + event + ",r=2]"));
-    result.add(new InternalCommand(
+    result.add(newInternalCommand("kill @e[name=" + event + ",r=2]"));
+    result.add(newInternalCommand(
         "entitydata @e[name=" + event + INTERCEPTED + "] {CustomName:" + event + "}"));
     resolveReferences(result);
     return result;
@@ -582,7 +583,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
 
     addInvertingCommandIfInvert(result, mplBreakpoint);
 
-    result.add(new InternalCommand("say " + mplBreakpoint.getMessage(), mplBreakpoint));
+    result.add(newInternalCommand("say " + mplBreakpoint.getMessage(), mplBreakpoint));
 
     ModifierBuffer modifier = new ModifierBuffer();
     modifier.setConditional(mplBreakpoint.isConditional() ? CONDITIONAL : UNCONDITIONAL);
@@ -633,7 +634,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     List<ChainLink> result = new ArrayList<>();
     addInvertingCommandIfInvert(result, mplIf);
 
-    Command ref = new Command(mplIf.getCondition(), mplIf);
+    Command ref = newCommand(mplIf.getCondition(), mplIf);
     result.add(ref);
     if (needsNormalizer(mplIf)) {
       ref = newNormalizingCommand();
@@ -808,14 +809,13 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
 
     int firstIndex = result.size();
     if (hasInitialCondition) {
-      result.add(new Command(condition));
+      result.add(newCommand(condition));
     }
 
     TargetedThisInsert initLoopInsert = new TargetedThisInsert();
-    InternalCommand initLoop = new InternalCommand(getStartCommand(initLoopInsert), modifier());
+    Command initLoop = newInternalCommand(getStartCommand(initLoopInsert), modifier());
     TargetedThisInsert skipLoopInsert = new TargetedThisInsert();
-    InternalCommand skipLoop =
-        new InternalCommand(getStartCommand(skipLoopInsert), modifier(CONDITIONAL));
+    Command skipLoop = newInternalCommand(getStartCommand(skipLoopInsert), modifier(CONDITIONAL));
 
     if (!hasInitialCondition && !mplWhile.isConditional()) {
       result.add(initLoop);
@@ -879,7 +879,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       if (condition == null) {
         result.addAll(getRestartBackref(entryLink, false));
       } else {
-        result.add(new Command(condition));
+        result.add(newCommand(condition));
         if (!mplWhile.isNot()) {
           result.addAll(getContinueLoop(mplWhile, true));
           result.add(newInvertingCommand(CHAIN));
@@ -938,7 +938,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       return result;
     }
     List<ChainLink> dest = newJumpDestination(false);
-    Command dontBreak = new InternalCommand(getStartCommand(dest.get(0)), modifier(CONDITIONAL));
+    Command dontBreak = newInternalCommand(getStartCommand(dest.get(0)), modifier(CONDITIONAL));
     if (conditional == CONDITIONAL) {
       List<Command> breakLoop = getBreakLoop(loop);
       breakLoop.get(0).setModifier(mplBreak);
@@ -965,7 +965,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     String condition = loop.getCondition();
     if (conditional == UNCONDITIONAL) {
       if (condition != null) {
-        result.add(new Command(condition, mplContinue));
+        result.add(newCommand(condition, mplContinue));
         result.addAll(getContinueLoop(loop, true));
         result.add(newInvertingCommand(CHAIN));
         result.addAll(getBreakLoop(loop, true));
@@ -994,7 +994,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     }
     outerIf.enterElse();
     List<ChainLink> end = newJumpDestination(false);
-    InternalCommand exit = new InternalCommand(getStartCommand(end.get(0)), modifier(CONDITIONAL));
+    Command exit = newInternalCommand(getStartCommand(end.get(0)), modifier(CONDITIONAL));
     outerIf.add(new InternalMplCommand(source, exit));
 
     if (conditional == INVERT) {
@@ -1126,7 +1126,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
         insert.setTarget(entryLink);
       }
     });
-    return new InternalCommand(getStartCommand(insert), modifier());
+    return newInternalCommand(getStartCommand(insert), modifier());
   }
 
   /**
@@ -1144,7 +1144,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
         insert.setTarget(entryLink);
       }
     });
-    return new InternalCommand(getStopCommand(insert), modifier());
+    return newInternalCommand(getStopCommand(insert), modifier());
   }
 
   /**
@@ -1162,7 +1162,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
         insert.setTarget(exitLink);
       }
     });
-    return new InternalCommand(getStartCommand(insert), modifier());
+    return newInternalCommand(getStartCommand(insert), modifier());
   }
 
 }

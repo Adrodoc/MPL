@@ -41,8 +41,6 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
 import javax.annotation.Nonnull;
 
-import com.google.common.base.Joiner;
-
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
@@ -92,10 +90,6 @@ public class MplCommand extends ModifiableChainPart {
   @Override
   public MplCommand createFlatCopy(CopyScope scope) {
     return new MplCommand(this, scope);
-  }
-
-  public String getCommand() {
-    return Joiner.on("").join(commandParts.getCommandParts());
   }
 
   @Override

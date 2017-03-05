@@ -42,6 +42,8 @@ package de.adrodoc55.minecraft.mpl.ast.visitor;
 import static com.google.common.base.Preconditions.checkState;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newCommand;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInternalCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
@@ -58,7 +60,6 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
@@ -146,8 +147,8 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
   protected List<ChainLink> getRestartBackref(ChainLink target, boolean conditional) {
     List<ChainLink> result = new ArrayList<>(2);
     result.add(
-        new InternalCommand(getStopCommand(target), modifier(Conditional.valueOf(conditional))));
-    result.add(new InternalCommand(getStartCommand(target), modifier(CONDITIONAL)));
+        newInternalCommand(getStopCommand(target), modifier(Conditional.valueOf(conditional))));
+    result.add(newInternalCommand(getStartCommand(target), modifier(CONDITIONAL)));
     return result;
   }
 
@@ -156,14 +157,14 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
     if (options.hasOption(TRANSMITTER)) {
       List<ChainLink> result = new ArrayList<>(2);
       result.add(new MplSkip(internal));
-      result.add(new InternalCommand(getStopCommand(-1), modifier(IMPULSE)));
+      result.add(newInternalCommand(getStopCommand(-1), modifier(IMPULSE)));
       return result;
     } else {
       List<ChainLink> result = new ArrayList<>(1);
       if (internal) {
-        result.add(new InternalCommand(getStopCommand(), modifier(IMPULSE)));
+        result.add(newInternalCommand(getStopCommand(), modifier(IMPULSE)));
       } else {
-        result.add(new Command(getStopCommand(), modifier(IMPULSE)));
+        result.add(newCommand(getStopCommand(), modifier(IMPULSE)));
       }
       return result;
     }

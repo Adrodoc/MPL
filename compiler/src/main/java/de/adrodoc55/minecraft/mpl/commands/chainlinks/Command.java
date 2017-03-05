@@ -40,7 +40,6 @@
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 
 import javax.annotation.Nonnull;
 
@@ -72,27 +71,17 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @Getter
 @Setter
 public class Command implements ChainLink, Modifiable {
-  protected @Nonnull CommandPartBuffer commandParts;
-  protected @Nonnull Mode mode;
-  protected boolean conditional;
-  protected boolean needsRedstone;
-
-  public Command() {
-    this(new CommandPartBuffer(), modifier());
-  }
-
-  public Command(String command) {
-    this(command, modifier());
-  }
-
-  public Command(String command, Modifiable modifier) {
-    this(new CommandPartBuffer(command), modifier);
-  }
+  private @Nonnull CommandPartBuffer commandParts;
+  private @Nonnull Mode mode;
+  private boolean conditional;
+  private boolean needsRedstone;
+  private boolean internal;
 
   @GenerateMplPojoBuilder
-  public Command(CommandPartBuffer commandParts, Modifiable modifier) {
+  Command(CommandPartBuffer commandParts, Modifiable modifier, boolean internal) {
     this.commandParts = checkNotNull(commandParts, "commandParts == null!");
     setModifier(modifier);
+    setInternal(internal);
   }
 
   @Deprecated
@@ -125,33 +114,18 @@ public class Command implements ChainLink, Modifiable {
     this.needsRedstone = needsRedstone;
   }
 
-  public String getCommand() {
-    return Joiner.on("").join(commandParts.getCommandParts());
-  }
-
-  @Deprecated
-  public void setCommand(String command) {
-    this.commandParts = new CommandPartBuffer(command);
-  }
-
-  @Override
-  public boolean isConditional() {
-    return conditional;
-  }
-
   @Override
   public boolean getNeedsRedstone() {
     return needsRedstone;
   }
 
-  @Override
-  public MplBlock toBlock(Coordinate3D coordinate, Direction3D direction) {
-    return new CommandBlock(this, direction, coordinate);
+  public String getCommand() {
+    return Joiner.on("").join(commandParts.getCommandParts());
   }
 
   @Override
-  public boolean isInternal() {
-    return false;
+  public MplBlock toBlock(Coordinate3D coordinate, Direction3D direction) {
+    return new CommandBlock(this, direction, coordinate);
   }
 
   @Override

@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.placement;
 
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newCommand;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DELETE_ON_UNINSTALL;
 
 import java.util.List;
@@ -106,7 +107,7 @@ public class MplDebugProgramPlacer extends MplChainPlacer {
     CommandChain uninstall = getPopulatedUninstall();
     Command deleteOnUninstall = null;
     if (options.hasOption(DELETE_ON_UNINSTALL)) {
-      deleteOnUninstall = new Command();
+      deleteOnUninstall = newCommand();
       uninstall.addCommand(deleteOnUninstall);
     }
 
