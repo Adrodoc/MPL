@@ -48,6 +48,7 @@ import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInverti
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.List;
 
 import org.junit.FixMethodOrder;
@@ -236,16 +237,13 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new InternalCommand(getOnCommand("${this + 1}")), //
-        new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
-            repeat1.getNeedsRedstone()), //
-        new Command(repeat2.getCommand(), repeat2.getMode(), repeat2.isConditional(),
-            repeat2.getNeedsRedstone()), //
-        new InternalCommand(getOffCommand("${this - 2}")), //
-        new InternalCommand(getOnCommand("${this - 3}"), true), //
-        new InternalCommand(getOffCommand("~ ~ ~"), IMPULSE)//
-    );
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
+    assertThat(it.next()).matchesAsImpulse(repeat1);
+    assertThat(it.next()).matches(repeat2);
+    assertThat(it.next()).isInternal().isStopCommand(-2).hasDefaultModifiers();
+    assertThat(it.next()).isInternal().isStartCommand(-3).hasModifiers(CONDITIONAL);
+    assertThatNext(it).isInternal().isJumpDestination();
   }
 
   @Test
