@@ -272,7 +272,7 @@ public abstract class MplChainPlacer {
       }
 
       CommandPartBuffer cpb = new CommandPartBuffer();
-      cpb.add("/summon " + version.markerEntity() + " ");
+      cpb.add("summon " + version.markerEntity() + " ");
       cpb.add(new RelativeOriginInsert(chainStart));
       cpb.add(" {CustomName:" + name + ",Tags:[" + container.getHashCode() + tags
           + "],NoGravity:1b,Invisible:1b,Invulnerable:1b"
