@@ -141,6 +141,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   //
   // ----------------------------------------------------------------------------------------------------
   // @formatter:on
+  public abstract void test_a_nameless_process_doesnt_have_startup_commands();
 
   @Test
   public void test_a_repeat_process_with_chainparts_results_in_a_chain_with_chainlinks()

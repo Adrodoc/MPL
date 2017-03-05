@@ -109,6 +109,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
   // @formatter:on
 
   @Test
+  @Override
   public void test_a_nameless_process_doesnt_have_startup_commands() {
     // given:
     MplCommand first = some($MplCommand().withConditional(UNCONDITIONAL));
@@ -123,11 +124,11 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     CommandChain result = underTest.visitProcess(process);
 
     // then:
-    assertThat(result.getCommands()).containsExactly(//
-        new MplSkip(), //
-        new Command(first.getCommand(), first), //
-        new Command(second.getCommand(), second)//
-    );
+    Iterator<ChainLink> it = result.getCommands().iterator();
+    assertThat(it.next()).isNotInternal().isSkip();
+    assertThat(it.next()).matches(first);
+    assertThat(it.next()).matches(second);
+    assertThat(it).isEmpty();
   }
 
   // @formatter:off
