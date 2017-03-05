@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation.insert;
 
+import static java.lang.Math.abs;
+
 import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
@@ -64,6 +66,7 @@ public class RelativeThisInsert {
   public String toString() {
     if (coordinate != null)
       return coordinate.toRelativeString();
-    return "${this + " + relative + "}";
+    String operator = relative >= 0 ? "+" : "-";
+    return "${this " + operator + " " + abs(relative) + "}";
   }
 }
