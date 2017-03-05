@@ -1970,27 +1970,15 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(CONDITIONAL);
   }
 
-  @Test
-  public void test_While_mit_Waitfor_hat_korrekte_Referenzen_zum_Ende() {
-    // given:
-    MplWhile mplWhile = some($MplWhile()//
-        .withNot(false)//
-        .withTrailing(false)//
-        .withConditional(UNCONDITIONAL)//
-        .withChainParts(listOf(some($MplWaitfor()))));
+  public abstract void test_repeat_mit_zwei_repeat();
 
-    // when:
-    List<ChainLink> result = mplWhile.accept(underTest);
+  public abstract void test_repeat_while_mit_zwei_repeat();
 
-    // then:
-    int ref = result.size() - 1;
-    if (underTest.options.hasOption(TRANSMITTER)) {
-      ref--;
-    }
-    int jumpIndex = 3;
-    ReferencingCommand jump = (ReferencingCommand) result.get(jumpIndex);
-    assertThat(jumpIndex + jump.getRelative()).isEqualTo(ref);
-  }
+  public abstract void test_repeat_while_not_mit_zwei_repeat();
+
+  public abstract void test_while_repeat_mit_zwei_repeat();
+
+  public abstract void test_while_not_repeat_mit_zwei_repeat();
 
   // @formatter:off
   // ----------------------------------------------------------------------------------------------------

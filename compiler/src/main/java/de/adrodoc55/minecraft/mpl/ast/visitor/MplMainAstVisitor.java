@@ -845,7 +845,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     ChainPart first = chainParts.peek();
     if (options.hasOption(TRANSMITTER) && first instanceof MplWhile) {
       if (((MplWhile) first).getCondition() == null) {
-        first = new MplCommand("", mplWhile.getSource());
+        first = new MplCommand(new CommandPartBuffer(), modifier(), mplWhile.getSource());
         chainParts.push(first);
       }
     }

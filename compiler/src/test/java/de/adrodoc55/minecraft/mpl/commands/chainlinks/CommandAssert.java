@@ -190,6 +190,12 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
   }
 
   @Override
+  public CommandAssert isNop() {
+    commandParts().isEmpty();
+    return myself;
+  }
+
+  @Override
   public CommandAssert isStartCommand(int relative) {
     hasCommandParts(//
         MplUtils.getStartCommandHeader(options), //

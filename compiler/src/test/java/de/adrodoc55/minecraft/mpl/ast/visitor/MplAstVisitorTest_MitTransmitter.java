@@ -49,6 +49,7 @@ import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOpt
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.List;
 
 import org.junit.FixMethodOrder;
@@ -230,6 +231,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
   // @formatter:on
 
   @Test
+  @Override
   public void test_repeat_mit_zwei_repeat() {
     // given:
     MplCommand repeat1 = some($MplCommand().withConditional(UNCONDITIONAL));
@@ -244,21 +246,19 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new InternalCommand(getOnCommand("${this + 1}")), //
-        new MplSkip(true), //
-        new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
-            repeat1.getNeedsRedstone()), //
-        new Command(repeat2.getCommand(), repeat2.getMode(), repeat2.isConditional(),
-            repeat2.getNeedsRedstone()), //
-        new InternalCommand(getOffCommand("${this - 3}")), //
-        new InternalCommand(getOnCommand("${this - 4}"), true), //
-        new MplSkip(true), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE)//
-    );
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
+    assertThat(it.next()).isInternal().isSkip();
+    assertThat(it.next()).matchesAsImpulse(repeat1);
+    assertThat(it.next()).matches(repeat2);
+    assertThat(it.next()).isInternal().isStopCommand(-3).hasDefaultModifiers();
+    assertThat(it.next()).isInternal().isStartCommand(-4).hasModifiers(CONDITIONAL);
+    assertThatNext(it).isInternal().isJumpDestination();
+    assertThat(it).isEmpty();
   }
 
   @Test
+  @Override
   public void test_repeat_while_mit_zwei_repeat() {
     // given:
     MplCommand repeat1 = some($MplCommand().withConditional(UNCONDITIONAL));
@@ -272,25 +272,24 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new InternalCommand(getOnCommand("${this + 1}")), //
-        new MplSkip(true), //
-        new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
-            repeat1.getNeedsRedstone()), //
-        new Command(repeat2.getCommand(), repeat2.getMode(), repeat2.isConditional(),
-            repeat2.getNeedsRedstone()), //
-        new Command(mplWhile.getCondition()), //
-        new InternalCommand(getOffCommand("${this - 4}"), true), //
-        new InternalCommand(getOnCommand("${this - 5}"), true), //
-        newInvertingCommand(CHAIN), //
-        new InternalCommand(getOnCommand("${this + 2}"), true), //
-        new InternalCommand(getOffCommand("${this - 8}"), true), //
-        new MplSkip(true), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE)//
-    );
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
+    assertThat(it.next()).isInternal().isSkip();
+    assertThat(it.next()).matchesAsImpulse(repeat1);
+    assertThat(it.next()).matches(repeat2);
+    assertThat(it.next()).isNotInternal().hasCommandParts(mplWhile.getCondition())
+        .hasDefaultModifiers();
+    assertThat(it.next()).isInternal().isStopCommand(-4).hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInternal().isStartCommand(-5).hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+    assertThat(it.next()).isInternal().isStartCommand(+2).hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInternal().isStopCommand(-8).hasModifiers(CONDITIONAL);
+    assertThatNext(it).isInternal().isJumpDestination();
+    assertThat(it).isEmpty();
   }
 
   @Test
+  @Override
   public void test_repeat_while_not_mit_zwei_repeat() {
     // given:
     MplCommand repeat1 = some($MplCommand().withConditional(UNCONDITIONAL));
@@ -304,25 +303,24 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new InternalCommand(getOnCommand("${this + 1}")), //
-        new MplSkip(true), //
-        new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
-            repeat1.getNeedsRedstone()), //
-        new Command(repeat2.getCommand(), repeat2.getMode(), repeat2.isConditional(),
-            repeat2.getNeedsRedstone()), //
-        new Command(mplWhile.getCondition()), //
-        new InternalCommand(getOnCommand("${this + 5}"), true), //
-        new InternalCommand(getOffCommand("${this - 5}"), true), //
-        newInvertingCommand(CHAIN), //
-        new InternalCommand(getOffCommand("${this - 7}"), true), //
-        new InternalCommand(getOnCommand("${this - 8}"), true), //
-        new MplSkip(true), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE)//
-    );
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
+    assertThat(it.next()).isInternal().isSkip();
+    assertThat(it.next()).matchesAsImpulse(repeat1);
+    assertThat(it.next()).matches(repeat2);
+    assertThat(it.next()).isNotInternal().hasCommandParts(mplWhile.getCondition())
+        .hasDefaultModifiers();
+    assertThat(it.next()).isInternal().isStartCommand(+5).hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInternal().isStopCommand(-5).hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+    assertThat(it.next()).isInternal().isStopCommand(-7).hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInternal().isStartCommand(-8).hasModifiers(CONDITIONAL);
+    assertThatNext(it).isInternal().isJumpDestination();
+    assertThat(it).isEmpty();
   }
 
   @Test
+  @Override
   public void test_while_repeat_mit_zwei_repeat() {
     // given:
     MplCommand repeat1 = some($MplCommand().withConditional(UNCONDITIONAL));
@@ -336,28 +334,28 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplWhile.getCondition()), //
-        new InternalCommand(getOnCommand("${this + 3}"), true), //
-        newInvertingCommand(CHAIN), //
-        new InternalCommand(getOnCommand("${this + 10}"), true), //
-        new MplSkip(true), //
-        new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
-            repeat1.getNeedsRedstone()), //
-        new Command(repeat2.getCommand(), repeat2.getMode(), repeat2.isConditional(),
-            repeat2.getNeedsRedstone()), //
-        new Command(mplWhile.getCondition()), //
-        new InternalCommand(getOffCommand("${this - 4}"), true), //
-        new InternalCommand(getOnCommand("${this - 5}"), true), //
-        newInvertingCommand(CHAIN), //
-        new InternalCommand(getOnCommand("${this + 2}"), true), //
-        new InternalCommand(getOffCommand("${this - 8}"), true), //
-        new MplSkip(true), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE)//
-    );
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommandParts(mplWhile.getCondition())
+        .hasModifiers(mplWhile);
+    assertThat(it.next()).isInternal().isStartCommand(+3).hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+    assertThat(it.next()).isInternal().isStartCommand(+10).hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInternal().isSkip();
+    assertThat(it.next()).matchesAsImpulse(repeat1);
+    assertThat(it.next()).matches(repeat2);
+    assertThat(it.next()).isNotInternal().hasCommandParts(mplWhile.getCondition())
+        .hasDefaultModifiers();
+    assertThat(it.next()).isInternal().isStopCommand(-4).hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInternal().isStartCommand(-5).hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+    assertThat(it.next()).isInternal().isStartCommand(+2).hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInternal().isStopCommand(-8).hasModifiers(CONDITIONAL);
+    assertThatNext(it).isInternal().isJumpDestination();
+    assertThat(it).isEmpty();
   }
 
   @Test
+  @Override
   public void test_while_not_repeat_mit_zwei_repeat() {
     // given:
     MplCommand repeat1 = some($MplCommand().withConditional(UNCONDITIONAL));
@@ -371,51 +369,52 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(result).containsExactly(//
-        new Command(mplWhile.getCondition()), //
-        new InternalCommand(getOnCommand("${this + 12}"), true), //
-        newInvertingCommand(CHAIN), //
-        new InternalCommand(getOnCommand("${this + 1}"), true), //
-        new MplSkip(true), //
-        new Command(repeat1.getCommand(), IMPULSE, repeat1.isConditional(),
-            repeat1.getNeedsRedstone()), //
-        new Command(repeat2.getCommand(), repeat2.getMode(), repeat2.isConditional(),
-            repeat2.getNeedsRedstone()), //
-        new Command(mplWhile.getCondition()), //
-        new InternalCommand(getOnCommand("${this + 5}"), true), //
-        new InternalCommand(getOffCommand("${this - 5}"), true), //
-        newInvertingCommand(CHAIN), //
-        new InternalCommand(getOffCommand("${this - 7}"), true), //
-        new InternalCommand(getOnCommand("${this - 8}"), true), //
-        new MplSkip(true), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE)//
-    );
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isNotInternal().hasCommandParts(mplWhile.getCondition())
+        .hasModifiers(mplWhile);
+    assertThat(it.next()).isInternal().isStartCommand(+12).hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInternal().isSkip();
+    assertThat(it.next()).matchesAsImpulse(repeat1);
+    assertThat(it.next()).matches(repeat2);
+    assertThat(it.next()).isNotInternal().hasCommandParts(mplWhile.getCondition())
+        .hasDefaultModifiers();
+    assertThat(it.next()).isInternal().isStartCommand(+5).hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInternal().isStopCommand(-5).hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+    assertThat(it.next()).isInternal().isStopCommand(-7).hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInternal().isStartCommand(-8).hasModifiers(CONDITIONAL);
+    assertThatNext(it).isInternal().isJumpDestination();
+    assertThat(it).isEmpty();
   }
 
   @Test
   public void test_nested_repeat_requires_nop() {
     // given:
+    MplWhile innerWhile = some($MplWhile()//
+        .withCondition((String) null)//
+        .withNot($boolean())//
+        .withTrailing($boolean())//
+    );
     MplWhile mplWhile = some($MplWhile()//
         .withCondition((String) null)//
         .withNot($boolean())//
         .withTrailing($boolean())//
-        .withChainParts(listOf(some($MplWhile()//
-            .withCondition((String) null)//
-            .withNot($boolean())//
-            .withTrailing($boolean())//
-    ))));
+        .withChainParts(listOf(innerWhile)));
 
     // when:
     List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
-    assertThat(result).startsWith(//
-        new InternalCommand(getOnCommand("${this + 1}")), //
-        new MplSkip(true), //
-        new Command("", IMPULSE), //
-        new InternalCommand(getOnCommand("${this + 1}")), //
-        new MplSkip(true)//
-    );
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
+    assertThat(it.next()).isInternal().isSkip();
+    // FIXME: NOP should be internal
+    assertThat(it.next())/* .isInternal() */.isNop().hasModifiers(IMPULSE);
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(innerWhile);
+    assertThat(it.next()).isInternal().isSkip();
+    assertThat(it).isNotEmpty();
   }
 
 }
