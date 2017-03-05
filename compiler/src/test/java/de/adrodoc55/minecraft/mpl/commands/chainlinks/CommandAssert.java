@@ -41,24 +41,30 @@ package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
+import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.assertj.core.api.AbstractComparableAssert;
 import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.ObjectAssert;
 
+import de.adrodoc55.minecraft.mpl.MplUtils;
+import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 
 public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
-  public CommandAssert(Command actual) {
-    super(actual, CommandAssert.class);
+  public CommandAssert(@Nullable Command actual, CompilerOptions options) {
+    super(actual, CommandAssert.class, options);
   }
 
   @Override
@@ -129,8 +135,20 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
   }
 
   @Override
+  public CommandAssert hasDefaultModifiers() {
+    hasModifiers(modifier());
+    return myself;
+  }
+
+  @Override
   public CommandAssert hasModifiers(Mode mode) {
     hasModifiers(modifier(mode));
+    return myself;
+  }
+
+  @Override
+  public CommandAssert hasModifiers(Conditional conditional) {
+    hasModifiers(modifier(conditional));
     return myself;
   }
 
@@ -152,12 +170,42 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
   }
 
   @Override
+  public CommandAssert matchesAsImpulse(MplCommand expected) {
+    isNotInternal();
+    hasCommandParts(expected.getCommand());
+    hasMode(IMPULSE);
+    hasConditional(expected.isConditional());
+    hasNeedsRedstone(expected.getNeedsRedstone());
+    return myself;
+  }
+
+  @Override
   public CommandAssert matchesAsConditional(MplCommand expected) {
     isNotInternal();
     hasCommandParts(expected.getCommand());
     hasMode(expected.getMode());
     isConditional();
     hasNeedsRedstone(expected.getNeedsRedstone());
+    return myself;
+  }
+
+  @Override
+  public CommandAssert isStartCommand(int relative) {
+    hasCommandParts(//
+        MplUtils.getStartCommandHeader(options), //
+        new RelativeThisInsert(relative), //
+        MplUtils.getStartCommandTrailer(options)//
+    );
+    return myself;
+  }
+
+  @Override
+  public CommandAssert isStopCommand(int relative) {
+    hasCommandParts(//
+        MplUtils.getStopCommandHeader(options), //
+        new RelativeThisInsert(relative), //
+        MplUtils.getStopCommandTrailer(options)//
+    );
     return myself;
   }
 

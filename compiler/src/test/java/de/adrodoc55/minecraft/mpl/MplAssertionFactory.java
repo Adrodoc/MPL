@@ -44,9 +44,11 @@ import javax.annotation.Nullable;
 import de.adrodoc55.TestBase;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLinkAssert;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
 public class MplAssertionFactory extends TestBase {
-  public static <CL extends ChainLink> ChainLinkAssert<?, CL> assertThat(@Nullable CL actual) {
-    return new ChainLinkAssert<>(actual);
+  public static <CL extends ChainLink> ChainLinkAssert<?, CL> assertThat(@Nullable CL actual,
+      CompilerOptions options) {
+    return new ChainLinkAssert<>(actual, options);
   }
 }

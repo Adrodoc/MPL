@@ -56,7 +56,6 @@ import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNormali
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newTestforSuccessCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
-import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -93,6 +92,7 @@ import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLinkAssert;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLinkIterableAssert;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
@@ -123,16 +123,8 @@ public abstract class MplAstVisitorTest extends MplTestBase {
 
   protected abstract String getOffCommand(String ref);
 
-  private String getStartCommandHeader() {
-    return context.getOptions().hasOption(TRANSMITTER) ? "setblock " : "blockdata ";
-  }
-
-  private String getStartCommandTrailer() {
-    return context.getOptions().hasOption(TRANSMITTER) ? " redstone_block" : " {auto:1b}";
-  }
-
-  private Object[] getStartCommand(Object ref) {
-    return new Object[] {getStartCommandHeader(), ref, getStartCommandTrailer()};
+  public <CL extends ChainLink> ChainLinkAssert<?, CL> assertThat(@Nullable CL actual) {
+    return assertThat(actual, context.getOptions());
   }
 
   public ChainLinkIterableAssert assertThatNext(@Nullable Iterator<ChainLink> actual) {
@@ -650,8 +642,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
                 + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
         .hasModifiers(mplWaitfor);
     assertThat(it.next()).isInvertingCommandFor(mplWaitfor.getMode());
-    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(+1)))//
-        .hasModifiers(modifier(CONDITIONAL));
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(CONDITIONAL);
     assertThatNext(it).isNotInternal().isJumpDestination();
     assertThat(it).isEmpty();
   }
@@ -667,14 +658,13 @@ public abstract class MplAstVisitorTest extends MplTestBase {
 
     // then:
     Iterator<ChainLink> it = result.iterator();
-    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(+3)))//
-        .hasModifiers(mplWaitfor);
+    assertThat(it.next()).isInternal().isStartCommand(+3).hasModifiers(mplWaitfor);
     assertThat(it.next()).isInvertingCommandFor(mplWaitfor.getMode());
     assertThat(it.next()).isInternal()
         .hasCommandParts("summon " + markerEntity() + " ", new RelativeThisInsert(+1),
             " {CustomName:" + mplWaitfor.getEvent() + NOTIFY
                 + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
-        .hasModifiers(modifier(CONDITIONAL));
+        .hasModifiers(CONDITIONAL);
     assertThatNext(it).isNotInternal().isJumpDestination();
     assertThat(it).isEmpty();
   }
@@ -705,10 +695,10 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     assertThat(it.next()).isNotInternal()
         .hasCommandParts(
             "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~"))
-        .hasModifiers(modifier());
+        .hasDefaultModifiers();
     assertThat(it.next()).isInternal()
         .hasCommandParts("kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]")
-        .hasModifiers(modifier());
+        .hasDefaultModifiers();
     assertThat(it).isEmpty();
   }
 
@@ -726,10 +716,10 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     assertThat(it.next()).isNotInternal()
         .hasCommandParts(
             "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~"))
-        .hasModifiers(modifier(CONDITIONAL));
+        .hasModifiers(CONDITIONAL);
     assertThat(it.next()).isInternal()
         .hasCommandParts("kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]")
-        .hasModifiers(modifier(CONDITIONAL));
+        .hasModifiers(CONDITIONAL);
     assertThat(it).isEmpty();
   }
 
@@ -760,10 +750,10 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     assertThat(it.next()).isNotInternal()
         .hasCommandParts(
             "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~"))
-        .hasModifiers(modifier(CONDITIONAL));
+        .hasModifiers(CONDITIONAL);
     assertThat(it.next()).isInternal()
         .hasCommandParts("kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]")
-        .hasModifiers(modifier(CONDITIONAL));
+        .hasModifiers(CONDITIONAL);
     assertThat(it).isEmpty();
   }
 
@@ -791,19 +781,19 @@ public abstract class MplAstVisitorTest extends MplTestBase {
 
     // then:
     Iterator<ChainLink> it = result.iterator();
-    assertThat(it.next()).isInternal().hasModifiers(modifier()).hasCommandParts(
+    assertThat(it.next()).isInternal().hasDefaultModifiers().hasCommandParts(
         "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}");
 
-    assertThat(it.next()).isInternal().hasModifiers(modifier()).hasCommandParts(
+    assertThat(it.next()).isInternal().hasDefaultModifiers().hasCommandParts(
         "summon " + markerEntity() + " ", new RelativeThisInsert(+1),
         " {CustomName:" + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
 
     assertThatNext(it).isNotInternal().isJumpDestination();
 
-    assertThat(it.next()).isInternal().hasModifiers(modifier())
+    assertThat(it.next()).isInternal().hasDefaultModifiers()
         .hasCommandParts("kill @e[name=" + event + ",r=2]");
 
-    assertThat(it.next()).isInternal().hasModifiers(modifier()).hasCommandParts(
+    assertThat(it.next()).isInternal().hasDefaultModifiers().hasCommandParts(
         "entitydata @e[name=" + event + INTERCEPTED + "] {CustomName:" + event + "}");
 
     assertThat(it).isEmpty();
@@ -834,24 +824,23 @@ public abstract class MplAstVisitorTest extends MplTestBase {
 
     // then:
     Iterator<ChainLink> it = result.iterator();
-    assertThat(it.next()).isInternal().hasModifiers(modifier(CONDITIONAL)).hasCommandParts(
+    assertThat(it.next()).isInternal().hasModifiers(CONDITIONAL).hasCommandParts(
         "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}");
 
-    assertThat(it.next()).isInternal().hasModifiers(modifier(CONDITIONAL)).hasCommandParts(
+    assertThat(it.next()).isInternal().hasModifiers(CONDITIONAL).hasCommandParts(
         "summon " + markerEntity() + " ", new RelativeThisInsert(+3),
         " {CustomName:" + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
 
     assertThat(it.next()).isInvertingCommandFor(CHAIN);
 
-    assertThat(it.next()).isInternal().hasModifiers(modifier(CONDITIONAL))
-        .hasCommandParts(getStartCommand(new RelativeThisInsert(+1)));
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(CONDITIONAL);
 
     assertThatNext(it).isNotInternal().isJumpDestination();
 
-    assertThat(it.next()).isInternal().hasModifiers(modifier())
+    assertThat(it.next()).isInternal().hasDefaultModifiers()
         .hasCommandParts("kill @e[name=" + event + ",r=2]");
 
-    assertThat(it.next()).isInternal().hasModifiers(modifier()).hasCommandParts(
+    assertThat(it.next()).isInternal().hasDefaultModifiers().hasCommandParts(
         "entitydata @e[name=" + event + INTERCEPTED + "] {CustomName:" + event + "}");
 
     assertThat(it).isEmpty();
@@ -882,24 +871,23 @@ public abstract class MplAstVisitorTest extends MplTestBase {
 
     // then:
     Iterator<ChainLink> it = result.iterator();
-    assertThat(it.next()).isInternal().hasModifiers(modifier(CONDITIONAL))
-        .hasCommandParts(getStartCommand(new RelativeThisInsert(+4)));
+    assertThat(it.next()).isInternal().isStartCommand(+4).hasModifiers(CONDITIONAL);
 
     assertThat(it.next()).isInvertingCommandFor(CHAIN);
 
-    assertThat(it.next()).isInternal().hasModifiers(modifier(CONDITIONAL)).hasCommandParts(
+    assertThat(it.next()).isInternal().hasModifiers(CONDITIONAL).hasCommandParts(
         "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}");
 
-    assertThat(it.next()).isInternal().hasModifiers(modifier(CONDITIONAL)).hasCommandParts(
+    assertThat(it.next()).isInternal().hasModifiers(CONDITIONAL).hasCommandParts(
         "summon " + markerEntity() + " ", new RelativeThisInsert(+1),
         " {CustomName:" + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
 
     assertThatNext(it).isNotInternal().isJumpDestination();
 
-    assertThat(it.next()).isInternal().hasModifiers(modifier())
+    assertThat(it.next()).isInternal().hasDefaultModifiers()
         .hasCommandParts("kill @e[name=" + event + ",r=2]");
 
-    assertThat(it.next()).isInternal().hasModifiers(modifier()).hasCommandParts(
+    assertThat(it.next()).isInternal().hasDefaultModifiers().hasCommandParts(
         "entitydata @e[name=" + event + INTERCEPTED + "] {CustomName:" + event + "}");
 
     assertThat(it).isEmpty();
@@ -1838,8 +1826,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
 
     // then:
     Iterator<ChainLink> it = result.iterator();
-    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(+1)))
-        .hasModifiers(mplWhile);
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
   }
 
   @Test
@@ -1860,11 +1847,9 @@ public abstract class MplAstVisitorTest extends MplTestBase {
       ref--;
     }
     Iterator<ChainLink> it = result.iterator();
-    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(+3)))
-        .hasModifiers(mplWhile);
+    assertThat(it.next()).isInternal().isStartCommand(+3).hasModifiers(mplWhile);
     assertThat(it.next()).isInvertingCommandFor(CHAIN);
-    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(ref)))
-        .hasModifiers(modifier(CONDITIONAL));
+    assertThat(it.next()).isInternal().isStartCommand(ref).hasModifiers(CONDITIONAL);
   }
 
   @Test
@@ -1898,11 +1883,9 @@ public abstract class MplAstVisitorTest extends MplTestBase {
       ref--;
     }
     Iterator<ChainLink> it = result.iterator();
-    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(ref)))
-        .hasModifiers(mplWhile);
+    assertThat(it.next()).isInternal().isStartCommand(ref).hasModifiers(mplWhile);
     assertThat(it.next()).isInvertingCommandFor(CHAIN);
-    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(+1)))
-        .hasModifiers(modifier(CONDITIONAL));
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(CONDITIONAL);
   }
 
   @Test
@@ -1921,8 +1904,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
 
     // then:
     Iterator<ChainLink> it = result.iterator();
-    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(+1)))
-        .hasModifiers(mplWhile);
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
   }
 
   @Test
@@ -1945,11 +1927,9 @@ public abstract class MplAstVisitorTest extends MplTestBase {
       ref--;
     }
     Iterator<ChainLink> it = result.iterator();
-    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(+3)))
-        .hasModifiers(mplWhile);
+    assertThat(it.next()).isInternal().isStartCommand(+3).hasModifiers(mplWhile);
     assertThat(it.next()).isInvertingCommandFor(CHAIN);
-    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(ref)))
-        .hasModifiers(modifier(CONDITIONAL));
+    assertThat(it.next()).isInternal().isStartCommand(ref).hasModifiers(CONDITIONAL);
   }
 
   @Test
@@ -1985,11 +1965,9 @@ public abstract class MplAstVisitorTest extends MplTestBase {
       ref--;
     }
     Iterator<ChainLink> it = result.iterator();
-    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(ref)))
-        .hasModifiers(mplWhile);
+    assertThat(it.next()).isInternal().isStartCommand(ref).hasModifiers(mplWhile);
     assertThat(it.next()).isInvertingCommandFor(CHAIN);
-    assertThat(it.next()).isInternal().hasCommandParts(getStartCommand(new RelativeThisInsert(+1)))
-        .hasModifiers(modifier(CONDITIONAL));
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(CONDITIONAL);
   }
 
   @Test

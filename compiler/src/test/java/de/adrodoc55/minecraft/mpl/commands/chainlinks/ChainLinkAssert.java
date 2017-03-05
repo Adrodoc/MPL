@@ -39,31 +39,39 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.assertj.core.api.Assertions.assertThat;
+
+import javax.annotation.Nullable;
 
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.ObjectAssert;
 
 import de.adrodoc55.commons.ExtendedAbstractAssert;
+import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
 public class ChainLinkAssert<S extends ChainLinkAssert<S, A>, A extends ChainLink>
     extends ExtendedAbstractAssert<S, A> {
-  public ChainLinkAssert(A actual) {
-    this(actual, ChainLinkAssert.class);
+  protected final CompilerOptions options;
+
+  public ChainLinkAssert(@Nullable A actual, CompilerOptions options) {
+    this(actual, ChainLinkAssert.class, options);
   }
 
-  public ChainLinkAssert(A actual, Class<?> selfType) {
+  public ChainLinkAssert(@Nullable A actual, Class<?> selfType, CompilerOptions options) {
     super(actual, selfType);
+    this.options = checkNotNull(options, "options == null!");
   }
 
   public CommandAssert asCommand() {
     isNotNull();
     isInstanceOf(Command.class);
-    return new CommandAssert((Command) actual);
+    return new CommandAssert((Command) actual, options);
   }
 
   public AbstractBooleanAssert<?> internal() {
@@ -94,8 +102,16 @@ public class ChainLinkAssert<S extends ChainLinkAssert<S, A>, A extends ChainLin
     return asCommand().hasCommandParts(commandParts);
   }
 
+  public CommandAssert hasDefaultModifiers() {
+    return asCommand().hasDefaultModifiers();
+  }
+
   public CommandAssert hasModifiers(Mode mode) {
     return asCommand().hasModifiers(mode);
+  }
+
+  public CommandAssert hasModifiers(Conditional conditional) {
+    return asCommand().hasModifiers(conditional);
   }
 
   public CommandAssert hasModifiers(Modifiable modifiers) {
@@ -106,8 +122,20 @@ public class ChainLinkAssert<S extends ChainLinkAssert<S, A>, A extends ChainLin
     return asCommand().matches(expected);
   }
 
+  public CommandAssert matchesAsImpulse(MplCommand expected) {
+    return asCommand().matchesAsImpulse(expected);
+  }
+
   public CommandAssert matchesAsConditional(MplCommand expected) {
     return asCommand().matchesAsConditional(expected);
+  }
+
+  public CommandAssert isStartCommand(int relative) {
+    return asCommand().isStartCommand(relative);
+  }
+
+  public CommandAssert isStopCommand(int relative) {
+    return asCommand().isStopCommand(relative);
   }
 
   public CommandAssert isInvertingCommandFor(Mode mode) {

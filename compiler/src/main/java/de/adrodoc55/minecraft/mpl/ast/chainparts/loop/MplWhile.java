@@ -65,7 +65,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
  * @author Adrodoc55
  */
 @EqualsAndHashCode(callSuper = true, of = {"trailing", "condition"})
-@ToString(callSuper = true, of = {"trailing", "condition"})
+@ToString(callSuper = true, exclude = {"chainParts"})
 public class MplWhile extends ModifiableChainPart implements ChainPartBuffer {
   private final @Nullable ChainPartBuffer parent;
 

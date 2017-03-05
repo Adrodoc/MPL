@@ -1,7 +1,6 @@
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static de.adrodoc55.minecraft.mpl.MplAssertionFactory.assertThat;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
@@ -14,6 +13,7 @@ import java.util.NoSuchElementException;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.commons.ExtendedAbstractAssert;
+import de.adrodoc55.minecraft.mpl.MplAssertionFactory;
 import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
@@ -77,6 +77,10 @@ public class ChainLinkIterableAssert
         };
       }
     };
+  }
+
+  private ChainLinkAssert<?, ChainLink> assertThat(ChainLink chainLink) {
+    return MplAssertionFactory.assertThat(chainLink, options);
   }
 
   public ChainLinkIterableAssert hasInternal(boolean internal) {
