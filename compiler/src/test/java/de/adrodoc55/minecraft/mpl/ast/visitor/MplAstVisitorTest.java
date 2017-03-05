@@ -73,6 +73,7 @@ import org.junit.runners.MethodSorters;
 import com.google.common.collect.Iterators;
 
 import de.adrodoc55.minecraft.mpl.MplTestBase;
+import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall;
@@ -119,9 +120,25 @@ public abstract class MplAstVisitorTest extends MplTestBase {
 
   protected abstract MplMainAstVisitor newUnderTest(MplCompilerContext context);
 
-  protected abstract String getOnCommand(String ref);
+  @Deprecated
+  private String getOnCommand(String ref) {
+    return MplUtils.getStartCommandHeader(context.getOptions()) + "~ ~ ~"
+        + MplUtils.getStartCommandTrailer(context.getOptions());
+  }
 
-  protected abstract String getOffCommand(String ref);
+  @Deprecated
+  private String getOffCommand(String ref) {
+    return MplUtils.getStopCommandHeader(context.getOptions()) + "~ ~ ~"
+        + MplUtils.getStopCommandTrailer(context.getOptions());
+  }
+
+  protected String getStartCommand() {
+    return MplUtils.getStartCommand(context.getOptions());
+  }
+
+  protected String getOffCommand() {
+    return MplUtils.getStopCommand(context.getOptions());
+  }
 
   public <CL extends ChainLink> ChainLinkAssert<?, CL> assertThat(@Nullable CL actual) {
     return assertThat(actual, context.getOptions());
@@ -458,7 +475,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     // then:
     Iterator<ChainLink> it = result.iterator();
     assertThat(it.next()).isNotInternal()
-        .hasCommandParts("execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"))
+        .hasCommandParts("execute " + mplStart.getSelector() + " ~ ~ ~ " + getStartCommand())
         .hasMode(mode).isNotConditional().hasNeedsRedstone(needsRedstone);
     assertThat(it).isEmpty();
   }
@@ -477,7 +494,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     // then:
     Iterator<ChainLink> it = result.iterator();
     assertThat(it.next()).isNotInternal()
-        .hasCommandParts("execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"))
+        .hasCommandParts("execute " + mplStart.getSelector() + " ~ ~ ~ " + getStartCommand())
         .hasMode(mode).isConditional().hasNeedsRedstone(needsRedstone);
     assertThat(it).isEmpty();
   }
@@ -509,7 +526,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     Iterator<ChainLink> it = result.iterator();
     assertThat(it.next()).isInvertingCommandFor(modeForInverting);
     assertThat(it.next()).isNotInternal()
-        .hasCommandParts("execute " + mplStart.getSelector() + " ~ ~ ~ " + getOnCommand("~ ~ ~"))
+        .hasCommandParts("execute " + mplStart.getSelector() + " ~ ~ ~ " + getStartCommand())
         .hasMode(mode).isConditional().hasNeedsRedstone(needsRedstone);
     assertThat(it).isEmpty();
   }
@@ -539,7 +556,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     // then:
     Iterator<ChainLink> it = result.iterator();
     assertThat(it.next()).isNotInternal()
-        .hasCommandParts("execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"))
+        .hasCommandParts("execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand())
         .hasMode(mode).isNotConditional().hasNeedsRedstone(needsRedstone);
     assertThat(it).isEmpty();
   }
@@ -558,7 +575,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     // then:
     Iterator<ChainLink> it = result.iterator();
     assertThat(it.next()).isNotInternal()
-        .hasCommandParts("execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"))
+        .hasCommandParts("execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand())
         .hasMode(mode).isConditional().hasNeedsRedstone(needsRedstone);
     assertThat(it).isEmpty();
   }
@@ -590,7 +607,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     Iterator<ChainLink> it = result.iterator();
     assertThat(it.next()).isInvertingCommandFor(modeForInverting);
     assertThat(it.next()).isNotInternal()
-        .hasCommandParts("execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand("~ ~ ~"))
+        .hasCommandParts("execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand())
         .hasMode(mode).isConditional().hasNeedsRedstone(needsRedstone);
     assertThat(it).isEmpty();
   }
@@ -669,7 +686,6 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     assertThatNext(it).isNotInternal().isJumpDestination();
     assertThat(it).isEmpty();
   }
-  // TODO: Intercept und Breakpoint Tests aus Subklassen hochziehen
 
   // @formatter:off
   // ----------------------------------------------------------------------------------------------------
@@ -695,7 +711,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     Iterator<ChainLink> it = result.iterator();
     assertThat(it.next()).isNotInternal()
         .hasCommandParts(
-            "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~"))
+            "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getStartCommand())
         .hasDefaultModifiers();
     assertThat(it.next()).isInternal()
         .hasCommandParts("kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]")
@@ -716,7 +732,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     Iterator<ChainLink> it = result.iterator();
     assertThat(it.next()).isNotInternal()
         .hasCommandParts(
-            "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~"))
+            "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getStartCommand())
         .hasModifiers(CONDITIONAL);
     assertThat(it.next()).isInternal()
         .hasCommandParts("kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]")
@@ -750,7 +766,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     assertThat(it.next()).isInvertingCommandFor(mode);
     assertThat(it.next()).isNotInternal()
         .hasCommandParts(
-            "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getOnCommand("~ ~ ~"))
+            "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getStartCommand())
         .hasModifiers(CONDITIONAL);
     assertThat(it.next()).isInternal()
         .hasCommandParts("kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]")
@@ -926,6 +942,98 @@ public abstract class MplAstVisitorTest extends MplTestBase {
       }
     };
     assertThat(result.getChains()).haveExactly(1, condition);
+  }
+
+  @Test
+  public void test_unconditional_Breakpoint() {
+    // given:
+    MplBreakpoint mplBreakpoint = some($MplBreakpoint()//
+        .withConditional(UNCONDITIONAL));
+
+    // when:
+    List<ChainLink> result = mplBreakpoint.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal().hasCommandParts("say " + mplBreakpoint.getMessage())
+        .hasModifiers(mplBreakpoint);
+    assertThat(it.next())/* TODO: .isInternal() */
+        .hasCommandParts("execute @e[name=breakpoint] ~ ~ ~ " + getStartCommand())
+        .hasDefaultModifiers();
+    assertThat(it.next()).isInternal()
+        .hasCommandParts("summon " + markerEntity() + " ", new RelativeThisInsert(+1),
+            " {CustomName:breakpoint" + NOTIFY
+                + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+        .hasDefaultModifiers();
+    assertThatNext(it).isNotInternal().isJumpDestination();
+    assertThat(it).isEmpty();
+  }
+
+  @Test
+  public void test_conditional_Breakpoint() {
+    // given:
+    MplBreakpoint mplBreakpoint = some($MplBreakpoint()//
+        .withConditional(CONDITIONAL));
+
+    // when:
+    List<ChainLink> result = mplBreakpoint.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInternal().hasCommandParts("say " + mplBreakpoint.getMessage())
+        .hasModifiers(mplBreakpoint);
+    assertThat(it.next())/* TODO: .isInternal() */
+        .hasCommandParts("execute @e[name=breakpoint] ~ ~ ~ " + getStartCommand())
+        .hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInternal()
+        .hasCommandParts("summon " + markerEntity() + " ", new RelativeThisInsert(+3),
+            " {CustomName:breakpoint" + NOTIFY
+                + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+        .hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(CONDITIONAL);
+    assertThatNext(it).isNotInternal().isJumpDestination();
+    assertThat(it).isEmpty();
+  }
+
+  @Test
+  public void test_invert_Breakpoint() {
+    // given:
+    Mode mode = some($Mode());
+    MplBreakpoint mplBreakpoint = some($MplBreakpoint()//
+        .withConditional(INVERT)//
+        .withPrevious(new Dependable() {
+          @Override
+          public boolean canBeDependedOn() {
+            return true;
+          }
+
+          @Override
+          public Mode getModeForInverting() {
+            return mode;
+          }
+        }));
+
+    // when:
+    List<ChainLink> result = mplBreakpoint.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+    assertThat(it.next()).isInvertingCommandFor(mode);
+    assertThat(it.next()).isInternal().hasCommandParts("say " + mplBreakpoint.getMessage())
+        .hasModifiers(mplBreakpoint);
+    assertThat(it.next())/* TODO: .isInternal() */
+        .hasCommandParts("execute @e[name=breakpoint] ~ ~ ~ " + getStartCommand())
+        .hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInternal()
+        .hasCommandParts("summon " + markerEntity() + " ", new RelativeThisInsert(+3),
+            " {CustomName:breakpoint" + NOTIFY
+                + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}")
+        .hasModifiers(CONDITIONAL);
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(CONDITIONAL);
+    assertThatNext(it).isNotInternal().isJumpDestination();
+    assertThat(it).isEmpty();
   }
 
   // @formatter:off

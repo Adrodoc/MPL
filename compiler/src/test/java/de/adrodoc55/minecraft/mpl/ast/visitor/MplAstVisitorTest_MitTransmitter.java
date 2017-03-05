@@ -40,11 +40,9 @@
 package de.adrodoc55.minecraft.mpl.ast.visitor;
 
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
-import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
-import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
@@ -56,18 +54,12 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
@@ -85,16 +77,6 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     MplMainAstVisitor result = new MplMainAstVisitor(context);
     result.program = new MplProgram(new File(""), context);
     return result;
-  }
-
-  @Override
-  protected String getOnCommand(String ref) {
-    return "setblock " + ref + " redstone_block";
-  }
-
-  @Override
-  protected String getOffCommand(String ref) {
-    return "setblock " + ref + " air";
   }
 
   // @formatter:off
@@ -129,95 +111,6 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     assertThat(it.next()).matches(first);
     assertThat(it.next()).matches(second);
     assertThat(it).isEmpty();
-  }
-
-  // @formatter:off
-  // ----------------------------------------------------------------------------------------------------
-  //    ____                     _                   _         _
-  //   | __ )  _ __  ___   __ _ | | __ _ __    ___  (_) _ __  | |_
-  //   |  _ \ | '__|/ _ \ / _` || |/ /| '_ \  / _ \ | || '_ \ | __|
-  //   | |_) || |  |  __/| (_| ||   < | |_) || (_) || || | | || |_
-  //   |____/ |_|   \___| \__,_||_|\_\| .__/  \___/ |_||_| |_| \__|
-  //                                  |_|
-  // ----------------------------------------------------------------------------------------------------
-  // @formatter:on
-
-  @Test
-  public void test_unconditional_Breakpoint() {
-    // given:
-    MplBreakpoint mplBreakpoint = some($MplBreakpoint()//
-        .withConditional(UNCONDITIONAL));
-
-    // when:
-    List<ChainLink> result = mplBreakpoint.accept(underTest);
-
-    // then:
-    assertThat(result).containsExactly(//
-        new InternalCommand("/say " + mplBreakpoint.getMessage(), mplBreakpoint), //
-        new Command("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~")), //
-        new InternalCommand("/summon " + markerEntity()
-            + " ${this + 1} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}"), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE));
-  }
-
-  @Test
-  public void test_conditional_Breakpoint() {
-    // given:
-    MplBreakpoint mplBreakpoint = some($MplBreakpoint()//
-        .withConditional(CONDITIONAL));
-
-    // when:
-    List<ChainLink> result = mplBreakpoint.accept(underTest);
-
-    // then:
-    assertThat(result).containsExactly(//
-        new InternalCommand("/say " + mplBreakpoint.getMessage(), mplBreakpoint), //
-        new Command("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~"), true), //
-        new InternalCommand(
-            "/summon " + markerEntity()
-                + " ${this + 3} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
-            true), //
-        newInvertingCommand(CHAIN), //
-        new InternalCommand(getOnCommand("${this + 1}"), true), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE));
-  }
-
-  @Test
-  public void test_invert_Breakpoint() {
-    // given:
-    Mode mode = some($Mode());
-    MplBreakpoint mplBreakpoint = some($MplBreakpoint()//
-        .withConditional(INVERT)//
-        .withPrevious(new Dependable() {
-          @Override
-          public boolean canBeDependedOn() {
-            return true;
-          }
-
-          @Override
-          public Mode getModeForInverting() {
-            return mode;
-          }
-        }));
-
-    // when:
-    List<ChainLink> result = mplBreakpoint.accept(underTest);
-
-    // then:
-    assertThat(result).containsExactly(//
-        newInvertingCommand(mode), //
-        new InternalCommand("/say " + mplBreakpoint.getMessage(), mplBreakpoint), //
-        new Command("/execute @e[name=breakpoint] ~ ~ ~ " + getOnCommand("~ ~ ~"), true), //
-        new InternalCommand(
-            "/summon " + markerEntity()
-                + " ${this + 3} {CustomName:breakpoint_NOTIFY,NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}",
-            true), //
-        newInvertingCommand(CHAIN), //
-        new InternalCommand(getOnCommand("${this + 1}"), true), //
-        new MplSkip(), //
-        new InternalCommand(getOffCommand("${this - 1}"), IMPULSE));
   }
 
   // @formatter:off
