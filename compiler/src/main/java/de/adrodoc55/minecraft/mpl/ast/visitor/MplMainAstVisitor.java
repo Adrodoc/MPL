@@ -845,6 +845,9 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     ChainPart first = chainParts.peek();
     if (options.hasOption(TRANSMITTER) && first instanceof MplWhile) {
       if (((MplWhile) first).getCondition() == null) {
+        // TODO: The NOP is only required due to the current chainlink placement which throws:
+        // java.lang.IllegalArgumentException: RECEIVER at index 7 is followed by a TRANSMITTER
+        // If that system is updated this will no longer be necessary
         first = new MplCommand(new CommandPartBuffer(), modifier(), mplWhile.getSource());
         chainParts.push(first);
       }
