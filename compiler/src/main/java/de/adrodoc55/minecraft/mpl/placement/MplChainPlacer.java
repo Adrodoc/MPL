@@ -82,6 +82,8 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
+import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeOriginInsert;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import de.kussm.chain.Chain;
 import de.kussm.chain.ChainLayouter;
@@ -327,13 +329,14 @@ public abstract class MplChainPlacer {
         .orElse(0);
   }
 
-  protected String getDeleteCommand() {
+  protected CommandPartBuffer getDeleteCommand() {
     Coordinate3D max = getBoundaries();
-    StringBuilder sb = new StringBuilder();
-    sb.append("fill ${origin}").append(' ');
-    sb.append("${origin + (").append(max.toAbsoluteString()).append(")}").append(' ');
-    sb.append("air");
-    return sb.toString();
+    CommandPartBuffer result = new CommandPartBuffer();
+    result.add("fill ");
+    result.add(new RelativeOriginInsert(new Coordinate3D()));
+    result.add(new RelativeOriginInsert(max));
+    result.add(" air");
+    return result;
   }
 
   protected Coordinate3D getBoundaries() {

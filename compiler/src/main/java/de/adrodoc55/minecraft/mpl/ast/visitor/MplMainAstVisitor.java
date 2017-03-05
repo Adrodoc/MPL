@@ -492,10 +492,10 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     checkIsUsed(notify);
     addInvertingCommandIfInvert(result, notify);
 
-    boolean conditional = notify.isConditional();
+    ModifierBuffer modifier = modifier(notify.getConditional());
     result.add(new Command("execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + getStartCommand(),
-        conditional));
-    result.add(new InternalCommand("kill @e[name=" + event + NOTIFY + "]", conditional));
+        modifier));
+    result.add(new InternalCommand("kill @e[name=" + event + NOTIFY + "]", modifier));
     return result;
   }
 
@@ -529,10 +529,11 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     String event = intercept.getEvent();
     checkProcessExists(intercept, event);
     checkNotInlineProcess(intercept, event);
-    boolean conditional = intercept.isConditional();
+    Conditional conditional = intercept.getConditional();
 
     InternalCommand entitydata = new InternalCommand(
-        "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}", conditional);
+        "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}",
+        modifier(conditional));
 
 
     List<ChainLink> trc = newJumpDestination(false);
@@ -544,7 +545,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     summonCpb.add(new TargetedThisInsert(trc.get(0)));
     summonCpb
         .add(" {CustomName:" + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
-    ChainLink summon = new InternalCommand(summonCpb, modifier(Conditional.valueOf(conditional)));
+    ChainLink summon = new InternalCommand(summonCpb, modifier(conditional));
 
     if (intercept.getConditional() == UNCONDITIONAL) {
       result.add(entitydata);

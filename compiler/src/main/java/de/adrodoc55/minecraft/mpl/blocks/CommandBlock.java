@@ -80,13 +80,8 @@ public class CommandBlock extends MplBlock {
     return command;
   }
 
-  @SuppressWarnings("deprecation")
   public String getCommand() {
     return command.getCommand();
-  }
-
-  public void setCommand(String command) {
-    this.command.setCommand(command);
   }
 
   public boolean isConditional() {

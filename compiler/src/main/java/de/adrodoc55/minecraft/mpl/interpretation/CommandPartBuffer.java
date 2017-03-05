@@ -39,13 +39,14 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation;
 
+import static de.adrodoc55.minecraft.mpl.MplUtils.commandWithoutLeadingSlash;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.GlobalVariableInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeOriginInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
@@ -68,7 +69,7 @@ public class CommandPartBuffer {
   public CommandPartBuffer() {}
 
   public CommandPartBuffer(String command) {
-    add(MplUtils.commandWithoutLeadingSlash(command));
+    add(commandWithoutLeadingSlash(command));
   }
 
   public List<Object> getCommandParts() {

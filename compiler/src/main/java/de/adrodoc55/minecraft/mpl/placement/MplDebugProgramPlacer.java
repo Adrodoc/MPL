@@ -114,7 +114,7 @@ public class MplDebugProgramPlacer extends MplChainPlacer {
     addChain(uninstall);
 
     if (deleteOnUninstall != null) {
-      deleteOnUninstall.setCommand(getDeleteCommand());
+      deleteOnUninstall.setCommandParts(getDeleteCommand());
     }
   }
 }

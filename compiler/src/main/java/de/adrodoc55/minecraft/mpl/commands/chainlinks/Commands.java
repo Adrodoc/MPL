@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
@@ -61,7 +62,7 @@ public class Commands {
   }
 
   public static Command newNormalizingCommand() {
-    return new InternalCommand("testforblock ~ ~ ~ chain_command_block", true);
+    return new InternalCommand("testforblock ~ ~ ~ chain_command_block", modifier(CONDITIONAL));
   }
 
   /**

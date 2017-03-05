@@ -48,6 +48,7 @@ import static de.adrodoc55.minecraft.coordinate.Direction3D.WEST;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
+import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -89,7 +90,9 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContextBuilder;
 import de.adrodoc55.minecraft.mpl.compilation.MplSourceBuilder;
+import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBufferBuilder;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import net.karneim.pojobuilder.Builder;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
@@ -372,12 +375,18 @@ public class MplTestBase extends MplAssertionFactory {
     List<ChainLink> result = new ArrayList<>();
     if (options.hasOption(TRANSMITTER)) {
       result.add(new MplSkip());
-      result.add(new Command("setblock ${this - 1} stone", IMPULSE));
+      CommandPartBuffer cpb = new CommandPartBuffer();
+      cpb.add(MplUtils.getStopCommandHeader(options));
+      cpb.add(new RelativeThisInsert(-1));
+      cpb.add(MplUtils.getStopCommandTrailer(options));
+      result.add(new Command(cpb, modifier(IMPULSE)));
     } else {
-      result.add(new Command("blockdata ${this - 1} {auto:0b}", IMPULSE));
+      CommandPartBuffer cpb = new CommandPartBuffer();
+      cpb.add(MplUtils.getStopCommand(options));
+      result.add(new Command(cpb, modifier(IMPULSE)));
     }
     if (commands != null && !commands.isEmpty()) {
-      result.add(new Command(some($CommandString())));
+      result.add(some($Command()));
       result.addAll(commands);
     }
     return result;

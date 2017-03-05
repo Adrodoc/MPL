@@ -40,7 +40,6 @@
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import de.adrodoc55.commons.CopyScope;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import lombok.EqualsAndHashCode;
@@ -52,7 +51,6 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class InternalCommand extends Command {
-
   public InternalCommand() {
     super();
   }
@@ -61,29 +59,8 @@ public class InternalCommand extends Command {
     super(command);
   }
 
-  public InternalCommand(String command, Mode mode) {
-    super(command, mode);
-  }
-
-  public InternalCommand(String command, boolean conditional) {
-    super(command, conditional);
-  }
-
-  public InternalCommand(String command, Mode mode, boolean conditional) {
-    super(command, mode, conditional);
-  }
-
-  public InternalCommand(String command, Mode mode, boolean conditional, boolean needsRedstone) {
-    super(command, mode, conditional, needsRedstone);
-  }
-
   public InternalCommand(String command, Modifiable modifier) {
     super(command, modifier);
-  }
-
-  public InternalCommand(CommandPartBuffer commandParts, Mode mode, boolean conditional,
-      boolean needsRedstone) {
-    super(commandParts, mode, conditional, needsRedstone);
   }
 
   public InternalCommand(CommandPartBuffer commandParts, Modifiable modifier) {

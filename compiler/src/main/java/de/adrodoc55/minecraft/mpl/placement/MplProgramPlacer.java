@@ -337,7 +337,7 @@ public class MplProgramPlacer extends MplChainPlacer {
     }
 
     if (deleteOnUninstall != null) {
-      deleteOnUninstall.setCommand(getDeleteCommand());
+      deleteOnUninstall.setCommandParts(getDeleteCommand());
     }
   }
 

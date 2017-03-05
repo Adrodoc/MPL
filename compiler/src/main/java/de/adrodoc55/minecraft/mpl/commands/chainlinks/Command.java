@@ -40,10 +40,10 @@
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 
 import javax.annotation.Nonnull;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 
@@ -78,41 +78,18 @@ public class Command implements ChainLink, Modifiable {
   protected boolean needsRedstone;
 
   public Command() {
-    this("");
+    this(new CommandPartBuffer(), modifier());
   }
 
   public Command(String command) {
-    this(command, null, false);
-  }
-
-  public Command(String command, Mode mode) {
-    this(command, mode, false);
-  }
-
-  public Command(String command, boolean conditional) {
-    this(command, null, conditional);
-  }
-
-  public Command(String command, Mode mode, boolean conditional) {
-    this(command, mode, conditional, Mode.nonNull(mode).getNeedsRedstoneByDefault());
-  }
-
-  @GenerateMplPojoBuilder
-  public Command(String command, Mode mode, boolean conditional, boolean needsRedstone) {
-    setCommand(command);
-    setModifier(mode, conditional, needsRedstone);
+    this(command, modifier());
   }
 
   public Command(String command, Modifiable modifier) {
     this(new CommandPartBuffer(command), modifier);
   }
 
-  public Command(CommandPartBuffer commandParts, Mode mode, boolean conditional,
-      boolean needsRedstone) {
-    this.commandParts = checkNotNull(commandParts, "commandParts == null!");
-    setModifier(mode, conditional, needsRedstone);
-  }
-
+  @GenerateMplPojoBuilder
   public Command(CommandPartBuffer commandParts, Modifiable modifier) {
     this.commandParts = checkNotNull(commandParts, "commandParts == null!");
     setModifier(modifier);
@@ -148,12 +125,11 @@ public class Command implements ChainLink, Modifiable {
     this.needsRedstone = needsRedstone;
   }
 
-  @Deprecated
-  @VisibleForTesting
   public String getCommand() {
     return Joiner.on("").join(commandParts.getCommandParts());
   }
 
+  @Deprecated
   public void setCommand(String command) {
     this.commandParts = new CommandPartBuffer(command);
   }
