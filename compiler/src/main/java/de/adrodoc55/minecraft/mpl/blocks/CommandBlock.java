@@ -165,13 +165,18 @@ public class CommandBlock extends MplBlock {
         insert.setCoordinate(new Coordinate3D());
         return;
       }
-      Collection<MplBlock> nonInternalBlocks = Collections2.filter(blocks, b -> !b.isInternal());
+      Collection<MplBlock> relevantBlocks;
+      if (isInternal()) {
+        relevantBlocks = blocks;
+      } else {
+        relevantBlocks = Collections2.filter(blocks, b -> !b.isInternal());
+      }
 
       Iterator<MplBlock> it;
       if (relative > 0) {
-        it = nonInternalBlocks.iterator();
+        it = relevantBlocks.iterator();
       } else {
-        it = new ArrayDeque<>(nonInternalBlocks).descendingIterator();
+        it = new ArrayDeque<>(relevantBlocks).descendingIterator();
       }
 
       while (it.hasNext()) {
@@ -183,16 +188,15 @@ public class CommandBlock extends MplBlock {
               target = it.next();
             } else {
               if (relative > 0) {
-                // after chain
+                // TODO: after chain
               } else {
-                // before chain
+                // TODO: before chain
               }
             }
           }
           insert.setCoordinate(target.getCoordinate().minus(getCoordinate()));
+          return;
         }
-        throw new IllegalArgumentException(
-            "Failed to resolve insert, target is not contained in chain");
       }
       throw new IllegalArgumentException("This CommandBlock is not contained in the chain");
     }
