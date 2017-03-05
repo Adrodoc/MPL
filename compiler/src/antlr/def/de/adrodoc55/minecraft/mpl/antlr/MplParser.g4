@@ -223,16 +223,18 @@ parser grammar MplParser;
 
  insert
  :
-   DOLLAR OPENING_CURLY_BRACKET_INSERT
+   DOLLAR INSERT_OPENING_CURLY_BRACKET
    (
-     IDENTIFIER_INSERT 
-     | (
-       THIS_INSERT (
-         PLUS_INSERT
-         | MINUS_INSERT
-       ) UNSIGNED_INTEGER_INSERT
+     INSERT_IDENTIFIER
+     |
+     (
+       INSERT_THIS
+       (
+         INSERT_PLUS
+         | INSERT_MINUS
+       ) INSERT_UNSIGNED_INTEGER
      )?
-   ) CLOSING_CURLY_BRACKET_INSERT
+   ) INSERT_CLOSING_CURLY_BRACKET
  ;
 
  mplCommand

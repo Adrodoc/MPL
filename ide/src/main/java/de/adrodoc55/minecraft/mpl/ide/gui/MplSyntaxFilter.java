@@ -45,8 +45,6 @@ import java.awt.Color;
 import java.beans.PropertyChangeEvent;
 import java.util.EventObject;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -137,8 +135,6 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
       recolor((StyledDocument) document);
     }
   }
-
-  private static final Pattern INSERT_PATTERN = Pattern.compile("\\$\\{[^{}]*+\\}");
 
   private StyledDocument doc;
 
@@ -270,13 +266,17 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
         case MplLexer.UNRECOGNIZED:
         case MplLexer.UNSIGNED_INTEGER:
           styleToken(token, getDefaultStyle());
-          Matcher insert = INSERT_PATTERN.matcher(token.getText());
-          while (insert.find()) {
-            int tokenStart = token.getStartIndex();
-            int start = tokenStart + insert.start();
-            int stop = token.getStartIndex() + insert.end();
-            styleToken(start, stop, getInsertStyle());
-          }
+          break;
+        case MplLexer.DOLLAR:
+        case MplLexer.INSERT_CLOSING_CURLY_BRACKET:
+        case MplLexer.INSERT_IDENTIFIER:
+        case MplLexer.INSERT_MINUS:
+        case MplLexer.INSERT_OPENING_CURLY_BRACKET:
+        case MplLexer.INSERT_PLUS:
+        case MplLexer.INSERT_THIS:
+        case MplLexer.INSERT_UNSIGNED_INTEGER:
+        case MplLexer.INSERT_WS:
+          styleToken(token, getInsertStyle());
           break;
         case MplLexer.COMMENT:
         case MplLexer.MULTILINE_COMMENT:
@@ -294,10 +294,6 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
 
   private void styleToken(Token token, AttributeSet style, boolean replace) {
     styleToken(token.getStartIndex(), token.getStopIndex() + 1, style, replace);
-  }
-
-  private void styleToken(int start, int stop, AttributeSet style) {
-    styleToken(start, stop, style, true);
   }
 
   private void styleToken(int start, int stop, AttributeSet style, boolean replace) {

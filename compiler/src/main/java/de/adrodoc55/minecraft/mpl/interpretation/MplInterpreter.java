@@ -577,16 +577,16 @@ public class MplInterpreter extends MplParserBaseListener {
 
   @Override
   public void enterInsert(InsertContext ctx) {
-    TerminalNode integer = ctx.UNSIGNED_INTEGER_INSERT();
-    if (ctx.THIS_INSERT() != null) {
+    TerminalNode integer = ctx.INSERT_UNSIGNED_INTEGER();
+    if (ctx.INSERT_THIS() != null) {
       int relative = Integer.parseInt(integer.getText());
-      if (ctx.MINUS_INSERT() != null) {
+      if (ctx.INSERT_MINUS() != null) {
         relative *= -1;
       }
       commandPartBuffer.add(new RelativeThisInsert(relative));
       return;
     } // TODO: RelativeOriginInsert
-    TerminalNode identifierNode = ctx.IDENTIFIER_INSERT();
+    TerminalNode identifierNode = ctx.INSERT_IDENTIFIER();
     String identifier = identifierNode.getText();
 
     MplVariable<?> variable = variableScope.findVariable(identifier);

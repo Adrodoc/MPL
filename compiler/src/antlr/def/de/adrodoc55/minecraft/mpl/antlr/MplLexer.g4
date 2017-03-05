@@ -88,12 +88,12 @@ lexer grammar MplLexer;
  :
    '+'
  ;
- 
+
  MINUS
  :
    '-'
  ;
- 
+
  SLASH
  :
    '/' -> pushMode ( COMMAND )
@@ -322,46 +322,47 @@ lexer grammar MplLexer;
 
  COMMAND_STRING
  :
-   ~( '$'
-   	  | '\r'
-      | '\n'
-    )+
+   ~( '$' | '\r' | '\n' )+
  ;
 
  mode INSERT;
- 
- PLUS_INSERT
+
+ INSERT_PLUS
  :
    PLUS
  ;
 
- MINUS_INSERT
+ INSERT_MINUS
  :
    MINUS
  ;
- 
- OPENING_CURLY_BRACKET_INSERT
+
+ INSERT_OPENING_CURLY_BRACKET
  :
    OPENING_CURLY_BRACKET
  ;
- 
- CLOSING_CURLY_BRACKET_INSERT
+
+ INSERT_CLOSING_CURLY_BRACKET
  :
    CLOSING_CURLY_BRACKET -> popMode
  ;
 
- THIS_INSERT
+ INSERT_THIS
  :
    'this'
  ;
 
- UNSIGNED_INTEGER_INSERT
+ INSERT_UNSIGNED_INTEGER
  :
    UNSIGNED_INTEGER
  ;
 
- IDENTIFIER_INSERT
+ INSERT_IDENTIFIER
  :
    IDENTIFIER
  ;
- 
+
+ INSERT_WS
+ :
+   WS -> channel ( HIDDEN )
+ ;
