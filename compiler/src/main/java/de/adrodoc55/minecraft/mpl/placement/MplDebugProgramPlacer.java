@@ -115,7 +115,7 @@ public class MplDebugProgramPlacer extends MplChainPlacer {
     addChain(uninstall);
 
     if (deleteOnUninstall != null) {
-      deleteOnUninstall.setCommandParts(getDeleteCommand());
+      deleteOnUninstall.setMinecraftCommand(getDeleteCommand());
     }
   }
 }

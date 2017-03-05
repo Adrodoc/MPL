@@ -358,7 +358,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     List<ChainLink> result = new ArrayList<>(2);
     addInvertingCommandIfInvert(result, command);
 
-    CommandPartBuffer cmd = command.getCommandParts();
+    CommandPartBuffer cmd = command.getMinecraftCommand();
     result.add(newCommand(cmd, command));
     return result;
   }

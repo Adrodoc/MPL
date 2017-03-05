@@ -41,12 +41,12 @@ package de.adrodoc55.minecraft.mpl.compilation
 
 import static de.adrodoc55.TestBase.some
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$Identifier
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newCommand
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER
 
 import org.antlr.v4.runtime.CommonToken
 import org.junit.Test
 
-import spock.lang.Unroll
 import de.adrodoc55.minecraft.coordinate.Orientation3D
 import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart
@@ -60,6 +60,7 @@ import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion
+import spock.lang.Unroll
 
 class MplCompilerSpec extends MplSpecBase {
 
@@ -963,7 +964,7 @@ class MplCompilerSpec extends MplSpecBase {
     install.blocks[0].class == Transmitter
     install.blocks[1].getCommand().startsWith('setblock ')
     install.blocks[2].getCommand().startsWith('summon ')
-    install.blocks[3].toCommand() == new Command('say install')
+    install.blocks[3].toCommand() == newCommand('say install')
     install.blocks[4].class == AirBlock
   }
 
@@ -996,7 +997,7 @@ class MplCompilerSpec extends MplSpecBase {
     uninstall.blocks.size() == 5
     uninstall.blocks[0].class == Transmitter
     uninstall.blocks[1].getCommand().startsWith('setblock ')
-    uninstall.blocks[2].toCommand() == new Command('say uninstall')
+    uninstall.blocks[2].toCommand() == newCommand('say uninstall')
     uninstall.blocks[3].getCommand().startsWith('kill @e[type=')
     uninstall.blocks[4].class == AirBlock
   }

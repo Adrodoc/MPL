@@ -158,7 +158,7 @@ public class MplTestBase extends MplAssertionFactory {
 
   public static CommandBuilder $Command() {
     return new CommandBuilder()//
-        .withCommandParts($CommandPartBuffer())//
+        .withMinecraftCommand($CommandPartBuffer())//
         .withMode($Mode())//
         .withConditional($boolean())//
         .withNeedsRedstone($boolean())//

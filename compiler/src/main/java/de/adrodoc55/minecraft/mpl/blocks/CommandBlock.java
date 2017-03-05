@@ -154,7 +154,7 @@ public class CommandBlock extends MplBlock {
 
   @Override
   public void resolveThisInserts(Collection<MplBlock> blocks) {
-    for (RelativeThisInsert insert : command.getCommandParts().getThisInserts()) {
+    for (RelativeThisInsert insert : command.getMinecraftCommand().getThisInserts()) {
       int relative = insert.getRelative();
       if (relative == 0) {
         insert.setCoordinate(new Coordinate3D());

@@ -105,8 +105,8 @@ public class ChainLinkAssert<S extends ChainLinkAssert<S, A>, A extends ChainLin
     return asCommand().commandParts();
   }
 
-  public CommandAssert hasCommandParts(CommandPartBuffer commandParts) {
-    return asCommand().hasCommandParts(commandParts);
+  public CommandAssert hasMinecraftCommand(CommandPartBuffer commandParts) {
+    return asCommand().hasMinecraftCommand(commandParts);
   }
 
   public CommandAssert hasCommandParts(Object... commandParts) {

@@ -46,13 +46,10 @@ import static de.adrodoc55.minecraft.mpl.MplTestBase.$Identifier
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplCompilerContext
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.*
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.*
-import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY
 import static de.adrodoc55.minecraft.mpl.commands.Mode.*
 
 import org.antlr.v4.runtime.CommonToken
 import org.junit.Test
-
-import spock.lang.Unroll
 
 import com.google.common.collect.SetMultimap
 
@@ -80,8 +77,8 @@ import de.adrodoc55.minecraft.mpl.ast.variable.selector.TargetSelector
 import de.adrodoc55.minecraft.mpl.ast.variable.type.MplType
 import de.adrodoc55.minecraft.mpl.ast.variable.value.MplScoreboardValue
 import de.adrodoc55.minecraft.mpl.ast.variable.value.MplValue
-import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext
 import de.adrodoc55.minecraft.mpl.compilation.MplSource
+import spock.lang.Unroll
 
 class MplInterpreterSpec2 extends MplSpecBase {
 
@@ -2570,7 +2567,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
       return '@e ' + some($Identifier())
     }
   }
-  
+
   @Test
   public void "Inserting an Integer variable"() {
     given:
@@ -2586,15 +2583,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     lastContext.errors.isEmpty()
     MplProgram program = interpreter.program
-    
+
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
     MplCommand command =  process.chainParts[0]
-    command.command == "say The value is ${value}!"
+    command.commandParts.join() == "say The value is ${value}!"
     process.chainParts.size() == 1
   }
-  
+
   @Test
   public void "Inserting a Selector variable"() {
     given:
@@ -2610,15 +2607,15 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     lastContext.errors.isEmpty()
     MplProgram program = interpreter.program
-    
+
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
     MplCommand command =  process.chainParts[0]
-    command.command == "say The value is ${value}!"
+    command.commandParts.join() == "say The value is ${value}!"
     process.chainParts.size() == 1
   }
-  
+
   @Test
   public void "Inserting a String variable"() {
     given:
@@ -2634,12 +2631,12 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     lastContext.errors.isEmpty()
     MplProgram program = interpreter.program
-    
+
     program.processes.size() == 1
     MplProcess process = program.processes.first()
 
     MplCommand command =  process.chainParts[0]
-    command.command == "say The value is ${value}!"
+    command.commandParts.join() == "say The value is ${value}!"
     process.chainParts.size() == 1
   }
 
@@ -2663,5 +2660,5 @@ class MplInterpreterSpec2 extends MplSpecBase {
     lastContext.errors[0].source.lineNumber == 3
     lastContext.errors.size() == 1
   }
-  
+
 }

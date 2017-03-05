@@ -78,7 +78,7 @@ public class MplTestUtils extends MplTestBase {
       if (command.getConditional() == INVERT) {
         result.add(newInvertingCommand(command.getPrevious()));
       }
-      CommandPartBuffer cmd = command.getCommandParts();
+      CommandPartBuffer cmd = command.getMinecraftCommand();
       result.add(newCommand(cmd, command));
     }
     return result;

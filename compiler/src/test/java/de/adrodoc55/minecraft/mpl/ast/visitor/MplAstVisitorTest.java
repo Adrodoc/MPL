@@ -224,7 +224,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     Iterator<ChainLink> it = result.getCommands().iterator();
     if (context.getOptions().hasOption(TRANSMITTER))
       assertThat(it.next()).isSkip().isNotInternal();
-    assertThat(it.next()).hasCommandParts(first.getCommandParts()).hasModifiers(REPEAT);
+    assertThat(it.next()).hasMinecraftCommand(first.getMinecraftCommand()).hasModifiers(REPEAT);
     assertThat(it.next()).matches(second);
     assertThat(it).isEmpty();
   }
@@ -287,7 +287,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     Iterator<ChainLink> it = result.getCommands().iterator();
     if (context.getOptions().hasOption(TRANSMITTER))
       assertThat(it.next()).isSkip().isNotInternal();
-    assertThat(it.next()).hasCommandParts(first.getCommandParts()).hasModifiers(REPEAT);
+    assertThat(it.next()).hasMinecraftCommand(first.getMinecraftCommand()).hasModifiers(REPEAT);
     assertThat(it.next()).isInvertingCommandFor(REPEAT); // Important line!
     assertThat(it.next()).matches(second);
     assertThat(it).isEmpty();

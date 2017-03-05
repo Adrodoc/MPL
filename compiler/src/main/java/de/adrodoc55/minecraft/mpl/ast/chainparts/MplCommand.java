@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 
 import de.adrodoc55.commons.CopyScope;
@@ -62,7 +64,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @Getter
 @Setter
 public class MplCommand extends ModifiableChainPart {
-  private final CommandPartBuffer commandParts;
+  private final CommandPartBuffer minecraftCommand;
 
   public MplCommand(String command, @Nonnull MplSource source) {
     this(command, new ModifierBuffer(), source);
@@ -74,22 +76,26 @@ public class MplCommand extends ModifiableChainPart {
     this(new CommandPartBuffer(command), modifier, source);
   }
 
-  public MplCommand(CommandPartBuffer commandParts, ExtendedModifiable modifier,
+  public MplCommand(CommandPartBuffer minecraftCommand, ExtendedModifiable modifier,
       @Nonnull MplSource source) {
     super(modifier, source);
-    this.commandParts = commandParts;
+    this.minecraftCommand = minecraftCommand;
   }
 
   @Deprecated
   protected MplCommand(MplCommand original, CopyScope scope) {
     super(original);
-    commandParts = scope.copyObject(original.commandParts);
+    minecraftCommand = scope.copyObject(original.minecraftCommand);
   }
 
   @Deprecated
   @Override
   public MplCommand createFlatCopy(CopyScope scope) {
     return new MplCommand(this, scope);
+  }
+
+  public List<Object> getCommandParts() {
+    return minecraftCommand.getCommandParts();
   }
 
   @Override

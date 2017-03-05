@@ -41,8 +41,11 @@ package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 
@@ -71,15 +74,23 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @Getter
 @Setter
 public class Command implements ChainLink, Modifiable {
-  private @Nonnull CommandPartBuffer commandParts;
+  private @Nonnull CommandPartBuffer minecraftCommand;
   private @Nonnull Mode mode;
   private boolean conditional;
   private boolean needsRedstone;
   private boolean internal;
 
   @GenerateMplPojoBuilder
-  Command(CommandPartBuffer commandParts, Modifiable modifier, boolean internal) {
-    this.commandParts = checkNotNull(commandParts, "commandParts == null!");
+  @VisibleForTesting
+  Command(CommandPartBuffer minecraftCommand, Mode mode, boolean conditional, boolean needsRedstone,
+      boolean internal) {
+    this.minecraftCommand = checkNotNull(minecraftCommand, "minecraftCommand == null!");
+    setModifier(mode, conditional, needsRedstone);
+    setInternal(internal);
+  }
+
+  Command(CommandPartBuffer minecraftCommand, Modifiable modifier, boolean internal) {
+    this.minecraftCommand = checkNotNull(minecraftCommand, "minecraftCommand == null!");
     setModifier(modifier);
     setInternal(internal);
   }
@@ -101,7 +112,7 @@ public class Command implements ChainLink, Modifiable {
   @Override
   public void completeDeepCopy(CopyScope scope) {
     Command original = scope.getCache().getOriginal(this);
-    commandParts = scope.copyObject(original.commandParts);
+    minecraftCommand = scope.copyObject(original.minecraftCommand);
   }
 
   public void setModifier(Modifiable modifier) {
@@ -119,8 +130,12 @@ public class Command implements ChainLink, Modifiable {
     return needsRedstone;
   }
 
+  public List<Object> getCommandParts() {
+    return minecraftCommand.getCommandParts();
+  }
+
   public String getCommand() {
-    return Joiner.on("").join(commandParts.getCommandParts());
+    return Joiner.on("").join(getCommandParts());
   }
 
   @Override
@@ -130,7 +145,7 @@ public class Command implements ChainLink, Modifiable {
 
   @Override
   public void resolveTargetedThisInserts(Iterable<? extends ChainLink> chainLinks) {
-    commandParts.resolveTargetedThisInserts(insert -> resolve(insert, chainLinks));
+    minecraftCommand.resolveTargetedThisInserts(insert -> resolve(insert, chainLinks));
   }
 
   private RelativeThisInsert resolve(TargetedThisInsert insert,
