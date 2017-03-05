@@ -450,7 +450,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       }
     }
     result.addAll(dest);
-    return resolveReferences(result);
+    resolveReferences(result);
+    return result;
   }
 
   /**
@@ -566,7 +567,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     result.add(new InternalCommand("kill @e[name=" + event + ",r=2]"));
     result.add(new InternalCommand(
         "entitydata @e[name=" + event + INTERCEPTED + "] {CustomName:" + event + "}"));
-    return resolveReferences(result);
+    resolveReferences(result);
+    return result;
   }
 
   @Override
@@ -660,7 +662,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     result.addAll(getAllWithRef(elseParts));
 
     ifNestingLayers.pop();
-    return resolveReferences(result);
+    resolveReferences(result);
+    return result;
   }
 
   private List<ChainLink> getAllWithRef(Iterable<ChainPart> chainParts) {
@@ -902,7 +905,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     }
 
     loops.pop();
-    return resolveReferences(result);
+    resolveReferences(result);
+    return result;
   }
 
   private Deque<LoopRef> loopRefs = new ArrayDeque<>();
@@ -947,7 +951,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       result.addAll(getBreakLoop(loop, true));
     }
     result.addAll(dest);
-    return resolveReferences(result);
+    resolveReferences(result);
+    return result;
   }
 
   @Override

@@ -41,6 +41,7 @@ package de.adrodoc55.minecraft.mpl.placement;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.coordinate.Axis3D.Y;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNoOperationCommand;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static de.kussm.direction.Direction.EAST;
@@ -79,7 +80,6 @@ import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
@@ -229,7 +229,7 @@ public abstract class MplChainPlacer {
    */
   protected LinkedHashMap<Position, ChainLinkType> place(Chain chain, Directions template,
       Set<Position> forbiddenReceivers, Set<Position> forbiddenTransmitters)
-          throws NotEnoughSpaceException {
+      throws NotEnoughSpaceException {
     if (options.hasOption(TRANSMITTER)) {
       // receivers are not allowed at x=0 because the start transmitters of all chains are at x=0
       Predicate<Position> isReceiverAllowed =
@@ -306,7 +306,7 @@ public abstract class MplChainPlacer {
       Coordinate3D coord = toCoordinate(pos, orientation);
 
       if (entry.getValue() == ChainLinkType.NO_OPERATION) {
-        blocks.add(new CommandBlock(new NoOperationCommand(), d, coord));
+        blocks.add(new CommandBlock(newNoOperationCommand(), d, coord));
       } else {
         ChainLink chainLink = chainLinks.pop();
         blocks.add(chainLink.toBlock(coord, d));

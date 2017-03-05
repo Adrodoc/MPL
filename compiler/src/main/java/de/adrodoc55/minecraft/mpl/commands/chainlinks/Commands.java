@@ -56,6 +56,10 @@ public class Commands {
     throw new Exception("Utils Classes cannot be instantiated!");
   }
 
+  public static Command newNoOperationCommand() {
+    return new InternalCommand(new CommandPartBuffer(), modifier());
+  }
+
   public static Command newNormalizingCommand() {
     return new InternalCommand("testforblock ~ ~ ~ chain_command_block", true);
   }

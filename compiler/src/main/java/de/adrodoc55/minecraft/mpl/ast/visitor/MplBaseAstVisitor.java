@@ -51,8 +51,6 @@ import java.util.List;
 
 import javax.annotation.CheckReturnValue;
 
-import com.google.common.collect.Lists;
-
 import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
@@ -62,7 +60,6 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ResolveableCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
@@ -193,21 +190,9 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
     }
   }
 
-  // TODO: Alles auf solche Referenzen umstellen
-  protected static List<ChainLink> resolveReferences(List<ChainLink> chainLinks) {
+  protected static void resolveReferences(List<ChainLink> chainLinks) {
     for (ChainLink chainLink : chainLinks) {
       chainLink.resolveTargetedThisInserts(chainLinks);
     }
-    return new ArrayList<>(Lists.transform(chainLinks, it -> {
-      if (it instanceof ResolveableCommand) {
-        try {
-          return ((ResolveableCommand) it).resolve(chainLinks);
-        } catch (IllegalArgumentException ex) {
-          return it;
-        }
-      }
-      return it;
-    }));
   }
-
 }

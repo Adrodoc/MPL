@@ -111,18 +111,6 @@ public abstract class MplAstVisitorTest extends MplTestBase {
 
   protected abstract MplMainAstVisitor newUnderTest(MplCompilerContext context);
 
-  @Deprecated
-  protected String getOnCommand(String ref) {
-    return MplUtils.getStartCommandHeader(context.getOptions()) + ref
-        + MplUtils.getStartCommandTrailer(context.getOptions());
-  }
-
-  @Deprecated
-  protected String getOffCommand(String ref) {
-    return MplUtils.getStopCommandHeader(context.getOptions()) + ref
-        + MplUtils.getStopCommandTrailer(context.getOptions());
-  }
-
   protected String getStartCommand() {
     return MplUtils.getStartCommand(context.getOptions());
   }
