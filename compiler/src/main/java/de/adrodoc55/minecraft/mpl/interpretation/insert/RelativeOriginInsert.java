@@ -42,23 +42,22 @@ package de.adrodoc55.minecraft.mpl.interpretation.insert;
 import javax.annotation.Nullable;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.mpl.interpretation.VariableScope;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Adrodoc55
  */
-public class RelativeOriginInsert implements Insert {
+@Getter
+@Setter
+@EqualsAndHashCode
+public class RelativeOriginInsert {
   private final Coordinate3D relative;
   protected @Nullable Coordinate3D coordinate;
 
   public RelativeOriginInsert(Coordinate3D relative) {
     this.relative = relative;
-  }
-
-  @Override
-  public boolean resolve(VariableScope scope) {
-    // TODO Auto-generated method stub
-    return false;
   }
 
   @Override

@@ -53,6 +53,7 @@ import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeOriginInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -197,4 +198,10 @@ public class CommandBlock extends MplBlock {
     }
   }
 
+  @Override
+  public void resolveOriginInserts() {
+    for (RelativeOriginInsert insert : command.getMinecraftCommand().getOriginInserts()) {
+      insert.setCoordinate(getCoordinate().mult(-1).plus(insert.getRelative()));
+    }
+  }
 }

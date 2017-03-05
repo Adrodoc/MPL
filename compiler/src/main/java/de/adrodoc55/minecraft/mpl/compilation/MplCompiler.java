@@ -145,6 +145,7 @@ public class MplCompiler {
       List<MplBlock> blocks = chain.getBlocks();
       for (MplBlock block : blocks) {
         block.resolveThisInserts(blocks);
+        block.resolveOriginInserts();
       }
     }
   }

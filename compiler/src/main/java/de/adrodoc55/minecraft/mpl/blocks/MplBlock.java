@@ -86,4 +86,6 @@ public abstract class MplBlock {
   public abstract boolean isInternal();
 
   public void resolveThisInserts(Collection<MplBlock> blocks) {}
+
+  public void resolveOriginInserts() {}
 }
