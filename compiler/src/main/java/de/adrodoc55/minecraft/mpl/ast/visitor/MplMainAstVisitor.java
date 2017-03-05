@@ -938,12 +938,12 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       List<Command> breakLoop = getBreakLoop(loop);
       breakLoop.get(0).setModifier(mplBreak);
       result.addAll(breakLoop);
-      result.add(newInvertingCommand(CHAIN));
+      result.add(newInvertingCommand(breakLoop.get(breakLoop.size() - 1).getMode()));
       result.add(dontBreak);
     } else {
       dontBreak.setModifier(mplBreak);
       result.add(dontBreak);
-      result.add(newInvertingCommand(CHAIN));
+      result.add(newInvertingCommand(dontBreak.getMode()));
       result.addAll(getBreakLoop(loop, true));
     }
     result.addAll(dest);

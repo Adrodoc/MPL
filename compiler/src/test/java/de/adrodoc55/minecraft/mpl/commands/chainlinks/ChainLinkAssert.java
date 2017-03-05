@@ -71,7 +71,7 @@ public class ChainLinkAssert<S extends ChainLinkAssert<S, A>, A extends ChainLin
   public CommandAssert asCommand() {
     isNotNull();
     isInstanceOf(Command.class);
-    return new CommandAssert((Command) actual, options);
+    return new CommandAssert((Command) actual, options).as(description());
   }
 
   public AbstractBooleanAssert<?> internal() {
@@ -84,11 +84,17 @@ public class ChainLinkAssert<S extends ChainLinkAssert<S, A>, A extends ChainLin
     return myself;
   }
 
+  /**
+   * Verifies that the actual value is {@link ChainLink#isInternal() internal}.
+   */
   public S isInternal() {
     internal().isTrue();
     return myself;
   }
 
+  /**
+   * Verifies that the actual value is not {@link ChainLink#isInternal() internal}.
+   */
   public S isNotInternal() {
     internal().isFalse();
     return myself;
@@ -138,6 +144,17 @@ public class ChainLinkAssert<S extends ChainLinkAssert<S, A>, A extends ChainLin
     return asCommand().isStartCommand(relative);
   }
 
+  /**
+   * Verifies that the actual value is a {@link Command} that stops itself.
+   */
+  public CommandAssert isStopCommand() {
+    return asCommand().isStopCommand();
+  }
+
+  /**
+   * Verifies that the actual value is a {@link Command} that stops the {@link ChainLink} relative
+   * to it.
+   */
   public CommandAssert isStopCommand(int relative) {
     return asCommand().isStopCommand(relative);
   }
@@ -148,6 +165,10 @@ public class ChainLinkAssert<S extends ChainLinkAssert<S, A>, A extends ChainLin
 
   public CommandAssert isTestforSuccessCommand(int relative, boolean success) {
     return asCommand().isTestforSuccessCommand(relative, success);
+  }
+
+  public CommandAssert isTestforSuccessCommand(int relative, Mode referencedMode, boolean success) {
+    return asCommand().isTestforSuccessCommand(relative, referencedMode, success);
   }
 
   public CommandAssert isNormalizingCommand() {

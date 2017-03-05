@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.ast.visitor;
 
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
@@ -54,6 +55,8 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreak;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
@@ -142,7 +145,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     assertThat(it.next()).matches(repeat2);
     assertThat(it.next()).isInternal().isStopCommand(-2).hasDefaultModifiers();
     assertThat(it.next()).isInternal().isStartCommand(-3).hasModifiers(CONDITIONAL);
-    assertThatNext(it).isInternal().isJumpDestination();
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE);
     assertThat(it).isEmpty();
   }
 
@@ -172,7 +175,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     assertThat(it.next()).isInvertingCommandFor(CHAIN);
     assertThat(it.next()).isInternal().isStartCommand(+2).hasModifiers(CONDITIONAL);
     assertThat(it.next()).isInternal().isStopCommand(-7).hasModifiers(CONDITIONAL);
-    assertThatNext(it).isInternal().isJumpDestination();
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE);
     assertThat(it).isEmpty();
   }
 
@@ -202,7 +205,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     assertThat(it.next()).isInvertingCommandFor(CHAIN);
     assertThat(it.next()).isInternal().isStopCommand(-6).hasModifiers(CONDITIONAL);
     assertThat(it.next()).isInternal().isStartCommand(-7).hasModifiers(CONDITIONAL);
-    assertThatNext(it).isInternal().isJumpDestination();
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE);
     assertThat(it).isEmpty();
   }
 
@@ -236,7 +239,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     assertThat(it.next()).isInvertingCommandFor(CHAIN);
     assertThat(it.next()).isInternal().isStartCommand(+2).hasModifiers(CONDITIONAL);
     assertThat(it.next()).isInternal().isStopCommand(-7).hasModifiers(CONDITIONAL);
-    assertThatNext(it).isInternal().isJumpDestination();
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE);
     assertThat(it).isEmpty();
   }
 
@@ -270,7 +273,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     assertThat(it.next()).isInvertingCommandFor(CHAIN);
     assertThat(it.next()).isInternal().isStopCommand(-6).hasModifiers(CONDITIONAL);
     assertThat(it.next()).isInternal().isStartCommand(-7).hasModifiers(CONDITIONAL);
-    assertThatNext(it).isInternal().isJumpDestination();
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE);
     assertThat(it).isEmpty();
   }
 
@@ -295,6 +298,484 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
     assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
     assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(IMPULSE);
     assertThat(it).isNotEmpty();
+  }
+
+  // @formatter:off
+  // ----------------------------------------------------------------------------------------------------
+  //    ____                     _
+  //   | __ )  _ __  ___   __ _ | | __
+  //   |  _ \ | '__|/ _ \ / _` || |/ /
+  //   | |_) || |  |  __/| (_| ||   <
+  //   |____/ |_|   \___| \__,_||_|\_\
+  //
+  // ----------------------------------------------------------------------------------------------------
+  // @formatter:on
+
+  @Test
+  @Override
+  public void test_unconditional_Break() {
+    // given:
+    MplWhile mplWhile = some($MplWhile().withCondition((String) null));
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplBreak mplBreak = some($MplBreak()//
+        .withLoop(mplWhile)//
+        .withConditional(UNCONDITIONAL));
+    mplWhile.setChainParts(listOf(command, mplBreak));
+
+    // when:
+    List<ChainLink> result = mplWhile.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+
+    // while header
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
+    assertThat(it.next()).matchesAsImpulse(command); // enter
+
+    // break
+    // FIXME: ein command von break MUSS nicht internal sein
+    assertThat(it.next()).isInternal().isStartCommand(+2).hasModifiers(mplBreak); // ref exit
+    assertThat(it.next()).isInternal().isStopCommand(-2).hasModifiers(CONDITIONAL); // ref enter
+
+    // while trailer
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE); // exit
+
+    assertThat(it).isEmpty();
+  }
+
+  @Test
+  @Override
+  public void test_conditional_Break() {
+    // given:
+    MplWhile mplWhile = some($MplWhile().withCondition((String) null));
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplBreak mplBreak = some($MplBreak()//
+        .withLoop(mplWhile)//
+        .withConditional(CONDITIONAL));
+    mplWhile.setChainParts(listOf(command, mplBreak));
+
+    // when:
+    List<ChainLink> result = mplWhile.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+
+    // while header
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
+    assertThat(it.next()).matchesAsImpulse(command); // enter
+
+    // break
+    assertThat(it.next()).isInternal().isStartCommand(+7).hasModifiers(mplBreak); // ref exit
+    assertThat(it.next()).isInternal().isStopCommand(-2).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isInvertingCommandFor(CHAIN); // TODO testforsuccess -3 IMPULSE false
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(CONDITIONAL); // ref no break
+    assertThat(it.next()).isNotInternal().isStopCommand().hasMode(IMPULSE); // no break
+
+    // while trailer
+    assertThat(it.next()).isInternal().isStopCommand(-6).hasDefaultModifiers(); // ref enter
+    assertThat(it.next()).isInternal().isStartCommand(-7).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE); // exit
+
+    assertThat(it).isEmpty();
+  }
+
+  @Test
+  @Override
+  public void test_invert_Break() {
+    // given:
+    MplWhile mplWhile = some($MplWhile().withCondition((String) null));
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplBreak mplBreak = some($MplBreak()//
+        .withLoop(mplWhile)//
+        .withConditional(INVERT)//
+        .withPrevious(command));
+    mplWhile.setChainParts(listOf(command, mplBreak));
+
+    // when:
+    List<ChainLink> result = mplWhile.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+
+    // while header
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
+    assertThat(it.next()).matchesAsImpulse(command); // enter
+
+    // break
+    assertThat(it.next()).isInternal().isStartCommand(+4).hasModifiers(mplBreak); // ref no break
+    assertThat(it.next()).isInvertingCommandFor(mplBreak.getMode());
+    assertThat(it.next()).isInternal().isStartCommand(+5).hasModifiers(CONDITIONAL); // ref exit
+    assertThat(it.next()).isInternal().isStopCommand(-4).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isNotInternal().isStopCommand().hasMode(IMPULSE); // no break
+
+    // while trailer
+    assertThat(it.next()).isInternal().isStopCommand(-6).hasDefaultModifiers(); // ref enter
+    assertThat(it.next()).isInternal().isStartCommand(-7).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE); // exit
+
+    assertThat(it).isEmpty();
+  }
+
+  @Test
+  @Override
+  public void test_nested_Break_stops_all_inner_loops() {
+    // given:
+    MplWhile innerWhile = some($MplWhile()//
+        .withCondition((String) null));
+
+    MplCommand outerCommand = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplWhile outerWhile = some($MplWhile()//
+        .withCondition((String) null)//
+        .withChainParts(listOf(outerCommand, innerWhile)));
+
+    MplCommand innerCommand = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplBreak mplBreak = some($MplBreak()//
+        .withLoop(outerWhile)//
+        .withConditional(CONDITIONAL)//
+        .withPrevious(innerCommand));
+    innerWhile.setChainParts(listOf(innerCommand, mplBreak));
+
+    // when:
+    List<ChainLink> result = outerWhile.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+
+    // outer while header
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(outerWhile);
+    assertThat(it.next()).matchesAsImpulse(outerCommand); // outer enter
+
+    // inner while header
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(innerWhile);
+    assertThat(it.next()).matchesAsImpulse(innerCommand); // inner enter
+
+    // break
+    assertThat(it.next()).isInternal().isStartCommand(+11).hasModifiers(mplBreak); // ref o exit
+    assertThat(it.next()).isInternal().isStopCommand(-2).hasModifiers(CONDITIONAL); // ref i enter
+    assertThat(it.next()).isInternal().isStopCommand(-5).hasModifiers(CONDITIONAL); // ref o enter
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(CONDITIONAL); // ref no break
+    assertThat(it.next()).isNotInternal().isStopCommand().hasMode(IMPULSE); // no break
+
+    // inner while trailer
+    assertThat(it.next()).isInternal().isStopCommand(-7).hasDefaultModifiers(); // ref i enter
+    assertThat(it.next()).isInternal().isStartCommand(-8).hasModifiers(CONDITIONAL); // ref i enter
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE); // inner exit
+
+    // outer while trailer
+    assertThat(it.next()).isInternal().isStopCommand(-12).hasDefaultModifiers(); // ref o enter
+    assertThat(it.next()).isInternal().isStartCommand(-13).hasModifiers(CONDITIONAL); // ref o enter
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE); // outer exit
+
+    assertThat(it).isEmpty();
+  }
+
+  // @formatter:off
+  // ----------------------------------------------------------------------------------------------------
+  //     ____               _    _
+  //    / ___| ___   _ __  | |_ (_) _ __   _   _   ___
+  //   | |    / _ \ | '_ \ | __|| || '_ \ | | | | / _ \
+  //   | |___| (_) || | | || |_ | || | | || |_| ||  __/
+  //    \____|\___/ |_| |_| \__||_||_| |_| \__,_| \___|
+  //
+  // ----------------------------------------------------------------------------------------------------
+  // @formatter:on
+
+  @Test
+  @Override
+  public void test_unconditional_Continue_without_condition() {
+    // given:
+    MplWhile mplWhile = some($MplWhile()//
+        .withCondition((String) null));
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplContinue mplContinue = some($MplContinue()//
+        .withLoop(mplWhile)//
+        .withConditional(UNCONDITIONAL));
+    mplWhile.setChainParts(listOf(command, mplContinue));
+
+    // when:
+    List<ChainLink> result = mplWhile.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+
+    // while header
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
+    assertThat(it.next()).matchesAsImpulse(command); // enter
+
+    // continue
+    // FIXME: ein command von continue MUSS nicht internal sein
+    assertThat(it.next()).isInternal().isStopCommand(-1).hasModifiers(mplContinue); // ref enter
+    assertThat(it.next()).isInternal().isStartCommand(-2).hasModifiers(CONDITIONAL); // ref enter
+
+    // while trailer
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE); // exit
+
+    assertThat(it).isEmpty();
+  }
+
+  @Test
+  @Override
+  public void test_unconditional_Continue_with_condition() {
+    // given:
+    MplWhile mplWhile = some($MplWhile().withNot(false).withTrailing(true));
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplContinue mplContinue = some($MplContinue()//
+        .withLoop(mplWhile)//
+        .withConditional(UNCONDITIONAL));
+    mplWhile.setChainParts(listOf(command, mplContinue));
+
+    // when:
+    List<ChainLink> result = mplWhile.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+
+    // while header
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
+    assertThat(it.next()).matchesAsImpulse(command); // enter
+
+    // continue
+    assertThat(it.next()).isNotInternal().hasCommandParts(mplWhile.getCondition())
+        .hasModifiers(mplContinue);
+    assertThat(it.next()).isInternal().isStopCommand(-2).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isInternal().isStartCommand(-3).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);
+    assertThat(it.next()).isInternal().isStartCommand(+2).hasModifiers(CONDITIONAL); // ref exit
+    assertThat(it.next()).isInternal().isStopCommand(-6).hasModifiers(CONDITIONAL); // ref enter
+
+    // while trailer
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE); // exit
+
+    assertThat(it).isEmpty();
+  }
+
+  @Test
+  @Override
+  public void test_conditional_Continue_without_condition() {
+    // given:
+    MplWhile mplWhile = some($MplWhile().withCondition((String) null));
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplContinue mplContinue = some($MplContinue()//
+        .withLoop(mplWhile)//
+        .withConditional(CONDITIONAL)//
+        .withPrevious(command));
+    mplWhile.setChainParts(listOf(command, mplContinue));
+
+    // when:
+    List<ChainLink> result = mplWhile.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+
+    // while header
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
+    assertThat(it.next()).matchesAsImpulse(command); // enter and conditional condition
+
+    // continue
+    assertThat(it.next()).isInternal().isStopCommand(-1) // ref enter
+    /* FIXME: .hasModifiers(mplContinue) */;
+    assertThat(it.next()).isInternal().isStartCommand(-2).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isTestforSuccessCommand(-3, IMPULSE, false); // ref conditional condition
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(CONDITIONAL); // ref nop
+    assertThat(it.next()).isNotInternal().isStopCommand().hasMode(IMPULSE); // nop
+
+    // while trailer
+    assertThat(it.next()).isInternal().isStopCommand(-6).hasDefaultModifiers(); // ref enter
+    assertThat(it.next()).isInternal().isStartCommand(-7).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE); // exit
+
+    assertThat(it).isEmpty();
+  }
+
+  @Test
+  @Override
+  public void test_conditional_Continue_with_condition() {
+    // given:
+    MplWhile mplWhile = some($MplWhile().withNot(false).withTrailing(true));
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplContinue mplContinue = some($MplContinue()//
+        .withLoop(mplWhile)//
+        .withConditional(CONDITIONAL)//
+        .withPrevious(command));
+    mplWhile.setChainParts(listOf(command, mplContinue));
+
+    // when:
+    List<ChainLink> result = mplWhile.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+
+    // while header
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
+    assertThat(it.next()).matchesAsImpulse(command); // enter
+
+    // continue
+    assertThat(it.next()).isNormalizingCommand(); // normalizer
+    assertThat(it.next())/* FIXME: .isInternal() */.hasCommandParts(mplWhile.getCondition())
+    /* .hasModifiers(mplContinue) */; // cond
+    assertThat(it.next()).isInternal().isStopCommand(-3).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isInternal().isStartCommand(-4).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isTestforSuccessCommand(-4, true); // ref normalizer
+    assertThat(it.next()).isTestforSuccessCommand(-4, false).hasModifiers(CONDITIONAL); // ref cond
+    assertThat(it.next()).isInternal().isStartCommand(+11).hasModifiers(CONDITIONAL); // ref exit
+    assertThat(it.next()).isInternal().isStopCommand(-8).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isTestforSuccessCommand(-8, false); // ref normalizer
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(CONDITIONAL); // ref nop
+    assertThat(it.next()).isNotInternal().isStopCommand().hasMode(IMPULSE); // nop
+
+    // while trailer
+    assertThat(it.next())/* FIXME .isInternal() */.hasCommandParts(mplWhile.getCondition())
+        .hasDefaultModifiers();
+    assertThat(it.next()).isInternal().isStopCommand(-13).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isInternal().isStartCommand(-14).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);// TODO testfor success -3 false
+    assertThat(it.next()).isInternal().isStartCommand(+2).hasModifiers(CONDITIONAL); // ref exit
+    assertThat(it.next()).isInternal().isStopCommand(-17).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE); // exit
+
+    assertThat(it).isEmpty();
+  }
+
+  @Test
+  @Override
+  public void test_invert_Continue_without_condition() {
+    // given:
+    MplWhile mplWhile = some($MplWhile().withCondition((String) null));
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplContinue mplContinue = some($MplContinue()//
+        .withLoop(mplWhile)//
+        .withConditional(INVERT)//
+        .withPrevious(command));
+    mplWhile.setChainParts(listOf(command, mplContinue));
+
+    // when:
+    List<ChainLink> result = mplWhile.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+
+    // while header
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
+    assertThat(it.next()).matchesAsImpulse(command); // enter and invert condition
+
+    // continue
+    assertThat(it.next()).isInternal().isStartCommand(+4) // ref nop
+    /* FIXME: .hasModifiers(mplContinue) */;
+    assertThat(it.next()).isTestforSuccessCommand(-2, IMPULSE, false); // ref invert condition
+    assertThat(it.next()).isInternal().isStopCommand(-3).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isInternal().isStartCommand(-4).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isNotInternal().isStopCommand().hasMode(IMPULSE); // nop
+
+    // while trailer
+    assertThat(it.next()).isInternal().isStopCommand(-6).hasDefaultModifiers(); // ref enter
+    assertThat(it.next()).isInternal().isStartCommand(-7).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE); // exit
+
+    assertThat(it).isEmpty();
+  }
+
+  @Test
+  @Override
+  public void test_invert_Continue_with_condition() {
+    // given:
+    MplWhile mplWhile = some($MplWhile().withNot(false).withTrailing(true));
+    MplCommand command = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplContinue mplContinue = some($MplContinue()//
+        .withLoop(mplWhile)//
+        .withConditional(INVERT)//
+        .withPrevious(command));
+    mplWhile.setChainParts(listOf(command, mplContinue));
+
+    // when:
+    List<ChainLink> result = mplWhile.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+
+    // while header
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
+    assertThat(it.next()).matchesAsImpulse(command); // enter and invert conditon
+
+    // continue
+    assertThat(it.next()).isInternal().isStartCommand(+9)
+    /* FIXME .hasModifiers(mplContinue) */; // ref nop
+    assertThat(it.next()).isTestforSuccessCommand(-2, IMPULSE, false); // ref invert conditon
+    assertThat(it.next())/* FIXME: .isInternal() */.hasCommandParts(mplWhile.getCondition())
+        .hasModifiers(CONDITIONAL); // cond
+    assertThat(it.next()).isInternal().isStopCommand(-4).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isInternal().isStartCommand(-5).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isTestforSuccessCommand(-6, IMPULSE, false); // ref invert conditon
+    assertThat(it.next()).isTestforSuccessCommand(-4, false).hasModifiers(CONDITIONAL); // ref cond
+    assertThat(it.next()).isInternal().isStartCommand(+9).hasModifiers(CONDITIONAL); // ref exit
+    assertThat(it.next()).isInternal().isStopCommand(-9).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isNotInternal().isStopCommand().hasMode(IMPULSE); // nop
+
+    // while trailer
+    assertThat(it.next())/* FIXME .isInternal() */.hasCommandParts(mplWhile.getCondition())
+        .hasDefaultModifiers();
+    assertThat(it.next()).isInternal().isStopCommand(-12).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isInternal().isStartCommand(-13).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isInvertingCommandFor(CHAIN);// TODO testfor success -3 false
+    assertThat(it.next()).isInternal().isStartCommand(+2).hasModifiers(CONDITIONAL); // ref exit
+    assertThat(it.next()).isInternal().isStopCommand(-16).hasModifiers(CONDITIONAL); // ref enter
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE); // exit
+
+    assertThat(it).isEmpty();
+  }
+
+  @Test
+  @Override
+  public void test_nested_Continue_stops_all_inner_loops() {
+    // given:
+    MplWhile innerWhile = some($MplWhile().withCondition((String) null));
+
+    MplCommand outerCommand = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplWhile outerWhile = some($MplWhile()//
+        .withCondition((String) null)//
+        .withChainParts(listOf(outerCommand, innerWhile)));
+
+    MplCommand innerCommand = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplContinue mplContinue = some($MplContinue()//
+        .withLoop(outerWhile)//
+        .withConditional(CONDITIONAL)//
+        .withPrevious(innerCommand));
+    innerWhile.setChainParts(listOf(innerCommand, mplContinue));
+
+    // when:
+    List<ChainLink> result = outerWhile.accept(underTest);
+
+    // then:
+    Iterator<ChainLink> it = result.iterator();
+
+    // outer while header
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(outerWhile);
+    assertThat(it.next()).matchesAsImpulse(outerCommand); // outer enter
+
+    // inner while header
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(innerWhile);
+    assertThat(it.next()).matchesAsImpulse(innerCommand); // inner enter
+
+    // continue
+    assertThat(it.next()).isInternal().isStopCommand(-1)
+    /* FIXME .hasModifiers(mplContinue) */; // ref i enter
+    assertThat(it.next()).isInternal().isStopCommand(-4).hasModifiers(CONDITIONAL); // ref o enter
+    assertThat(it.next()).isInternal().isStartCommand(-5).hasModifiers(CONDITIONAL); // ref o enter
+    assertThat(it.next()).isTestforSuccessCommand(-4, IMPULSE, false); // ref conditional condition
+    assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(CONDITIONAL); // ref nop
+    assertThat(it.next()).isNotInternal().isStopCommand().hasMode(IMPULSE); // nop
+
+    // inner while trailer
+    assertThat(it.next()).isInternal().isStopCommand(-7).hasDefaultModifiers(); // ref i enter
+    assertThat(it.next()).isInternal().isStartCommand(-8).hasModifiers(CONDITIONAL); // ref i enter
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE); // inner exit
+
+    // outer while trailer
+    assertThat(it.next()).isInternal().isStopCommand(-12).hasDefaultModifiers(); // ref o enter
+    assertThat(it.next()).isInternal().isStartCommand(-13).hasModifiers(CONDITIONAL); // ref o enter
+    assertThat(it.next()).isInternal().isStopCommand().hasMode(IMPULSE); // outer exit
+
+    assertThat(it).isEmpty();
   }
 
 }

@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import static de.adrodoc55.minecraft.mpl.MplUtils.getStopCommand;
+import static de.adrodoc55.minecraft.mpl.MplUtils.getStopCommandHeader;
+import static de.adrodoc55.minecraft.mpl.MplUtils.getStopCommandTrailer;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
@@ -206,33 +209,35 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
   }
 
   @Override
+  public CommandAssert isStopCommand() {
+    hasCommandParts(getStopCommand(options));
+    return myself;
+  }
+
+  @Override
   public CommandAssert isStopCommand(int relative) {
     hasCommandParts(//
-        MplUtils.getStopCommandHeader(options), //
+        getStopCommandHeader(options), //
         new RelativeThisInsert(relative), //
-        MplUtils.getStopCommandTrailer(options)//
+        getStopCommandTrailer(options)//
     );
     return myself;
   }
 
   @Override
   public CommandAssert isInvertingCommandFor(Mode mode) {
-    isTestforSuccessCommand(mode, false);
+    isTestforSuccessCommand(-1, mode, false);
     isNotConditional();
-    return myself;
-  }
-
-  public CommandAssert isTestforSuccessCommand(Mode referencedMode, boolean success) {
-    isTestforSuccessCommand(-1, referencedMode, success);
     return myself;
   }
 
   @Override
   public CommandAssert isTestforSuccessCommand(int relative, boolean success) {
-    isTestforSuccessCommand(relative, CHAIN, success);
+    isTestforSuccessCommand(relative, Mode.DEFAULT, success);
     return myself;
   }
 
+  @Override
   public CommandAssert isTestforSuccessCommand(int relative, Mode referencedMode, boolean success) {
     isInternal();
     hasCommandParts("testforblock ", new RelativeThisInsert(relative),

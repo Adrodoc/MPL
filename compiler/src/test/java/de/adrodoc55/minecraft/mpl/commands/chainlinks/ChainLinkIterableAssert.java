@@ -3,7 +3,6 @@ package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 
@@ -16,7 +15,6 @@ import de.adrodoc55.commons.ExtendedAbstractAssert;
 import de.adrodoc55.minecraft.mpl.MplAssertionFactory;
 import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
-import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 
 public class ChainLinkIterableAssert
     extends ExtendedAbstractAssert<ChainLinkIterableAssert, Iterable<? extends ChainLink>> {
@@ -102,16 +100,9 @@ public class ChainLinkIterableAssert
     Iterator<? extends ChainLink> it = actual.iterator();
     if (options.hasOption(TRANSMITTER)) {
       assertThat(it.next()).isSkip();
-      String trailer = options.hasOption(DEBUG) ? " air" : " stone";
-      assertThat(it.next()).isInternal()//
-          .hasCommandParts("setblock ", new RelativeThisInsert(-1), trailer)//
-          .hasModifiers(modifier(IMPULSE))//
-      ;
+      assertThat(it.next()).isInternal().isStopCommand(-1).hasModifiers(modifier(IMPULSE));
     } else {
-      assertThat(it.next())//
-          .hasCommandParts("blockdata ~ ~ ~ {auto:0b}")//
-          .hasModifiers(modifier(IMPULSE))//
-      ;
+      assertThat(it.next()).isStopCommand().hasModifiers(modifier(IMPULSE));
     }
     return myself;
   }
