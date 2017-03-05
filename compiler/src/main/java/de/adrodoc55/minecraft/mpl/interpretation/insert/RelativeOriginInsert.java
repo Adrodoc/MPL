@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation.insert;
 
+import javax.annotation.Nullable;
+
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.mpl.interpretation.VariableScope;
 
@@ -47,6 +49,7 @@ import de.adrodoc55.minecraft.mpl.interpretation.VariableScope;
  */
 public class RelativeOriginInsert implements Insert {
   private final Coordinate3D relative;
+  protected @Nullable Coordinate3D coordinate;
 
   public RelativeOriginInsert(Coordinate3D relative) {
     this.relative = relative;
@@ -58,4 +61,10 @@ public class RelativeOriginInsert implements Insert {
     return false;
   }
 
+  @Override
+  public String toString() {
+    if (coordinate != null)
+      return coordinate.toRelativeString();
+    return "${origin + (" + relative.toAbsoluteString() + ")}";
+  }
 }

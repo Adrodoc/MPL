@@ -45,6 +45,7 @@ import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newCommand
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNoOperationCommand;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
+import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 import static de.kussm.direction.Direction.EAST;
 import static de.kussm.direction.Direction.NORTH;
 import static de.kussm.direction.Direction.WEST;
@@ -269,12 +270,15 @@ public abstract class MplChainPlacer {
       for (String tag : chain.getTags()) {
         tags += "," + tag;
       }
-      result.add(index,
-          newCommand("/summon " + version.markerEntity() + " ${origin + ("
-              + chainStart.toAbsoluteString() + ")} {CustomName:" + name + ",Tags:["
-              + container.getHashCode() + tags + "],NoGravity:1b,Invisible:1b,Invulnerable:1b"
-              + (nonTransmitterDebug ? "" : ",Marker:1b")
-              + (options.hasOption(DEBUG) ? ",CustomNameVisible:1b" : "") + "}"));
+
+      CommandPartBuffer cpb = new CommandPartBuffer();
+      cpb.add("/summon " + version.markerEntity() + " ");
+      cpb.add(new RelativeOriginInsert(chainStart));
+      cpb.add(" {CustomName:" + name + ",Tags:[" + container.getHashCode() + tags
+          + "],NoGravity:1b,Invisible:1b,Invulnerable:1b"
+          + (nonTransmitterDebug ? "" : ",Marker:1b")
+          + (options.hasOption(DEBUG) ? ",CustomNameVisible:1b" : "") + "}");
+      result.add(index, newCommand(cpb, modifier()));
     }
     return new CommandChain(getInstall().getName(), result);
   }
@@ -335,6 +339,7 @@ public abstract class MplChainPlacer {
     CommandPartBuffer result = new CommandPartBuffer();
     result.add("fill ");
     result.add(new RelativeOriginInsert(new Coordinate3D()));
+    result.add(" ");
     result.add(new RelativeOriginInsert(max));
     result.add(" air");
     return result;
