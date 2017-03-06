@@ -39,7 +39,10 @@
  */
 package de.adrodoc55.commons;
 
+import java.util.List;
 import java.util.Locale;
+
+import com.google.common.base.Joiner;
 
 /**
  * @author Adrodoc55
@@ -61,5 +64,17 @@ public class StringUtils {
       return string;
     }
     return string.substring(0, 1).toUpperCase(Locale.ENGLISH) + string.substring(1);
+  }
+
+  public static String joinWithAnd(List<?> list) {
+    if (list.isEmpty())
+      return "";
+    if (list.size() == 1)
+      return String.valueOf(list.get(0));
+    int lastIndex = list.size() - 1;
+    List<?> view = list.subList(0, lastIndex);
+    String first = Joiner.on(", ").join(view);
+    Object last = list.get(lastIndex);
+    return first + " and " + last;
   }
 }

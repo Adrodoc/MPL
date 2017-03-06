@@ -63,7 +63,7 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 public class CommandPartBuffer {
   private final List<Object> commandParts = new ArrayList<>();
   private final List<RelativeThisInsert> thisInserts = new ArrayList<>();
-  private final List<TargetedThisInsert> targetingThisInserts = new ArrayList<>();
+  private final List<TargetedThisInsert> targetedThisInserts = new ArrayList<>();
   private final List<RelativeOriginInsert> originInserts = new ArrayList<>();
   private final List<GlobalVariableInsert> variableInserts = new ArrayList<>();
 
@@ -101,13 +101,13 @@ public class CommandPartBuffer {
     return this;
   }
 
-  public Collection<TargetedThisInsert> getTargetingThisInsert() {
-    return Collections.unmodifiableList(targetingThisInserts);
+  public Collection<TargetedThisInsert> getTargetedThisInserts() {
+    return Collections.unmodifiableList(targetedThisInserts);
   }
 
   public void add(TargetedThisInsert insert) {
     commandParts.add(insert);
-    targetingThisInserts.add(insert);
+    targetedThisInserts.add(insert);
   }
 
   public CommandPartBuffer with(TargetedThisInsert insert) {
@@ -148,7 +148,7 @@ public class CommandPartBuffer {
   }
 
   public void resolveTargetedThisInserts(TargetedThisInsertResolver resolver) {
-    Iterator<TargetedThisInsert> it = targetingThisInserts.iterator();
+    Iterator<TargetedThisInsert> it = targetedThisInserts.iterator();
     while (it.hasNext()) {
       try {
         TargetedThisInsert insert = it.next();

@@ -46,7 +46,7 @@ import de.adrodoc55.commons.collections.Collections;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 
 /**
- * Adrodoc55
+ * @author Adrodoc55
  */
 public class MplAstFlattener extends MplDeepAstVisitor<Collection<ChainPart>> {
   public static Collection<ChainPart> flatten(Collection<ChainPart> ast) {

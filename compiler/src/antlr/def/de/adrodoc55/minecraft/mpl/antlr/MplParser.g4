@@ -226,6 +226,9 @@ parser grammar MplParser;
    DOLLAR INSERT_OPENING_CURLY_BRACKET
    (
      INSERT_IDENTIFIER
+     (
+       INSERT_DOT INSERT_IDENTIFIER
+     )?
      |
      (
        INSERT_THIS insertSignedInteger

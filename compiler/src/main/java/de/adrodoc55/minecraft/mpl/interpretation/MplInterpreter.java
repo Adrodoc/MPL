@@ -42,6 +42,7 @@ package de.adrodoc55.minecraft.mpl.interpretation;
 import static de.adrodoc55.commons.ArrayUtils.nonNullElementsIn;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
+import static de.adrodoc55.minecraft.mpl.ast.variable.Insertable.checkInsertable;
 
 import java.io.File;
 import java.io.IOException;
@@ -110,6 +111,9 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.ScriptFileContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.UninstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.VariableDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParserBaseListener;
+import de.adrodoc55.minecraft.mpl.assembly.MplGlobalVariableReference;
+import de.adrodoc55.minecraft.mpl.assembly.MplProcessReference;
+import de.adrodoc55.minecraft.mpl.assembly.MplReference;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
@@ -128,7 +132,6 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.ast.variable.Insertable;
 import de.adrodoc55.minecraft.mpl.ast.variable.MplVariable;
 import de.adrodoc55.minecraft.mpl.ast.variable.type.MplType;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -234,6 +237,12 @@ public class MplInterpreter extends MplParserBaseListener {
   public MplSource toSource(ParserRuleContext ctx) {
     String line = getLine(ctx.getStart().getLine());
     return new MplSource(programFile, line, ctx);
+  }
+
+  private VariableScope rootVariableScope = new VariableScope(null);
+
+  public VariableScope getRootVariableScope() {
+    return rootVariableScope;
   }
 
   @Override
@@ -593,21 +602,32 @@ public class MplInterpreter extends MplParserBaseListener {
       commandPartBuffer.add(new RelativeOriginInsert(relative));
       return;
     }
-    TerminalNode identifierNode = ctx.INSERT_IDENTIFIER();
-    String identifier = identifierNode.getText();
-
-    MplVariable<?> variable = variableScope.findVariable(identifier);
-    if (variable != null) {
-      if (variable instanceof Insertable) {
-        commandPartBuffer.add(((Insertable) variable).toInsert());
-      } else {
-        context.addError(new CompilerException(toSource(identifierNode.getSymbol()),
-            "The variable '" + variable.getIdentifier() + "' of type " + variable.getType()
-                + " cannot be inserted"));
+    List<TerminalNode> identifiers = ctx.INSERT_IDENTIFIER();
+    if (identifiers.size() == 1) {
+      TerminalNode identifier = identifiers.get(0);
+      MplVariable<?> variable = rootVariableScope.findVariable(identifier.getText());
+      if (variable != null) {
+        try {
+          String insert = checkInsertable(variable, toSource(identifier.getSymbol())).toInsert();
+          commandPartBuffer.add(insert);
+        } catch (CompilerException ex) {
+          context.addError(ex);
+        }
+        return;
       }
-    } else {
-      commandPartBuffer.add(new GlobalVariableInsert(identifier, imports));
     }
+
+    String srcProcess = this.process != null ? this.process.getName() : null;
+    boolean qualified = identifiers.size() > 1;
+    String fileNameWithoutExtension = qualified ? identifiers.get(0).getText() : null;
+    int index = qualified ? 1 : 0;
+    String identifier = identifiers.get(index).getText();
+    GlobalVariableInsert insert = new GlobalVariableInsert();
+    MplSource source =
+        toSource(ctx.INSERT_IDENTIFIER(0), ctx.INSERT_DOT(), ctx.INSERT_IDENTIFIER(1));
+    references.put(srcProcess, new MplGlobalVariableReference(fileNameWithoutExtension, identifier,
+        insert, context, imports, source));
+    commandPartBuffer.add(insert);
   }
 
   private int getInt(InsertContext ctx, int index) {
@@ -641,7 +661,7 @@ public class MplInterpreter extends MplParserBaseListener {
       return;
     }
     String srcProcess = this.process != null ? this.process.getName() : null;
-    references.put(srcProcess, new MplProcessReference(process, imports, source));
+    references.put(srcProcess, new MplProcessReference(process, context, imports, source));
   }
 
   private String toSelector(String text) {
@@ -676,7 +696,7 @@ public class MplInterpreter extends MplParserBaseListener {
       }
 
       String srcProcess = this.process != null ? this.process.getName() : null;
-      references.put(srcProcess, new MplProcessReference(process, imports, source));
+      references.put(srcProcess, new MplProcessReference(process, context, imports, source));
     }
   }
 
@@ -906,8 +926,6 @@ public class MplInterpreter extends MplParserBaseListener {
     return loop;
   }
 
-  private VariableScope variableScope = new VariableScope(null);
-
   @Override
   public void enterVariableDeclaration(VariableDeclarationContext ctx) {
     MplType<?> declaredType = MplType.valueOf(ctx.TYPE().getText().toUpperCase(Locale.ENGLISH));
@@ -958,7 +976,7 @@ public class MplInterpreter extends MplParserBaseListener {
     MplVariable<?> variable = declaredType.newVariable(declarationSource, identifier.getText());
     variable.setValueString(value, actualSource, context);
     try {
-      variableScope.declareVariable(variable);
+      rootVariableScope.declareVariable(variable);
     } catch (DuplicateVariableException ex) {
       context.addError(new CompilerException(declarationSource,
           "Duplicate local variable " + identifier.getText()));

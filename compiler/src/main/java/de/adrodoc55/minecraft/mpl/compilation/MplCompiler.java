@@ -100,9 +100,7 @@ public class MplCompiler {
     ChainContainer container = materialize(program);
     checkErrors();
     List<CommandBlockChain> chains = place(container);
-    Orientation3D orientation = program.getOrientation();
-    insertRelativeCoordinates(orientation, chains);
-    return toResult(orientation, chains);
+    return toResult(container.getOrientation(), chains);
   }
 
   /**
@@ -128,18 +126,21 @@ public class MplCompiler {
 
   public List<CommandBlockChain> place(ChainContainer container) throws CompilationFailedException {
     try {
+      List<CommandBlockChain> result;
       if (options.hasOption(DEBUG)) {
-        return new MplDebugProgramPlacer(container, version, options).place();
+        result = new MplDebugProgramPlacer(container, version, options).place();
       } else {
-        return new MplProgramPlacer(container, version, options).place();
+        result = new MplProgramPlacer(container, version, options).place();
       }
+      insertRelativeCoordinates(container.getOrientation(), result);
+      return result;
     } catch (NotEnoughSpaceException ex) {
       throw new CompilationFailedException(
           "The maximal coordinate is to small to place the entire program", ex);
     }
   }
 
-  public void insertRelativeCoordinates(Orientation3D orientation,
+  protected void insertRelativeCoordinates(Orientation3D orientation,
       Iterable<CommandBlockChain> chains) {
     for (CommandBlockChain chain : chains) {
       List<MplBlock> blocks = chain.getBlocks();

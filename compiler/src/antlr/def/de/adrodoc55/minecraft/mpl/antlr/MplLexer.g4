@@ -327,6 +327,11 @@ lexer grammar MplLexer;
 
  mode INSERT;
 
+ INSERT_DOT
+ :
+   '.'
+ ;
+
  INSERT_PLUS
  :
    PLUS

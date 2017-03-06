@@ -37,65 +37,78 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.interpretation;
+package de.adrodoc55.minecraft.mpl.assembly;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import de.adrodoc55.commons.FileUtils;
+import de.adrodoc55.commons.StringUtils;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplMainAstVisitor;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import de.adrodoc55.minecraft.mpl.interpretation.MplInclude;
+import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
+@EqualsAndHashCode(of = {"processName"}, callSuper = false)
+@ToString(of = {"processName"}, callSuper = false)
 @Getter
-public abstract class MplReference {
-  protected final @Nonnull Set<File> imports = new HashSet<>();
-  protected final @Nonnull MplSource source;
+public class MplProcessReference extends MplReference {
+  private final @Nonnull String processName;
+  private final @Nonnull MplCompilerContext context;
 
   /**
-   * Constructs a reference.
+   * Constructs a reference to a process.
    *
-   * @param imports the imported files that are expected to contain the reference
+   * @param processName the name of the referenced process
+   * @param imports the imported files that are expected to contain the process
    * @param source the source that requires {@code this} reference
    * @throws IllegalArgumentException if one of the {@code imports} is not a file
    */
-  public MplReference(@Nonnull Collection<File> imports, @Nonnull MplSource source)
+  public MplProcessReference(@Nonnull String processName, MplCompilerContext context,
+      @Nonnull Collection<File> imports, @Nonnull MplSource source)
       throws IllegalArgumentException {
-    setImports(imports);
-    this.source = checkNotNull(source, "source == null!");
+    super(imports, source);
+    this.processName = checkNotNull(processName, "processName == null!");
+    this.context = checkNotNull(context, "context == null!");
   }
 
-  public @Nonnull Set<File> getImports() {
-    return Collections.unmodifiableSet(imports);
+  @Override
+  public boolean isContainedIn(MplInterpreter interpreter) {
+    return interpreter.getProgram().containsProcess(processName);
   }
 
-  private void setImports(Collection<File> imports) throws IllegalArgumentException {
-    for (File file : imports) {
-      if (!file.isFile()) {
-        throw new IllegalArgumentException(
-            "The import '" + FileUtils.getCanonicalPath(file) + "' is not a file!");
-      }
-    }
-    this.imports.clear();
-    this.imports.addAll(imports);
+  @Override
+  public void resolve(MplInterpreter interpreter) {
+    File programFile = interpreter.getProgramFile();
+    MplProgram program = interpreter.getProgram();
+    MplProcess process = program.getProcess(processName);
+    context.addInclude(new MplInclude(process.getName(), programFile, source));
   }
 
-  public abstract boolean isContainedIn(MplProgram program);
+  @Override
+  public CompilerException createAmbigiousException(List<File> files) {
+    return new CompilerException(source, "Process " + processName
+        + " is ambigious. It was found in '" + StringUtils.joinWithAnd(files) + "!");
+  }
 
-  public abstract MplProcess getProcess(MplProgram program);
-
-  public abstract CompilerException createAmbigiousException(List<File> found);
+  /**
+   * This is handled in {@link MplMainAstVisitor#checkProcessExists(ModifiableChainPart, String )}
+   */
+  @Override
+  public void handleNotFound() {}
 }

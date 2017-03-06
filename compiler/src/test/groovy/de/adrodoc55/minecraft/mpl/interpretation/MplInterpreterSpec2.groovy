@@ -54,6 +54,7 @@ import org.junit.Test
 import com.google.common.collect.SetMultimap
 
 import de.adrodoc55.minecraft.mpl.MplSpecBase
+import de.adrodoc55.minecraft.mpl.assembly.MplReference
 import de.adrodoc55.minecraft.mpl.ast.Conditional
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint
@@ -2453,7 +2454,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     lastContext.errors.isEmpty()
 
-    VariableScope scope = interpreter.variableScope
+    VariableScope scope = interpreter.rootVariableScope
     MplIntegerVariable variable = scope.findVariable(id)
     variable != null
     variable.value == value
@@ -2473,7 +2474,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     lastContext.errors.isEmpty()
 
-    VariableScope scope = interpreter.variableScope
+    VariableScope scope = interpreter.rootVariableScope
     MplVariable<TargetSelector> variable = scope.findVariable(id)
     variable != null
     variable.value instanceof TargetSelector
@@ -2494,7 +2495,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     lastContext.errors.isEmpty()
 
-    VariableScope scope = interpreter.variableScope
+    VariableScope scope = interpreter.rootVariableScope
     MplStringVariable variable = scope.findVariable(id)
     variable != null
     variable.value == value
@@ -2515,7 +2516,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     then:
     lastContext.errors.isEmpty()
 
-    VariableScope scope = interpreter.variableScope
+    VariableScope scope = interpreter.rootVariableScope
     MplVariable<MplValue> variable = scope.findVariable(id)
     variable != null
     MplScoreboardValue value = variable.value
@@ -2536,7 +2537,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     MplInterpreter interpreter = interpret(programString)
 
     then:
-    interpreter.variableScope.variables.isEmpty()
+    interpreter.rootVariableScope.variables.isEmpty()
 
     lastContext.errors[0].message == "Type mismatch: cannot convert from ${actualType} to ${declaredType}"
     lastContext.errors[0].source.file == lastTempFile

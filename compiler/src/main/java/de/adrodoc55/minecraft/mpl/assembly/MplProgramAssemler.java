@@ -54,14 +54,12 @@ import org.antlr.v4.runtime.CommonToken;
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInclude;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter;
-import de.adrodoc55.minecraft.mpl.interpretation.MplReference;
 
 /**
  * @author Adrodoc55
@@ -152,8 +150,7 @@ public class MplProgramAssemler {
       try {
         MplInterpreter interpreter =
             interpret(file, new MplCompilerContext(context.getVersion(), context.getOptions()));
-        MplProgram program = interpreter.getProgram();
-        if (reference.isContainedIn(program)) {
+        if (reference.isContainedIn(interpreter)) {
           // Referencing a process in the same file is never ambigious
           if (file.equals(source.getFile())) {
             found.clear();
@@ -169,13 +166,12 @@ public class MplProgramAssemler {
       }
     }
 
-    if (found.size() == 1) {
+    if (found.isEmpty()) {
+      reference.handleNotFound();
+    } else if (found.size() == 1) {
       MplInterpreter interpreter = found.get(0);
       context.addContext(interpreter.getContext());
-      File programFile = interpreter.getProgramFile();
-      MplProgram program = interpreter.getProgram();
-      MplProcess process = reference.getProcess(program);
-      context.addInclude(new MplInclude(process.getName(), programFile, source));
+      reference.resolve(interpreter);
     } else if (found.size() > 1) {
       List<File> files = found.stream().map(i -> i.getProgramFile()).collect(toList());
       context.addError(reference.createAmbigiousException(files));

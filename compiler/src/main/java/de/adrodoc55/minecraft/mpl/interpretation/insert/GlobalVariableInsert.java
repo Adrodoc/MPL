@@ -39,23 +39,24 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation.insert;
 
-import java.io.File;
-import java.util.Set;
+import javax.annotation.Nullable;
 
-import de.adrodoc55.minecraft.mpl.interpretation.VariableScope;
+import de.adrodoc55.minecraft.mpl.ast.variable.Insertable;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Adrodoc55
  */
-public class GlobalVariableInsert implements Insert {
-
-  public GlobalVariableInsert(String identifier, Set<File> imports) {
-
-  }
+@Getter
+@Setter
+@EqualsAndHashCode
+public class GlobalVariableInsert {
+  private @Nullable Insertable variable;
 
   @Override
-  public boolean resolve(VariableScope scope) {
-    return false;
+  public String toString() {
+    return variable.toInsert();
   }
-
 }

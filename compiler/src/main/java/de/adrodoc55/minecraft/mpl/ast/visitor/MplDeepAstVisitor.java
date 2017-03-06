@@ -62,7 +62,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 
 /**
- * Adrodoc55
+ * @author Adrodoc55
  */
 public abstract class MplDeepAstVisitor<T> implements MplAstVisitor<T> {
   protected abstract T visit(ChainPart chainPart);

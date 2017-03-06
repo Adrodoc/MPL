@@ -39,10 +39,22 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.variable;
 
+import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+
 /**
  * @author Adrodoc55
  */
 public interface Insertable {
+  public static Insertable checkInsertable(MplVariable<?> variable, MplSource source)
+      throws CompilerException {
+    if (variable instanceof Insertable) {
+      return (Insertable) variable;
+    }
+    throw new CompilerException(source, "The variable '" + variable.getIdentifier() + "' of type "
+        + variable.getType() + " cannot be inserted");
+  }
+
   boolean isInitialized();
 
   String toInsert();

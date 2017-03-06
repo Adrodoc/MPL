@@ -55,8 +55,8 @@ import lombok.Setter;
 @Setter
 @EqualsAndHashCode
 public class RelativeThisInsert {
-  protected final int relative;
-  protected @Nullable Coordinate3D coordinate;
+  private final int relative;
+  private @Nullable Coordinate3D coordinate;
 
   public RelativeThisInsert(int relative) {
     this.relative = relative;
