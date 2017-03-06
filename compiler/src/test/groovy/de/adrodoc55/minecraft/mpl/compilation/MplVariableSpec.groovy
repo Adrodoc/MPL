@@ -1108,7 +1108,7 @@ public class MplVariableSpec extends MplSpecBase {
   }
 
   @Test
-  public void "A local variable from outside an if is found in the if"() {
+  public void "A local variable from outside a then is found in the then"() {
     given:
     String id = some($Identifier())
     int value = some($int())
@@ -1138,7 +1138,7 @@ public class MplVariableSpec extends MplSpecBase {
   }
 
   @Test
-  public void "A local variable from an if is found in the if"() {
+  public void "A local variable from a then is found in the then"() {
     given:
     String id = some($Identifier())
     int value = some($int())
@@ -1168,7 +1168,7 @@ public class MplVariableSpec extends MplSpecBase {
   }
 
   @Test
-  public void "A local variable from an if is not found outside of the if"() {
+  public void "A local variable from a then is not found outside of the then"() {
     given:
     String id = some($Identifier())
     int value = some($int())
@@ -1176,6 +1176,119 @@ public class MplVariableSpec extends MplSpecBase {
     impulse process main {
       if: /testfor @p
       then {
+        Integer ${id} = ${value}
+      }
+      /say The value is \${${id}}!
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors[0].message == "${id} cannot be resolved to a variable"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 7
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "A local variable from outside an else is found in the else"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    impulse process main {
+      Integer ${id} = ${value}
+      if: /testfor @p
+      else {
+        /say The value is \${${id}}!
+      }
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplIf mplIf =  process.chainParts[0]
+    MplCommand command = mplIf.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "A local variable from an else is found in the else"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    impulse process main {
+      if: /testfor @p
+      else {
+        Integer ${id} = ${value}
+        /say The value is \${${id}}!
+      }
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplIf mplIf =  process.chainParts[0]
+    MplCommand command = mplIf.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "A local variable from a then is not found in the else"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    impulse process main {
+      if: /testfor @p
+      then {
+        Integer ${id} = ${value}
+      } else {
+        /say The value is \${${id}}!
+      }
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors[0].message == "${id} cannot be resolved to a variable"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 7
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "A local variable from an else is not found outside of the else"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    impulse process main {
+      if: /testfor @p
+      else {
         Integer ${id} = ${value}
       }
       /say The value is \${${id}}!

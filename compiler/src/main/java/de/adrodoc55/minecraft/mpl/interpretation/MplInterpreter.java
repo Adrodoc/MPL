@@ -823,7 +823,6 @@ public class MplInterpreter extends MplParserBaseListener {
 
   @Override
   public void enterMplIf(MplIfContext ctx) {
-    pushVariableScope();
     boolean not = ctx.NOT() != null;
     // FIXME: MplIf needs to support any dependable command as condition
     String condition = ctx.command().getText();
@@ -832,12 +831,24 @@ public class MplInterpreter extends MplParserBaseListener {
 
   @Override
   public void enterMplThen(MplThenContext ctx) {
+    pushVariableScope();
     ((MplIf) chainBuffer).enterThen();
   }
 
   @Override
+  public void exitMplThen(MplThenContext ctx) {
+    popVariableScope();
+  }
+
+  @Override
   public void enterMplElse(MplElseContext ctx) {
+    pushVariableScope();
     ((MplIf) chainBuffer).enterElse();
+  }
+
+  @Override
+  public void exitMplElse(MplElseContext ctx) {
+    popVariableScope();
   }
 
   @Override
@@ -845,7 +856,6 @@ public class MplInterpreter extends MplParserBaseListener {
     MplIf mplIf = (MplIf) chainBuffer;
     chainBuffer = mplIf.exit();
     chainBuffer.add(mplIf);
-    popVariableScope();
   }
 
   private Deque<MplWhile> loops = new ArrayDeque<>();
