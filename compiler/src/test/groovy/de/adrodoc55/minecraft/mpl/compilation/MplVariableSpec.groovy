@@ -4,6 +4,7 @@ import static de.adrodoc55.TestBase.$String
 import static de.adrodoc55.TestBase.$int
 import static de.adrodoc55.TestBase.some
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$Identifier
+import static org.apache.commons.io.FilenameUtils.getBaseName
 
 import org.junit.Test;
 
@@ -39,116 +40,6 @@ public class MplVariableSpec extends MplSpecBase {
     compiler.assemble(programFile)
   }
 
-  @Test
-  public void "Declaring a local Integer variable"() {
-    given:
-    String id = some($Identifier())
-    int value = some($int())
-    String programString = """
-    Integer ${id} = ${value}
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-
-    then:
-    lastContext.errors.isEmpty()
-
-    VariableScope scope = interpreter.rootVariableScope
-    MplIntegerVariable variable = scope.findVariable(id)
-    variable != null
-    variable.value == value
-  }
-
-  @Test
-  public void "Declaring a local Selector variable"() {
-    given:
-    String id = some($Identifier())
-    String value = "@e[name=${some($Identifier())}]"
-    String programString = """
-    Selector ${id} = ${value}
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-
-    then:
-    lastContext.errors.isEmpty()
-
-    VariableScope scope = interpreter.rootVariableScope
-    MplVariable<TargetSelector> variable = scope.findVariable(id)
-    variable != null
-    variable.value instanceof TargetSelector
-    variable.value.toString() == value
-  }
-
-  @Test
-  public void "Declaring a local String variable"() {
-    given:
-    String id = some($Identifier())
-    String value = some($String())
-    String programString = """
-    String ${id} = "${value}"
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-
-    then:
-    lastContext.errors.isEmpty()
-
-    VariableScope scope = interpreter.rootVariableScope
-    MplStringVariable variable = scope.findVariable(id)
-    variable != null
-    variable.value == value
-  }
-
-  @Test
-  public void "Declaring a local Value variable"() {
-    given:
-    String id = some($Identifier())
-    String selector = "@e[name=${some($Identifier())}]"
-    String scoreboard = some($Identifier())
-    String programString = """
-    Value ${id} = ${selector}  ${scoreboard}
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-
-    then:
-    lastContext.errors.isEmpty()
-
-    VariableScope scope = interpreter.rootVariableScope
-    MplVariable<MplValue> variable = scope.findVariable(id)
-    variable != null
-    MplScoreboardValue value = variable.value
-    value.selector instanceof TargetSelector
-    value.selector.toString() == selector
-    value.scoreboard == scoreboard
-  }
-
-  @Test
-  @Unroll("Type mismatch at local variable declaration from #actualType to #declaredType")
-  public void "Type mismatch at local variable declaration"(MplType declaredType, MplType actualType, String value) {
-    given:
-    String id = some($Identifier())
-    String programString = """
-    ${declaredType} ${id} = ${value}
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-
-    then:
-    interpreter.rootVariableScope.variables.isEmpty()
-
-    lastContext.errors[0].message == "Type mismatch: cannot convert from ${actualType} to ${declaredType}"
-    lastContext.errors[0].source.file == lastTempFile
-    lastContext.errors[0].source.text == value
-    lastContext.errors[0].source.lineNumber == 2
-    lastContext.errors.size() == 1
-
-    where:
-    [declaredType, actualType]<< typeCombinations()
-    value = valueForType(actualType)
-  }
-
   private List<List<MplType>> typeCombinations() {
     List<List<MplType>> result = [MplType.values(), MplType.values()].combinations()
     result.removeIf { List<MplType> list -> list[0] == list[1] }
@@ -169,7 +60,177 @@ public class MplVariableSpec extends MplSpecBase {
   }
 
   @Test
-  public void "Inserting a local Integer variable"() {
+  @Unroll("Type mismatch at local script variable declaration from #actualType to #declaredType")
+  public void "Type mismatch at local script variable declaration"(MplType declaredType, MplType actualType, String value) {
+    given:
+    String id = some($Identifier())
+    String programString = """
+    ${declaredType} ${id} = ${value}
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    interpreter.rootVariableScope.variables.isEmpty()
+
+    lastContext.errors[0].message == "Type mismatch: cannot convert from ${actualType} to ${declaredType}"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == value
+    lastContext.errors[0].source.lineNumber == 2
+    lastContext.errors.size() == 1
+
+    where:
+    [declaredType, actualType]<< typeCombinations()
+    value = valueForType(actualType)
+  }
+
+  @Test
+  @Unroll("Type mismatch at global variable declaration from #actualType to #declaredType")
+  public void "Type mismatch at global variable declaration"(MplType declaredType, MplType actualType, String value) {
+    given:
+    String id = some($Identifier())
+    String programString = """
+    ${declaredType} ${id} = ${value}
+    impulse process main {}
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    interpreter.rootVariableScope.variables.isEmpty()
+
+    lastContext.errors[0].message == "Type mismatch: cannot convert from ${actualType} to ${declaredType}"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == value
+    lastContext.errors[0].source.lineNumber == 2
+    lastContext.errors.size() == 1
+
+    where:
+    [declaredType, actualType]<< typeCombinations()
+    value = valueForType(actualType)
+  }
+
+  @Test
+  @Unroll("Type mismatch at local variable declaration from #actualType to #declaredType")
+  public void "Type mismatch at local variable declaration"(MplType declaredType, MplType actualType, String value) {
+    given:
+    String id = some($Identifier())
+    String programString = """
+    impulse process main {
+      ${declaredType} ${id} = ${value}
+    }
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    interpreter.rootVariableScope.variables.isEmpty()
+
+    lastContext.errors[0].message == "Type mismatch: cannot convert from ${actualType} to ${declaredType}"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == value
+    lastContext.errors[0].source.lineNumber == 3
+    lastContext.errors.size() == 1
+
+    where:
+    [declaredType, actualType]<< typeCombinations()
+    value = valueForType(actualType)
+  }
+
+  @Test
+  public void "Declaring a local script Integer variable"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    Integer ${id} = ${value}
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    VariableScope scope = interpreter.rootVariableScope
+    MplIntegerVariable variable = scope.findVariable(id)
+    variable != null
+    variable.value == value
+  }
+
+  @Test
+  public void "Declaring a local script Selector variable"() {
+    given:
+    String id = some($Identifier())
+    String value = "@e[name=${some($Identifier())}]"
+    String programString = """
+    Selector ${id} = ${value}
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    VariableScope scope = interpreter.rootVariableScope
+    MplVariable<TargetSelector> variable = scope.findVariable(id)
+    variable != null
+    variable.value instanceof TargetSelector
+    variable.value.toString() == value
+  }
+
+  @Test
+  public void "Declaring a local script String variable"() {
+    given:
+    String id = some($Identifier())
+    String value = some($String())
+    String programString = """
+    String ${id} = "${value}"
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    VariableScope scope = interpreter.rootVariableScope
+    MplStringVariable variable = scope.findVariable(id)
+    variable != null
+    variable.value == value
+  }
+
+  @Test
+  public void "Declaring a local script Value variable"() {
+    given:
+    String id = some($Identifier())
+    String selector = "@e[name=${some($Identifier())}]"
+    String scoreboard = some($Identifier())
+    String programString = """
+    Value ${id} = ${selector} ${scoreboard}
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    VariableScope scope = interpreter.rootVariableScope
+    MplVariable<MplValue> variable = scope.findVariable(id)
+    variable != null
+    MplScoreboardValue value = variable.value
+    value.selector instanceof TargetSelector
+    value.selector.toString() == selector
+    value.scoreboard == scoreboard
+  }
+
+  @Test
+  public void "Inserting a local script Integer variable"() {
     given:
     String id = some($Identifier())
     int value = some($int())
@@ -177,6 +238,674 @@ public class MplVariableSpec extends MplSpecBase {
     Integer ${id} = ${value}
     /say The value is \${${id}}!
     """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplCommand command =  process.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "Inserting a local script Selector variable"() {
+    given:
+    String id = some($Identifier())
+    String value = "@e[name=${some($Identifier())}]"
+    String programString = """
+    Selector ${id} = ${value}
+    /say The value is \${${id}}!
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplCommand command =  process.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "Inserting a local script String variable"() {
+    given:
+    String id = some($Identifier())
+    String value = some($String())
+    String programString = """
+    String ${id} = "${value}"
+    /say The value is \${${id}}!
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplCommand command =  process.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "Inserting a local script Value variable"() {
+    given:
+    String id = some($Identifier())
+    String selector = "@e[name=${some($Identifier())}]"
+    String scoreboard = some($Identifier())
+    String programString = """
+    Value ${id} = ${selector} ${scoreboard}
+    /say The value is \${${id}}!
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors[0].message == "The variable '${id}' of type Value cannot be inserted"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 3
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Inserting an unknown local script variable"() {
+    given:
+    String id = some($Identifier())
+    String programString = """
+    /say The value is \${${id}}!
+    """
+
+    when:
+    assembleProgram(programString)
+
+    then:
+    lastContext.errors[0].message == "${id} cannot be resolved to a variable"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 2
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Declaring a global Integer variable"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    Integer ${id} = ${value}
+    impulse process main {}
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    VariableScope scope = interpreter.rootVariableScope
+    MplIntegerVariable variable = scope.findVariable(id)
+    variable != null
+    variable.value == value
+  }
+
+  @Test
+  public void "Declaring a global Selector variable"() {
+    given:
+    String id = some($Identifier())
+    String value = "@e[name=${some($Identifier())}]"
+    String programString = """
+    Selector ${id} = ${value}
+    impulse process main {}
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    VariableScope scope = interpreter.rootVariableScope
+    MplVariable<TargetSelector> variable = scope.findVariable(id)
+    variable != null
+    variable.value instanceof TargetSelector
+    variable.value.toString() == value
+  }
+
+  @Test
+  public void "Declaring a global String variable"() {
+    given:
+    String id = some($Identifier())
+    String value = some($String())
+    String programString = """
+    String ${id} = "${value}"
+    impulse process main {}
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    VariableScope scope = interpreter.rootVariableScope
+    MplStringVariable variable = scope.findVariable(id)
+    variable != null
+    variable.value == value
+  }
+
+  @Test
+  public void "Declaring a global Value variable"() {
+    given:
+    String id = some($Identifier())
+    String selector = "@e[name=${some($Identifier())}]"
+    String scoreboard = some($Identifier())
+    String programString = """
+    Value ${id} = ${selector} ${scoreboard}
+    impulse process main {}
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    VariableScope scope = interpreter.rootVariableScope
+    MplVariable<MplValue> variable = scope.findVariable(id)
+    variable != null
+    MplScoreboardValue value = variable.value
+    value.selector instanceof TargetSelector
+    value.selector.toString() == selector
+    value.scoreboard == scoreboard
+  }
+
+  @Test
+  public void "Inserting a global Integer variable"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    Integer ${id} = ${value}
+    impulse process main {
+      /say The value is \${${id}}!
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplCommand command =  process.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "Inserting a global Selector variable"() {
+    given:
+    String id = some($Identifier())
+    String value = "@e[name=${some($Identifier())}]"
+    String programString = """
+    Selector ${id} = ${value}
+    impulse process main {
+      /say The value is \${${id}}!
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplCommand command =  process.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "Inserting a global String variable"() {
+    given:
+    String id = some($Identifier())
+    String value = some($String())
+    String programString = """
+    String ${id} = "${value}"
+    impulse process main {
+      /say The value is \${${id}}!
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplCommand command =  process.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "Inserting a global Value variable"() {
+    given:
+    String id = some($Identifier())
+    String selector = "@e[name=${some($Identifier())}]"
+    String scoreboard = some($Identifier())
+    String programString = """
+    Value ${id} = ${selector} ${scoreboard}
+    impulse process main {
+      /say The value is \${${id}}!
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors[0].message == "The variable '${id}' of type Value cannot be inserted"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 4
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Inserting a qualified global Integer variable from the same file"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    File file = newTempFile()
+    String qualifiedName = getBaseName(file.name) + '.' + id
+    file.text = """
+    Integer ${id} = ${value}
+    impulse process main {
+      /say The value is \${${qualifiedName}}!
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(file)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplCommand command =  process.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "Inserting a qualified global Selector variable from the same file"() {
+    given:
+    String id = some($Identifier())
+    String value = "@e[name=${some($Identifier())}]"
+    File file = newTempFile()
+    String qualifiedName = getBaseName(file.name) + '.' + id
+    file.text = """
+    Selector ${id} = ${value}
+    impulse process main {
+      /say The value is \${${qualifiedName}}!
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(file)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplCommand command =  process.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "Inserting a qualified global String variable from the same file"() {
+    given:
+    String id = some($Identifier())
+    String value = some($String())
+    File file = newTempFile()
+    String qualifiedName = getBaseName(file.name) + '.' + id
+    file.text = """
+    String ${id} = "${value}"
+    impulse process main {
+      /say The value is \${${qualifiedName}}!
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(file)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplCommand command =  process.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "Inserting a qualified global Value variable from the same file"() {
+    given:
+    String id = some($Identifier())
+    String selector = "@e[name=${some($Identifier())}]"
+    String scoreboard = some($Identifier())
+    File file = newTempFile()
+    String qualifiedName = getBaseName(file.name) + ' . ' + id
+    file.text = """
+    Value ${id} = ${selector} ${scoreboard}
+    impulse process main {
+      /say The value is \${${qualifiedName}}!
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(file)
+
+    then:
+    lastContext.errors[0].message == "The variable '${id}' of type Value cannot be inserted"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == qualifiedName
+    lastContext.errors[0].source.lineNumber == 4
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Inserting an unknown qualified global variable from the same file"() {
+    given:
+    String id = some($Identifier())
+    File file = newTempFile()
+    String qualifiedName = getBaseName(file.name) + '.' + id
+    file.text = """
+    impulse process main {
+      /say The value is \${${qualifiedName}}!
+    }
+    """
+
+    when:
+    assembleProgram(file)
+
+    then:
+    lastContext.errors[0].message == "${qualifiedName} cannot be resolved to a variable"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == qualifiedName
+    lastContext.errors[0].source.lineNumber == 3
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Inserting a qualified global Integer variable from a different file"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    File mainFile = newTempFile()
+    File otherFile = newTempFile()
+    String qualifiedName = getBaseName(otherFile.name) + '.' + id
+    mainFile.text = """
+    impulse process main {
+      /say The value is \${${qualifiedName}}!
+    }
+    """
+    otherFile.text = """
+    Integer ${id} = ${value}
+    """
+
+    when:
+    MplProgram program = assembleProgram(mainFile)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplCommand command =  process.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "Inserting a qualified global Selector variable from a different file"() {
+    given:
+    String id = some($Identifier())
+    String value = "@e[name=${some($Identifier())}]"
+    File mainFile = newTempFile()
+    File otherFile = newTempFile()
+    String qualifiedName = getBaseName(otherFile.name) + '.' + id
+    mainFile.text = """
+    impulse process main {
+      /say The value is \${${qualifiedName}}!
+    }
+    """
+    otherFile.text = """
+    Selector ${id} = ${value}
+    """
+
+    when:
+    MplProgram program = assembleProgram(mainFile)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplCommand command =  process.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "Inserting a qualified global String variable from a different file"() {
+    given:
+    String id = some($Identifier())
+    String value = some($String())
+    File mainFile = newTempFile()
+    File otherFile = newTempFile()
+    String qualifiedName = getBaseName(otherFile.name) + '.' + id
+    mainFile.text = """
+    impulse process main {
+      /say The value is \${${qualifiedName}}!
+    }
+    """
+    otherFile.text = """
+    String ${id} = "${value}"
+    """
+
+    when:
+    MplProgram program = assembleProgram(mainFile)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplCommand command =  process.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "Inserting a qualified global Value variable from a different file"() {
+    given:
+    String id = some($Identifier())
+    String selector = "@e[name=${some($Identifier())}]"
+    String scoreboard = some($Identifier())
+    File mainFile = newTempFile()
+    File otherFile = newTempFile()
+    String qualifiedName = getBaseName(otherFile.name) + '.' + id
+    mainFile.text = """
+    impulse process main {
+      /say The value is \${${qualifiedName}}!
+    }
+    """
+    otherFile.text = """
+    Value ${id} = ${selector} ${scoreboard}
+    """
+
+    when:
+    MplProgram program = assembleProgram(mainFile)
+
+    then:
+    lastContext.errors[0].message == "The variable '${id}' of type Value cannot be inserted"
+    lastContext.errors[0].source.file == mainFile
+    lastContext.errors[0].source.text == qualifiedName
+    lastContext.errors[0].source.lineNumber == 3
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Inserting an unknown qualified global variable from a different file"() {
+    given:
+    String id = some($Identifier())
+    File mainFile = newTempFile()
+    File otherFile = newTempFile()
+    String qualifiedName = getBaseName(otherFile.name) + '.' + id
+    mainFile.text = """
+    impulse process main {
+      /say The value is \${${qualifiedName}}!
+    }
+    """
+    otherFile.text = ""
+
+    when:
+    assembleProgram(mainFile)
+
+    then:
+    lastContext.errors[0].message == "${qualifiedName} cannot be resolved to a variable"
+    lastContext.errors[0].source.file == mainFile
+    lastContext.errors[0].source.text == qualifiedName
+    lastContext.errors[0].source.lineNumber == 3
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Declaring a local Integer variable does not put it into the rootVariableScope"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    impulse process main {
+      Integer ${id} = ${value}
+    }
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+    interpreter.rootVariableScope.variables.isEmpty()
+  }
+
+  @Test
+  public void "Declaring a local Selector variable does not put it into the rootVariableScope"() {
+    given:
+    String id = some($Identifier())
+    String value = "@e[name=${some($Identifier())}]"
+    String programString = """
+    impulse process main {
+      Selector ${id} = ${value}
+    }
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+    interpreter.rootVariableScope.variables.isEmpty()
+  }
+
+  @Test
+  public void "Declaring a local String variable does not put it into the rootVariableScope"() {
+    given:
+    String id = some($Identifier())
+    String value = some($String())
+    String programString = """
+    impulse process main {
+      String ${id} = "${value}"
+    }
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+    interpreter.rootVariableScope.variables.isEmpty()
+  }
+
+  @Test
+  public void "Declaring a local Value variable does not put it into the rootVariableScope"() {
+    given:
+    String id = some($Identifier())
+    String selector = "@e[name=${some($Identifier())}]"
+    String scoreboard = some($Identifier())
+    String programString = """
+    impulse process main {
+      Value ${id} = ${selector} ${scoreboard}
+    }
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+    interpreter.rootVariableScope.variables.isEmpty()
+  }
+
+  @Test
+  public void "Inserting a local Integer variable"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    impulse process main {
+      Integer ${id} = ${value}
+      /say The value is \${${id}}!
+    }
+    """
+
     when:
     MplProgram program = assembleProgram(programString)
 
@@ -197,9 +926,12 @@ public class MplVariableSpec extends MplSpecBase {
     String id = some($Identifier())
     String value = "@e[name=${some($Identifier())}]"
     String programString = """
-    Selector ${id} = ${value}
-    /say The value is \${${id}}!
+    impulse process main {
+      Selector ${id} = ${value}
+      /say The value is \${${id}}!
+    }
     """
+
     when:
     MplProgram program = assembleProgram(programString)
 
@@ -220,9 +952,12 @@ public class MplVariableSpec extends MplSpecBase {
     String id = some($Identifier())
     String value = some($String())
     String programString = """
-    String ${id} = "${value}"
-    /say The value is \${${id}}!
+    impulse process main {
+      String ${id} = "${value}"
+      /say The value is \${${id}}!
+    }
     """
+
     when:
     MplProgram program = assembleProgram(programString)
 
@@ -244,9 +979,12 @@ public class MplVariableSpec extends MplSpecBase {
     String selector = "@e[name=${some($Identifier())}]"
     String scoreboard = some($Identifier())
     String programString = """
-    Value ${id} = ${selector}  ${scoreboard}
-    /say The value is \${${id}}!
+    impulse process main {
+      Value ${id} = ${selector} ${scoreboard}
+      /say The value is \${${id}}!
+    }
     """
+
     when:
     MplProgram program = assembleProgram(programString)
 
@@ -254,16 +992,16 @@ public class MplVariableSpec extends MplSpecBase {
     lastContext.errors[0].message == "The variable '${id}' of type Value cannot be inserted"
     lastContext.errors[0].source.file == lastTempFile
     lastContext.errors[0].source.text == id
-    lastContext.errors[0].source.lineNumber == 3
+    lastContext.errors[0].source.lineNumber == 4
     lastContext.errors.size() == 1
   }
 
   @Test
-  public void "Inserting an unknown variable"() {
+  public void "Inserting an unknown local variable"() {
     given:
     String id = some($Identifier())
     String programString = """
-    remote process main {
+    impulse process main {
       /say The value is \${${id}}!
     }
     """

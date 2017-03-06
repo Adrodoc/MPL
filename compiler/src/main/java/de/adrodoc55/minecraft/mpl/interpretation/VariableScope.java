@@ -57,6 +57,10 @@ public class VariableScope {
     this.parent = parent;
   }
 
+  public @Nullable VariableScope getParent() {
+    return parent;
+  }
+
   public void declareVariable(MplVariable<?> variable) throws DuplicateVariableException {
     if (findVariable(variable.getIdentifier()) != null) {
       throw new DuplicateVariableException();
@@ -81,5 +85,4 @@ public class VariableScope {
     }
     return null;
   }
-
 }

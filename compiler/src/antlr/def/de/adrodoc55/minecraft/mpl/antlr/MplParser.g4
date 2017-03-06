@@ -69,6 +69,7 @@ parser grammar MplParser;
      | install
      | uninstall
      | process
+     | variableDeclaration
    )*
  ;
 

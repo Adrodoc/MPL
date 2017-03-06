@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation;
 
+import static com.google.common.base.Preconditions.checkState;
 import static de.adrodoc55.commons.ArrayUtils.nonNullElementsIn;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
@@ -241,8 +242,24 @@ public class MplInterpreter extends MplParserBaseListener {
 
   private VariableScope rootVariableScope = new VariableScope(null);
 
+  private VariableScope currentVariableScope = rootVariableScope;
+
   public VariableScope getRootVariableScope() {
     return rootVariableScope;
+  }
+
+  public VariableScope getCurrentVariableScope() {
+    return currentVariableScope;
+  }
+
+  private void pushVariableScope() {
+    currentVariableScope = new VariableScope(currentVariableScope);
+  }
+
+  private void popVariableScope() {
+    VariableScope parent = currentVariableScope.getParent();
+    checkState(parent != null, "Can't pop rootVariableScope");
+    currentVariableScope = parent;
   }
 
   @Override
@@ -380,7 +397,7 @@ public class MplInterpreter extends MplParserBaseListener {
   private final Deque<ChainPartBuffer> chainBufferStack = new LinkedList<>();
   private ChainPartBuffer chainBuffer;
 
-  private void newChainBuffer() {
+  private void pushChainBuffer() {
     chainBufferStack.push(chainBuffer);
     chainBuffer = new ChainPartBufferImpl();
   }
@@ -393,7 +410,7 @@ public class MplInterpreter extends MplParserBaseListener {
 
   @Override
   public void enterInstall(InstallContext ctx) {
-    newChainBuffer();
+    pushChainBuffer();
   }
 
   @Override
@@ -410,7 +427,7 @@ public class MplInterpreter extends MplParserBaseListener {
 
   @Override
   public void enterUninstall(UninstallContext ctx) {
-    newChainBuffer();
+    pushChainBuffer();
   }
 
   @Override
@@ -428,7 +445,7 @@ public class MplInterpreter extends MplParserBaseListener {
   @Override
   public void enterScriptFile(ScriptFileContext ctx) {
     program.setScript(true);
-    newChainBuffer();
+    pushChainBuffer();
   }
 
   @Override
@@ -443,6 +460,8 @@ public class MplInterpreter extends MplParserBaseListener {
 
   @Override
   public void enterProcess(ProcessContext ctx) {
+    pushVariableScope();
+    pushChainBuffer();
     String name = ctx.IDENTIFIER().getText();
     boolean repeat = ctx.REPEAT() != null;
     ProcessType type = ProcessType.DEFAULT;
@@ -464,7 +483,6 @@ public class MplInterpreter extends MplParserBaseListener {
     }
     MplSource source = toSource(ctx.IDENTIFIER().getSymbol());
     process = new MplProcess(name, repeat, type, tags, source);
-    newChainBuffer();
   }
 
   @Override
@@ -474,6 +492,7 @@ public class MplInterpreter extends MplParserBaseListener {
     process = null;
 
     popChainBuffer();
+    popVariableScope();
   }
 
   private ModifierBuffer modifierBuffer;
@@ -605,7 +624,7 @@ public class MplInterpreter extends MplParserBaseListener {
     List<TerminalNode> identifiers = ctx.INSERT_IDENTIFIER();
     if (identifiers.size() == 1) {
       TerminalNode identifier = identifiers.get(0);
-      MplVariable<?> variable = rootVariableScope.findVariable(identifier.getText());
+      MplVariable<?> variable = getCurrentVariableScope().findVariable(identifier.getText());
       if (variable != null) {
         try {
           String insert = checkInsertable(variable, toSource(identifier.getSymbol())).toInsert();
@@ -976,7 +995,7 @@ public class MplInterpreter extends MplParserBaseListener {
     MplVariable<?> variable = declaredType.newVariable(declarationSource, identifier.getText());
     variable.setValueString(value, actualSource, context);
     try {
-      rootVariableScope.declareVariable(variable);
+      getCurrentVariableScope().declareVariable(variable);
     } catch (DuplicateVariableException ex) {
       context.addError(new CompilerException(declarationSource,
           "Duplicate local variable " + identifier.getText()));

@@ -70,31 +70,57 @@ public class MplSource {
   private final @Nonnull String line;
   private final int lineNumber;
   private final int charPositionInLine;
-  private final @Nullable String text;
   private final int startIndex;
   private final int stopIndex;
+  private @Nullable String text;
 
   @GenerateMplPojoBuilder
   public MplSource(File file, String line, Token token) {
-    this(file, line, token, token, token.getText());
+    this(file, line, token, token);
+    text = token.getText();
   }
 
   public MplSource(File file, String line, List<TerminalNode> nodes) {
-    this(file, line, nodes.get(0).getSymbol(), nodes.get(nodes.size() - 1).getSymbol(),
-        reconstructText(nodes));
+    this(file, line, nodes.get(0).getSymbol(), nodes.get(nodes.size() - 1).getSymbol());
+    reconstructText(nodes);
   }
 
   public MplSource(File file, String line, ParserRuleContext ctx) {
-    this(file, line, ctx.getStart(), ctx.getStop(), reconstructText(ctx.children));
+    this(file, line, ctx.getStart(), ctx.getStop());
+    reconstructText(ctx.children);
   }
 
-  public MplSource(File file, String line, Token start, Token stop, String text) {
-    this(file, line, start.getLine(), start.getCharPositionInLine(), text, start.getStartIndex(),
+  private MplSource(File file, String line, Token start, Token stop) {
+    this(file, line, start, stop, null);
+  }
+
+  public MplSource(File file, String line, Token start, Token stop, @Nullable String text) {
+    this(file, line, start.getLine(), start.getCharPositionInLine(), start.getStartIndex(),
         stop.getStopIndex());
+    this.text = text;
   }
 
-  private static String reconstructText(Iterable<? extends ParseTree> children) {
-    return Joiner.on(' ').join(Iterables.transform(children, new Function<ParseTree, String>() {
+  public @Nullable String getText() {
+    if (text == null) {
+      try {
+        text = line.substring(charPositionInLine, getEndIndexInLine());
+      } catch (StringIndexOutOfBoundsException ex) {
+        return null;
+      }
+    }
+    return text;
+  }
+
+  private int getEndIndexInLine() {
+    return charPositionInLine + stopIndex - startIndex + 1;
+  }
+
+  private void reconstructText(Iterable<? extends ParseTree> children) {
+    if (getEndIndexInLine() <= line.length()) {
+      getText();
+      return;
+    }
+    text = Joiner.on(' ').join(Iterables.transform(children, new Function<ParseTree, String>() {
       @Override
       public String apply(ParseTree input) {
         return input.getText();
