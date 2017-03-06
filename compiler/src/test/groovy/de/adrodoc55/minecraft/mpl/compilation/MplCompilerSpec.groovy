@@ -71,6 +71,7 @@ class MplCompilerSpec extends MplSpecBase {
   private MplProgram assembleProgram(File programFile, CompilerOption... options) {
     lastProgramFile = programFile
     MplCompiler compiler = new MplCompiler(MinecraftVersion.getDefault(), new CompilerOptions(options))
+    lastContext = compiler.provideContext()
     MplProgram program = compiler.assemble(programFile)
     compiler.checkErrors()
     return program
@@ -79,6 +80,7 @@ class MplCompilerSpec extends MplSpecBase {
   private List<CommandBlockChain> place(File programFile, CompilerOption... options) {
     lastProgramFile = programFile
     MplCompiler compiler = new MplCompiler(MinecraftVersion.getDefault(), new CompilerOptions(options))
+    lastContext = compiler.provideContext()
     MplProgram program = compiler.assemble(programFile)
     compiler.checkErrors()
     ChainContainer container = compiler.materialize(program)
@@ -89,7 +91,9 @@ class MplCompilerSpec extends MplSpecBase {
 
   private MplCompilationResult compile(File programFile, CompilerOption... options) {
     lastProgramFile = programFile
-    return MplCompiler.compile(programFile, MinecraftVersion.getDefault(), new CompilerOptions(options))
+    MplCompiler compiler = new MplCompiler(MinecraftVersion.getDefault(), new CompilerOptions(options))
+    lastContext = compiler.provideContext()
+    return compiler.compile(programFile)
   }
 
   @Test
@@ -1113,30 +1117,6 @@ class MplCompilerSpec extends MplSpecBase {
   }
 
   @Test
-  public void "Inserting an unknown variable"() {
-    given:
-    String id = some($Identifier())
-    File folder = tempFolder.root
-    File programFile = new File(folder, 'main.mpl')
-    programFile.text = """
-    remote process main {
-      /say The value is \${${id}}!
-    }
-    """
-
-    when:
-    compile(programFile)
-
-    then:
-    CompilationFailedException ex = thrown()
-    ex.errors.get(programFile)[0].message == "${id} cannot be resolved to a variable"
-    ex.errors.get(programFile)[0].source.file == programFile
-    ex.errors.get(programFile)[0].source.text == id
-    ex.errors.get(programFile)[0].source.lineNumber == 3
-    ex.errors.size() == 1
-  }
-
-  @Test
   @Unroll("#action an inline process results in a compiler exception")
   public void "referencing an inline process results in a compiler exception"(String action) {
     given:
@@ -1436,5 +1416,4 @@ class MplCompilerSpec extends MplSpecBase {
     where:
     action << ['start', 'stop']
   }
-
 }
