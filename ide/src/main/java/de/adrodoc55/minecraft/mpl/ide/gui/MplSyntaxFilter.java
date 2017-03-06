@@ -270,6 +270,7 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
         case MplLexer.DOLLAR:
         case MplLexer.INSERT_CLOSING_BRACKET:
         case MplLexer.INSERT_CLOSING_CURLY_BRACKET:
+        case MplLexer.INSERT_DOT:
         case MplLexer.INSERT_IDENTIFIER:
         case MplLexer.INSERT_MINUS:
         case MplLexer.INSERT_OPENING_BRACKET:
