@@ -44,6 +44,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Collection;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.GeneratedBy;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -83,7 +84,7 @@ public abstract class MplBlock {
 
   public abstract String getStringBlockId();
 
-  public abstract boolean isInternal();
+  public abstract GeneratedBy getGeneratedBy();
 
   public void resolveThisInserts(Collection<MplBlock> blocks) {}
 

@@ -40,6 +40,8 @@
 package de.adrodoc55.minecraft.mpl.blocks;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.GeneratedBy;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -49,11 +51,11 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class Transmitter extends MplBlock {
-  private final boolean internal;
+  private final MplSkip skip;
 
-  public Transmitter(boolean internal, Coordinate3D coordinate) {
+  public Transmitter(MplSkip skip, Coordinate3D coordinate) {
     super(coordinate);
-    this.internal = internal;
+    this.skip = skip;
   }
 
   @Override
@@ -67,7 +69,7 @@ public class Transmitter extends MplBlock {
   }
 
   @Override
-  public boolean isInternal() {
-    return internal;
+  public GeneratedBy getGeneratedBy() {
+    return skip.getGeneratedBy();
   }
 }

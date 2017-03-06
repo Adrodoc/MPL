@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.blocks;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.GeneratedBy;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -64,7 +65,7 @@ public class AirBlock extends MplBlock {
   }
 
   @Override
-  public boolean isInternal() {
-    return false;
+  public GeneratedBy getGeneratedBy() {
+    return GeneratedBy.PLACER;
   }
 }

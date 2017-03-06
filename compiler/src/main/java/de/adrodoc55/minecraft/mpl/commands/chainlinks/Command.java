@@ -78,21 +78,21 @@ public class Command implements ChainLink, Modifiable {
   private @Nonnull Mode mode;
   private boolean conditional;
   private boolean needsRedstone;
-  private boolean internal;
+  private GeneratedBy generatedBy;
 
   @GenerateMplPojoBuilder
   @VisibleForTesting
   Command(CommandPartBuffer minecraftCommand, Mode mode, boolean conditional, boolean needsRedstone,
-      boolean internal) {
+      GeneratedBy generatedBy) {
     this.minecraftCommand = checkNotNull(minecraftCommand, "minecraftCommand == null!");
     setModifier(mode, conditional, needsRedstone);
-    setInternal(internal);
+    setGeneratedBy(generatedBy);
   }
 
-  Command(CommandPartBuffer minecraftCommand, Modifiable modifier, boolean internal) {
+  Command(CommandPartBuffer minecraftCommand, Modifiable modifier, GeneratedBy generatedBy) {
     this.minecraftCommand = checkNotNull(minecraftCommand, "minecraftCommand == null!");
     setModifier(modifier);
-    setInternal(internal);
+    setGeneratedBy(generatedBy);
   }
 
   @Deprecated

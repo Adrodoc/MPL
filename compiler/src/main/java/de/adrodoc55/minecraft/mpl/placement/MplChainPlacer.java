@@ -429,7 +429,7 @@ public abstract class MplChainPlacer {
   public static boolean isReceiver(MplBlock block) {
     if (block instanceof CommandBlock) {
       CommandBlock commandBlock = (CommandBlock) block;
-      return isReceiver(commandBlock.toCommand());
+      return commandBlock.getNeedsRedstone();
     } else {
       return false;
     }

@@ -53,6 +53,7 @@ import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.GeneratedBy;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeOriginInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 import lombok.EqualsAndHashCode;
@@ -77,7 +78,7 @@ public class CommandBlock extends MplBlock {
     this.direction = checkNotNull(direction, "direction == null!");
   }
 
-  public Command toCommand() {
+  public Command asCommand() {
     return command;
   }
 
@@ -89,24 +90,12 @@ public class CommandBlock extends MplBlock {
     return command != null ? command.isConditional() : false;
   }
 
-  public void setConditional(boolean conditional) {
-    command.setConditional(conditional);
-  }
-
   public Mode getMode() {
     return command != null ? command.getMode() : null;
   }
 
-  public void setMode(Mode mode) {
-    command.setMode(mode);
-  }
-
   public boolean getNeedsRedstone() {
     return command != null ? command.getNeedsRedstone() : false;
-  }
-
-  public void setNeedsRedstone(boolean needsRedstone) {
-    command.setNeedsRedstone(needsRedstone);
   }
 
   @Override
@@ -149,8 +138,8 @@ public class CommandBlock extends MplBlock {
   }
 
   @Override
-  public boolean isInternal() {
-    return command.isInternal();
+  public GeneratedBy getGeneratedBy() {
+    return command.getGeneratedBy();
   }
 
   @Override
@@ -161,12 +150,8 @@ public class CommandBlock extends MplBlock {
         insert.setCoordinate(new Coordinate3D());
         return;
       }
-      Collection<MplBlock> relevantBlocks;
-      if (isInternal()) {
-        relevantBlocks = blocks;
-      } else {
-        relevantBlocks = Collections2.filter(blocks, b -> !b.isInternal());
-      }
+      Collection<MplBlock> relevantBlocks = Collections2.filter(blocks,
+          b -> b.getGeneratedBy().isLessThanOrEqualTo(getGeneratedBy()));
 
       Iterator<MplBlock> it;
       if (relative > 0) {

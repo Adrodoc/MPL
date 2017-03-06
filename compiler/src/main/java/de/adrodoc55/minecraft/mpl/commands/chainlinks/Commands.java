@@ -71,7 +71,7 @@ public class Commands {
   }
 
   public static Command newCommand(CommandPartBuffer commandParts, Modifiable modifier) {
-    return new Command(commandParts, modifier, false);
+    return new Command(commandParts, modifier, GeneratedBy.USER);
   }
 
   public static Command newInternalCommand() {
@@ -87,11 +87,11 @@ public class Commands {
   }
 
   public static Command newInternalCommand(CommandPartBuffer commandParts, Modifiable modifier) {
-    return new Command(commandParts, modifier, true);
+    return new Command(commandParts, modifier, GeneratedBy.MATERIALIZER);
   }
 
   public static Command newNoOperationCommand() {
-    return newInternalCommand(new CommandPartBuffer(), modifier());
+    return new Command(new CommandPartBuffer(), modifier(), GeneratedBy.PLACER);
   }
 
   public static Command newNormalizingCommand() {

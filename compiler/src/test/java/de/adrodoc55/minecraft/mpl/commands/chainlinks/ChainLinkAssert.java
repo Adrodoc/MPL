@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.GeneratedBy.MATERIALIZER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.annotation.Nullable;
@@ -77,7 +78,7 @@ public class ChainLinkAssert<S extends ChainLinkAssert<S, A>, A extends ChainLin
 
   public AbstractBooleanAssert<?> internal() {
     isNotNull();
-    return assertThat(actual.isInternal()).as(description("internal"));
+    return assertThat(actual.getGeneratedBy() == MATERIALIZER).as(description("internal"));
   }
 
   public S hasInternal(boolean internal) {

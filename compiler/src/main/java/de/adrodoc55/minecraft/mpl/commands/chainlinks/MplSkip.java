@@ -82,8 +82,8 @@ public class MplSkip implements ChainPart, ChainLink {
   }
 
   @Override
-  public boolean isInternal() {
-    return internal;
+  public GeneratedBy getGeneratedBy() {
+    return internal ? GeneratedBy.MATERIALIZER : GeneratedBy.USER;
   }
 
   @Override
@@ -93,7 +93,7 @@ public class MplSkip implements ChainPart, ChainLink {
 
   @Override
   public MplBlock toBlock(Coordinate3D coordinate, Direction3D direction) {
-    return new Transmitter(internal, coordinate);
+    return new Transmitter(this, coordinate);
   }
 
   @Override

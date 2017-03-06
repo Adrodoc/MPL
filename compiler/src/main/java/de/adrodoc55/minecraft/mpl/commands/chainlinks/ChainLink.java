@@ -48,7 +48,7 @@ import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
  * @author Adrodoc55
  */
 public interface ChainLink extends Copyable {
-  boolean isInternal();
+  GeneratedBy getGeneratedBy();
 
   MplBlock toBlock(Coordinate3D coordinate, Direction3D direction);
 

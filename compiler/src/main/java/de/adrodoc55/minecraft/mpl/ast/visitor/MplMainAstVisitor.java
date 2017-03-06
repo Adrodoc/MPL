@@ -844,6 +844,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
 
     Deque<ChainPart> chainParts = new ArrayDeque<>(mplWhile.getChainParts());
     if (chainParts.isEmpty()) {
+      // Warning DO NOT USE Commands.newNoOperationCommand() here, because those are ignored when
+      // resolving relative this inserts
       chainParts.add(new MplCommand("", mplWhile.getSource()));
     }
     ChainPart first = chainParts.peek();
