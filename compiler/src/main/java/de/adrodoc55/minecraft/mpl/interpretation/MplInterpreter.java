@@ -410,6 +410,7 @@ public class MplInterpreter extends MplParserBaseListener {
 
   @Override
   public void enterInstall(InstallContext ctx) {
+    pushVariableScope();
     pushChainBuffer();
   }
 
@@ -423,10 +424,12 @@ public class MplInterpreter extends MplParserBaseListener {
     install.addAll(chainBuffer.getChainParts());
 
     popChainBuffer();
+    popVariableScope();
   }
 
   @Override
   public void enterUninstall(UninstallContext ctx) {
+    pushVariableScope();
     pushChainBuffer();
   }
 
@@ -440,6 +443,7 @@ public class MplInterpreter extends MplParserBaseListener {
     install.addAll(chainBuffer.getChainParts());
 
     popChainBuffer();
+    popVariableScope();
   }
 
   @Override

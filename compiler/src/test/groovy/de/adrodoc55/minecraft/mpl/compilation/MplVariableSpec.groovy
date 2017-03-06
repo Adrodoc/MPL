@@ -1108,6 +1108,106 @@ public class MplVariableSpec extends MplSpecBase {
   }
 
   @Test
+  public void "A local variable from an install is not found in a process"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    install {
+      Integer ${id} = ${value}
+    }
+    impulse process main {
+      /say The value is \${${id}}!
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors[0].message == "${id} cannot be resolved to a variable"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 6
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "A local variable from a process is not found in an install"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    impulse process main {
+      Integer ${id} = ${value}
+    }
+    install {
+      /say The value is \${${id}}!
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors[0].message == "${id} cannot be resolved to a variable"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 6
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "A local variable from an uninstall is not found in a process"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    uninstall {
+      Integer ${id} = ${value}
+    }
+    impulse process main {
+      /say The value is \${${id}}!
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors[0].message == "${id} cannot be resolved to a variable"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 6
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "A local variable from a process is not found in an uninstall"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    impulse process main {
+      Integer ${id} = ${value}
+    }
+    uninstall {
+      /say The value is \${${id}}!
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors[0].message == "${id} cannot be resolved to a variable"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 6
+    lastContext.errors.size() == 1
+  }
+
+  @Test
   public void "A local variable from outside a then is found in the then"() {
     given:
     String id = some($Identifier())
@@ -1391,5 +1491,4 @@ public class MplVariableSpec extends MplSpecBase {
     lastContext.errors[0].source.lineNumber == 7
     lastContext.errors.size() == 1
   }
-
 }
