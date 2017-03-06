@@ -37,23 +37,23 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.interpretation;
+package de.adrodoc55.minecraft.mpl.assembly;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import com.google.common.base.Joiner;
-
-import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -61,45 +61,46 @@ import lombok.ToString;
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode(of = {"processName"}, callSuper = false)
-@ToString(of = {"processName"}, callSuper = false)
 @Getter
-public class MplProcessReference extends MplReference {
-  private final @Nonnull String processName;
+@EqualsAndHashCode
+@ToString
+public abstract class MplReference {
+  protected final @Nonnull Set<File> imports = new HashSet<>();
+  protected final @Nonnull MplSource source;
 
   /**
-   * Constructs a reference to a process.
+   * Constructs a reference.
    *
-   * @param processName the name of the referenced process
-   * @param imports the imported files that are expected to contain the process
+   * @param imports the imported files that are expected to contain the reference
    * @param source the source that requires {@code this} reference
    * @throws IllegalArgumentException if one of the {@code imports} is not a file
    */
-  public MplProcessReference(@Nonnull String processName, @Nonnull Collection<File> imports,
-      @Nonnull MplSource source) throws IllegalArgumentException {
-    super(imports, source);
-    this.processName = checkNotNull(processName, "processName == null!");
+  public MplReference(@Nonnull Collection<? extends File> imports, @Nonnull MplSource source)
+      throws IllegalArgumentException {
+    setImports(imports);
+    this.source = checkNotNull(source, "source == null!");
   }
 
-  @Override
-  public boolean isContainedIn(MplProgram program) {
-    return program.containsProcess(processName);
+  public @Nonnull Set<File> getImports() {
+    return Collections.unmodifiableSet(imports);
   }
 
-  @Override
-  public MplProcess getProcess(MplProgram program) {
-    return program.getProcess(processName);
+  private void setImports(Collection<? extends File> imports) throws IllegalArgumentException {
+    for (File file : imports) {
+      if (!file.isFile()) {
+        throw new IllegalArgumentException(
+            "The import '" + FileUtils.getCanonicalPath(file) + "' is not a file!");
+      }
+    }
+    this.imports.clear();
+    this.imports.addAll(imports);
   }
 
-  @Override
-  public CompilerException createAmbigiousException(List<File> files) {
-    checkArgument(!files.isEmpty(), "files is empty!");
-    int lastIndex = files.size() - 1;
-    List<File> view = files.subList(0, lastIndex);
-    String first = Joiner.on(", ").join(view);
-    File last = files.get(lastIndex);
-    return new CompilerException(source, "Process " + processName
-        + " is ambigious. It was found in '" + first + " and " + last + "!");
-  }
+  public abstract boolean isContainedIn(MplInterpreter interpreter);
 
+  public abstract void resolve(MplInterpreter interpreter);
+
+  public abstract CompilerException createAmbigiousException(List<File> found);
+
+  public abstract void handleNotFound();
 }

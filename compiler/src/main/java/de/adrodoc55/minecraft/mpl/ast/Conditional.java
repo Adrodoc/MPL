@@ -52,4 +52,8 @@ public enum Conditional {
   public static final Conditional DEFAULT = UNCONDITIONAL;
 
   private final boolean conditional;
+
+  public static Conditional valueOf(boolean conditional) {
+    return conditional ? CONDITIONAL : UNCONDITIONAL;
+  }
 }

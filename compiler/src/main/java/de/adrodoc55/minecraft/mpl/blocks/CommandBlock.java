@@ -41,12 +41,21 @@ package de.adrodoc55.minecraft.mpl.blocks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Iterator;
+
 import javax.annotation.Nonnull;
+
+import com.google.common.collect.Collections2;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.GeneratedBy;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeOriginInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -69,7 +78,7 @@ public class CommandBlock extends MplBlock {
     this.direction = checkNotNull(direction, "direction == null!");
   }
 
-  public Command toCommand() {
+  public Command asCommand() {
     return command;
   }
 
@@ -77,32 +86,16 @@ public class CommandBlock extends MplBlock {
     return command.getCommand();
   }
 
-  public void setCommand(String command) {
-    this.command.setCommand(command);
-  }
-
   public boolean isConditional() {
     return command != null ? command.isConditional() : false;
-  }
-
-  public void setConditional(boolean conditional) {
-    command.setConditional(conditional);
   }
 
   public Mode getMode() {
     return command != null ? command.getMode() : null;
   }
 
-  public void setMode(Mode mode) {
-    command.setMode(mode);
-  }
-
   public boolean getNeedsRedstone() {
     return command != null ? command.getNeedsRedstone() : false;
-  }
-
-  public void setNeedsRedstone(boolean needsRedstone) {
-    command.setNeedsRedstone(needsRedstone);
   }
 
   @Override
@@ -142,5 +135,58 @@ public class CommandBlock extends MplBlock {
         return 5;
     }
     throw new IllegalArgumentException("Unknown Direction: " + direction);
+  }
+
+  @Override
+  public GeneratedBy getGeneratedBy() {
+    return command.getGeneratedBy();
+  }
+
+  @Override
+  public void resolveThisInserts(Collection<MplBlock> blocks) {
+    for (RelativeThisInsert insert : command.getMinecraftCommand().getThisInserts()) {
+      int relative = insert.getRelative();
+      if (relative == 0) {
+        insert.setCoordinate(new Coordinate3D());
+        return;
+      }
+      Collection<MplBlock> relevantBlocks = Collections2.filter(blocks,
+          b -> b.getGeneratedBy().isLessThanOrEqualTo(getGeneratedBy()));
+
+      Iterator<MplBlock> it;
+      if (relative > 0) {
+        it = relevantBlocks.iterator();
+      } else {
+        it = new ArrayDeque<>(relevantBlocks).descendingIterator();
+      }
+
+      while (it.hasNext()) {
+        MplBlock thisBlock = it.next();
+        if (this == thisBlock) {
+          MplBlock target = null;
+          for (int r = 0; r < Math.abs(relative); r++) {
+            if (it.hasNext()) {
+              target = it.next();
+            } else {
+              if (relative > 0) {
+                // TODO: after chain
+              } else {
+                // TODO: before chain
+              }
+            }
+          }
+          insert.setCoordinate(target.getCoordinate().minus(getCoordinate()));
+          return;
+        }
+      }
+      throw new IllegalArgumentException("This CommandBlock is not contained in the chain");
+    }
+  }
+
+  @Override
+  public void resolveOriginInserts() {
+    for (RelativeOriginInsert insert : command.getMinecraftCommand().getOriginInserts()) {
+      insert.setCoordinate(getCoordinate().mult(-1).plus(insert.getRelative()));
+    }
   }
 }

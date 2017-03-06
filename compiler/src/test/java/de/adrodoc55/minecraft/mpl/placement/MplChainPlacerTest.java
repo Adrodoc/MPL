@@ -39,8 +39,6 @@
  */
 package de.adrodoc55.minecraft.mpl.placement;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.LinkedList;
 import java.util.List;
 
@@ -83,7 +81,7 @@ public class MplChainPlacerTest extends MplTestBase {
   @Test
   public void getLongestSuccessiveConditionalCount_is_1_for_one_conditional() {
     // given:
-    Command conditional = new Command("test", true);
+    Command conditional = some($Command().withConditional(true));
     LinkedList<Command> list = new LinkedList<>();
     list.add(conditional);
     // when:

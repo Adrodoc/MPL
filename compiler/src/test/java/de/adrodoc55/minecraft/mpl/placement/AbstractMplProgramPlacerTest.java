@@ -42,7 +42,6 @@ package de.adrodoc55.minecraft.mpl.placement;
 import static de.adrodoc55.minecraft.mpl.MplTestUtils.findByName;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static java.util.stream.Collectors.toList;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -129,7 +128,7 @@ public abstract class AbstractMplProgramPlacerTest extends MplTestBase {
     // then:
     CommandBlockChain placed = findByName(chain.getName(), chains);
     List<Command> actCommands = placed.getBlocks().stream().filter(b -> b instanceof CommandBlock)
-        .map(c -> ((CommandBlock) c).toCommand()).collect(toList());
+        .map(c -> ((CommandBlock) c).asCommand()).collect(toList());
     List<Command> expCommand =
         commands.stream().filter(c -> c instanceof Command).map(c -> (Command) c).collect(toList());
 

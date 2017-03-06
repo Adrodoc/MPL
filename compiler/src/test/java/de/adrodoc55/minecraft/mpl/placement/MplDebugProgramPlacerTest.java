@@ -41,7 +41,6 @@ package de.adrodoc55.minecraft.mpl.placement;
 
 import static de.adrodoc55.minecraft.mpl.MplTestUtils.findByName;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 

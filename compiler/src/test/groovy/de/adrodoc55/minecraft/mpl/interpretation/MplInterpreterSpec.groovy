@@ -52,6 +52,7 @@ import spock.lang.Ignore
 import com.google.common.collect.ListMultimap
 
 import de.adrodoc55.minecraft.mpl.MplSpecBase
+import de.adrodoc55.minecraft.mpl.assembly.MplReference
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram
 import de.adrodoc55.minecraft.mpl.chain.CommandChain
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command
@@ -358,8 +359,8 @@ public class MplInterpreterSpec extends MplSpecBase {
     MplProgram project = interpreter.project
     project.exceptions.isEmpty()
 
-    ListMultimap<String, MplProcessReference> includeMap = interpreter.references
-    List<MplProcessReference> includes = includeMap.get(name)
+    ListMultimap<String, MplReference> includeMap = interpreter.references
+    List<MplReference> includes = includeMap.get(name)
     includes[0].processName == 'testProcess'
     includes.size() == 1
   }

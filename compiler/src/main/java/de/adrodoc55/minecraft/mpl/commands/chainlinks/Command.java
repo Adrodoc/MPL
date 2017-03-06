@@ -41,7 +41,13 @@ package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
@@ -50,6 +56,10 @@ import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
+import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
+import de.adrodoc55.minecraft.mpl.interpretation.UnableToResolveInsertException;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetedThisInsert;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -64,45 +74,29 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @Getter
 @Setter
 public class Command implements ChainLink, Modifiable {
-  protected @Nonnull String command;
-  protected @Nonnull Mode mode;
-  protected boolean conditional;
-  protected boolean needsRedstone;
-
-  public Command() {
-    this("");
-  }
-
-  public Command(String command) {
-    this(command, null, false);
-  }
-
-  public Command(String command, Mode mode) {
-    this(command, mode, false);
-  }
-
-  public Command(String command, boolean conditional) {
-    this(command, null, conditional);
-  }
-
-  public Command(String command, Mode mode, boolean conditional) {
-    this(command, mode, conditional, Mode.nonNull(mode).getNeedsRedstoneByDefault());
-  }
+  private @Nonnull CommandPartBuffer minecraftCommand;
+  private @Nonnull Mode mode;
+  private boolean conditional;
+  private boolean needsRedstone;
+  private GeneratedBy generatedBy;
 
   @GenerateMplPojoBuilder
-  public Command(String command, Mode mode, boolean conditional, boolean needsRedstone) {
-    setCommand(command);
+  @VisibleForTesting
+  Command(CommandPartBuffer minecraftCommand, Mode mode, boolean conditional, boolean needsRedstone,
+      GeneratedBy generatedBy) {
+    this.minecraftCommand = checkNotNull(minecraftCommand, "minecraftCommand == null!");
     setModifier(mode, conditional, needsRedstone);
+    setGeneratedBy(generatedBy);
   }
 
-  public Command(String command, Modifiable modifier) {
-    setCommand(command);
+  Command(CommandPartBuffer minecraftCommand, Modifiable modifier, GeneratedBy generatedBy) {
+    this.minecraftCommand = checkNotNull(minecraftCommand, "minecraftCommand == null!");
     setModifier(modifier);
+    setGeneratedBy(generatedBy);
   }
 
   @Deprecated
-  protected Command(Command original) {
-    command = original.command;
+  protected Command(Command original, CopyScope scope) {
     mode = original.mode;
     conditional = original.conditional;
     needsRedstone = original.needsRedstone;
@@ -111,7 +105,14 @@ public class Command implements ChainLink, Modifiable {
   @Deprecated
   @Override
   public Command createFlatCopy(CopyScope scope) {
-    return new Command(this);
+    return new Command(this, scope);
+  }
+
+  @Deprecated
+  @Override
+  public void completeDeepCopy(CopyScope scope) {
+    Command original = scope.getCache().getOriginal(this);
+    minecraftCommand = scope.copyObject(original.minecraftCommand);
   }
 
   public void setModifier(Modifiable modifier) {
@@ -124,32 +125,45 @@ public class Command implements ChainLink, Modifiable {
     this.needsRedstone = needsRedstone;
   }
 
-  public void setCommand(String command) {
-    checkNotNull(command, "command == null!");
-    if (command.startsWith("/")) {
-      this.command = command.substring(1);
-    } else {
-      this.command = command;
-    }
-  }
-
   @Override
-  public @Nonnull Boolean isConditional() {
-    return conditional;
-  }
-
-  @Override
-  public @Nonnull Boolean getNeedsRedstone() {
+  public boolean getNeedsRedstone() {
     return needsRedstone;
   }
 
-  @Override
-  public MplBlock toBlock(Coordinate3D coordinate) {
-    // FIXME: Direction korrigieren
-    return new CommandBlock(this, Direction3D.UP, coordinate);
+  public List<Object> getCommandParts() {
+    return minecraftCommand.getCommandParts();
   }
 
-  public boolean isInternal() {
-    return false;
+  public String getCommand() {
+    return Joiner.on("").join(getCommandParts());
+  }
+
+  @Override
+  public MplBlock toBlock(Coordinate3D coordinate, Direction3D direction) {
+    return new CommandBlock(this, direction, coordinate);
+  }
+
+  @Override
+  public void resolveTargetedThisInserts(Iterable<? extends ChainLink> chainLinks) {
+    minecraftCommand.resolveTargetedThisInserts(insert -> resolve(insert, chainLinks));
+  }
+
+  private RelativeThisInsert resolve(TargetedThisInsert insert,
+      Iterable<? extends ChainLink> chainLinks) throws UnableToResolveInsertException {
+    int self = Iterables.indexOf(chainLinks, it -> it == this);
+    if (self == -1) {
+      throwNotFoundException("This");
+    }
+    ChainLink target = insert.getTarget();
+    int ref = Iterables.indexOf(chainLinks, it -> it == target);
+    if (ref == -1) {
+      throwNotFoundException("The referenced chainLink");
+    }
+    return new RelativeThisInsert(ref - self);
+  }
+
+  private void throwNotFoundException(String string) throws UnableToResolveInsertException {
+    throw new UnableToResolveInsertException(
+        "Failed to resolve reference. " + string + " was not found in the specified chainLinks");
   }
 }

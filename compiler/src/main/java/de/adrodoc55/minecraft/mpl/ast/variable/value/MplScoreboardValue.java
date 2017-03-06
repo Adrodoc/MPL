@@ -37,29 +37,36 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+package de.adrodoc55.minecraft.mpl.ast.variable.value;
 
-import de.adrodoc55.commons.CopyScope;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
+import javax.annotation.concurrent.Immutable;
+
+import de.adrodoc55.minecraft.mpl.ast.variable.selector.TargetSelector;
 
 /**
  * @author Adrodoc55
  */
-public class NoOperationCommand extends InternalCommand {
-  public NoOperationCommand() {}
+@Immutable
+public class MplScoreboardValue implements MplValue {
+  private final TargetSelector selector;
+  private final String scoreboard;
 
-  public NoOperationCommand(Mode mode) {
-    super("", mode);
+  public MplScoreboardValue(TargetSelector selector, String scoreboard) {
+    this.selector = selector;
+    this.scoreboard = scoreboard;
   }
 
-  @Deprecated
-  protected NoOperationCommand(NoOperationCommand original) {
-    super(original);
+  /**
+   * @return the {@link #selector}
+   */
+  public TargetSelector getSelector() {
+    return selector;
   }
 
-  @Deprecated
-  @Override
-  public NoOperationCommand createFlatCopy(CopyScope scope) {
-    return new NoOperationCommand(this);
+  /**
+   * @return the {@link #scoreboard}
+   */
+  public String getScoreboard() {
+    return scoreboard;
   }
 }

@@ -60,6 +60,10 @@ import lombok.ToString;
 @Getter
 @Immutable
 public class MplInclude {
+  /**
+   * The name of the process to include or {@code null} if all processes of the {@link #file} should
+   * be included.
+   */
   private final @Nullable String processName;
   private final @Nonnull File file;
   private final @Nonnull MplSource source;
@@ -68,6 +72,12 @@ public class MplInclude {
     this(null, file, source);
   }
 
+  /**
+   *
+   * @param processName the {@link #processName}
+   * @param file the {@link #file}
+   * @param source the {@link #source}
+   */
   public MplInclude(@Nullable String processName, @Nonnull File file, @Nonnull MplSource source) {
     this.processName = processName;
     this.file = checkNotNull(file, "file == null!");

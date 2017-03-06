@@ -42,6 +42,8 @@ package de.adrodoc55.minecraft.mpl
 import static de.adrodoc55.TestBase.some
 import static de.adrodoc55.minecraft.mpl.MplTestBase.$MplCompilerContext
 
+import java.io.File
+
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
@@ -56,7 +58,7 @@ class MplSpecBase extends Specification {
   MplCompilerContext lastContext
 
   File newTempFile() {
-    lastTempFile = tempFolder.newFile()
+    lastTempFile = File.createTempFile("junit", ".mpl", tempFolder.root);
   }
 
   MplInterpreter interpret(String program, File file = newTempFile()) {

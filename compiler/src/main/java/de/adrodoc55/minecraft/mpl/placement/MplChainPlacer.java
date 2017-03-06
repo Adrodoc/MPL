@@ -41,8 +41,11 @@ package de.adrodoc55.minecraft.mpl.placement;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.coordinate.Axis3D.Y;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newCommand;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNoOperationCommand;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
+import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 import static de.kussm.direction.Direction.EAST;
 import static de.kussm.direction.Direction.NORTH;
 import static de.kussm.direction.Direction.WEST;
@@ -79,9 +82,10 @@ import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
+import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeOriginInsert;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import de.kussm.chain.Chain;
 import de.kussm.chain.ChainLayouter;
@@ -229,7 +233,7 @@ public abstract class MplChainPlacer {
    */
   protected LinkedHashMap<Position, ChainLinkType> place(Chain chain, Directions template,
       Set<Position> forbiddenReceivers, Set<Position> forbiddenTransmitters)
-          throws NotEnoughSpaceException {
+      throws NotEnoughSpaceException {
     if (options.hasOption(TRANSMITTER)) {
       // receivers are not allowed at x=0 because the start transmitters of all chains are at x=0
       Predicate<Position> isReceiverAllowed =
@@ -266,12 +270,15 @@ public abstract class MplChainPlacer {
       for (String tag : chain.getTags()) {
         tags += "," + tag;
       }
-      result.add(index,
-          new Command("/summon " + version.markerEntity() + " ${origin + ("
-              + chainStart.toAbsoluteString() + ")} {CustomName:" + name + ",Tags:["
-              + container.getHashCode() + tags + "],NoGravity:1b,Invisible:1b,Invulnerable:1b"
-              + (nonTransmitterDebug ? "" : ",Marker:1b")
-              + (options.hasOption(DEBUG) ? ",CustomNameVisible:1b" : "") + "}"));
+
+      CommandPartBuffer cpb = new CommandPartBuffer();
+      cpb.add("summon " + version.markerEntity() + " ");
+      cpb.add(new RelativeOriginInsert(chainStart));
+      cpb.add(" {CustomName:" + name + ",Tags:[" + container.getHashCode() + tags
+          + "],NoGravity:1b,Invisible:1b,Invulnerable:1b"
+          + (nonTransmitterDebug ? "" : ",Marker:1b")
+          + (options.hasOption(DEBUG) ? ",CustomNameVisible:1b" : "") + "}");
+      result.add(index, newCommand(cpb, modifier()));
     }
     return new CommandChain(getInstall().getName(), result);
   }
@@ -281,7 +288,7 @@ public abstract class MplChainPlacer {
     ArrayList<ChainLink> result = new ArrayList<>(commands.size() + 1);
     result.addAll(commands);
     if (!commands.isEmpty()) {
-      result.add(new Command(
+      result.add(newCommand(
           "/kill @e[type=" + version.markerEntity() + ",tag=" + container.getHashCode() + "]"));
     }
     return new CommandChain(getUninstall().getName(), result);
@@ -305,16 +312,11 @@ public abstract class MplChainPlacer {
       Direction3D d = getDirection(pos, nextPos, orientation);
       Coordinate3D coord = toCoordinate(pos, orientation);
 
-      // FIXME: Use ChainLink.toBlock
       if (entry.getValue() == ChainLinkType.NO_OPERATION) {
-        blocks.add(new CommandBlock(new NoOperationCommand(), d, coord));
+        blocks.add(new CommandBlock(newNoOperationCommand(), d, coord));
       } else {
         ChainLink chainLink = chainLinks.pop();
-        if (chainLink instanceof Command) {
-          blocks.add(new CommandBlock((Command) chainLink, d, coord));
-        } else if (chainLink instanceof MplSkip) {
-          blocks.add(new Transmitter(((MplSkip) chainLink).isInternal(), coord));
-        }
+        blocks.add(chainLink.toBlock(coord, d));
       }
     }
 
@@ -332,13 +334,15 @@ public abstract class MplChainPlacer {
         .orElse(0);
   }
 
-  protected String getDeleteCommand() {
+  protected CommandPartBuffer getDeleteCommand() {
     Coordinate3D max = getBoundaries();
-    StringBuilder sb = new StringBuilder();
-    sb.append("fill ${origin}").append(' ');
-    sb.append("${origin + (").append(max.toAbsoluteString()).append(")}").append(' ');
-    sb.append("air");
-    return sb.toString();
+    CommandPartBuffer result = new CommandPartBuffer();
+    result.add("fill ");
+    result.add(new RelativeOriginInsert(new Coordinate3D()));
+    result.add(" ");
+    result.add(new RelativeOriginInsert(max));
+    result.add(" air");
+    return result;
   }
 
   protected Coordinate3D getBoundaries() {
@@ -425,7 +429,7 @@ public abstract class MplChainPlacer {
   public static boolean isReceiver(MplBlock block) {
     if (block instanceof CommandBlock) {
       CommandBlock commandBlock = (CommandBlock) block;
-      return isReceiver(commandBlock.toCommand());
+      return commandBlock.getNeedsRedstone();
     } else {
       return false;
     }

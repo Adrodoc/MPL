@@ -41,6 +41,7 @@ package de.adrodoc55.minecraft.mpl;
 
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
 
 import java.util.ArrayList;
@@ -51,7 +52,7 @@ import java.util.NoSuchElementException;
 import de.adrodoc55.commons.Named;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 
 public class MplTestUtils extends MplTestBase {
 
@@ -77,8 +78,8 @@ public class MplTestUtils extends MplTestBase {
       if (command.getConditional() == INVERT) {
         result.add(newInvertingCommand(command.getPrevious()));
       }
-      String cmd = command.getCommand();
-      result.add(new Command(cmd, command));
+      CommandPartBuffer cmd = command.getMinecraftCommand();
+      result.add(newCommand(cmd, command));
     }
     return result;
   }

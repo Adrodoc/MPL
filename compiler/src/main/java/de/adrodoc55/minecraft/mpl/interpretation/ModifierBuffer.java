@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.interpretation;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import javax.annotation.Nullable;
 
 import org.antlr.v4.runtime.Token;
@@ -46,17 +48,53 @@ import org.antlr.v4.runtime.Token;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
-import lombok.Getter;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
-@Getter
-// https://github.com/mkarneim/pojobuilder/issues/86
-// @Setter
 @GenerateMplPojoBuilder
 public class ModifierBuffer implements ExtendedModifiable {
+  public static ModifierBuffer modifier() {
+    return new ModifierBuffer();
+  }
+
+  public static ModifierBuffer modifier(Mode mode) {
+    ModifierBuffer result = modifier();
+    result.setMode(mode);
+    return result;
+  }
+
+  public static ModifierBuffer modifier(Conditional conditional) {
+    ModifierBuffer result = modifier();
+    result.setConditional(conditional);
+    return result;
+  }
+
+  public static ModifierBuffer modifier(boolean needsRedstone) {
+    ModifierBuffer result = modifier();
+    result.setNeedsRedstone(needsRedstone);
+    return result;
+  }
+
+  public static ModifierBuffer modifier(Mode mode, Conditional conditional) {
+    ModifierBuffer result = modifier(mode);
+    result.setConditional(conditional);
+    return result;
+  }
+
+  public static ModifierBuffer modifier(Conditional conditional, boolean needsRedstone) {
+    ModifierBuffer result = modifier(conditional);
+    result.setNeedsRedstone(needsRedstone);
+    return result;
+  }
+
+  public static ModifierBuffer modifier(Mode mode, Conditional conditional, boolean needsRedstone) {
+    ModifierBuffer result = modifier(mode, conditional);
+    result.setNeedsRedstone(needsRedstone);
+    return result;
+  }
+
   private @Nullable Mode mode;
   private @Nullable Conditional conditional;
   private @Nullable Boolean needsRedstone;
@@ -64,28 +102,54 @@ public class ModifierBuffer implements ExtendedModifiable {
   private @Nullable Token conditionalToken;
   private @Nullable Token needsRedstoneToken;
 
+  @Override
+  public Mode getMode() {
+    return mode == null ? Mode.DEFAULT : mode;
+  }
+
   public void setMode(Mode mode) {
-    this.mode = mode;
+    this.mode = checkNotNull(mode, "mode == null!");
+  }
+
+  @Override
+  public Conditional getConditional() {
+    return conditional == null ? Conditional.DEFAULT : conditional;
   }
 
   public void setConditional(Conditional conditional) {
-    this.conditional = conditional;
+    this.conditional = checkNotNull(conditional, "conditional == null!");
   }
 
-  public void setNeedsRedstone(Boolean needsRedstone) {
+  @Override
+  public boolean getNeedsRedstone() {
+    return needsRedstone == null ? getMode().getNeedsRedstoneByDefault() : needsRedstone;
+  }
+
+  public void setNeedsRedstone(boolean needsRedstone) {
     this.needsRedstone = needsRedstone;
   }
 
-  public void setModeToken(Token modeToken) {
+  public @Nullable Token getModeToken() {
+    return modeToken;
+  }
+
+  public void setModeToken(@Nullable Token modeToken) {
     this.modeToken = modeToken;
   }
 
-  public void setConditionalToken(Token conditionalToken) {
+  public @Nullable Token getConditionalToken() {
+    return conditionalToken;
+  }
+
+  public void setConditionalToken(@Nullable Token conditionalToken) {
     this.conditionalToken = conditionalToken;
   }
 
-  public void setNeedsRedstoneToken(Token needsRedstoneToken) {
-    this.needsRedstoneToken = needsRedstoneToken;
+  public @Nullable Token getNeedsRedstoneToken() {
+    return needsRedstoneToken;
   }
 
+  public void setNeedsRedstoneToken(@Nullable Token needsRedstoneToken) {
+    this.needsRedstoneToken = needsRedstoneToken;
+  }
 }

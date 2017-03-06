@@ -72,4 +72,13 @@ public class MplLexerUtils {
     return wholeTag.substring(1);
   }
 
+  public static String getInsertString(Token insertToken) {
+    checkNotNull(insertToken, "insertToken == null!");
+    if (insertToken.getType() != MplLexer.INSERT) {
+      throw new IllegalArgumentException("The Given Token is not of type MplLexer.INSERT!");
+    }
+    String wholeInsert = insertToken.getText();
+    return wholeInsert.substring(2, wholeInsert.length() - 1);
+  }
+
 }

@@ -46,7 +46,6 @@ import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOpt
 import org.antlr.v4.runtime.CommonToken
 import org.junit.Test
 
-import spock.lang.Unroll
 import de.adrodoc55.minecraft.coordinate.Orientation3D
 import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart
@@ -57,21 +56,22 @@ import de.adrodoc55.minecraft.mpl.blocks.AirBlock
 import de.adrodoc55.minecraft.mpl.blocks.Transmitter
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion
+import spock.lang.Unroll
 
 class MplCompilerSpec extends MplSpecBase {
 
   File lastProgramFile
 
   MplSource source() {
-    new MplSource(lastProgramFile, new CommonToken(0), "")
+    new MplSource(lastProgramFile, "", new CommonToken(0))
   }
 
-  private MplProgram assembleProgram(File programFile) {
+  private MplProgram assembleProgram(File programFile, CompilerOption... options) {
     lastProgramFile = programFile
-    MplCompiler compiler = new MplCompiler(MinecraftVersion.getDefault(), new CompilerOptions())
+    MplCompiler compiler = new MplCompiler(MinecraftVersion.getDefault(), new CompilerOptions(options))
+    lastContext = compiler.provideContext()
     MplProgram program = compiler.assemble(programFile)
     compiler.checkErrors()
     return program
@@ -80,6 +80,7 @@ class MplCompilerSpec extends MplSpecBase {
   private List<CommandBlockChain> place(File programFile, CompilerOption... options) {
     lastProgramFile = programFile
     MplCompiler compiler = new MplCompiler(MinecraftVersion.getDefault(), new CompilerOptions(options))
+    lastContext = compiler.provideContext()
     MplProgram program = compiler.assemble(programFile)
     compiler.checkErrors()
     ChainContainer container = compiler.materialize(program)
@@ -90,7 +91,9 @@ class MplCompilerSpec extends MplSpecBase {
 
   private MplCompilationResult compile(File programFile, CompilerOption... options) {
     lastProgramFile = programFile
-    return MplCompiler.compile(programFile, MinecraftVersion.getDefault(), new CompilerOptions(options))
+    MplCompiler compiler = new MplCompiler(MinecraftVersion.getDefault(), new CompilerOptions(options))
+    lastContext = compiler.provideContext()
+    return compiler.compile(programFile)
   }
 
   @Test
@@ -113,8 +116,8 @@ class MplCompilerSpec extends MplSpecBase {
     CompilationFailedException ex = thrown()
     Collection<CompilerException> exs = ex.errors.values()
     exs[0].source.file == new File(folder, 'main.mpl')
-    exs[0].source.token.line == 0
-    exs[0].source.token.text == null
+    exs[0].source.lineNumber == 0
+    exs[0].source.text == null
     exs[0].message == "This file does not include any remote processes"
     exs.size() == 1
   }
@@ -669,12 +672,12 @@ class MplCompilerSpec extends MplSpecBase {
     CompilationFailedException ex = thrown()
     Collection<CompilerException> exs = ex.errors.values()
     exs[0].source.file == new File(folder, 'other1.mpl')
-    exs[0].source.token.line == 2
-    exs[0].source.token.text == id2
+    exs[0].source.lineNumber == 2
+    exs[0].source.text == id2
     exs[0].message == "Duplicate process ${id2}; was also found in ${new File(folder, 'other2.mpl')}"
     exs[1].source.file == new File(folder, 'other2.mpl')
-    exs[1].source.token.line == 2
-    exs[1].source.token.text == id2
+    exs[1].source.lineNumber == 2
+    exs[1].source.text == id2
     exs[1].message == "Duplicate process ${id2}; was also found in ${new File(folder, 'other1.mpl')}"
     exs.size() == 2
   }
@@ -701,8 +704,8 @@ class MplCompilerSpec extends MplSpecBase {
     CompilationFailedException ex = thrown()
     List<CompilerException> exs = ex.errors.get(new File(folder, 'main.mpl'))
     exs[0].source.file == new File(folder, 'main.mpl')
-    exs[0].source.token.line == 2
-    exs[0].source.token.text == '"newFolder/scriptFile.mpl"'
+    exs[0].source.lineNumber == 2
+    exs[0].source.text == '"newFolder/scriptFile.mpl"'
     exs[0].message == "Can't include script 'scriptFile.mpl'. Scripts may not be included."
     exs.size() == 1
   }
@@ -963,7 +966,7 @@ class MplCompilerSpec extends MplSpecBase {
     install.blocks[0].class == Transmitter
     install.blocks[1].getCommand().startsWith('setblock ')
     install.blocks[2].getCommand().startsWith('summon ')
-    install.blocks[3].toCommand() == new Command('say install')
+    install.blocks[3].getCommand() == 'say install'
     install.blocks[4].class == AirBlock
   }
 
@@ -996,7 +999,7 @@ class MplCompilerSpec extends MplSpecBase {
     uninstall.blocks.size() == 5
     uninstall.blocks[0].class == Transmitter
     uninstall.blocks[1].getCommand().startsWith('setblock ')
-    uninstall.blocks[2].toCommand() == new Command('say uninstall')
+    uninstall.blocks[2].getCommand() == 'say uninstall'
     uninstall.blocks[3].getCommand().startsWith('kill @e[type=')
     uninstall.blocks[4].class == AirBlock
   }
@@ -1132,8 +1135,8 @@ class MplCompilerSpec extends MplSpecBase {
     CompilationFailedException ex = thrown()
     ex.errors.get(programFile)[0].message == "Cannot ${action} an inline process"
     ex.errors.get(programFile)[0].source.file == programFile
-    ex.errors.get(programFile)[0].source.token.text == 'other'
-    ex.errors.get(programFile)[0].source.token.line == 3
+    ex.errors.get(programFile)[0].source.text == "other"
+    ex.errors.get(programFile)[0].source.lineNumber == 3
     ex.errors.size() == 1
 
     where:
@@ -1157,8 +1160,8 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.warnings.get(programFile)[0].message == "Could not resolve process unknown"
     result.warnings.get(programFile)[0].source.file == programFile
-    result.warnings.get(programFile)[0].source.token.text == 'unknown'
-    result.warnings.get(programFile)[0].source.token.line == 3
+    result.warnings.get(programFile)[0].source.text == 'unknown'
+    result.warnings.get(programFile)[0].source.lineNumber == 3
     result.warnings.size() == 1
 
     where:
@@ -1181,8 +1184,8 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.warnings.get(programFile)[0].message == "Could not resolve process unknown"
     result.warnings.get(programFile)[0].source.file == programFile
-    result.warnings.get(programFile)[0].source.token.text == 'unknown'
-    result.warnings.get(programFile)[0].source.token.line == 3
+    result.warnings.get(programFile)[0].source.text == 'unknown'
+    result.warnings.get(programFile)[0].source.lineNumber == 3
     result.warnings.size() == 1
   }
 
@@ -1268,8 +1271,8 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.warnings.get(programFile)[0].message == "The event unknown is never triggered"
     result.warnings.get(programFile)[0].source.file == programFile
-    result.warnings.get(programFile)[0].source.token.text == 'unknown'
-    result.warnings.get(programFile)[0].source.token.line == 3
+    result.warnings.get(programFile)[0].source.text == 'unknown'
+    result.warnings.get(programFile)[0].source.lineNumber == 3
     result.warnings.size() == 1
   }
 
@@ -1387,8 +1390,8 @@ class MplCompilerSpec extends MplSpecBase {
     then:
     result.warnings.get(programFile)[0].message == "The event unknown is never used"
     result.warnings.get(programFile)[0].source.file == programFile
-    result.warnings.get(programFile)[0].source.token.text == 'unknown'
-    result.warnings.get(programFile)[0].source.token.line == 3
+    result.warnings.get(programFile)[0].source.text == 'unknown'
+    result.warnings.get(programFile)[0].source.lineNumber == 3
     result.warnings.size() == 1
   }
 
@@ -1403,6 +1406,7 @@ class MplCompilerSpec extends MplSpecBase {
       ${action} @e[name=other]
     }
     """
+
     when:
     compile(programFile)
 

@@ -49,13 +49,15 @@ import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newCommand;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInternalCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNormalizingCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newTestforSuccessCommand;
-import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DELETE_ON_UNINSTALL;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
+import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 
 import java.io.File;
 import java.util.ArrayDeque;
@@ -100,15 +102,14 @@ import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ResolveableCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetedThisInsert;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -150,7 +151,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
   }
 
   private static MplSource defaultSource(File programFile) {
-    return new MplSource(programFile, new CommonToken(MplLexer.PROCESS), "");
+    return new MplSource(programFile, "", new CommonToken(MplLexer.PROCESS));
   }
 
   private CommandChain visitInstall(MplProgram program) {
@@ -205,7 +206,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
 
     commands.add(new MplCommand(
         "tellraw @a [{\"text\":\"[tp to breakpoint]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/tp @p @e[name=breakpoint_NOTIFY,c=-1]\"}},{\"text\":\" \"},{\"text\":\"[continue program]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/execute @e[name=breakpoint_CONTINUE"
-            + NOTIFY + "] ~ ~ ~ " + getStartCommand("~ ~ ~") + "\"}}]",
+            + NOTIFY + "] ~ ~ ~ " + getStartCommand() + "\"}}]",
         breakpoint));
 
     commands.add(new MplWaitfor("breakpoint_CONTINUE", breakpoint));
@@ -216,8 +217,9 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
         "/execute @e[tag=" + hash + "] ~ ~ ~ clone ~ ~ ~ ~ ~ ~ ~ ~-1 ~ force move", breakpoint));
     commands.add(new MplCommand("/tp @e[tag=" + hash + "] ~ ~-1 ~", breakpoint));
     if (!options.hasOption(TRANSMITTER)) {
-      commands.add(new MplCommand("/execute @e[tag=" + hash + "] ~ ~ ~ blockdata ~ ~ ~ {Command:"
-          + getStopCommand("~ ~ ~") + "}", breakpoint));
+      commands.add(new MplCommand(
+          "/execute @e[tag=" + hash + "] ~ ~ ~ blockdata ~ ~ ~ {Command:" + getStopCommand() + "}",
+          breakpoint));
     }
 
     commands.add(new MplNotify("breakpoint", breakpoint));
@@ -270,7 +272,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
           throw new IllegalStateException(ex.getMessage(), ex);
         }
       } else {
-        result.addAll(getTransmitterReceiverCombo(false));
+        result.addAll(newJumpDestination(false));
       }
     } else if (options.hasOption(TRANSMITTER)) {
       result.add(new MplSkip());
@@ -280,7 +282,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     }
     if (process.isRepeating() && containsSkip) {
       result.addAll(getRestartBackref(result.get(0), false));
-      result = resolveReferences(result);
+      resolveReferences(result);
     }
     if (!process.isRepeating() && name != null && !"install".equals(name)
         && !"uninstall".equals(name)) {
@@ -356,8 +358,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     List<ChainLink> result = new ArrayList<>(2);
     addInvertingCommandIfInvert(result, command);
 
-    String cmd = command.getCommand();
-    result.add(new Command(cmd, command));
+    CommandPartBuffer cmd = command.getMinecraftCommand();
+    result.add(newCommand(cmd, command));
     return result;
   }
 
@@ -394,8 +396,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     checkNotInlineProcess(start, processName);
     addInvertingCommandIfInvert(result, start);
 
-    String command = "execute " + selector + " ~ ~ ~ " + getStartCommand("~ ~ ~");
-    result.add(new Command(command, start));
+    String command = "execute " + selector + " ~ ~ ~ " + getStartCommand();
+    result.add(newCommand(command, start));
     return result;
   }
 
@@ -408,8 +410,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     checkNotInlineProcess(stop, processName);
     addInvertingCommandIfInvert(result, stop);
 
-    String command = "execute " + selector + " ~ ~ ~ " + getStopCommand("~ ~ ~");
-    result.add(new Command(command, stop));
+    String command = "execute " + selector + " ~ ~ ~ " + getStopCommand();
+    result.add(newCommand(command, stop));
     return result;
   }
 
@@ -420,32 +422,36 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     String event = waitfor.getEvent();
     checkNotInlineProcess(waitfor, event);
 
+    List<ChainLink> dest = newJumpDestination(false);
+
     MinecraftVersion version = context.getVersion();
-    ReferencingCommand summon =
-        new ReferencingCommand("summon " + version.markerEntity() + " " + REF + " {CustomName:"
-            + event + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
+    CommandPartBuffer summonCpb = new CommandPartBuffer();
+    summonCpb.add("summon " + version.markerEntity() + " ");
+    summonCpb.add(new TargetedThisInsert(dest.get(0)));
+    summonCpb.add(
+        " {CustomName:" + event + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
+    Command summon = newInternalCommand(summonCpb, modifier());
 
     if (waitfor.getConditional() == UNCONDITIONAL) {
-      summon.setRelative(1);
+      summon.setModifier(waitfor);
       result.add(summon);
     } else {
-      summon.setConditional(true);
-      ReferencingCommand jump = new ReferencingCommand(getStartCommand(REF), true);
+      Command noWait = newInternalCommand(getStartCommand(dest.get(0)), modifier(CONDITIONAL));
       if (waitfor.getConditional() == CONDITIONAL) {
-        summon.setRelative(3);
-        jump.setRelative(1);
+        summon.setModifier(waitfor);
         result.add(summon);
-        result.add(newInvertingCommand(CHAIN));
-        result.add(jump);
+        result.add(newInvertingCommand(waitfor.getMode()));
+        result.add(noWait);
       } else { // conditional == INVERT
-        jump.setRelative(3);
-        summon.setRelative(1);
-        result.add(jump);
-        result.add(newInvertingCommand(CHAIN));
+        noWait.setModifier(waitfor);
+        summon.setConditional(true);
+        result.add(noWait);
+        result.add(newInvertingCommand(waitfor.getMode()));
         result.add(summon);
       }
     }
-    result.addAll(getTransmitterReceiverCombo(false));
+    result.addAll(dest);
+    resolveReferences(result);
     return result;
   }
 
@@ -487,10 +493,10 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     checkIsUsed(notify);
     addInvertingCommandIfInvert(result, notify);
 
-    boolean conditional = notify.isConditional();
-    result.add(new InternalCommand(
-        "execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + getStartCommand("~ ~ ~"), conditional));
-    result.add(new Command("kill @e[name=" + event + NOTIFY + "]", conditional));
+    ModifierBuffer modifier = modifier(notify.getConditional());
+    result.add(
+        newCommand("execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + getStartCommand(), modifier));
+    result.add(newInternalCommand("kill @e[name=" + event + NOTIFY + "]", modifier));
     return result;
   }
 
@@ -524,43 +530,47 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     String event = intercept.getEvent();
     checkProcessExists(intercept, event);
     checkNotInlineProcess(intercept, event);
-    boolean conditional = intercept.isConditional();
+    Conditional conditional = intercept.getConditional();
 
-    InternalCommand entitydata = new InternalCommand(
-        "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}", conditional);
+    Command entitydata = newInternalCommand(
+        "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}",
+        modifier(conditional));
+
+
+    List<ChainLink> trc = newJumpDestination(false);
 
     MinecraftVersion version = context.getVersion();
-    ResolveableCommand summon =
-        new ResolveableCommand("summon " + version.markerEntity() + " " + REF + " {CustomName:"
-            + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}", conditional);
 
+    CommandPartBuffer summonCpb = new CommandPartBuffer();
+    summonCpb.add("summon " + version.markerEntity() + " ");
+    summonCpb.add(new TargetedThisInsert(trc.get(0)));
+    summonCpb
+        .add(" {CustomName:" + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
+    ChainLink summon = newInternalCommand(summonCpb, modifier(conditional));
 
-    ResolveableCommand jump = new ResolveableCommand(getStartCommand(REF), true);
     if (intercept.getConditional() == UNCONDITIONAL) {
       result.add(entitydata);
       result.add(summon);
     } else {
+      ChainLink noWait = newInternalCommand(getStartCommand(trc.get(0)), modifier(CONDITIONAL));
       if (intercept.getConditional() == CONDITIONAL) {
         result.add(entitydata);
         result.add(summon);
         result.add(newInvertingCommand(CHAIN));
-        result.add(jump);
+        result.add(noWait);
       } else { // conditional == INVERT
-        result.add(jump);
+        result.add(noWait);
         result.add(newInvertingCommand(CHAIN));
         result.add(entitydata);
         result.add(summon);
       }
     }
-    List<ChainLink> trc = getTransmitterReceiverCombo(false);
-    ChainLink ref = trc.get(0);
-    summon.setReferenced(ref);
-    jump.setReferenced(ref);
     result.addAll(trc);
-    result.add(new InternalCommand("kill @e[name=" + event + ",r=2]"));
-    result.add(new InternalCommand(
+    result.add(newInternalCommand("kill @e[name=" + event + ",r=2]"));
+    result.add(newInternalCommand(
         "entitydata @e[name=" + event + INTERCEPTED + "] {CustomName:" + event + "}"));
-    return resolveReferences(result);
+    resolveReferences(result);
+    return result;
   }
 
   @Override
@@ -573,7 +583,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
 
     addInvertingCommandIfInvert(result, mplBreakpoint);
 
-    result.add(new InternalCommand("say " + mplBreakpoint.getMessage(), mplBreakpoint));
+    result.add(newInternalCommand("say " + mplBreakpoint.getMessage(), mplBreakpoint));
 
     ModifierBuffer modifier = new ModifierBuffer();
     modifier.setConditional(mplBreakpoint.isConditional() ? CONDITIONAL : UNCONDITIONAL);
@@ -624,7 +634,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     List<ChainLink> result = new ArrayList<>();
     addInvertingCommandIfInvert(result, mplIf);
 
-    Command ref = new Command(mplIf.getCondition(), mplIf);
+    Command ref = newCommand(mplIf.getCondition(), mplIf);
     result.add(ref);
     if (needsNormalizer(mplIf)) {
       ref = newNormalizingCommand();
@@ -654,7 +664,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     result.addAll(getAllWithRef(elseParts));
 
     ifNestingLayers.pop();
-    return resolveReferences(result);
+    resolveReferences(result);
+    return result;
   }
 
   private List<ChainLink> getAllWithRef(Iterable<ChainPart> chainParts) {
@@ -798,26 +809,28 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
 
     int firstIndex = result.size();
     if (hasInitialCondition) {
-      result.add(new Command(condition));
+      result.add(newCommand(condition));
     }
 
-    ResolveableCommand init = new ResolveableCommand(getStartCommand(REF));
-    ResolveableCommand skip = new ResolveableCommand(getStartCommand(REF), true);
+    TargetedThisInsert initLoopInsert = new TargetedThisInsert();
+    Command initLoop = newInternalCommand(getStartCommand(initLoopInsert), modifier());
+    TargetedThisInsert skipLoopInsert = new TargetedThisInsert();
+    Command skipLoop = newInternalCommand(getStartCommand(skipLoopInsert), modifier(CONDITIONAL));
 
     if (!hasInitialCondition && !mplWhile.isConditional()) {
-      result.add(init);
+      result.add(initLoop);
     } else {
-      init.setConditional(true);
+      initLoop.setConditional(true);
 
       boolean isNormal = hasInitialCondition && !mplWhile.isNot();
       if (isNormal || !hasInitialCondition && mplWhile.getConditional() == CONDITIONAL) {
-        result.add(init);
+        result.add(initLoop);
         result.add(newInvertingCommand(CHAIN));
-        result.add(skip);
+        result.add(skipLoop);
       } else {
-        result.add(skip);
+        result.add(skipLoop);
         result.add(newInvertingCommand(CHAIN));
-        result.add(init);
+        result.add(initLoop);
       }
     }
     ((Command) result.get(firstIndex)).setModifier(mplWhile);
@@ -831,12 +844,17 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
 
     Deque<ChainPart> chainParts = new ArrayDeque<>(mplWhile.getChainParts());
     if (chainParts.isEmpty()) {
+      // Warning DO NOT USE Commands.newNoOperationCommand() here, because those are ignored when
+      // resolving relative this inserts
       chainParts.add(new MplCommand("", mplWhile.getSource()));
     }
     ChainPart first = chainParts.peek();
     if (options.hasOption(TRANSMITTER) && first instanceof MplWhile) {
       if (((MplWhile) first).getCondition() == null) {
-        first = new MplCommand("", mplWhile.getSource());
+        // TODO: The NOP is only required due to the current chainlink placement which throws:
+        // java.lang.IllegalArgumentException: RECEIVER at index 7 is followed by a TRANSMITTER
+        // If that system is updated this will no longer be necessary
+        first = new MplCommand(new CommandPartBuffer(), modifier(), mplWhile.getSource());
         chainParts.push(first);
       }
     }
@@ -857,13 +875,13 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       }
     }
     ChainLink entryLink = result.get(entryIndex);
-    init.setReferenced(entryLink);
+    initLoopInsert.setTarget(entryLink);
 
     if (!dontRestart) {
       if (condition == null) {
         result.addAll(getRestartBackref(entryLink, false));
       } else {
-        result.add(new Command(condition));
+        result.add(newCommand(condition));
         if (!mplWhile.isNot()) {
           result.addAll(getContinueLoop(mplWhile, true));
           result.add(newInvertingCommand(CHAIN));
@@ -875,10 +893,10 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
         }
       }
     }
-    List<ChainLink> exit = getTransmitterReceiverCombo(true);
+    List<ChainLink> exit = newJumpDestination(true);
     result.addAll(exit);
     ChainLink exitLink = exit.get(0);
-    skip.setReferenced(exitLink);
+    skipLoopInsert.setTarget(exitLink);
 
     for (Iterator<LoopRef> it = loopRefs.iterator(); it.hasNext();) {
       LoopRef ref = it.next();
@@ -890,7 +908,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     }
 
     loops.pop();
-    return resolveReferences(result);
+    resolveReferences(result);
+    return result;
   }
 
   private Deque<LoopRef> loopRefs = new ArrayDeque<>();
@@ -920,23 +939,23 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       result.addAll(breakLoop);
       return result;
     }
-    ResolveableCommand dontBreak = new ResolveableCommand(getStartCommand(REF), true);
+    List<ChainLink> dest = newJumpDestination(false);
+    Command dontBreak = newInternalCommand(getStartCommand(dest.get(0)), modifier(CONDITIONAL));
     if (conditional == CONDITIONAL) {
       List<Command> breakLoop = getBreakLoop(loop);
       breakLoop.get(0).setModifier(mplBreak);
       result.addAll(breakLoop);
-      result.add(newInvertingCommand(CHAIN));
+      result.add(newInvertingCommand(breakLoop.get(breakLoop.size() - 1).getMode()));
       result.add(dontBreak);
     } else {
       dontBreak.setModifier(mplBreak);
       result.add(dontBreak);
-      result.add(newInvertingCommand(CHAIN));
+      result.add(newInvertingCommand(dontBreak.getMode()));
       result.addAll(getBreakLoop(loop, true));
     }
-    List<ChainLink> trc = getTransmitterReceiverCombo(false);
-    dontBreak.setReferenced(trc.get(0));
-    result.addAll(trc);
-    return resolveReferences(result);
+    result.addAll(dest);
+    resolveReferences(result);
+    return result;
   }
 
   @Override
@@ -948,7 +967,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     String condition = loop.getCondition();
     if (conditional == UNCONDITIONAL) {
       if (condition != null) {
-        result.add(new Command(condition, mplContinue));
+        result.add(newCommand(condition, mplContinue));
         result.addAll(getContinueLoop(loop, true));
         result.add(newInvertingCommand(CHAIN));
         result.addAll(getBreakLoop(loop, true));
@@ -976,7 +995,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       outerIf.add(newMplContinueLoop(loop, source));
     }
     outerIf.enterElse();
-    ResolveableCommand exit = new ResolveableCommand(getStartCommand(REF), true);
+    List<ChainLink> end = newJumpDestination(false);
+    Command exit = newInternalCommand(getStartCommand(end.get(0)), modifier(CONDITIONAL));
     outerIf.add(new InternalMplCommand(source, exit));
 
     if (conditional == INVERT) {
@@ -985,11 +1005,9 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     List<ChainLink> ifResult = outerIf.accept(this);
     result.addAll(ifResult);
 
-    List<ChainLink> end = getTransmitterReceiverCombo(false);
-    exit.setReferenced(end.get(0));
     result.addAll(end);
-    result = resolveReferences(result);
-    // FIXME: Dirty Hack
+    resolveReferences(result);
+    // FIXME: Dirty Hack: The condition of an if should be an instance of Dependable
     result.removeIf(it -> it == ifResult.get(0));
     return result;
   }
@@ -1103,14 +1121,14 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
    */
   @CheckReturnValue
   private Command newLoopStartingCommand(MplWhile loop) {
-    ResolveableCommand startLoop = new ResolveableCommand(getStartCommand(REF));
+    TargetedThisInsert insert = new TargetedThisInsert();
     loopRefs.add(new LoopRef(loop) {
       @Override
       public void setEntryLink(ChainLink entryLink) {
-        startLoop.setReferenced(entryLink);
+        insert.setTarget(entryLink);
       }
     });
-    return startLoop;
+    return newInternalCommand(getStartCommand(insert), modifier());
   }
 
   /**
@@ -1121,14 +1139,14 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
    */
   @CheckReturnValue
   private Command newLoopStoppingCommand(MplWhile loop) {
-    ResolveableCommand stopLoop = new ResolveableCommand(getStopCommand(REF));
+    TargetedThisInsert insert = new TargetedThisInsert();
     loopRefs.add(new LoopRef(loop) {
       @Override
       public void setEntryLink(ChainLink entryLink) {
-        stopLoop.setReferenced(entryLink);
+        insert.setTarget(entryLink);
       }
     });
-    return stopLoop;
+    return newInternalCommand(getStopCommand(insert), modifier());
   }
 
   /**
@@ -1139,14 +1157,14 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
    */
   @CheckReturnValue
   private Command newExitLoopCommand(MplWhile loop) {
-    ResolveableCommand skipLoop = new ResolveableCommand(getStartCommand(REF));
+    TargetedThisInsert insert = new TargetedThisInsert();
     loopRefs.add(new LoopRef(loop) {
       @Override
       public void setExitLink(ChainLink exitLink) {
-        skipLoop.setReferenced(exitLink);
+        insert.setTarget(exitLink);
       }
     });
-    return skipLoop;
+    return newInternalCommand(getStartCommand(insert), modifier());
   }
 
 }

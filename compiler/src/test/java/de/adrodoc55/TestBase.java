@@ -47,12 +47,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import org.assertj.core.api.Assertions;
+
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 
 import net.karneim.pojobuilder.Builder;
 
-public class TestBase {
+public class TestBase extends Assertions {
 
   private static final Random RANDOM = new Random(5);
 
@@ -87,6 +89,15 @@ public class TestBase {
 
   public static int many() {
     return someInt(11, 100);
+  }
+
+  public static Builder<Integer> $int() {
+    return new Builder<Integer>() {
+      @Override
+      public Integer build() {
+        return someInt();
+      }
+    };
   }
 
   public static Builder<String> $String() {

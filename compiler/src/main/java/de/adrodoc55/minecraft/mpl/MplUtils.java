@@ -39,16 +39,22 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.coordinate.Axis3D.X;
 import static de.adrodoc55.minecraft.coordinate.Axis3D.Y;
 import static de.adrodoc55.minecraft.coordinate.Axis3D.Z;
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.util.Collection;
 import java.util.function.BinaryOperator;
 
+import javax.annotation.CheckReturnValue;
+
 import de.adrodoc55.minecraft.coordinate.Axis3D;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
 /**
  * @author Adrodoc55
@@ -56,6 +62,65 @@ import de.adrodoc55.minecraft.coordinate.Orientation3D;
 public class MplUtils {
   protected MplUtils() throws Exception {
     throw new Exception("Utils Classes cannot be instantiated!");
+  }
+
+  public static String commandWithoutLeadingSlash(String command) {
+    checkNotNull(command, "command == null!");
+    if (command.startsWith("/")) {
+      return command.substring(1);
+    } else {
+      return command;
+    }
+  }
+
+  @CheckReturnValue
+  public static String getStartCommandHeader(CompilerOptions options) {
+    return options.hasOption(TRANSMITTER) ? "setblock " : "blockdata ";
+  }
+
+  @CheckReturnValue
+  public static String getStartCommandTrailer(CompilerOptions options) {
+    return options.hasOption(TRANSMITTER) ? " redstone_block" : " {auto:1b}";
+  }
+
+  /**
+   * Returns a command that starts whatever is at the execution coordinates.
+   * 
+   * @param options
+   * @return a command that starts whatever is at the execution coordinates
+   */
+  @CheckReturnValue
+  public static String getStartCommand(CompilerOptions options) {
+    return getStartCommandHeader(options) + "~ ~ ~" + getStartCommandTrailer(options);
+  }
+
+  @CheckReturnValue
+  public static String getStopCommandHeader(CompilerOptions options) {
+    return options.hasOption(TRANSMITTER) ? "setblock " : "blockdata ";
+  }
+
+  @CheckReturnValue
+  public static String getStopCommandTrailer(CompilerOptions options) {
+    if (options.hasOption(TRANSMITTER)) {
+      if (options.hasOption(DEBUG)) {
+        return " air";
+      } else {
+        return " stone";
+      }
+    } else {
+      return " {auto:0b}";
+    }
+  }
+
+  /**
+   * Returns a command that stops whatever is at the execution coordinates.
+   * 
+   * @param options
+   * @return a command that stops whatever is at the execution coordinates
+   */
+  @CheckReturnValue
+  public static String getStopCommand(CompilerOptions options) {
+    return getStopCommandHeader(options) + "~ ~ ~" + getStopCommandTrailer(options);
   }
 
   /**

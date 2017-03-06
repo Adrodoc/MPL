@@ -39,11 +39,12 @@
  */
 package de.adrodoc55.commons;
 
+import static com.google.common.base.Charsets.UTF_8;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URL;
-import java.nio.charset.Charset;
 
 import com.google.common.io.Resources;
 
@@ -54,8 +55,6 @@ public class FileUtils {
   protected FileUtils() throws Exception {
     throw new Exception("Utils Classes cannot be instantiated!");
   }
-
-  public static final Charset UTF_8 = Charset.forName("UTF-8");
 
   public static String getFilenameWithoutExtension(File file) {
     return getFilenameWithoutExtension(file.getName());

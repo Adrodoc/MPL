@@ -39,7 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.ast.chainparts;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 
@@ -48,6 +48,7 @@ import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -63,28 +64,38 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @Getter
 @Setter
 public class MplCommand extends ModifiableChainPart {
-  private String command;
+  private final CommandPartBuffer minecraftCommand;
 
   public MplCommand(String command, @Nonnull MplSource source) {
     this(command, new ModifierBuffer(), source);
   }
 
+  @Deprecated
   @GenerateMplPojoBuilder
   public MplCommand(String command, ExtendedModifiable modifier, @Nonnull MplSource source) {
+    this(new CommandPartBuffer(command), modifier, source);
+  }
+
+  public MplCommand(CommandPartBuffer minecraftCommand, ExtendedModifiable modifier,
+      @Nonnull MplSource source) {
     super(modifier, source);
-    this.command = checkNotNull(command, "command == null!");
+    this.minecraftCommand = minecraftCommand;
   }
 
   @Deprecated
-  protected MplCommand(MplCommand original) {
+  protected MplCommand(MplCommand original, CopyScope scope) {
     super(original);
-    command = original.command;
+    minecraftCommand = scope.copyObject(original.minecraftCommand);
   }
 
   @Deprecated
   @Override
   public MplCommand createFlatCopy(CopyScope scope) {
-    return new MplCommand(this);
+    return new MplCommand(this, scope);
+  }
+
+  public List<Object> getCommandParts() {
+    return minecraftCommand.getCommandParts();
   }
 
   @Override

@@ -39,37 +39,92 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.File;
+import java.util.List;
 
-import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
+
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
 @Immutable
+@Data
+@RequiredArgsConstructor
 public class MplSource {
-  public final @Nonnull File file;
-  public final @Nonnull Token token;
-  public final @Nonnull String line;
+  private final @Nonnull File file;
+  private final @Nonnull String line;
+  private final int lineNumber;
+  private final int charPositionInLine;
+  private final int startIndex;
+  private final int stopIndex;
+  private @Nullable String text;
 
   @GenerateMplPojoBuilder
-  public MplSource(@Nonnull File file, @Nonnull Token token, @Nonnull String line)
-      throws NullPointerException {
-    this.file = checkNotNull(file, "file == null!");
-    this.token = checkNotNull(token, "token == null!");
-    this.line = checkNotNull(line, "line == null!");
+  public MplSource(File file, String line, Token token) {
+    this(file, line, token, token);
+    text = token.getText();
   }
 
-  @Nonnegative
-  public int getLineNumber() {
-    return token.getLine();
+  public MplSource(File file, String line, List<TerminalNode> nodes) {
+    this(file, line, nodes.get(0).getSymbol(), nodes.get(nodes.size() - 1).getSymbol());
+    reconstructText(nodes);
+  }
+
+  public MplSource(File file, String line, ParserRuleContext ctx) {
+    this(file, line, ctx.getStart(), ctx.getStop());
+    reconstructText(ctx.children);
+  }
+
+  private MplSource(File file, String line, Token start, Token stop) {
+    this(file, line, start, stop, null);
+  }
+
+  public MplSource(File file, String line, Token start, Token stop, @Nullable String text) {
+    this(file, line, start.getLine(), start.getCharPositionInLine(), start.getStartIndex(),
+        stop.getStopIndex());
+    this.text = text;
+  }
+
+  public @Nullable String getText() {
+    if (text == null) {
+      try {
+        text = line.substring(charPositionInLine, getEndIndexInLine());
+      } catch (StringIndexOutOfBoundsException ex) {
+        return null;
+      }
+    }
+    return text;
+  }
+
+  private int getEndIndexInLine() {
+    return charPositionInLine + stopIndex - startIndex + 1;
+  }
+
+  private void reconstructText(Iterable<? extends ParseTree> children) {
+    if (getEndIndexInLine() <= line.length()) {
+      getText();
+      return;
+    }
+    text = Joiner.on(' ').join(Iterables.transform(children, new Function<ParseTree, String>() {
+      @Override
+      public String apply(ParseTree input) {
+        return input.getText();
+      }
+    }));
   }
 }

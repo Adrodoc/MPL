@@ -43,6 +43,7 @@ import javax.annotation.concurrent.Immutable;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
+import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
@@ -80,8 +81,9 @@ public class MplSkip implements ChainPart, ChainLink {
     return new MplSkip(this);
   }
 
-  public boolean isInternal() {
-    return internal;
+  @Override
+  public GeneratedBy getGeneratedBy() {
+    return internal ? GeneratedBy.MATERIALIZER : GeneratedBy.USER;
   }
 
   @Override
@@ -90,8 +92,8 @@ public class MplSkip implements ChainPart, ChainLink {
   }
 
   @Override
-  public MplBlock toBlock(Coordinate3D coordinate) {
-    return new Transmitter(internal, coordinate);
+  public MplBlock toBlock(Coordinate3D coordinate, Direction3D direction) {
+    return new Transmitter(this, coordinate);
   }
 
   @Override

@@ -46,8 +46,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -57,13 +55,9 @@ import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.assembly.MplProgramAssemler;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplMainAstVisitor;
-import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
-import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.NoOperationCommand;
 import de.adrodoc55.minecraft.mpl.placement.MplDebugProgramPlacer;
 import de.adrodoc55.minecraft.mpl.placement.MplProgramPlacer;
 import de.adrodoc55.minecraft.mpl.placement.NotEnoughSpaceException;
@@ -106,9 +100,7 @@ public class MplCompiler {
     ChainContainer container = materialize(program);
     checkErrors();
     List<CommandBlockChain> chains = place(container);
-    Orientation3D orientation = program.getOrientation();
-    insertRelativeCoordinates(orientation, chains);
-    return toResult(orientation, chains);
+    return toResult(container.getOrientation(), chains);
   }
 
   /**
@@ -134,22 +126,28 @@ public class MplCompiler {
 
   public List<CommandBlockChain> place(ChainContainer container) throws CompilationFailedException {
     try {
+      List<CommandBlockChain> result;
       if (options.hasOption(DEBUG)) {
-        return new MplDebugProgramPlacer(container, version, options).place();
+        result = new MplDebugProgramPlacer(container, version, options).place();
       } else {
-        return new MplProgramPlacer(container, version, options).place();
+        result = new MplProgramPlacer(container, version, options).place();
       }
+      insertRelativeCoordinates(container.getOrientation(), result);
+      return result;
     } catch (NotEnoughSpaceException ex) {
       throw new CompilationFailedException(
           "The maximal coordinate is to small to place the entire program", ex);
     }
   }
 
-  @Deprecated
-  protected static void insertRelativeCoordinates(Orientation3D orientation,
+  protected void insertRelativeCoordinates(Orientation3D orientation,
       Iterable<CommandBlockChain> chains) {
     for (CommandBlockChain chain : chains) {
-      insertRelativeCoordinates(orientation, chain.getBlocks());
+      List<MplBlock> blocks = chain.getBlocks();
+      for (MplBlock block : blocks) {
+        block.resolveThisInserts(blocks);
+        block.resolveOriginInserts();
+      }
     }
   }
 
@@ -161,96 +159,4 @@ public class MplCompiler {
     ImmutableMap<Coordinate3D, MplBlock> result = Maps.uniqueIndex(blocks, b -> b.getCoordinate());
     return new MplCompilationResult(orientation, result, context.getWarnings());
   }
-
-  private static final Pattern thisPattern =
-      Pattern.compile("\\$\\{\\s*this\\s*([+-])\\s*(\\d+)\\s*\\}");
-
-  private static final String numberPattern = "-?\\d+(?:\\.\\d+)?";
-  private static final Pattern originPattern =
-      Pattern.compile("\\$\\{\\s*origin\\s*(?:\\+\\s*\\(\\s*(" + numberPattern + ")\\s+("
-          + numberPattern + ")\\s+(" + numberPattern + ")\\s*\\)\\s*)?\\}");
-
-  @Deprecated
-  private static void insertRelativeCoordinates(Orientation3D orientation, List<MplBlock> blocks) {
-    for (int i = 0; i < blocks.size(); i++) {
-      MplBlock currentBlock = blocks.get(i);
-      if (!(currentBlock instanceof CommandBlock)) {
-        continue;
-      }
-      CommandBlock current = (CommandBlock) currentBlock;
-      Matcher thisMatcher = thisPattern.matcher(current.getCommand());
-      StringBuffer thisSb = new StringBuffer();
-      while (thisMatcher.find()) {
-        boolean minus = thisMatcher.group(1).equals("-");
-        int relative = Integer.parseInt(thisMatcher.group(2));
-        int direction = 1;
-        if (minus) {
-          direction = -1;
-        }
-        int refIndex = i;
-        for (int steps = relative; steps > 0; steps--) {
-          refIndex += direction;
-          if (refIndex < 0) {
-            refIndex = 0;
-            break;
-          }
-          MplBlock block = blocks.get(refIndex);
-          if (isNop(block) || (isInternal(block) && !isInternal(current))) {
-            steps++;
-          }
-        }
-        Coordinate3D referenced;
-        if (refIndex < 0) {
-          referenced = blocks.get(0).getCoordinate().minus(orientation.getA().toCoordinate());
-        } else {
-          referenced = blocks.get(refIndex).getCoordinate();
-        }
-        Coordinate3D relativeCoordinate = referenced.minus(current.getCoordinate());
-        thisMatcher.appendReplacement(thisSb, relativeCoordinate.toRelativeString());
-      }
-      thisMatcher.appendTail(thisSb);
-      current.setCommand(thisSb.toString());
-
-      Matcher originMatcher = originPattern.matcher(current.getCommand());
-      StringBuffer originSb = new StringBuffer();
-      while (originMatcher.find()) {
-        Coordinate3D relativeCoordinate = current.getCoordinate().mult(-1);
-        if (originMatcher.group(1) != null) {
-          double x = Double.parseDouble(originMatcher.group(1));
-          double y = Double.parseDouble(originMatcher.group(2));
-          double z = Double.parseDouble(originMatcher.group(3));
-          Coordinate3D referenced = new Coordinate3D(x, y, z);
-          relativeCoordinate = relativeCoordinate.plus(referenced);
-        }
-        originMatcher.appendReplacement(originSb, relativeCoordinate.toRelativeString());
-      }
-      originMatcher.appendTail(originSb);
-      current.setCommand(originSb.toString());
-    }
-  }
-
-  @Deprecated
-  private static boolean isInternal(MplBlock block) {
-    if (block instanceof Transmitter) {
-      Transmitter transmitter = (Transmitter) block;
-      return transmitter.isInternal();
-    }
-    if (block instanceof CommandBlock) {
-      CommandBlock commandBlock = (CommandBlock) block;
-      Command command = commandBlock.toCommand();
-      return command.isInternal();
-    }
-    return false;
-  }
-
-  @Deprecated
-  private static boolean isNop(MplBlock block) {
-    if (block instanceof CommandBlock) {
-      CommandBlock commandBlock = (CommandBlock) block;
-      Command command = commandBlock.toCommand();
-      return command instanceof NoOperationCommand;
-    }
-    return false;
-  }
-
 }

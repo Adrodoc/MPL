@@ -40,29 +40,31 @@
 package de.adrodoc55.minecraft.mpl.ast.visitor;
 
 import static com.google.common.base.Preconditions.checkState;
+import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newCommand;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInternalCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
-import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ReferencingCommand.REF;
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
+import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.CheckReturnValue;
 
-import com.google.common.collect.Lists;
-
+import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.InternalCommand;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ResolveableCommand;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetedThisInsert;
 
 /**
  * @author Adrodoc55
@@ -75,45 +77,95 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
   }
 
   @CheckReturnValue
-  protected String getStartCommand(String ref) {
-    if (options.hasOption(TRANSMITTER)) {
-      return "setblock " + ref + " redstone_block";
-    } else {
-      return "blockdata " + ref + " {auto:1b}";
-    }
+  private String getStartCommandHeader() {
+    return MplUtils.getStartCommandHeader(options);
   }
 
   @CheckReturnValue
-  protected String getStopCommand(String ref) {
-    if (options.hasOption(TRANSMITTER)) {
-      if (options.hasOption(DEBUG)) {
-        return "setblock " + ref + " air";
-      } else {
-        return "setblock " + ref + " stone";
-      }
-    } else {
-      return "blockdata " + ref + " {auto:0b}";
-    }
+  private String getStartCommandTrailer() {
+    return MplUtils.getStartCommandTrailer(options);
   }
 
   @CheckReturnValue
-  protected List<ChainLink> getRestartBackref(ChainLink referenced, boolean conditional) {
-    List<ChainLink> result = new ArrayList<>(2);
-    result.add(new ResolveableCommand(getStopCommand(REF), conditional, referenced));
-    result.add(new ResolveableCommand(getStartCommand(REF), true, referenced));
+  protected String getStartCommand() {
+    return MplUtils.getStartCommand(options);
+  }
+
+  @CheckReturnValue
+  protected CommandPartBuffer getStartCommand(TargetedThisInsert insert) {
+    CommandPartBuffer result = new CommandPartBuffer();
+    result.add(getStartCommandHeader());
+    result.add(insert);
+    result.add(getStartCommandTrailer());
     return result;
   }
 
   @CheckReturnValue
-  protected List<ChainLink> getTransmitterReceiverCombo(boolean internal) {
+  protected CommandPartBuffer getStartCommand(ChainLink target) {
+    return getStartCommand(new TargetedThisInsert(target));
+  }
+
+  @CheckReturnValue
+  private String getStopCommandHeader() {
+    return MplUtils.getStopCommandHeader(options);
+  }
+
+  @CheckReturnValue
+  private String getStopCommandTrailer() {
+    return MplUtils.getStopCommandTrailer(options);
+  }
+
+  @CheckReturnValue
+  protected String getStopCommand() {
+    return MplUtils.getStopCommand(options);
+  }
+
+  @CheckReturnValue
+  protected CommandPartBuffer getStopCommand(TargetedThisInsert insert) {
+    CommandPartBuffer result = new CommandPartBuffer();
+    result.add(getStopCommandHeader());
+    result.add(insert);
+    result.add(getStopCommandTrailer());
+    return result;
+  }
+
+  @CheckReturnValue
+  protected CommandPartBuffer getStopCommand(ChainLink target) {
+    return getStopCommand(new TargetedThisInsert(target));
+  }
+
+  @CheckReturnValue
+  protected CommandPartBuffer getStopCommand(int relative) {
+    CommandPartBuffer result = new CommandPartBuffer();
+    result.add(getStopCommandHeader());
+    result.add(new RelativeThisInsert(relative));
+    result.add(getStopCommandTrailer());
+    return result;
+  }
+
+  @CheckReturnValue
+  protected List<ChainLink> getRestartBackref(ChainLink target, boolean conditional) {
+    List<ChainLink> result = new ArrayList<>(2);
+    result.add(
+        newInternalCommand(getStopCommand(target), modifier(Conditional.valueOf(conditional))));
+    result.add(newInternalCommand(getStartCommand(target), modifier(CONDITIONAL)));
+    return result;
+  }
+
+  @CheckReturnValue
+  protected List<ChainLink> newJumpDestination(boolean internal) {
     if (options.hasOption(TRANSMITTER)) {
       List<ChainLink> result = new ArrayList<>(2);
       result.add(new MplSkip(internal));
-      result.add(new InternalCommand(getStopCommand("${this - 1}"), Mode.IMPULSE));
+      result.add(newInternalCommand(getStopCommand(-1), modifier(IMPULSE)));
       return result;
     } else {
       List<ChainLink> result = new ArrayList<>(1);
-      result.add(new InternalCommand(getStopCommand("~ ~ ~"), Mode.IMPULSE));
+      if (internal) {
+        result.add(newInternalCommand(getStopCommand(), modifier(IMPULSE)));
+      } else {
+        result.add(newCommand(getStopCommand(), modifier(IMPULSE)));
+      }
       return result;
     }
   }
@@ -139,18 +191,9 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
     }
   }
 
-  // TODO: Alles auf solche Referenzen umstellen
-  protected static List<ChainLink> resolveReferences(List<ChainLink> chainLinks) {
-    return new ArrayList<>(Lists.transform(chainLinks, it -> {
-      if (it instanceof ResolveableCommand) {
-        try {
-          return ((ResolveableCommand) it).resolve(chainLinks);
-        } catch (IllegalArgumentException ex) {
-          return it;
-        }
-      }
-      return it;
-    }));
+  protected static void resolveReferences(List<ChainLink> chainLinks) {
+    for (ChainLink chainLink : chainLinks) {
+      chainLink.resolveTargetedThisInserts(chainLinks);
+    }
   }
-
 }

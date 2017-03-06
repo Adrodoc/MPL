@@ -81,17 +81,9 @@ public abstract class ModifiableChainPart implements ExtendedModifiable, ChainPa
   }
 
   private void setModifier(ExtendedModifiable modifier) {
-    Mode mode = modifier.getMode();
-    Conditional conditional = modifier.getConditional();
-    Boolean needsRedstone = modifier.getNeedsRedstone();
-
-    this.mode = (mode != null) ? mode : Mode.DEFAULT;
-    this.conditional = (conditional != null) ? conditional : Conditional.DEFAULT;
-    if (needsRedstone != null) {
-      this.needsRedstone = needsRedstone;
-    } else {
-      this.needsRedstone = (this.mode == Mode.CHAIN) ? false : true;
-    }
+    mode = modifier.getMode();
+    conditional = modifier.getConditional();
+    needsRedstone = modifier.getNeedsRedstone();
   }
 
   @Deprecated
@@ -110,12 +102,7 @@ public abstract class ModifiableChainPart implements ExtendedModifiable, ChainPa
   }
 
   @Override
-  public @Nonnull Boolean isConditional() {
-    return getConditional().isConditional();
-  }
-
-  @Override
-  public @Nonnull Boolean getNeedsRedstone() {
+  public boolean getNeedsRedstone() {
     return needsRedstone;
   }
 
@@ -132,5 +119,4 @@ public abstract class ModifiableChainPart implements ExtendedModifiable, ChainPa
   public void setPrevious(@Nullable Dependable previous) {
     this.previous = previous;
   }
-
 }

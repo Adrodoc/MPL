@@ -37,62 +37,33 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+package de.adrodoc55.minecraft.mpl.ast.variable.value;
 
-import de.adrodoc55.commons.CopyScope;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
-import de.adrodoc55.minecraft.mpl.commands.Modifiable;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import de.adrodoc55.minecraft.mpl.ast.variable.selector.TargetSelector;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class InternalCommand extends Command {
-
-  public InternalCommand() {
-    super();
-  }
-
-  public InternalCommand(String command) {
-    super(command);
-  }
-
-  public InternalCommand(String command, Mode mode) {
-    super(command, mode);
-  }
-
-  public InternalCommand(String command, boolean conditional) {
-    super(command, conditional);
-  }
-
-  public InternalCommand(String command, Mode mode, boolean conditional) {
-    super(command, mode, conditional);
-  }
-
-  public InternalCommand(String command, Mode mode, boolean conditional, boolean needsRedstone) {
-    super(command, mode, conditional, needsRedstone);
-  }
-
-  public InternalCommand(String command, Modifiable modifier) {
-    super(command, modifier);
-  }
-
-  @Deprecated
-  protected InternalCommand(InternalCommand original) {
-    super(original);
-  }
-
-  @Deprecated
-  @Override
-  public InternalCommand createFlatCopy(CopyScope scope) {
-    return new InternalCommand(this);
-  }
-
-  @Override
-  public boolean isInternal() {
-    return true;
+public interface MplValue {
+  public static MplValue parse(String value, MplSource source, MplCompilerContext context)
+      throws IllegalArgumentException {
+    checkNotNull(value, "value == null!");
+    checkNotNull(source, "source == null!");
+    checkNotNull(context, "context == null!");
+    try {
+      return new MplIntegerValue(Integer.parseInt(value));
+    } catch (NumberFormatException ex) {
+      int space = value.indexOf(' ');
+      if (space < 0) {
+        throw new IllegalArgumentException("The specified value does not contain a space");
+      }
+      TargetSelector selector = TargetSelector.parse(value.substring(0, space), source, context);
+      String scoreboard = value.substring(space + 1);
+      return new MplScoreboardValue(selector, scoreboard);
+    }
   }
 }

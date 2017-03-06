@@ -39,7 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.conversion;
 
-import static de.adrodoc55.commons.FileUtils.UTF_8;
+import static com.google.common.base.Charsets.UTF_8;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
