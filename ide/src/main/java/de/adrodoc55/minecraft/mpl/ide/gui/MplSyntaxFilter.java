@@ -268,10 +268,13 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
           styleToken(token, getDefaultStyle());
           break;
         case MplLexer.DOLLAR:
+        case MplLexer.INSERT_CLOSING_BRACKET:
         case MplLexer.INSERT_CLOSING_CURLY_BRACKET:
         case MplLexer.INSERT_IDENTIFIER:
         case MplLexer.INSERT_MINUS:
+        case MplLexer.INSERT_OPENING_BRACKET:
         case MplLexer.INSERT_OPENING_CURLY_BRACKET:
+        case MplLexer.INSERT_ORIGIN:
         case MplLexer.INSERT_PLUS:
         case MplLexer.INSERT_THIS:
         case MplLexer.INSERT_UNSIGNED_INTEGER:

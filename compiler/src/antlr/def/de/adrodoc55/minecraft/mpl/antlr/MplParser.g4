@@ -228,13 +228,22 @@ parser grammar MplParser;
      INSERT_IDENTIFIER
      |
      (
-       INSERT_THIS
-       (
-         INSERT_PLUS
-         | INSERT_MINUS
-       ) INSERT_UNSIGNED_INTEGER
+       INSERT_THIS insertSignedInteger
+     )
+     | INSERT_ORIGIN
+     (
+       INSERT_PLUS INSERT_OPENING_BRACKET insertSignedInteger insertSignedInteger
+       insertSignedInteger INSERT_CLOSING_BRACKET
      )?
    ) INSERT_CLOSING_CURLY_BRACKET
+ ;
+
+ insertSignedInteger
+ :
+   (
+     INSERT_MINUS
+     | INSERT_PLUS
+   )? INSERT_UNSIGNED_INTEGER
  ;
 
  mplCommand

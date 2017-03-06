@@ -337,6 +337,16 @@ lexer grammar MplLexer;
    MINUS
  ;
 
+ INSERT_OPENING_BRACKET
+ :
+   OPENING_BRACKET
+ ;
+
+ INSERT_CLOSING_BRACKET
+ :
+   CLOSING_BRACKET
+ ;
+
  INSERT_OPENING_CURLY_BRACKET
  :
    OPENING_CURLY_BRACKET
@@ -350,6 +360,11 @@ lexer grammar MplLexer;
  INSERT_THIS
  :
    'this'
+ ;
+
+ INSERT_ORIGIN
+ :
+   'origin'
  ;
 
  INSERT_UNSIGNED_INTEGER

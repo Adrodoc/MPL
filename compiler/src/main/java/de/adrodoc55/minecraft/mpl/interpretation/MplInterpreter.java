@@ -73,6 +73,7 @@ import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 
 import de.adrodoc55.commons.FileUtils;
+import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser;
@@ -83,6 +84,7 @@ import de.adrodoc55.minecraft.mpl.antlr.MplParser.FileContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ImportDeclarationContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.IncludeContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.InsertContext;
+import de.adrodoc55.minecraft.mpl.antlr.MplParser.InsertSignedIntegerContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.InstallContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModifiableCommandContext;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.ModusContext;
@@ -136,6 +138,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer.ChainPartBufferImpl;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.GlobalVariableInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeOriginInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 
 /**
@@ -577,15 +580,19 @@ public class MplInterpreter extends MplParserBaseListener {
 
   @Override
   public void enterInsert(InsertContext ctx) {
-    TerminalNode integer = ctx.INSERT_UNSIGNED_INTEGER();
     if (ctx.INSERT_THIS() != null) {
-      int relative = Integer.parseInt(integer.getText());
-      if (ctx.INSERT_MINUS() != null) {
-        relative *= -1;
-      }
+      int relative = getInt(ctx, 0);
       commandPartBuffer.add(new RelativeThisInsert(relative));
       return;
-    } // TODO: RelativeOriginInsert
+    }
+    if (ctx.INSERT_ORIGIN() != null) {
+      int x = getInt(ctx, 0);
+      int y = getInt(ctx, 1);
+      int z = getInt(ctx, 2);
+      Coordinate3D relative = new Coordinate3D(x, y, z);
+      commandPartBuffer.add(new RelativeOriginInsert(relative));
+      return;
+    }
     TerminalNode identifierNode = ctx.INSERT_IDENTIFIER();
     String identifier = identifierNode.getText();
 
@@ -601,6 +608,15 @@ public class MplInterpreter extends MplParserBaseListener {
     } else {
       commandPartBuffer.add(new GlobalVariableInsert(identifier, imports));
     }
+  }
+
+  private int getInt(InsertContext ctx, int index) {
+    InsertSignedIntegerContext integer = ctx.insertSignedInteger(index);
+    int relative = Integer.parseInt(integer.INSERT_UNSIGNED_INTEGER().getText());
+    if (integer.INSERT_MINUS() != null) {
+      relative *= -1;
+    }
+    return relative;
   }
 
   private void visitCommandString(TerminalNode node) {
