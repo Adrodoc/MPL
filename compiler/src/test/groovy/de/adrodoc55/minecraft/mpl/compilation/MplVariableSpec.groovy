@@ -10,6 +10,8 @@ import org.junit.Test;
 
 import de.adrodoc55.minecraft.mpl.MplSpecBase;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram
 import de.adrodoc55.minecraft.mpl.ast.variable.MplIntegerVariable
@@ -1016,4 +1018,202 @@ public class MplVariableSpec extends MplSpecBase {
     lastContext.errors[0].source.lineNumber == 3
     lastContext.errors.size() == 1
   }
+
+  @Test
+  public void "A local variable from one process is not found in another process"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    impulse process main {
+      Integer ${id} = ${value}
+    }
+    impulse process other {
+      /say The value is \${${id}}!
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors[0].message == "${id} cannot be resolved to a variable"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 6
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "A local variable from outside an if is found in the if"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    impulse process main {
+      Integer ${id} = ${value}
+      if: /testfor @p
+      then {
+        /say The value is \${${id}}!
+      }
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplIf mplIf =  process.chainParts[0]
+    MplCommand command = mplIf.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "A local variable from an if is found in the if"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    impulse process main {
+      if: /testfor @p
+      then {
+        Integer ${id} = ${value}
+        /say The value is \${${id}}!
+      }
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplIf mplIf =  process.chainParts[0]
+    MplCommand command = mplIf.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "A local variable from an if is not found outside of the if"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    impulse process main {
+      if: /testfor @p
+      then {
+        Integer ${id} = ${value}
+      }
+      /say The value is \${${id}}!
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors[0].message == "${id} cannot be resolved to a variable"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 7
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "A local variable from outside a while is found in the while"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    impulse process main {
+      Integer ${id} = ${value}
+      while: /testfor @p
+      repeat {
+        /say The value is \${${id}}!
+      }
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplWhile mplWhile =  process.chainParts[0]
+    MplCommand command = mplWhile.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "A local variable from a while is found in the while"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    impulse process main {
+      while: /testfor @p
+      repeat {
+        Integer ${id} = ${value}
+        /say The value is \${${id}}!
+      }
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    MplWhile mplWhile =  process.chainParts[0]
+    MplCommand command = mplWhile.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "A local variable from a while is not found outside of the while"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    impulse process main {
+      while: /testfor @p
+      repeat {
+        Integer ${id} = ${value}
+      }
+      /say The value is \${${id}}!
+    }
+    """
+
+    when:
+    MplProgram program = assembleProgram(programString)
+
+    then:
+    lastContext.errors[0].message == "${id} cannot be resolved to a variable"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 7
+    lastContext.errors.size() == 1
+  }
+
 }

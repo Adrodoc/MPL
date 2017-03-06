@@ -823,6 +823,7 @@ public class MplInterpreter extends MplParserBaseListener {
 
   @Override
   public void enterMplIf(MplIfContext ctx) {
+    pushVariableScope();
     boolean not = ctx.NOT() != null;
     // FIXME: MplIf needs to support any dependable command as condition
     String condition = ctx.command().getText();
@@ -844,12 +845,14 @@ public class MplInterpreter extends MplParserBaseListener {
     MplIf mplIf = (MplIf) chainBuffer;
     chainBuffer = mplIf.exit();
     chainBuffer.add(mplIf);
+    popVariableScope();
   }
 
   private Deque<MplWhile> loops = new ArrayDeque<>();
 
   @Override
   public void enterMplWhile(MplWhileContext ctx) {
+    pushVariableScope();
     TerminalNode identifier = ctx.IDENTIFIER();
     String label = identifier != null ? identifier.getText() : null;
     boolean not = ctx.NOT() != null;
@@ -870,6 +873,7 @@ public class MplInterpreter extends MplParserBaseListener {
     MplWhile mplWhile = (MplWhile) chainBuffer;
     chainBuffer = mplWhile.exit();
     chainBuffer.add(mplWhile);
+    popVariableScope();
   }
 
   @Override
@@ -997,8 +1001,8 @@ public class MplInterpreter extends MplParserBaseListener {
     try {
       getCurrentVariableScope().declareVariable(variable);
     } catch (DuplicateVariableException ex) {
-      context.addError(new CompilerException(declarationSource,
-          "Duplicate local variable " + identifier.getText()));
+      context.addError(
+          new CompilerException(declarationSource, "Duplicate variable " + identifier.getText()));
     }
   }
 }
