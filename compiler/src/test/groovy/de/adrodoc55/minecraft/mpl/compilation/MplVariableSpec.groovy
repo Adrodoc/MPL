@@ -143,6 +143,26 @@ public class MplVariableSpec extends MplSpecBase {
   }
 
   @Test
+  public void "Declaring a duplicate local script variable"() {
+    given:
+    String id = some($Identifier())
+    String programString = """
+    Integer ${id} = ${some($int())}
+    Integer ${id} = ${some($int())}
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors[0].message == "Duplicate variable ${id}"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 3
+    lastContext.errors.size() == 1
+  }
+
+  @Test
   public void "Declaring a local script Integer variable"() {
     given:
     String id = some($Identifier())
@@ -341,6 +361,27 @@ public class MplVariableSpec extends MplSpecBase {
     lastContext.errors[0].source.file == lastTempFile
     lastContext.errors[0].source.text == id
     lastContext.errors[0].source.lineNumber == 2
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Declaring a duplicate global variable"() {
+    given:
+    String id = some($Identifier())
+    String programString = """
+    Integer ${id} = ${some($int())}
+    Integer ${id} = ${some($int())}
+    impulse process main {}
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors[0].message == "Duplicate variable ${id}"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 3
     lastContext.errors.size() == 1
   }
 
@@ -816,6 +857,28 @@ public class MplVariableSpec extends MplSpecBase {
     lastContext.errors[0].source.file == mainFile
     lastContext.errors[0].source.text == qualifiedName
     lastContext.errors[0].source.lineNumber == 3
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Declaring a duplicate local variable"() {
+    given:
+    String id = some($Identifier())
+    String programString = """
+    impulse process main {
+      Integer ${id} = ${some($int())}
+      Integer ${id} = ${some($int())}
+    }
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors[0].message == "Duplicate variable ${id}"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 4
     lastContext.errors.size() == 1
   }
 
