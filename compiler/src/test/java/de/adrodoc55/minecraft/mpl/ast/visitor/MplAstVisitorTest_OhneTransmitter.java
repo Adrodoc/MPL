@@ -278,7 +278,7 @@ public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
   }
 
   @Test
-  public void test_nested_repeat_does_not_require_nop() {
+  public void test_nested_repeat_does_not_require_empty_command() {
     // given:
     MplWhile mplWhile = some($MplWhile()//
         .withCondition((String) null)//

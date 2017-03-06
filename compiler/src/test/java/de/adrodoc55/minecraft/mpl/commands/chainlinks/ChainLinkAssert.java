@@ -142,8 +142,8 @@ public class ChainLinkAssert<S extends ChainLinkAssert<S, A>, A extends ChainLin
     return asCommand().matchesAsConditional(expected);
   }
 
-  public CommandAssert isNop() {
-    return asCommand().isNop();
+  public CommandAssert isEmpty() {
+    return asCommand().isEmpty();
   }
 
   public CommandAssert isStartCommand(int relative) {

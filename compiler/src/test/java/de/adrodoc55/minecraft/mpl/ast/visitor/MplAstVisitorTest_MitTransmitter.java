@@ -291,11 +291,11 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     assertThat(it).isEmpty();
   }
 
-  // TODO: The NOP is only required due to the current chainlink placement which throws:
+  // TODO: The empty command is only required due to the current chainlink placement which throws:
   // java.lang.IllegalArgumentException: RECEIVER at index 7 is followed by a TRANSMITTER
   // If that system is updated this will no longer be necessary
   @Test
-  public void test_nested_repeat_requires_nop() {
+  public void test_nested_repeat_requires_empty_command() {
     // given:
     MplWhile innerWhile = some($MplWhile()//
         .withCondition((String) null)//
@@ -315,8 +315,7 @@ public class MplAstVisitorTest_MitTransmitter extends MplAstVisitorTest {
     Iterator<ChainLink> it = result.iterator();
     assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(mplWhile);
     assertThat(it.next()).isInternal().isSkip();
-    // FIXME: NOP should be internal
-    assertThat(it.next())/* .isInternal() */.isNop().hasModifiers(IMPULSE);
+    assertThat(it.next())/* FIXME .isInternal() */.isEmpty().hasModifiers(IMPULSE);
     assertThat(it.next()).isInternal().isStartCommand(+1).hasModifiers(innerWhile);
     assertThat(it.next()).isInternal().isSkip();
     assertThat(it).isNotEmpty();

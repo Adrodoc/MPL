@@ -206,7 +206,7 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
   }
 
   @Override
-  public CommandAssert isNop() {
+  public CommandAssert isEmpty() {
     commandParts().isEmpty();
     return myself;
   }
