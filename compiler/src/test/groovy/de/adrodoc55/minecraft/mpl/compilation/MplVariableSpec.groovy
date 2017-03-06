@@ -143,228 +143,6 @@ public class MplVariableSpec extends MplSpecBase {
   }
 
   @Test
-  public void "Declaring a duplicate local script variable"() {
-    given:
-    String id = some($Identifier())
-    String programString = """
-    Integer ${id} = ${some($int())}
-    Integer ${id} = ${some($int())}
-    """
-
-    when:
-    MplInterpreter interpreter = interpret(programString)
-
-    then:
-    lastContext.errors[0].message == "Duplicate variable ${id}"
-    lastContext.errors[0].source.file == lastTempFile
-    lastContext.errors[0].source.text == id
-    lastContext.errors[0].source.lineNumber == 3
-    lastContext.errors.size() == 1
-  }
-
-  @Test
-  public void "Declaring a local script Integer variable"() {
-    given:
-    String id = some($Identifier())
-    int value = some($int())
-    String programString = """
-    Integer ${id} = ${value}
-    """
-
-    when:
-    MplInterpreter interpreter = interpret(programString)
-
-    then:
-    lastContext.errors.isEmpty()
-
-    VariableScope scope = interpreter.rootVariableScope
-    MplIntegerVariable variable = scope.findVariable(id)
-    variable != null
-    variable.value == value
-  }
-
-  @Test
-  public void "Declaring a local script Selector variable"() {
-    given:
-    String id = some($Identifier())
-    String value = "@e[name=${some($Identifier())}]"
-    String programString = """
-    Selector ${id} = ${value}
-    """
-
-    when:
-    MplInterpreter interpreter = interpret(programString)
-
-    then:
-    lastContext.errors.isEmpty()
-
-    VariableScope scope = interpreter.rootVariableScope
-    MplVariable<TargetSelector> variable = scope.findVariable(id)
-    variable != null
-    variable.value instanceof TargetSelector
-    variable.value.toString() == value
-  }
-
-  @Test
-  public void "Declaring a local script String variable"() {
-    given:
-    String id = some($Identifier())
-    String value = some($String())
-    String programString = """
-    String ${id} = "${value}"
-    """
-
-    when:
-    MplInterpreter interpreter = interpret(programString)
-
-    then:
-    lastContext.errors.isEmpty()
-
-    VariableScope scope = interpreter.rootVariableScope
-    MplStringVariable variable = scope.findVariable(id)
-    variable != null
-    variable.value == value
-  }
-
-  @Test
-  public void "Declaring a local script Value variable"() {
-    given:
-    String id = some($Identifier())
-    String selector = "@e[name=${some($Identifier())}]"
-    String scoreboard = some($Identifier())
-    String programString = """
-    Value ${id} = ${selector} ${scoreboard}
-    """
-
-    when:
-    MplInterpreter interpreter = interpret(programString)
-
-    then:
-    lastContext.errors.isEmpty()
-
-    VariableScope scope = interpreter.rootVariableScope
-    MplVariable<MplValue> variable = scope.findVariable(id)
-    variable != null
-    MplScoreboardValue value = variable.value
-    value.selector instanceof TargetSelector
-    value.selector.toString() == selector
-    value.scoreboard == scoreboard
-  }
-
-  @Test
-  public void "Inserting a local script Integer variable"() {
-    given:
-    String id = some($Identifier())
-    int value = some($int())
-    String programString = """
-    Integer ${id} = ${value}
-    /say The value is \${${id}}!
-    """
-
-    when:
-    MplProgram program = assembleProgram(programString)
-
-    then:
-    lastContext.errors.isEmpty()
-
-    program.processes.size() == 1
-    MplProcess process = program.processes.first()
-
-    MplCommand command =  process.chainParts[0]
-    command.commandParts.join() == "say The value is ${value}!"
-    process.chainParts.size() == 1
-  }
-
-  @Test
-  public void "Inserting a local script Selector variable"() {
-    given:
-    String id = some($Identifier())
-    String value = "@e[name=${some($Identifier())}]"
-    String programString = """
-    Selector ${id} = ${value}
-    /say The value is \${${id}}!
-    """
-
-    when:
-    MplProgram program = assembleProgram(programString)
-
-    then:
-    lastContext.errors.isEmpty()
-
-    program.processes.size() == 1
-    MplProcess process = program.processes.first()
-
-    MplCommand command =  process.chainParts[0]
-    command.commandParts.join() == "say The value is ${value}!"
-    process.chainParts.size() == 1
-  }
-
-  @Test
-  public void "Inserting a local script String variable"() {
-    given:
-    String id = some($Identifier())
-    String value = some($String())
-    String programString = """
-    String ${id} = "${value}"
-    /say The value is \${${id}}!
-    """
-
-    when:
-    MplProgram program = assembleProgram(programString)
-
-    then:
-    lastContext.errors.isEmpty()
-
-    program.processes.size() == 1
-    MplProcess process = program.processes.first()
-
-    MplCommand command =  process.chainParts[0]
-    command.commandParts.join() == "say The value is ${value}!"
-    process.chainParts.size() == 1
-  }
-
-  @Test
-  public void "Inserting a local script Value variable"() {
-    given:
-    String id = some($Identifier())
-    String selector = "@e[name=${some($Identifier())}]"
-    String scoreboard = some($Identifier())
-    String programString = """
-    Value ${id} = ${selector} ${scoreboard}
-    /say The value is \${${id}}!
-    """
-
-    when:
-    MplProgram program = assembleProgram(programString)
-
-    then:
-    lastContext.errors[0].message == "The variable '${id}' of type Value cannot be inserted"
-    lastContext.errors[0].source.file == lastTempFile
-    lastContext.errors[0].source.text == id
-    lastContext.errors[0].source.lineNumber == 3
-    lastContext.errors.size() == 1
-  }
-
-  @Test
-  public void "Inserting an unknown local script variable"() {
-    given:
-    String id = some($Identifier())
-    String programString = """
-    /say The value is \${${id}}!
-    """
-
-    when:
-    assembleProgram(programString)
-
-    then:
-    lastContext.errors[0].message == "${id} cannot be resolved to a variable"
-    lastContext.errors[0].source.file == lastTempFile
-    lastContext.errors[0].source.text == id
-    lastContext.errors[0].source.lineNumber == 2
-    lastContext.errors.size() == 1
-  }
-
-  @Test
   public void "Declaring a duplicate global variable"() {
     given:
     String id = some($Identifier())
@@ -857,6 +635,228 @@ public class MplVariableSpec extends MplSpecBase {
     lastContext.errors[0].source.file == mainFile
     lastContext.errors[0].source.text == qualifiedName
     lastContext.errors[0].source.lineNumber == 3
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Declaring a duplicate local script variable"() {
+    given:
+    String id = some($Identifier())
+    String programString = """
+    Integer ${id} = ${some($int())}
+    Integer ${id} = ${some($int())}
+    """
+  
+    when:
+    MplInterpreter interpreter = interpret(programString)
+  
+    then:
+    lastContext.errors[0].message == "Duplicate variable ${id}"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 3
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Declaring a local script Integer variable"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    Integer ${id} = ${value}
+    """
+  
+    when:
+    MplInterpreter interpreter = interpret(programString)
+  
+    then:
+    lastContext.errors.isEmpty()
+  
+    VariableScope scope = interpreter.rootVariableScope
+    MplIntegerVariable variable = scope.findVariable(id)
+    variable != null
+    variable.value == value
+  }
+
+  @Test
+  public void "Declaring a local script Selector variable"() {
+    given:
+    String id = some($Identifier())
+    String value = "@e[name=${some($Identifier())}]"
+    String programString = """
+    Selector ${id} = ${value}
+    """
+  
+    when:
+    MplInterpreter interpreter = interpret(programString)
+  
+    then:
+    lastContext.errors.isEmpty()
+  
+    VariableScope scope = interpreter.rootVariableScope
+    MplVariable<TargetSelector> variable = scope.findVariable(id)
+    variable != null
+    variable.value instanceof TargetSelector
+    variable.value.toString() == value
+  }
+
+  @Test
+  public void "Declaring a local script String variable"() {
+    given:
+    String id = some($Identifier())
+    String value = some($String())
+    String programString = """
+    String ${id} = "${value}"
+    """
+  
+    when:
+    MplInterpreter interpreter = interpret(programString)
+  
+    then:
+    lastContext.errors.isEmpty()
+  
+    VariableScope scope = interpreter.rootVariableScope
+    MplStringVariable variable = scope.findVariable(id)
+    variable != null
+    variable.value == value
+  }
+
+  @Test
+  public void "Declaring a local script Value variable"() {
+    given:
+    String id = some($Identifier())
+    String selector = "@e[name=${some($Identifier())}]"
+    String scoreboard = some($Identifier())
+    String programString = """
+    Value ${id} = ${selector} ${scoreboard}
+    """
+  
+    when:
+    MplInterpreter interpreter = interpret(programString)
+  
+    then:
+    lastContext.errors.isEmpty()
+  
+    VariableScope scope = interpreter.rootVariableScope
+    MplVariable<MplValue> variable = scope.findVariable(id)
+    variable != null
+    MplScoreboardValue value = variable.value
+    value.selector instanceof TargetSelector
+    value.selector.toString() == selector
+    value.scoreboard == scoreboard
+  }
+
+  @Test
+  public void "Inserting a local script Integer variable"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    String programString = """
+    Integer ${id} = ${value}
+    /say The value is \${${id}}!
+    """
+  
+    when:
+    MplProgram program = assembleProgram(programString)
+  
+    then:
+    lastContext.errors.isEmpty()
+  
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+  
+    MplCommand command =  process.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "Inserting a local script Selector variable"() {
+    given:
+    String id = some($Identifier())
+    String value = "@e[name=${some($Identifier())}]"
+    String programString = """
+    Selector ${id} = ${value}
+    /say The value is \${${id}}!
+    """
+  
+    when:
+    MplProgram program = assembleProgram(programString)
+  
+    then:
+    lastContext.errors.isEmpty()
+  
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+  
+    MplCommand command =  process.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "Inserting a local script String variable"() {
+    given:
+    String id = some($Identifier())
+    String value = some($String())
+    String programString = """
+    String ${id} = "${value}"
+    /say The value is \${${id}}!
+    """
+  
+    when:
+    MplProgram program = assembleProgram(programString)
+  
+    then:
+    lastContext.errors.isEmpty()
+  
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+  
+    MplCommand command =  process.chainParts[0]
+    command.commandParts.join() == "say The value is ${value}!"
+    process.chainParts.size() == 1
+  }
+
+  @Test
+  public void "Inserting a local script Value variable"() {
+    given:
+    String id = some($Identifier())
+    String selector = "@e[name=${some($Identifier())}]"
+    String scoreboard = some($Identifier())
+    String programString = """
+    Value ${id} = ${selector} ${scoreboard}
+    /say The value is \${${id}}!
+    """
+  
+    when:
+    MplProgram program = assembleProgram(programString)
+  
+    then:
+    lastContext.errors[0].message == "The variable '${id}' of type Value cannot be inserted"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 3
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Inserting an unknown local script variable"() {
+    given:
+    String id = some($Identifier())
+    String programString = """
+    /say The value is \${${id}}!
+    """
+  
+    when:
+    assembleProgram(programString)
+  
+    then:
+    lastContext.errors[0].message == "${id} cannot be resolved to a variable"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 2
     lastContext.errors.size() == 1
   }
 
