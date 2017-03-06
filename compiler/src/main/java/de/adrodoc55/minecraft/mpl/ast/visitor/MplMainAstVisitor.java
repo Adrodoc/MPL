@@ -282,7 +282,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     }
     if (process.isRepeating() && containsSkip) {
       result.addAll(getRestartBackref(result.get(0), false));
-      result = resolveReferences(result);
+      resolveReferences(result);
     }
     if (!process.isRepeating() && name != null && !"install".equals(name)
         && !"uninstall".equals(name)) {
