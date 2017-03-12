@@ -1,0 +1,126 @@
+package de.adrodoc55.minecraft.mpl
+
+mpl {
+	partitioning {
+		partition __dftl_partition_content_type
+		partition _mpl_command
+		partition _mpl_selector
+		partition _mpl_singleline_comment
+		partition _mpl_multiline_comment
+		partition _mpl_string
+		rule {
+      		single_line _mpl_singleline_comment '//' => ''
+      		multi_line  _mpl_multiline_comment '/*' => '*/'
+      		single_line _mpl_command '/' => ''
+      		single_line _mpl_selector '@a[' => ']'
+      		single_line _mpl_selector '@e[' => ']'
+      		single_line _mpl_selector '@p[' => ']'
+      		single_line _mpl_selector '@r[' => ']'
+			single_line _mpl_string '"' => '"'
+		}
+	}
+	lexical_highlighting {
+		rule __dftl_partition_content_type whitespace javawhitespace {
+			default mpl_default
+			mpl_punctuation {
+				character [
+					':', 
+					',', 
+					'=', 
+					'+', 
+					'-', 
+					'#'
+				]
+			}
+			mpl_bracket {
+				character [ '(', ')', '{', '}' ]
+			}
+			mpl_keyword {
+				keywords [
+					"breakpoint",
+					"conditional",
+					"else",
+					"if",
+					"import",
+					"include",
+					"inline",
+					"install",
+					"intercept",
+					"invert",
+					"not",
+					"notify",
+					"orientation",
+					"process",
+					"project",
+					"remote",
+					"skip",
+					"start",
+					"stop",
+					"then",
+					"uninstall",
+					"waitfor"
+				]
+			}
+			mpl_impulse {
+				keywords [
+					"impulse"
+				]
+			}
+			mpl_chain {
+				keywords [
+					"chain"
+				]
+			}
+			mpl_repeat {
+				keywords [
+					"break",
+					"continue",
+					"do",
+					"repeat",
+					"while"
+				]
+			}
+			mpl_unconditional {
+				keywords [
+					"unconditional"
+				]
+			}
+			mpl_always_active {
+				keywords [
+					"always",
+					"active"
+				]
+			}
+			mpl_needs_redstone {
+				keywords [
+					"needs",
+					"redstone"
+				]
+			}
+		}
+		rule _mpl_singleline_comment {
+			default mpl_single_line_comment
+		}
+		rule _mpl_multiline_comment {
+			default mpl_multi_line_comment
+		}
+		rule _mpl_command {
+			default mpl_command
+			mpl_insert {
+				single_line "${" => "}"
+			}
+		}
+		rule _mpl_selector {
+			default mpl_selector
+		}
+		rule _mpl_string {
+			default mpl_string
+		}
+	}
+	
+	integration {
+		javafx {
+			java "de.adrodoc55.minecraft.mpl"
+		}
+	}
+}
