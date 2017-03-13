@@ -41,9 +41,10 @@ import org.eclipse.jface.text.source.IAnnotationModel;
 import de.adrodoc55.minecraft.mpl.MplPartitioner;
 import de.adrodoc55.minecraft.mpl.MplPresentationReconciler;
 import javafx.application.Application;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringExpression;
 import javafx.beans.property.Property;
-import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -163,13 +164,12 @@ public class MplIdeFxMain extends Application {
   private Tab createAndAttachTab(Path path, FileItem item) {
     BorderPane pane = new BorderPane();
     StringInput input = new LocalSourceFileInput(path, StandardCharsets.UTF_8, eventBus);
-    TextEditor editor = createEditor(pane, input);
+    MplEditor editor = createEditor(pane, input);
 
-    // ReadOnlyBooleanProperty modifiedProperty = editor.modifiedProperty();
-    // StringExpression titleText = Bindings.createStringBinding(() -> {
-    // return modifiedProperty.get() ? "*" : "";
-    // }, modifiedProperty).concat(item.getName());
-    StringExpression titleText = new ReadOnlyStringWrapper(item.getName());
+    ReadOnlyBooleanProperty modifiedProperty = editor.modifiedProperty();
+    StringExpression titleText = Bindings.createStringBinding(() -> {
+      return modifiedProperty.get() ? "*" : "";
+    }, modifiedProperty).concat(item.getName());
 
     Tab t = new Tab();
     t.textProperty().bind(titleText);
@@ -179,7 +179,7 @@ public class MplIdeFxMain extends Application {
     return t;
   }
 
-  private TextEditor createEditor(BorderPane pane, StringInput input) {
+  private MplEditor createEditor(BorderPane pane, StringInput input) {
     EditorContextMenuProvider contextMenuProvider = (Control styledText, Type type) -> {
     };
     ContextInformationPresenter contextInformationPresenter = null;
