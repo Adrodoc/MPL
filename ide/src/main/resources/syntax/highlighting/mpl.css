@@ -1,77 +1,84 @@
+
+.styled-text-area {
+  -fx-font-family: Consolas;
+  -fx-font-size: 12.5;
+  -fx-fixed-line-height: 12.5;
+}
+
 .styled-text-area .list-view {
-	-fx-background-color: white;
+  -fx-background-color: white;
 }
 
 .styled-text-area .mpl.mpl_default {
-	-styled-text-color: rgb(0, 0, 0);
+  -styled-text-color: rgb(0, 0, 0);
 }
 
 .styled-text-area .mpl.mpl_punctuation {
-	-styled-text-color: rgb(0, 0, 0);
+  -styled-text-color: rgb(0, 0, 0);
 }
 
 .styled-text-area .mpl.mpl_bracket {
-	-styled-text-color: rgb(0, 0, 0);
+  -styled-text-color: rgb(0, 0, 0);
 }
 
 .styled-text-area .mpl.mpl_keyword {
-	-styled-text-color: rgb(127, 0, 85);
-	-fx-font-weight: bold;
+  -styled-text-color: rgb(127, 0, 85);
+  -fx-font-weight: bold;
 }
 
 .styled-text-area .mpl.mpl_impulse {
-	-styled-text-color: rgb(255, 127, 80);
-	-fx-font-weight: bold;
+  -styled-text-color: rgb(255, 127, 80);
+  -fx-font-weight: bold;
 }
 
 .styled-text-area .mpl.mpl_chain {
-	-styled-text-color: rgb(60, 179, 113);
-	-fx-font-weight: bold;
+  -styled-text-color: rgb(60, 179, 113);
+  -fx-font-weight: bold;
 }
 
 .styled-text-area .mpl.mpl_repeat {
-	-styled-text-color: rgb(106, 90, 205);
-	-fx-font-weight: bold;
+  -styled-text-color: rgb(106, 90, 205);
+  -fx-font-weight: bold;
 }
 
 .styled-text-area .mpl.mpl_unconditional {
-	-styled-text-color: rgb(128, 128, 128);
-	-fx-font-weight: bold;
+  -styled-text-color: rgb(128, 128, 128);
+  -fx-font-weight: bold;
 }
 
 .styled-text-area .mpl.mpl_always_active {
-	-styled-text-color: rgb(128, 128, 128);
-	-fx-font-weight: bold;
+  -styled-text-color: rgb(128, 128, 128);
+  -fx-font-weight: bold;
 }
 
 .styled-text-area .mpl.mpl_needs_redstone {
-	-styled-text-color: rgb(255, 0, 0);
-	-fx-font-weight: bold;
+  -styled-text-color: rgb(255, 0, 0);
+  -fx-font-weight: bold;
 }
 
 .styled-text-area .mpl.mpl_command {
-	-styled-text-color: rgb(0, 0, 0);
+  -styled-text-color: rgb(0, 0, 0);
 }
 
 .styled-text-area .mpl.mpl_insert {
-	-styled-text-color: rgb(128, 0, 0);
-	-fx-background-color: rgb(240, 230, 140);
-	-fx-text-fill: rgb(128, 0, 0);
+  -styled-text-color: rgb(128, 0, 0);
+  -fx-background-color: rgb(240, 230, 140);
+  -fx-text-fill: rgb(128, 0, 0);
 }
 
 .styled-text-area .mpl.mpl_selector {
-	-styled-text-color: rgb(0, 0, 128);
-	-fx-font-weight: bold;
+  -styled-text-color: rgb(0, 0, 128);
+  -fx-font-weight: bold;
 }
 
 .styled-text-area .mpl.mpl_single_line_comment {
-	-styled-text-color: rgb(63, 127, 95);
+  -styled-text-color: rgb(63, 127, 95);
 }
 
 .styled-text-area .mpl.mpl_multi_line_comment {
-	-styled-text-color: rgb(63, 127, 95);
+  -styled-text-color: rgb(63, 127, 95);
 }
 
 .styled-text-area .mpl.mpl_string {
-	-styled-text-color: rgb(42, 0, 255);
+  -styled-text-color: rgb(42, 0, 255);
 }
