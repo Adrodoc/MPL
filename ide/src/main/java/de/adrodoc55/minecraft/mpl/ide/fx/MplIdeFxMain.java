@@ -92,6 +92,8 @@ public class MplIdeFxMain extends Application {
     tabFolder = new TabPane();
     root.setCenter(tabFolder);
 
+    setRootDir(new File("C:/Users/Adrian/Documents/Mpl"));
+
     Scene s = new Scene(root, 800, 600);
     s.getStylesheets().add(getClass().getResource("/syntax/highlighting/mpl.css").toExternalForm());
 
@@ -122,6 +124,10 @@ public class MplIdeFxMain extends Application {
   private void handleSelectRootFolder(ActionEvent e) {
     DirectoryChooser chooser = new DirectoryChooser();
     File directory = chooser.showDialog(viewer.getScene().getWindow());
+    setRootDir(directory);
+  }
+
+  private void setRootDir(File directory) {
     if (directory != null) {
       viewer.setRootDirectories(FXCollections.observableArrayList(
           ResourceItem.createObservedPath(Paths.get(directory.getAbsolutePath()))));
@@ -186,9 +192,7 @@ public class MplIdeFxMain extends Application {
     Property<Double> zoomFactor = (Property<Double>) (Property<?>) new SimpleDoubleProperty(1);
 
 
-    TextEditor editor = new TextEditor();
-    editor.setInsertSpacesForTab(true);
-    editor.setTabAdvance(2);
+    MplEditor editor = new MplEditor();
     editor.initUI(pane, eventBus, contextMenuProvider, contextInformationPresenter, editingContext,
         document, configuration, partitioner, input, activeInput, zoomFactor);
     return editor;
