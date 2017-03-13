@@ -1,6 +1,7 @@
 package de.adrodoc55.minecraft.mpl.ide.fx;
 
 import static javafx.scene.input.KeyCode.DIGIT7;
+import static javafx.scene.input.KeyCode.S;
 import static javafx.scene.input.KeyCombination.SHORTCUT_DOWN;
 
 import org.eclipse.fx.code.editor.fx.TextEditor;
@@ -80,6 +81,13 @@ public class MplEditor extends TextEditor {
     }
     if (new KeyCodeCombination(DIGIT7, SHORTCUT_DOWN).match(event)) {
       performCommenting();
+      event.consume();
+      return;
+    }
+    if (new KeyCodeCombination(S, SHORTCUT_DOWN).match(event)) {
+      save();
+      event.consume();
+      return;
     }
   }
 
