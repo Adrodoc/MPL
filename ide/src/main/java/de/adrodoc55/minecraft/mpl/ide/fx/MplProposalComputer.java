@@ -1,49 +1,55 @@
 package de.adrodoc55.minecraft.mpl.ide.fx;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.fx.code.editor.services.CompletionProposal;
-import org.eclipse.fx.code.editor.services.CompletionProposal.BaseCompletetionProposal;
+import org.eclipse.fx.code.editor.services.EditingContext;
 import org.eclipse.fx.code.editor.services.ProposalComputer;
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
 import de.adrodoc55.minecraft.mpl.ide.autocompletion.AutoCompletion;
 import de.adrodoc55.minecraft.mpl.ide.autocompletion.AutoCompletionAction;
 
 public class MplProposalComputer implements ProposalComputer {
+  private final IDocument document;
+  private final EditingContext editingContext;
+
+  public MplProposalComputer(IDocument document, EditingContext editingContext) {
+    this.document = checkNotNull(document, "document == null!");
+    this.editingContext = checkNotNull(editingContext, "editingContext == null!");
+  }
+
   @Override
-  public CompletableFuture<List<CompletionProposal>> compute(ProposalContext context) {
-    List<CompletionProposal> proposals = new ArrayList<>();
+  public CompletableFuture<List<CompletionProposal>> compute() {
+    return CompletableFuture.supplyAsync(this::computeAsync);
+  }
 
-    int lineOffset = getLineOffset(context);
-    List<AutoCompletionAction> options =
-        AutoCompletion.getOptions(context.location, context.document.get());
+  private List<CompletionProposal> computeAsync() {
+    List<CompletionProposal> result = new ArrayList<>();
+    int lineOffset = getLineOffset();
+    int caretOffset = editingContext.getCaretOffset();
+    String text = document.get();
+    List<AutoCompletionAction> options = AutoCompletion.getOptions(caretOffset, text);
     for (AutoCompletionAction action : options) {
-      int offsetInLine = action.getStartIndex() - lineOffset;
-      proposals.add(toProposal(offsetInLine, action));
+      int indent = action.getStartIndex() - lineOffset;
+      result.add(new MplCompletionProposal(indent, action));
     }
-
-    CompletableFuture<List<CompletionProposal>> result = new CompletableFuture<>();
-    result.complete(proposals);
     return result;
   }
 
-  private int getLineOffset(ProposalContext context) {
+  private int getLineOffset() {
     try {
-      IRegion line = context.document.getLineInformationOfOffset(context.location);
+      IRegion line = document.getLineInformationOfOffset(editingContext.getCaretOffset());
       return line.getOffset();
     } catch (BadLocationException ex) {
       throw new UndeclaredThrowableException(ex);
     }
-  }
-
-  private BaseCompletetionProposal toProposal(int indent, AutoCompletionAction action) {
-    String replacementString = action.processTemplate(indent);
-    return new BaseCompletetionProposal(replacementString, action.getStartIndex(),
-        action.getLength(), action.getDisplayName());
   }
 }

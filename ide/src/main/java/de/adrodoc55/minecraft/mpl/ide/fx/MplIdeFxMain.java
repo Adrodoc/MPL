@@ -6,18 +6,49 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import org.eclipse.fx.code.editor.Input;
 import org.eclipse.fx.code.editor.LocalSourceFileInput;
+import org.eclipse.fx.code.editor.StringInput;
+import org.eclipse.fx.code.editor.fx.TextEditor;
+import org.eclipse.fx.code.editor.fx.services.CompletionProposalPresenter;
+import org.eclipse.fx.code.editor.fx.services.ContextInformationPresenter;
+import org.eclipse.fx.code.editor.fx.services.EditorContextMenuProvider;
+import org.eclipse.fx.code.editor.fx.services.EditorContextMenuProvider.Type;
+import org.eclipse.fx.code.editor.fx.services.internal.DefaultSourceViewerConfiguration;
+import org.eclipse.fx.code.editor.services.BehaviorContributor;
+import org.eclipse.fx.code.editor.services.DelegatingEditingContext;
+import org.eclipse.fx.code.editor.services.EditingContext;
+import org.eclipse.fx.code.editor.services.EditorOpener;
+import org.eclipse.fx.code.editor.services.HoverInformationProvider;
+import org.eclipse.fx.code.editor.services.InputDocument;
+import org.eclipse.fx.code.editor.services.NavigationProvider;
+import org.eclipse.fx.code.editor.services.ProposalComputer;
+import org.eclipse.fx.code.editor.services.SearchProvider;
+import org.eclipse.fx.core.ThreadSynchronize;
 import org.eclipse.fx.core.event.EventBus;
 import org.eclipse.fx.core.event.SimpleEventBus;
+import org.eclipse.fx.text.ui.contentassist.IContextInformationValidator;
+import org.eclipse.fx.text.ui.source.AnnotationPresenter;
+import org.eclipse.fx.text.ui.source.SourceViewerConfiguration;
 import org.eclipse.fx.ui.controls.filesystem.FileItem;
 import org.eclipse.fx.ui.controls.filesystem.ResourceEvent;
 import org.eclipse.fx.ui.controls.filesystem.ResourceItem;
 import org.eclipse.fx.ui.controls.filesystem.ResourceTreeView;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentPartitioner;
+import org.eclipse.jface.text.source.IAnnotationModel;
 
+import de.adrodoc55.minecraft.mpl.MplPartitioner;
+import de.adrodoc55.minecraft.mpl.MplPresentationReconciler;
 import javafx.application.Application;
+import javafx.beans.binding.StringExpression;
+import javafx.beans.property.Property;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.scene.Scene;
+import javafx.scene.control.Control;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -41,9 +72,9 @@ public class MplIdeFxMain extends Application {
 
   static class EditorData {
     final Path path;
-    final MplEditor editor;
+    final TextEditor editor;
 
-    public EditorData(Path path, MplEditor editor) {
+    public EditorData(Path path, TextEditor editor) {
       this.path = path;
       this.editor = editor;
     }
@@ -124,22 +155,63 @@ public class MplIdeFxMain extends Application {
   }
 
   private Tab createAndAttachTab(Path path, FileItem item) {
-    BorderPane p = new BorderPane();
-    MplEditor editor =
-        new MplEditor(new LocalSourceFileInput(path, StandardCharsets.UTF_8, eventBus), eventBus);
-    editor.initUI(p);
+    BorderPane pane = new BorderPane();
+    StringInput input = new LocalSourceFileInput(path, StandardCharsets.UTF_8, eventBus);
+    TextEditor editor = createEditor(pane, input);
 
     // ReadOnlyBooleanProperty modifiedProperty = editor.modifiedProperty();
     // StringExpression titleText = Bindings.createStringBinding(() -> {
     // return modifiedProperty.get() ? "*" : "";
     // }, modifiedProperty).concat(item.getName());
+    StringExpression titleText = new ReadOnlyStringWrapper(item.getName());
 
     Tab t = new Tab();
-    // t.textProperty().bind(titleText);
-    t.setContent(p);
+    t.textProperty().bind(titleText);
+    t.setContent(pane);
     t.setUserData(new EditorData(path, editor));
     tabFolder.getTabs().add(t);
     return t;
+  }
+
+  private TextEditor createEditor(BorderPane pane, StringInput input) {
+    EditorContextMenuProvider contextMenuProvider = (Control styledText, Type type) -> {
+    };
+    ContextInformationPresenter contextInformationPresenter = null;
+    EditingContext editingContext = new DelegatingEditingContext();
+    IDocument document = new InputDocument(input, eventBus);
+    SourceViewerConfiguration configuration = createConfiguration(input, document, editingContext);
+    IDocumentPartitioner partitioner = new MplPartitioner();
+    Property<Input<?>> activeInput = null;
+    @SuppressWarnings("unchecked")
+    Property<Double> zoomFactor = (Property<Double>) (Property<?>) new SimpleDoubleProperty(1);
+
+
+    TextEditor editor = new TextEditor();
+    editor.setInsertSpacesForTab(true);
+    editor.setTabAdvance(2);
+    editor.initUI(pane, eventBus, contextMenuProvider, contextInformationPresenter, editingContext,
+        document, configuration, partitioner, input, activeInput, zoomFactor);
+    return editor;
+  }
+
+  private SourceViewerConfiguration createConfiguration(Input<?> input, IDocument document,
+      EditingContext editingContext) {
+    ThreadSynchronize threadSynchronize = null;
+    MplPresentationReconciler reconciler = new MplPresentationReconciler();
+    ProposalComputer proposalComputer = new MplProposalComputer(document, editingContext);
+    IAnnotationModel annotationModel = null;
+    AnnotationPresenter annotationPresenter = null;
+    HoverInformationProvider hoverInformationProvider = null;
+    CompletionProposalPresenter proposalPresenter = MplGraphicalCompletionProposal::new;
+    SearchProvider searchProvider = null;
+    NavigationProvider navigationProvider = null;
+    EditorOpener editorOpener = null;
+    BehaviorContributor behaviorContributor = null;
+    IContextInformationValidator contextInformationValidator = null;
+    return new DefaultSourceViewerConfiguration(threadSynchronize, input, reconciler,
+        proposalComputer, annotationModel, annotationPresenter, hoverInformationProvider,
+        proposalPresenter, searchProvider, navigationProvider, editorOpener, behaviorContributor,
+        contextInformationValidator);
   }
 
 }

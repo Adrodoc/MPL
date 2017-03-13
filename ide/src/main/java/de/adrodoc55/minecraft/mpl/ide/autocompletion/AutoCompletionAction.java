@@ -107,7 +107,7 @@ public abstract class AutoCompletionAction {
     return template;
   }
 
-  private int getCursorIndex(int offsetInLine) {
+  public int getCursorIndex(int offsetInLine) {
     CharSequence template = processTemplate(offsetInLine, false);
     Matcher matcher = INSERT.matcher(template);
     while (matcher.find()) {
@@ -175,4 +175,8 @@ public abstract class AutoCompletionAction {
   public abstract String getDisplayName();
 
   public abstract boolean shouldBeProposed(AutoCompletionContext context);
+
+  public CharSequence getDescription() {
+    return processTemplate(0);
+  }
 }

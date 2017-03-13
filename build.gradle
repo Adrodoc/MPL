@@ -50,7 +50,7 @@ ext {
     antlr4_runtime: 'org.antlr:antlr4-runtime:4.5.3',
     assertj:        'org.assertj:assertj-core:3.5.2',
     beanfabrics:    'org.beanfabrics:beanfabrics-swing:1.4.3',
-    efxclipse:      'at.bestsolution.eclipse:org.eclipse.fx.code.editor.fx:2.2.0',
+    efxclipse:      'at.bestsolution.efxclipse.rt:org.eclipse.fx.code.editor.fx:2.5.0',
     guava:          'com.google.guava:guava:19.0',
     jcommander:     'com.beust:jcommander:1.58',
     jsr305:         'com.google.code.findbugs:jsr305:3.0.1',
@@ -72,7 +72,7 @@ allprojects {
   repositories {
     mavenCentral()
     maven { url 'http://basket.cindyscats.com/content/repositories/releases' }
-//    maven { url 'http://maven.bestsolution.at/efxclipse-releases' }
+    maven { url 'http://maven.bestsolution.at/efxclipse-releases' }
   }
 
   pluginManager.withPlugin('eclipse') {
