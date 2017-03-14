@@ -1,0 +1,44 @@
+
+.button.icon {
+  -fx-border-color: transparent;
+  -fx-border-width: 0.0;
+  -fx-background-radius: 0.0;
+  -fx-background-color: transparent;
+  -fx-padding: 2.0px;
+}
+
+.button.icon:hover {
+  -fx-background-color: lavender;
+}
+
+.button.icon:pressed {
+  -fx-background-color: lightblue;
+}
+
+.button.open {
+  -fx-graphic: url('/icons/folder_icon_16.png');
+}
+
+.button.save {
+  -fx-graphic: url('/icons/disk_icon_16.png');
+}
+
+.button.compileToImportCommand {
+  -fx-graphic: url('/icons/command_block_icon_16.png');
+}
+
+.button.compileToStructure {
+  -fx-graphic: url('/icons/structure_block_load_16.png');
+}
+
+.button.compileToSchematic {
+  -fx-graphic: url('/icons/schematic_16.png');
+}
+
+.button.compileToCbse {
+  -fx-graphic: url('/icons/cbse_16.png');
+}
+
+.button.compileToMcedit {
+  -fx-graphic: url('/icons/mcedit_16.png');
+}

@@ -17,10 +17,13 @@ public class MplFxIde2Main extends Application {
 
   @Override
   public void start(Stage stage) throws IOException {
-    Parent root = FXMLLoader.load(getClass().getResource("/application.fxml"));
+    Parent root = FXMLLoader.load(getClass().getResource("/mpl-ide.fxml"));
 
 
     Scene scene = new Scene(root, 1000, 500);
+    scene.getStylesheets().add(getClass().getResource("/mpl-ide.css").toExternalForm());
+    scene.getStylesheets()
+        .add(getClass().getResource("/syntax/highlighting/mpl.css").toExternalForm());
 
 
     stage.setTitle("Minecraft Programming Language - local build");
