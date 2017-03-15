@@ -1,5 +1,8 @@
 package de.adrodoc55.minecraft.mpl.ide.fx;
 
+import static javafx.scene.control.TabPane.TabClosingPolicy.ALL_TABS;
+import static org.eclipse.fx.ui.controls.tabpane.DndTabPaneFactory.createDefaultDnDPane;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,6 +15,7 @@ import org.eclipse.fx.ui.controls.filesystem.ResourceEvent;
 import org.eclipse.fx.ui.controls.filesystem.ResourceItem;
 import org.eclipse.fx.ui.controls.filesystem.ResourceTreeView;
 import org.eclipse.fx.ui.controls.filesystem.RootDirItem;
+import org.eclipse.fx.ui.controls.tabpane.DndTabPaneFactory.FeedbackType;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringExpression;
@@ -21,10 +25,12 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import javafx.stage.DirectoryChooser;
 
 public class MplIdeController {
   @FXML
+  private BorderPane editorTabPaneContainer;
   private TabPane editorTabPane;
 
   @FXML
@@ -32,6 +38,7 @@ public class MplIdeController {
   private RootDirItem rootDir;
 
   private EventBus eventBus = new SimpleEventBus();
+
 
   private void setRootDir(File directory) {
     if (directory != null) {
@@ -45,9 +52,18 @@ public class MplIdeController {
 
   @FXML
   public void initialize() {
+    createEditorTabPane();
+
     fileExplorer.addEventHandler(ResourceEvent.openResourceEvent(),
         e -> openResources(e.getResourceItems()));
+
     setRootDir(new File("C:/Users/Adrian/Documents/Mpl"));
+  }
+
+  private void createEditorTabPane() {
+    Pane dndPane = createDefaultDnDPane(FeedbackType.MARKER, it -> editorTabPane = it);
+    editorTabPaneContainer.setCenter(dndPane);
+    editorTabPane.setTabClosingPolicy(ALL_TABS);
   }
 
   public void openResources(Collection<? extends ResourceItem> resources) {
