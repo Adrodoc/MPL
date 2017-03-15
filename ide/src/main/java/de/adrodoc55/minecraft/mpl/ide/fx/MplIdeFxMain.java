@@ -9,7 +9,6 @@ import java.util.List;
 import org.eclipse.fx.code.editor.Input;
 import org.eclipse.fx.code.editor.LocalSourceFileInput;
 import org.eclipse.fx.code.editor.StringInput;
-import org.eclipse.fx.code.editor.fx.TextEditor;
 import org.eclipse.fx.code.editor.fx.services.CompletionProposalPresenter;
 import org.eclipse.fx.code.editor.fx.services.ContextInformationPresenter;
 import org.eclipse.fx.code.editor.fx.services.EditorContextMenuProvider;
@@ -71,16 +70,6 @@ public class MplIdeFxMain extends Application {
   private ResourceTreeView viewer;
   private EventBus eventBus = new SimpleEventBus();
 
-  static class EditorData {
-    final Path path;
-    final TextEditor editor;
-
-    public EditorData(Path path, TextEditor editor) {
-      this.path = path;
-      this.editor = editor;
-    }
-  }
-
   @Override
   public void start(Stage stage) {
     BorderPane root = new BorderPane();
@@ -138,7 +127,7 @@ public class MplIdeFxMain extends Application {
   private void handleSave(ActionEvent e) {
     Tab t = tabFolder.getSelectionModel().getSelectedItem();
     if (t != null) {
-      ((EditorData) t.getUserData()).editor.save();
+      ((MplEditorData) t.getUserData()).getEditor().save();
     }
   }
 
@@ -155,7 +144,8 @@ public class MplIdeFxMain extends Application {
     Path path = (Path) item.getNativeResourceObject();
 
     Tab tab = tabFolder.getTabs().stream()
-        .filter(t -> ((EditorData) t.getUserData()).path.equals(path)).findFirst().orElseGet(() -> {
+        .filter(t -> ((MplEditorData) t.getUserData()).getPath().equals(path)).findFirst()
+        .orElseGet(() -> {
           return createAndAttachTab(path, item);
         });
     tabFolder.getSelectionModel().select(tab);
@@ -174,7 +164,7 @@ public class MplIdeFxMain extends Application {
     Tab t = new Tab();
     t.textProperty().bind(titleText);
     t.setContent(pane);
-    t.setUserData(new EditorData(path, editor));
+    t.setUserData(new MplEditorData(path, editor));
     tabFolder.getTabs().add(t);
     return t;
   }

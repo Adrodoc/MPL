@@ -6,15 +6,12 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SplitPane?>
-<?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.ToolBar?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 <?import org.eclipse.fx.ui.controls.filesystem.ResourceTreeView?>
 
-<VBox xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
-  fx:controller="de.adrodoc55.minecraft.mpl.ide.fx.MplIdeController">
+<VBox xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.adrodoc55.minecraft.mpl.ide.fx.MplIdeController">
   <children>
     <MenuBar VBox.vgrow="NEVER">
       <menus>
@@ -84,15 +81,7 @@
     <SplitPane dividerPositions="0.3" VBox.vgrow="ALWAYS">
       <items>
         <ResourceTreeView fx:id="fileExplorer" />
-        <TabPane tabClosingPolicy="ALL_TABS">
-          <tabs>
-            <Tab text="Untitled Tab">
-              <content>
-                <AnchorPane minHeight="0.0" minWidth="0.0" />
-              </content>
-            </Tab>
-          </tabs>
-        </TabPane>
+        <TabPane fx:id="editorTabPane" tabClosingPolicy="ALL_TABS" />
       </items>
     </SplitPane>
   </children>
