@@ -1,10 +1,9 @@
 
 .button.icon {
+  -fx-background-color: transparent;
   -fx-border-color: transparent;
   -fx-border-width: 0.0;
-  -fx-background-radius: 0.0;
-  -fx-background-color: transparent;
-  -fx-padding: 2.0px;
+  -fx-padding: 2px;
 }
 
 .button.icon:hover {

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import de.adrodoc55.commons.eclipse.DndTabPane?>
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
@@ -8,10 +9,9 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.ToolBar?>
-<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.VBox?>
 <?import org.eclipse.fx.ui.controls.filesystem.ResourceTreeView?>
-<?import de.adrodoc55.commons.eclipse.DndTabPane?>
 
 <VBox xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.adrodoc55.minecraft.mpl.ide.fx.MplIdeController">
   <children>
@@ -41,42 +41,63 @@
             <String fx:value="open" />
             <String fx:value="icon" />
           </styleClass>
+          <tooltip>
+              <Tooltip text="Select a new Root-Directory" />
+          </tooltip>
         </Button>
         <Button contentDisplay="CENTER" onAction="#save">
           <styleClass>
             <String fx:value="save" />
             <String fx:value="icon" />
           </styleClass>
+          <tooltip>
+              <Tooltip text="Save the current File" />
+          </tooltip>
         </Button>
         <Button contentDisplay="CENTER" onAction="#compileToImportCommand">
           <styleClass>
             <String fx:value="compileToImportCommand" />
             <String fx:value="icon" />
           </styleClass>
+          <tooltip>
+              <Tooltip text="Compile to Import-Command" />
+          </tooltip>
         </Button>
         <Button contentDisplay="CENTER" onAction="#compileToStructure">
           <styleClass>
             <String fx:value="compileToStructure" />
             <String fx:value="icon" />
           </styleClass>
+          <tooltip>
+              <Tooltip text="Compile to Structure" />
+          </tooltip>
         </Button>
         <Button contentDisplay="CENTER" onAction="#compileToSchematic">
           <styleClass>
             <String fx:value="compileToSchematic" />
             <String fx:value="icon" />
           </styleClass>
+          <tooltip>
+              <Tooltip text="Compile to Schematic" />
+          </tooltip>
         </Button>
         <Button contentDisplay="CENTER" onAction="#compileToCbse">
           <styleClass>
             <String fx:value="compileToCbse" />
             <String fx:value="icon" />
           </styleClass>
+          <tooltip>
+              <Tooltip text="Compile to Command Block Structure Editor File" />
+          </tooltip>
         </Button>
         <Button contentDisplay="CENTER" onAction="#compileToMcedit">
           <styleClass>
             <String fx:value="compileToMcedit" />
             <String fx:value="icon" />
           </styleClass>
+          <tooltip>
+              <Tooltip text="Compile to MCEdit Filter" />
+          </tooltip>
         </Button>
       </items>
       <padding>
