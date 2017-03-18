@@ -39,23 +39,43 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.fx;
 
-import java.nio.file.Path;
+import java.io.IOException;
 
-import javax.annotation.Nonnull;
-
-import org.eclipse.fx.code.editor.fx.TextEditor;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import de.adrodoc55.minecraft.mpl.ide.ApplicationUtils;
+import javafx.application.Application;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.stage.Stage;
 
 /**
  * @author Adrodoc55
  */
-@RequiredArgsConstructor
-@Getter
-@ToString(of = "path")
-public class MplEditorData {
-  private @Nonnull final Path path;
-  private @Nonnull final TextEditor editor;
+public class MplFxIdeMain extends Application {
+  @Override
+  public void start(Stage stage) throws IOException {
+    stage.setTitle(
+        "Minecraft Programming Language - " + ApplicationUtils.getImplementationVersion());
+
+    ObservableList<Image> icons = stage.getIcons();
+    icons.add(new Image(getClass().getResourceAsStream("/icons/command_block_icon.png")));
+    icons.add(new Image(getClass().getResourceAsStream("/icons/command_block_icon_32.png")));
+    icons.add(new Image(getClass().getResourceAsStream("/icons/command_block_icon_16.png")));
+
+    Parent root = FXMLLoader.load(getClass().getResource("/mpl-ide.fxml"));
+    Scene scene = new Scene(root, 1000, 500);
+
+    ObservableList<String> stylesheets = scene.getStylesheets();
+    stylesheets.add("/mpl-ide.css");
+    stylesheets.add("/syntax/highlighting/mpl.css");
+
+    stage.setScene(scene);
+    stage.show();
+  }
+
+  public static void main(String[] args) {
+    launch(args);
+  }
 }

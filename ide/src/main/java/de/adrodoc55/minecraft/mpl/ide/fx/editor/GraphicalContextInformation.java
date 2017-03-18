@@ -37,25 +37,44 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.fx;
+package de.adrodoc55.minecraft.mpl.ide.fx.editor;
 
-import java.nio.file.Path;
+import org.eclipse.fx.text.ui.contentassist.IContextInformation;
 
-import javax.annotation.Nonnull;
-
-import org.eclipse.fx.code.editor.fx.TextEditor;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import javafx.scene.Node;
 
 /**
  * @author Adrodoc55
  */
-@RequiredArgsConstructor
-@Getter
-@ToString(of = "path")
-public class MplEditorData {
-  private @Nonnull final Path path;
-  private @Nonnull final TextEditor editor;
+public class GraphicalContextInformation implements IContextInformation {
+  private final int contextInformationPosition;
+  private final CharSequence informationDisplayString;
+  private final CharSequence contextDisplayString;
+
+  public GraphicalContextInformation(int contextInformationPosition,
+      CharSequence informationDisplayString, CharSequence contextDisplayString) {
+    this.contextInformationPosition = contextInformationPosition;
+    this.informationDisplayString = informationDisplayString;
+    this.contextDisplayString = contextDisplayString;
+  }
+
+  @Override
+  public int getContextInformationPosition() {
+    return contextInformationPosition;
+  }
+
+  @Override
+  public CharSequence getInformationDisplayString() {
+    return informationDisplayString;
+  }
+
+  @Override
+  public CharSequence getContextDisplayString() {
+    return contextDisplayString;
+  }
+
+  @Override
+  public Node getGraphic() {
+    return null; // TODO: Find a nice Icon for the different ContextInformations
+  }
 }

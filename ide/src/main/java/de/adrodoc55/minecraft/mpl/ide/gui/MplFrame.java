@@ -77,6 +77,8 @@ import org.beanfabrics.model.ListPM;
 import org.beanfabrics.swing.BnButton;
 import org.beanfabrics.swing.BnMenuItem;
 
+import de.adrodoc55.minecraft.mpl.ide.ApplicationUtils;
+
 /**
  * The MplFrame is a {@link View} on a {@link MplFramePM}.
  *
@@ -120,7 +122,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
    * Constructs a new <code>MplFrame</code>.
    */
   public MplFrame() {
-    super("Minecraft Programming Language - " + getVersion());
+    super("Minecraft Programming Language - " + ApplicationUtils.getImplementationVersion());
     setIconImage(Toolkit.getDefaultToolkit()
         .getImage(MplFrame.class.getResource("/icons/command_block_icon.png")));
     init();
@@ -146,15 +148,6 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
         }
       }
     });
-  }
-
-  private static String getVersion() {
-    String version = MplFrame.class.getPackage().getImplementationVersion();
-    if (version != null) {
-      return version;
-    } else {
-      return "local build";
-    }
   }
 
   private void init() {

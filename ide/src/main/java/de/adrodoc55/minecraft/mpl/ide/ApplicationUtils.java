@@ -37,25 +37,18 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.fx;
-
-import java.nio.file.Path;
-
-import javax.annotation.Nonnull;
-
-import org.eclipse.fx.code.editor.fx.TextEditor;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+package de.adrodoc55.minecraft.mpl.ide;
 
 /**
  * @author Adrodoc55
  */
-@RequiredArgsConstructor
-@Getter
-@ToString(of = "path")
-public class MplEditorData {
-  private @Nonnull final Path path;
-  private @Nonnull final TextEditor editor;
+public class ApplicationUtils {
+  public static String getImplementationVersion() {
+    String version = ApplicationUtils.class.getPackage().getImplementationVersion();
+    if (version != null) {
+      return version;
+    } else {
+      return "local build";
+    }
+  }
 }
