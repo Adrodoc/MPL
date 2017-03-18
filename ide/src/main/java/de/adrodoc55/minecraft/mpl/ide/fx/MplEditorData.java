@@ -43,8 +43,7 @@ import java.nio.file.Path;
 
 import javax.annotation.Nonnull;
 
-import org.eclipse.fx.code.editor.fx.TextEditor;
-
+import de.adrodoc55.minecraft.mpl.ide.fx.editor.MplEditor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -57,5 +56,5 @@ import lombok.ToString;
 @ToString(of = "path")
 public class MplEditorData {
   private @Nonnull final Path path;
-  private @Nonnull final TextEditor editor;
+  private @Nonnull final MplEditor editor;
 }

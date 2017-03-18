@@ -140,7 +140,15 @@ public class MplIdeController {
   }
 
   @FXML
-  public void save() {}
+  public void save() {
+    Tab t = editorTabPane.getSelectionModel().getSelectedItem();
+    if (t != null) {
+      Object userData = t.getUserData();
+      if (userData instanceof MplEditorData) {
+        ((MplEditorData) userData).getEditor().save();
+      }
+    }
+  }
 
   @FXML
   public void compileToImportCommand() {}
