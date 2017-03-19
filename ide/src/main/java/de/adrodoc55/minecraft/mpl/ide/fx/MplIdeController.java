@@ -43,6 +43,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -167,6 +168,11 @@ public class MplIdeController {
     t.textProperty().bind(titleText);
     t.setContent(pane);
     t.setUserData(new MplEditorData(path, editor));
+    t.setOnCloseRequest(e -> {
+      if (warnAboutUnsavedResources(Arrays.asList(t))) {
+        e.consume();
+      }
+    });
     editorTabPane.getTabs().add(t);
     return t;
   }
@@ -198,14 +204,14 @@ public class MplIdeController {
   }
 
   /**
-   * Warn the User about unsaved Resources, if there are any. Returns true if the User canceled the
-   * Action. <br>
+   * Warn the User about unsaved Resources, if there are any. Returns {@code true} if the User
+   * canceled the Action. <br>
    * This should be called like this:<br>
    *
    * <code>
    * <pre>
    * if (warnAboutUnsavedResources()) {
-   *   return;
+   *   return; // or whatever you need to do to cancel the current action.
    * }
    * </pre>
    * </code>
@@ -213,7 +219,26 @@ public class MplIdeController {
    * @return canceled - whether or not the Action should be canceled.
    */
   public boolean warnAboutUnsavedResources() {
-    List<Path> unsavedResources = editorTabPane.getTabs().stream()//
+    return warnAboutUnsavedResources(editorTabPane.getTabs());
+  }
+
+  /**
+   * Warn the User about unsaved Resources, if there are any in the specified {@link Tab}s. Returns
+   * {@code true} if the User canceled the Action. <br>
+   * This should be called like this:<br>
+   *
+   * <code>
+   * <pre>
+   * if (warnAboutUnsavedResources(tabs)) {
+   *   return; // or whatever you need to do to cancel the current action.
+   * }
+   * </pre>
+   * </code>
+   *
+   * @return canceled - whether or not the Action should be canceled.
+   */
+  public boolean warnAboutUnsavedResources(Collection<Tab> tabs) {
+    List<Path> unsavedResources = tabs.stream()//
         .map(Tab::getUserData)//
         .filter(MplEditorData.class::isInstance)//
         .map(MplEditorData.class::cast)//
