@@ -63,6 +63,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
 import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.ImportCommandDialog;
+import de.adrodoc55.minecraft.mpl.ide.fx.dialog.OptionsDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.MplEditor;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import javafx.beans.binding.Bindings;
@@ -104,6 +105,16 @@ public class MplIdeController {
         e -> openResources(e.getResourceItems()));
 
     setRootDir(new File("C:/Users/Adrian/Documents/Mpl"));
+  }
+
+  private Window getWindow() {
+    return fileExplorer.getScene().getWindow();
+  }
+
+  @FXML
+  public void options() {
+    OptionsDialog dialog = new OptionsDialog(getWindow());
+    dialog.showAndWait();
   }
 
   public void openResources(Collection<? extends ResourceItem> resources) {
@@ -158,7 +169,7 @@ public class MplIdeController {
   @FXML
   public void open() {
     DirectoryChooser chooser = new DirectoryChooser();
-    File directory = chooser.showDialog(fileExplorer.getScene().getWindow());
+    File directory = chooser.showDialog(getWindow());
     setRootDir(directory);
   }
 
@@ -176,7 +187,7 @@ public class MplIdeController {
     if (editor == null) {
       return;
     }
-    Window owner = fileExplorer.getScene().getWindow();
+    Window owner = getWindow();
     File file = editor.getFile();
     MinecraftVersion version = MinecraftVersion.getDefault();
     MplCompilationResult result = MplCompiler.compile(file, version, new CompilerOptions());

@@ -73,6 +73,9 @@ public class ImportCommandDialog extends Stage {
     int commandCount = importCommands.size();
     boolean multipleCommands = commandCount > 1;
     setTitle("Import Command" + (multipleCommands ? "s" : ""));
+    setOnShown(e -> JavaFxUtils.centerOnOwner(this, getOwner()));
+    addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPressed);
+    addEventFilter(KeyEvent.KEY_RELEASED, this::handleKeyReleased);
 
     updateMaxHeight(commandCount);
     int width = 500;
@@ -108,11 +111,7 @@ public class ImportCommandDialog extends Stage {
 
     ScrollPane root = new ScrollPane(container);
     root.setFitToHeight(true);
-    Scene scene = new Scene(root);
-    setScene(scene);
-    setOnShown(e -> JavaFxUtils.centerOnOwner(this, getOwner()));
-    addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPressed);
-    addEventFilter(KeyEvent.KEY_RELEASED, this::handleKeyReleased);
+    setScene(new Scene(root));
   }
 
   public void remove(Node importCommandNode) {

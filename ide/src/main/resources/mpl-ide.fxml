@@ -69,6 +69,11 @@
             <MenuItem mnemonicParsing="false" text="Delete" />
           </items>
         </Menu>
+            <Menu mnemonicParsing="false" text="Window">
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#options" text="Options" />
+              </items>
+            </Menu>
         <Menu mnemonicParsing="false" text="Help">
           <items>
             <MenuItem mnemonicParsing="false" text="About" />
