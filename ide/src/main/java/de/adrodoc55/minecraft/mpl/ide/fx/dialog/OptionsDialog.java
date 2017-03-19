@@ -39,33 +39,50 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.fx.dialog;
 
-import java.io.IOException;
-import java.lang.reflect.UndeclaredThrowableException;
+import static java.util.Objects.requireNonNull;
 
-import de.adrodoc55.minecraft.mpl.ide.fx.JavaFxUtils;
+import java.io.IOException;
+
+import javax.annotation.Nullable;
+
+import de.adrodoc55.minecraft.mpl.ide.fx.MplOptions;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
 import javafx.stage.Modality;
-import javafx.stage.Stage;
 import javafx.stage.Window;
 
 /**
  * @author Adrodoc55
  */
-public class OptionsDialog extends Stage {
-  public OptionsDialog(Window owner) {
+public class OptionsDialog extends Dialog<MplOptions> {
+  private OptionsController controller;
+
+  public OptionsDialog(Window owner, MplOptions oldOptions) {
     initOwner(owner);
     initModality(Modality.WINDOW_MODAL);
     setTitle("Options");
-    setOnShown(e -> JavaFxUtils.centerOnOwner(this, getOwner()));
 
-    Parent root;
+    FXMLLoader loader = new FXMLLoader(getClass().getResource("/dialog/options.fxml"));
+    DialogPane root;
     try {
-      root = FXMLLoader.load(getClass().getResource("/dialog/options.fxml"));
+      root = loader.load();
+      controller = requireNonNull(loader.getController(), "constroller == null!");
+      controller.initialize(oldOptions);
     } catch (IOException ex) {
-      throw new UndeclaredThrowableException(ex, "Unable to load FXML file");
+      throw new IllegalStateException("Unable to load FXML file", ex);
     }
-    setScene(new Scene(root));
+    root.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+    setDialogPane(root);
+    setResultConverter(this::convertResult);
+  }
+
+  private @Nullable MplOptions convertResult(ButtonType b) {
+    if (ButtonData.OK_DONE.equals(b.getButtonData())) {
+      return controller.getMplOptions();
+    }
+    return null;
   }
 }

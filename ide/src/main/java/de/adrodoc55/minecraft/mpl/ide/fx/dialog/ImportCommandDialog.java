@@ -40,7 +40,6 @@
 package de.adrodoc55.minecraft.mpl.ide.fx.dialog;
 
 import java.io.IOException;
-import java.lang.reflect.UndeclaredThrowableException;
 import java.util.List;
 
 import de.adrodoc55.minecraft.mpl.ide.fx.JavaFxUtils;
@@ -105,7 +104,7 @@ public class ImportCommandDialog extends Stage {
 
         container.getChildren().add(importCommandNode);
       } catch (IOException ex) {
-        throw new UndeclaredThrowableException(ex, "Unable to load FXML file");
+        throw new IllegalStateException("Unable to load FXML file", ex);
       }
     }
 

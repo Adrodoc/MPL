@@ -45,6 +45,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 
@@ -59,6 +60,7 @@ import org.eclipse.fx.ui.controls.filesystem.RootDirItem;
 import de.adrodoc55.commons.eclipse.DndTabPane;
 import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
 import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
@@ -87,6 +89,14 @@ public class MplIdeController {
   private ResourceTreeView fileExplorer;
   private RootDirItem rootDir;
 
+  private MplOptions options = new MplOptions(//
+      MinecraftVersion.getDefault(), //
+      new CompilerOptions(//
+          CompilerOption.TRANSMITTER, //
+          CompilerOption.DELETE_ON_UNINSTALL//
+      )//
+  );
+
   private EventBus eventBus = new SimpleEventBus();
 
   private void setRootDir(File directory) {
@@ -113,8 +123,11 @@ public class MplIdeController {
 
   @FXML
   public void options() {
-    OptionsDialog dialog = new OptionsDialog(getWindow());
-    dialog.showAndWait();
+    OptionsDialog dialog = new OptionsDialog(getWindow(), options);
+    Optional<MplOptions> result = dialog.showAndWait();
+    if (result.isPresent()) {
+      options = result.get();
+    }
   }
 
   public void openResources(Collection<? extends ResourceItem> resources) {
