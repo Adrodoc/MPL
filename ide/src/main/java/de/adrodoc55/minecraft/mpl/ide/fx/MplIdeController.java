@@ -75,17 +75,25 @@ import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringExpression;
 import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 
 /**
  * @author Adrodoc55
  */
 public class MplIdeController {
+  @FXML
+  private Node root;
+
   @FXML
   private DndTabPane editorTabPane;
 
@@ -115,14 +123,42 @@ public class MplIdeController {
 
   @FXML
   private void initialize() {
+    setupWindowCloseRequestListener();
+
     fileExplorer.addEventHandler(ResourceEvent.openResourceEvent(),
         e -> openResources(e.getResourceItems()));
 
     setRootDir(new File("C:/Users/Adrian/Documents/Mpl"));
   }
 
+  private void setupWindowCloseRequestListener() {
+    EventHandler<WindowEvent> onWindowCloseRequest = e -> {
+      if (warnAboutUnsavedResources())
+        e.consume();
+    };
+    ChangeListener<Window> windowPropertyListener = (observableWindow, oldWindow, newWindow) -> {
+      if (oldWindow != null && onWindowCloseRequest == oldWindow.getOnCloseRequest()) {
+        oldWindow.setOnCloseRequest(null);
+      }
+      if (newWindow != null) {
+        newWindow.setOnCloseRequest(onWindowCloseRequest);
+      }
+    };
+    ChangeListener<Scene> scenePropertyListener = (observableScene, oldScene, newScene) -> {
+      if (oldScene != null) {
+        oldScene.windowProperty().removeListener(windowPropertyListener);
+      }
+      if (newScene != null) {
+        windowPropertyListener.changed(null, null, newScene.getWindow());
+        newScene.windowProperty().addListener(windowPropertyListener);
+      }
+    };
+    scenePropertyListener.changed(null, null, root.getScene());
+    root.sceneProperty().addListener(scenePropertyListener);
+  }
+
   private Window getWindow() {
-    return fileExplorer.getScene().getWindow();
+    return root.getScene().getWindow();
   }
 
   @FXML
@@ -169,9 +205,8 @@ public class MplIdeController {
     t.setContent(pane);
     t.setUserData(new MplEditorData(path, editor));
     t.setOnCloseRequest(e -> {
-      if (warnAboutUnsavedResources(Arrays.asList(t))) {
+      if (warnAboutUnsavedResources(Arrays.asList(t)))
         e.consume();
-      }
     });
     editorTabPane.getTabs().add(t);
     return t;
@@ -278,12 +313,11 @@ public class MplIdeController {
   @FXML
   public void compileToImportCommand() throws IOException, CompilationFailedException {
     MplEditor editor = getSelectedEditor();
-    if (editor == null) {
+    if (editor == null)
       return;
-    }
-    if (warnAboutUnsavedResources()) {
+    if (warnAboutUnsavedResources())
       return;
-    }
+
     Window owner = getWindow();
     File file = editor.getFile();
     MinecraftVersion version = MinecraftVersion.getDefault();
