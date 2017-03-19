@@ -37,46 +37,16 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
+package de.adrodoc55.minecraft.mpl.ide.fx;
 
-.button.icon {
-  -fx-background-color: transparent;
-  -fx-border-color: transparent;
-  -fx-border-width: 0.0;
-  -fx-padding: 2px;
-}
+import javafx.stage.Window;
 
-.button.icon:hover {
-  -fx-background-color: lavender;
-}
-
-.button.icon:pressed {
-  -fx-background-color: lightblue;
-}
-
-.button.open {
-  -fx-graphic: url('/icons/folder_icon_16.png');
-}
-
-.button.save {
-  -fx-graphic: url('/icons/disk_icon_16.png');
-}
-
-.button.compileToImportCommand {
-  -fx-graphic: url('/icons/command_block_icon_16.png');
-}
-
-.button.compileToStructure {
-  -fx-graphic: url('/icons/structure_block_load_16.png');
-}
-
-.button.compileToSchematic {
-  -fx-graphic: url('/icons/schematic_16.png');
-}
-
-.button.compileToCbse {
-  -fx-graphic: url('/icons/cbse_16.png');
-}
-
-.button.compileToMcedit {
-  -fx-graphic: url('/icons/mcedit_16.png');
+/**
+ * @author Adrodoc55
+ */
+public class JavaFxUtils {
+  public static void centerOnOwner(Window window, Window owner) {
+    window.setX(owner.getX() + owner.getWidth() / 2 - window.getWidth() / 2);
+    window.setY(owner.getY() + owner.getHeight() / 2 - window.getHeight() / 2);
+  }
 }

@@ -37,46 +37,45 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
+package de.adrodoc55.minecraft.mpl.ide.fx.dialog;
 
-.button.icon {
-  -fx-background-color: transparent;
-  -fx-border-color: transparent;
-  -fx-border-width: 0.0;
-  -fx-padding: 2px;
-}
+import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.control.TextArea;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.stage.Window;
 
-.button.icon:hover {
-  -fx-background-color: lavender;
-}
+/**
+ * @author Adrodoc55
+ */
+public class ImportCommandController {
+  @FXML
+  private Node root;
+  @FXML
+  private TextArea commandTextArea;
 
-.button.icon:pressed {
-  -fx-background-color: lightblue;
-}
+  @FXML
+  public void copyToClipboard() {
+    String command = commandTextArea.getText();
+    Clipboard clipboard = Clipboard.getSystemClipboard();
+    ClipboardContent content = new ClipboardContent();
+    content.putString(command);
+    clipboard.setContent(content);
+  }
 
-.button.open {
-  -fx-graphic: url('/icons/folder_icon_16.png');
-}
+  @FXML
+  public void copyAndClose() {
+    copyToClipboard();
+    close();
+  }
 
-.button.save {
-  -fx-graphic: url('/icons/disk_icon_16.png');
-}
-
-.button.compileToImportCommand {
-  -fx-graphic: url('/icons/command_block_icon_16.png');
-}
-
-.button.compileToStructure {
-  -fx-graphic: url('/icons/structure_block_load_16.png');
-}
-
-.button.compileToSchematic {
-  -fx-graphic: url('/icons/schematic_16.png');
-}
-
-.button.compileToCbse {
-  -fx-graphic: url('/icons/cbse_16.png');
-}
-
-.button.compileToMcedit {
-  -fx-graphic: url('/icons/mcedit_16.png');
+  @FXML
+  public void close() {
+    Window window = root.getScene().getWindow();
+    if (window instanceof ImportCommandDialog) {
+      ImportCommandDialog dialog = (ImportCommandDialog) window;
+      dialog.remove(root);
+    }
+  }
 }

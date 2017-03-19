@@ -40,9 +40,13 @@
 package de.adrodoc55.minecraft.mpl.ide.fx;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.List;
+
+import javax.annotation.Nullable;
 
 import org.eclipse.fx.core.event.EventBus;
 import org.eclipse.fx.core.event.SimpleEventBus;
@@ -53,7 +57,14 @@ import org.eclipse.fx.ui.controls.filesystem.ResourceTreeView;
 import org.eclipse.fx.ui.controls.filesystem.RootDirItem;
 
 import de.adrodoc55.commons.eclipse.DndTabPane;
+import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
+import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
+import de.adrodoc55.minecraft.mpl.ide.fx.dialog.ImportCommandDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.MplEditor;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringExpression;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -62,6 +73,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Window;
 
 /**
  * @author Adrodoc55
@@ -132,6 +144,17 @@ public class MplIdeController {
     return t;
   }
 
+  private @Nullable MplEditor getSelectedEditor() {
+    Tab tab = editorTabPane.getSelectionModel().getSelectedItem();
+    if (tab != null) {
+      Object userData = tab.getUserData();
+      if (userData instanceof MplEditorData) {
+        return ((MplEditorData) userData).getEditor();
+      }
+    }
+    return null;
+  }
+
   @FXML
   public void open() {
     DirectoryChooser chooser = new DirectoryChooser();
@@ -141,17 +164,26 @@ public class MplIdeController {
 
   @FXML
   public void save() {
-    Tab t = editorTabPane.getSelectionModel().getSelectedItem();
-    if (t != null) {
-      Object userData = t.getUserData();
-      if (userData instanceof MplEditorData) {
-        ((MplEditorData) userData).getEditor().save();
-      }
+    MplEditor editor = getSelectedEditor();
+    if (editor != null) {
+      editor.save();
     }
   }
 
   @FXML
-  public void compileToImportCommand() {}
+  public void compileToImportCommand() throws IOException, CompilationFailedException {
+    MplEditor editor = getSelectedEditor();
+    if (editor == null) {
+      return;
+    }
+    Window owner = fileExplorer.getScene().getWindow();
+    File file = editor.getFile();
+    MinecraftVersion version = MinecraftVersion.getDefault();
+    MplCompilationResult result = MplCompiler.compile(file, version, new CompilerOptions());
+    List<String> commands = CommandConverter.convert(result, version);
+    ImportCommandDialog dialog = new ImportCommandDialog(owner, commands);
+    dialog.showAndWait();
+  }
 
   @FXML
   public void compileToStructure() {}

@@ -43,10 +43,12 @@ import static javafx.scene.input.KeyCode.DIGIT7;
 import static javafx.scene.input.KeyCode.S;
 import static javafx.scene.input.KeyCombination.SHORTCUT_DOWN;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
 import org.eclipse.fx.code.editor.Input;
+import org.eclipse.fx.code.editor.LocalFile;
 import org.eclipse.fx.code.editor.LocalSourceFileInput;
 import org.eclipse.fx.code.editor.StringInput;
 import org.eclipse.fx.code.editor.fx.TextEditor;
@@ -87,6 +89,7 @@ import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Control;
@@ -99,6 +102,7 @@ import javafx.scene.layout.BorderPane;
  */
 public class MplEditor extends TextEditor {
   public static MplEditor create(Path path, BorderPane pane, EventBus eventBus) {
+    MplEditor editor = new MplEditor();
     StringInput input = new LocalSourceFileInput(path, StandardCharsets.UTF_8, eventBus);
 
     EditorContextMenuProvider contextMenuProvider = (Control styledText, Type type) -> {
@@ -108,11 +112,10 @@ public class MplEditor extends TextEditor {
     IDocument document = new InputDocument(input, eventBus);
     SourceViewerConfiguration configuration = createConfiguration(input, document, editingContext);
     IDocumentPartitioner partitioner = new MplPartitioner();
-    Property<Input<?>> activeInput = null;
+    Property<Input<?>> activeInput = editor.activeInput;
     @SuppressWarnings("unchecked")
     Property<Double> zoomFactor = (Property<Double>) (Property<?>) new SimpleDoubleProperty(1);
 
-    MplEditor editor = new MplEditor();
     editor.initUI(pane, eventBus, contextMenuProvider, contextInformationPresenter, editingContext,
         document, configuration, partitioner, input, activeInput, zoomFactor);
     return editor;
@@ -155,7 +158,8 @@ public class MplEditor extends TextEditor {
     }
   }
 
-  private final BooleanProperty modified = new SimpleBooleanProperty();
+  private final BooleanProperty modified = new SimpleBooleanProperty(this, "modified");
+  private final Property<Input<?>> activeInput = new SimpleObjectProperty<>(this, "activeInput");
   private final ModifiedListener modifiedListener = new ModifiedListener();
 
   public MplEditor() {
@@ -165,6 +169,12 @@ public class MplEditor extends TextEditor {
 
   public ReadOnlyBooleanProperty modifiedProperty() {
     return modified;
+  }
+
+  public File getFile() {
+    LocalFile localFile = (LocalFile) activeInput.getValue();
+    Path path = localFile.getPath();
+    return path.toFile();
   }
 
   @Override
