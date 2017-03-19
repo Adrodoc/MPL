@@ -49,7 +49,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="root" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.adrodoc55.minecraft.mpl.ide.fx.dialog.ImportCommandController">
+<VBox fx:id="root" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.adrodoc55.minecraft.mpl.ide.fx.dialog.multicontent.ImportCommandController">
    <children>
       <TextArea fx:id="commandTextArea" editable="false" minHeight="50.0" wrapText="true" VBox.vgrow="ALWAYS" />
       <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="NEVER">

@@ -396,17 +396,17 @@ public class MplFramePM extends AbstractPM {
   }
 
   /**
-   * Warn the User about any unsaved Resources, if there are any. Returns true if the User canceled
-   * the Action. <br>
+   * Warn the User about unsaved Resources, if there are any. Returns true if the User canceled the
+   * Action. <br>
    * This should be called like this:<br>
    *
-   * <pre>
    * <code>
+   * <pre>
    * if (warnAboutUnsavedResources()) {
    *   return;
    * }
-   * </code>
    * </pre>
+   * </code>
    *
    * @return canceled - whether or not the Action should be canceled.
    */

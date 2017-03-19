@@ -1,4 +1,4 @@
-package de.adrodoc55.minecraft.mpl.ide.fx.dialog;
+package de.adrodoc55.minecraft.mpl.ide.fx.dialog.options;
 
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DELETE_ON_UNINSTALL;
@@ -14,8 +14,11 @@ import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
 
 public class OptionsController {
+  @FXML
+  private Label minecraftVersionLabel;
   @FXML
   private ChoiceBox<MinecraftVersion> minecraftVersion;
   @FXML
@@ -26,7 +29,8 @@ public class OptionsController {
   private CheckBox debug;
 
   @FXML
-  public void initialize() {
+  private void initialize() {
+    minecraftVersionLabel.setLabelFor(minecraftVersion);
     minecraftVersion.getItems().addAll(MinecraftVersion.getValues());
   }
 

@@ -51,27 +51,27 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<DialogPane xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.adrodoc55.minecraft.mpl.ide.fx.dialog.OptionsController">
+<DialogPane xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.adrodoc55.minecraft.mpl.ide.fx.dialog.options.OptionsController">
    <content>
       <GridPane>
         <children>
-          <Label text="Minecraft Version:">
+          <Label fx:id="minecraftVersionLabel" mnemonicParsing="true" text="Minecraft _Version:">
             <GridPane.margin>
               <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
             </GridPane.margin>
           </Label>
           <ChoiceBox fx:id="minecraftVersion" prefWidth="150.0" GridPane.columnIndex="1" />
-          <CheckBox fx:id="debug" mnemonicParsing="false" text="Debug" GridPane.columnSpan="2" GridPane.rowIndex="3">
+          <CheckBox fx:id="debug" text="_Debug" GridPane.columnSpan="2" GridPane.rowIndex="3">
             <GridPane.margin>
               <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
             </GridPane.margin>
           </CheckBox>
-          <CheckBox fx:id="deleteOnUninstall" mnemonicParsing="false" text="Delete on Uninstall" GridPane.columnSpan="2" GridPane.rowIndex="2">
+          <CheckBox fx:id="deleteOnUninstall" text="Delete on _Uninstall" GridPane.columnSpan="2" GridPane.rowIndex="2">
             <GridPane.margin>
               <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
             </GridPane.margin>
           </CheckBox>
-          <CheckBox fx:id="useRedstoneBlocks" mnemonicParsing="false" text="Use Redstone Blocks" GridPane.columnSpan="2" GridPane.rowIndex="1">
+          <CheckBox fx:id="useRedstoneBlocks" text="Use _Redstone Blocks" GridPane.columnSpan="2" GridPane.rowIndex="1">
             <GridPane.margin>
               <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
             </GridPane.margin>

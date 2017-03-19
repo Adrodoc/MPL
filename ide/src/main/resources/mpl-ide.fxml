@@ -59,22 +59,22 @@
   <children>
     <MenuBar VBox.vgrow="NEVER">
       <menus>
-        <Menu mnemonicParsing="false" text="File">
+        <Menu text="_File">
           <items>
             <MenuItem mnemonicParsing="false" text="Close" />
           </items>
         </Menu>
-        <Menu mnemonicParsing="false" text="Edit">
+        <Menu text="_Edit">
           <items>
             <MenuItem mnemonicParsing="false" text="Delete" />
           </items>
         </Menu>
-            <Menu mnemonicParsing="false" text="Window">
+            <Menu text="_Window">
               <items>
                 <MenuItem mnemonicParsing="false" onAction="#options" text="Options" />
               </items>
             </Menu>
-        <Menu mnemonicParsing="false" text="Help">
+        <Menu text="_Help">
           <items>
             <MenuItem mnemonicParsing="false" text="About" />
           </items>
@@ -83,7 +83,7 @@
     </MenuBar>
     <ToolBar VBox.vgrow="NEVER">
       <items>
-        <Button contentDisplay="CENTER" onAction="#open">
+        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#open">
           <styleClass>
             <String fx:value="open" />
             <String fx:value="icon" />
@@ -92,7 +92,7 @@
               <Tooltip text="Select a new Root-Directory" />
           </tooltip>
         </Button>
-        <Button contentDisplay="CENTER" onAction="#save">
+        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#save">
           <styleClass>
             <String fx:value="save" />
             <String fx:value="icon" />
@@ -101,7 +101,7 @@
               <Tooltip text="Save the current File" />
           </tooltip>
         </Button>
-        <Button contentDisplay="CENTER" onAction="#compileToImportCommand">
+        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToImportCommand">
           <styleClass>
             <String fx:value="compileToImportCommand" />
             <String fx:value="icon" />
@@ -110,7 +110,7 @@
               <Tooltip text="Compile to Import-Command" />
           </tooltip>
         </Button>
-        <Button contentDisplay="CENTER" onAction="#compileToStructure">
+        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToStructure">
           <styleClass>
             <String fx:value="compileToStructure" />
             <String fx:value="icon" />
@@ -119,7 +119,7 @@
               <Tooltip text="Compile to Structure" />
           </tooltip>
         </Button>
-        <Button contentDisplay="CENTER" onAction="#compileToSchematic">
+        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToSchematic">
           <styleClass>
             <String fx:value="compileToSchematic" />
             <String fx:value="icon" />
@@ -128,7 +128,7 @@
               <Tooltip text="Compile to Schematic" />
           </tooltip>
         </Button>
-        <Button contentDisplay="CENTER" onAction="#compileToCbse">
+        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToCbse">
           <styleClass>
             <String fx:value="compileToCbse" />
             <String fx:value="icon" />
@@ -137,7 +137,7 @@
               <Tooltip text="Compile to Command Block Structure Editor File" />
           </tooltip>
         </Button>
-        <Button contentDisplay="CENTER" onAction="#compileToMcedit">
+        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToMcedit">
           <styleClass>
             <String fx:value="compileToMcedit" />
             <String fx:value="icon" />

@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.fx.dialog;
+package de.adrodoc55.minecraft.mpl.ide.fx.dialog.multicontent;
 
 import java.io.IOException;
 import java.util.List;

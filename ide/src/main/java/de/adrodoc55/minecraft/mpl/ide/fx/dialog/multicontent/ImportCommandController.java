@@ -37,22 +37,45 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.fx;
+package de.adrodoc55.minecraft.mpl.ide.fx.dialog.multicontent;
 
-import javafx.scene.control.Dialog;
+import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.control.TextArea;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.stage.Window;
 
 /**
  * @author Adrodoc55
  */
-public class JavaFxUtils {
-  public static void centerOnOwner(Window window, Window owner) {
-    window.setX(owner.getX() + owner.getWidth() / 2 - window.getWidth() / 2);
-    window.setY(owner.getY() + owner.getHeight() / 2 - window.getHeight() / 2);
+public class ImportCommandController {
+  @FXML
+  private Node root;
+  @FXML
+  private TextArea commandTextArea;
+
+  @FXML
+  public void copyToClipboard() {
+    String command = commandTextArea.getText();
+    Clipboard clipboard = Clipboard.getSystemClipboard();
+    ClipboardContent content = new ClipboardContent();
+    content.putString(command);
+    clipboard.setContent(content);
   }
 
-  public static void centerOnOwner(Dialog<?> dialog, Window owner) {
-    dialog.setX(owner.getX() + owner.getWidth() / 2 - dialog.getWidth() / 2);
-    dialog.setY(owner.getY() + owner.getHeight() / 2 - dialog.getHeight() / 2);
+  @FXML
+  public void copyAndClose() {
+    copyToClipboard();
+    close();
+  }
+
+  @FXML
+  public void close() {
+    Window window = root.getScene().getWindow();
+    if (window instanceof ImportCommandDialog) {
+      ImportCommandDialog dialog = (ImportCommandDialog) window;
+      dialog.remove(root);
+    }
   }
 }

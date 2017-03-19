@@ -46,9 +46,11 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import org.eclipse.fx.code.editor.fx.TextEditor;
 import org.eclipse.fx.core.event.EventBus;
 import org.eclipse.fx.core.event.SimpleEventBus;
 import org.eclipse.fx.ui.controls.filesystem.FileItem;
@@ -64,8 +66,9 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
 import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
-import de.adrodoc55.minecraft.mpl.ide.fx.dialog.ImportCommandDialog;
-import de.adrodoc55.minecraft.mpl.ide.fx.dialog.OptionsDialog;
+import de.adrodoc55.minecraft.mpl.ide.fx.dialog.multicontent.ImportCommandDialog;
+import de.adrodoc55.minecraft.mpl.ide.fx.dialog.options.OptionsDialog;
+import de.adrodoc55.minecraft.mpl.ide.fx.dialog.unsaved.UnsavedResourcesDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.MplEditor;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import javafx.beans.binding.Bindings;
@@ -110,7 +113,7 @@ public class MplIdeController {
   }
 
   @FXML
-  public void initialize() {
+  private void initialize() {
     fileExplorer.addEventHandler(ResourceEvent.openResourceEvent(),
         e -> openResources(e.getResourceItems()));
 
@@ -194,10 +197,66 @@ public class MplIdeController {
     }
   }
 
+  /**
+   * Warn the User about unsaved Resources, if there are any. Returns true if the User canceled the
+   * Action. <br>
+   * This should be called like this:<br>
+   *
+   * <code>
+   * <pre>
+   * if (warnAboutUnsavedResources()) {
+   *   return;
+   * }
+   * </pre>
+   * </code>
+   *
+   * @return canceled - whether or not the Action should be canceled.
+   */
+  public boolean warnAboutUnsavedResources() {
+    List<Path> unsavedResources = editorTabPane.getTabs().stream()//
+        .map(Tab::getUserData)//
+        .filter(MplEditorData.class::isInstance)//
+        .map(MplEditorData.class::cast)//
+        .filter(it -> it.getEditor().modifiedProperty().get())//
+        .map(MplEditorData::getPath)//
+        .collect(Collectors.toList());
+
+    if (unsavedResources.isEmpty()) {
+      return false;
+    }
+
+    UnsavedResourcesDialog dialog = new UnsavedResourcesDialog(getWindow(), unsavedResources);
+    Optional<Collection<Path>> resourcesToSave = dialog.showAndWait();
+    if (resourcesToSave.isPresent()) {
+      for (Path resourceToSave : resourcesToSave.get()) {
+        Optional<? extends TextEditor> editor = getEditor(resourceToSave);
+        if (editor.isPresent()) {
+          editor.get().save();
+        }
+      }
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  private Optional<? extends TextEditor> getEditor(Path path) {
+    return editorTabPane.getTabs().stream()//
+        .map(Tab::getUserData)//
+        .filter(MplEditorData.class::isInstance)//
+        .map(MplEditorData.class::cast)//
+        .filter(it -> it.getPath().equals(path))//
+        .map(it -> it.getEditor())//
+        .findFirst();
+  }
+
   @FXML
   public void compileToImportCommand() throws IOException, CompilationFailedException {
     MplEditor editor = getSelectedEditor();
     if (editor == null) {
+      return;
+    }
+    if (warnAboutUnsavedResources()) {
       return;
     }
     Window owner = getWindow();

@@ -37,52 +37,60 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.fx.dialog;
+package de.adrodoc55.minecraft.mpl.ide.fx.dialog.unsaved;
 
-import static java.util.Objects.requireNonNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.IOException;
+import java.nio.file.Path;
 
-import javax.annotation.Nullable;
-
-import de.adrodoc55.minecraft.mpl.ide.fx.MplOptions;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.control.ButtonBar.ButtonData;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.DialogPane;
-import javafx.stage.Modality;
-import javafx.stage.Window;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 /**
  * @author Adrodoc55
  */
-public class OptionsDialog extends Dialog<MplOptions> {
-  private OptionsController controller;
+public class UnsavedResource {
+  private final BooleanProperty save = new SimpleBooleanProperty(this, "save", true);
+  private final StringProperty name = new SimpleStringProperty(this, "name");
+  private final Path path;
 
-  public OptionsDialog(Window owner, MplOptions oldOptions) {
-    initOwner(owner);
-    initModality(Modality.WINDOW_MODAL);
-    setTitle("Options");
-
-    FXMLLoader loader = new FXMLLoader(getClass().getResource("/dialog/options.fxml"));
-    DialogPane root;
-    try {
-      root = loader.load();
-      controller = requireNonNull(loader.getController(), "constroller == null!");
-      controller.initialize(oldOptions);
-    } catch (IOException ex) {
-      throw new IllegalStateException("Unable to load FXML file", ex);
-    }
-    root.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-    setDialogPane(root);
-    setResultConverter(this::convertResult);
+  public UnsavedResource(Path path) {
+    this.path = checkNotNull(path, "path == null!");
+    setName(path.getFileName().toString());
   }
 
-  private @Nullable MplOptions convertResult(ButtonType b) {
-    if (ButtonData.OK_DONE.equals(b.getButtonData())) {
-      return controller.getMplOptions();
-    }
-    return null;
+  public final BooleanProperty saveProperty() {
+    return save;
+  }
+
+  public final boolean isSave() {
+    return saveProperty().get();
+  }
+
+  public final void setSave(boolean save) {
+    saveProperty().set(save);
+  }
+
+  public final StringProperty nameProperty() {
+    return name;
+  }
+
+  public final String getName() {
+    return nameProperty().get();
+  }
+
+  public final void setName(String name) {
+    nameProperty().set(name);
+  }
+
+  public Path getPath() {
+    return path;
+  }
+
+  @Override
+  public String toString() {
+    return "UnsavedResource [save=" + isSave() + ", path=" + path + "]";
   }
 }
