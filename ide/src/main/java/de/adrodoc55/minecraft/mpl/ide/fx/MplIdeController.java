@@ -39,12 +39,16 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.fx;
 
+import static javafx.scene.control.Alert.AlertType.CONFIRMATION;
+
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -77,11 +81,19 @@ import javafx.beans.binding.StringExpression;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
@@ -97,9 +109,13 @@ public class MplIdeController {
   @FXML
   private DndTabPane editorTabPane;
 
+  private RootDirItem rootDir;
   @FXML
   private ResourceTreeView fileExplorer;
-  private RootDirItem rootDir;
+  @FXML
+  private MenuItem newFileMenuItem;
+  @FXML
+  private MenuItem newDirectoryMenuItem;
 
   private MplOptions options = new MplOptions(//
       MinecraftVersion.getDefault(), //
@@ -167,6 +183,133 @@ public class MplIdeController {
     Optional<MplOptions> result = dialog.showAndWait();
     if (result.isPresent()) {
       options = result.get();
+    }
+  }
+
+  @FXML
+  public void showResourceContextMenu(WindowEvent e) {
+    ObservableList<ResourceItem> items = fileExplorer.getSelectedItems();
+    if (items.size() > 1) {
+      newFileMenuItem.setDisable(true);
+      newDirectoryMenuItem.setDisable(true);
+    } else {
+      newFileMenuItem.setDisable(false);
+      newDirectoryMenuItem.setDisable(false);
+    }
+  }
+
+  @FXML
+  public void newFile() {
+    ObservableList<ResourceItem> items = fileExplorer.getSelectedItems();
+    Iterator<ResourceItem> it = items.iterator();
+    if (it.hasNext()) {
+      ResourceItem first = it.next();
+      File dir = getDirectory(first);
+      try {
+        new File(dir, "new123.mpl").createNewFile();
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
+  }
+
+  private File getDirectory(ResourceItem item) {
+    Path path = (Path) item.getNativeResourceObject();
+    File dir = path.toFile();
+    if (!dir.isDirectory()) {
+      dir = dir.getParentFile();
+    }
+    return dir;
+  }
+
+  @FXML
+  public void newDirectory() {
+
+  }
+
+  @FXML
+  public void deleteResources() {
+    ObservableList<ResourceItem> items = fileExplorer.getSelectedItems();
+
+    int itemSize = items.size();
+    String message = "Are you sure you want to delete ";
+    if (itemSize == 1) {
+      message += "'" + items.get(0).getName() + "'";
+    } else {
+      message += "these " + itemSize + " files";
+    }
+    message += "?";
+    Alert alert = new Alert(CONFIRMATION, message, ButtonType.YES, ButtonType.NO);
+    alert.setHeaderText(null);
+    Optional<ButtonType> result = alert.showAndWait();
+
+    if (result.isPresent() && ButtonData.YES.equals(result.get().getButtonData())) {
+      for (ResourceItem item : items) {
+        Path path = (Path) item.getNativeResourceObject();
+        try {
+          Files.delete(path);
+        } catch (IOException ex) {
+          ex.printStackTrace();
+        }
+      }
+    }
+  }
+
+  @FXML
+  public void cutResources() {
+    copyResources(true);
+  }
+
+  @FXML
+  public void copyResources() {
+    copyResources(false);
+  }
+
+  private static DataFormat CUT = new DataFormat("application/cut");
+
+  private void copyResources(boolean cut) {
+    Clipboard clipboard = Clipboard.getSystemClipboard();
+    ClipboardContent content = new ClipboardContent();
+    List<File> files = fileExplorer.getSelectedItems().stream()//
+        .map(it -> ((Path) it.getNativeResourceObject()).toFile())//
+        .collect(Collectors.toList());
+    content.putFiles(files);
+    content.put(CUT, cut);
+    clipboard.setContent(content);
+  }
+
+  @FXML
+  public void pasteResources() {
+    ObservableList<ResourceItem> items = fileExplorer.getSelectedItems();
+
+
+    Iterator<ResourceItem> it = items.iterator();
+    if (it.hasNext()) {
+      ResourceItem first = it.next();
+      Path targetDir = getDirectory(first).toPath();
+
+      Clipboard clipboard = Clipboard.getSystemClipboard();
+      List<File> files = clipboard.getFiles();
+      Object cut = clipboard.getContent(CUT);
+      if (cut instanceof Boolean && ((Boolean) cut).booleanValue()) {
+        for (File file : files) {
+          try {
+            Files.move(file.toPath(), targetDir.resolve(file.getName()));
+          } catch (IOException ex) {
+            ex.printStackTrace();
+          }
+        }
+      } else {
+        for (File file : files) {
+          try {
+            Files.copy(file.toPath(), targetDir.resolve(file.getName()));
+          } catch (IOException ex) {
+            ex.printStackTrace();
+          }
+        }
+      }
+      rootDir.refresh();
     }
   }
 
@@ -338,4 +481,5 @@ public class MplIdeController {
 
   @FXML
   public void compileToMcedit() {}
+
 }

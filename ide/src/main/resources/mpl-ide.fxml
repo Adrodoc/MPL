@@ -46,6 +46,7 @@
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
@@ -69,11 +70,11 @@
             <MenuItem mnemonicParsing="false" text="Delete" />
           </items>
         </Menu>
-            <Menu text="_Window">
-              <items>
-                <MenuItem mnemonicParsing="false" onAction="#options" text="Options" />
-              </items>
-            </Menu>
+        <Menu text="_Window">
+          <items>
+            <MenuItem onAction="#options" text="_Options" />
+          </items>
+        </Menu>
         <Menu text="_Help">
           <items>
             <MenuItem mnemonicParsing="false" text="About" />
@@ -89,7 +90,7 @@
             <String fx:value="icon" />
           </styleClass>
           <tooltip>
-              <Tooltip text="Select a new Root-Directory" />
+            <Tooltip text="Select a new Root-Directory" />
           </tooltip>
         </Button>
         <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#save">
@@ -98,7 +99,7 @@
             <String fx:value="icon" />
           </styleClass>
           <tooltip>
-              <Tooltip text="Save the current File" />
+            <Tooltip text="Save the current File" />
           </tooltip>
         </Button>
         <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToImportCommand">
@@ -107,7 +108,7 @@
             <String fx:value="icon" />
           </styleClass>
           <tooltip>
-              <Tooltip text="Compile to Import-Command" />
+            <Tooltip text="Compile to Import-Command" />
           </tooltip>
         </Button>
         <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToStructure">
@@ -116,7 +117,7 @@
             <String fx:value="icon" />
           </styleClass>
           <tooltip>
-              <Tooltip text="Compile to Structure" />
+            <Tooltip text="Compile to Structure" />
           </tooltip>
         </Button>
         <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToSchematic">
@@ -125,7 +126,7 @@
             <String fx:value="icon" />
           </styleClass>
           <tooltip>
-              <Tooltip text="Compile to Schematic" />
+            <Tooltip text="Compile to Schematic" />
           </tooltip>
         </Button>
         <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToCbse">
@@ -134,7 +135,7 @@
             <String fx:value="icon" />
           </styleClass>
           <tooltip>
-              <Tooltip text="Compile to Command Block Structure Editor File" />
+            <Tooltip text="Compile to Command Block Structure Editor File" />
           </tooltip>
         </Button>
         <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToMcedit">
@@ -143,7 +144,7 @@
             <String fx:value="icon" />
           </styleClass>
           <tooltip>
-              <Tooltip text="Compile to MCEdit Filter" />
+            <Tooltip text="Compile to MCEdit Filter" />
           </tooltip>
         </Button>
       </items>
@@ -153,7 +154,20 @@
     </ToolBar>
     <SplitPane dividerPositions="0.3" VBox.vgrow="ALWAYS">
       <items>
-        <ResourceTreeView fx:id="fileExplorer" />
+        <ResourceTreeView fx:id="fileExplorer">
+          <contextMenu>
+            <ContextMenu onShowing="#showResourceContextMenu">
+              <items>
+                <MenuItem fx:id="newFileMenuItem" onAction="#newFile" text="New _File" />
+                <MenuItem fx:id="newDirectoryMenuItem" mnemonicParsing="false" onAction="#newDirectory" text="New Directory" />
+                <MenuItem onAction="#deleteResources" text="_Delete" />
+                <MenuItem onAction="#cutResources" text="C_ut" />
+                <MenuItem onAction="#copyResources" text="_Copy" />
+                <MenuItem onAction="#pasteResources" text="_Paste" />
+              </items>
+            </ContextMenu>
+          </contextMenu>
+        </ResourceTreeView>
         <DndTabPane fx:id="editorTabPane" tabClosingPolicy="ALL_TABS" />
       </items>
     </SplitPane>
