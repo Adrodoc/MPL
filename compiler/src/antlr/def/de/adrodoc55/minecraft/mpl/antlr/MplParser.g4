@@ -46,8 +46,8 @@ parser grammar MplParser;
  file
  :
    (
-     scriptFile
-     | projectFile
+     projectFile
+     | scriptFile
    ) EOF
  ;
 
