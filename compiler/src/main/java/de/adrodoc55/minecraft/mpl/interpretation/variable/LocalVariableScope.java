@@ -37,11 +37,49 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.interpretation;
+package de.adrodoc55.minecraft.mpl.interpretation.variable;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import javax.annotation.Nullable;
+
+import de.adrodoc55.minecraft.mpl.ast.variable.MplVariable;
 
 /**
  * @author Adrodoc55
  */
-public class DuplicateVariableException extends Exception {
-  private static final long serialVersionUID = 1L;
+public class LocalVariableScope extends AbstractVariableScope {
+  private final VariableScope parent;
+
+  public LocalVariableScope(VariableScope parent) {
+    this.parent = checkNotNull(parent, "parent == null!");
+    parent.addChildren(this);
+  }
+
+  @Override
+  public VariableScope getParent() {
+    return parent;
+  }
+
+  @Override
+  public boolean mayChildDeclareLocalVariable(String identifier) {
+    return mayDeclareVariable(identifier);
+  }
+
+  @Override
+  public boolean mayDeclareVariable(String identifier) {
+    return super.mayDeclareVariable(identifier) && parent.mayChildDeclareLocalVariable(identifier);
+  }
+
+  @Override
+  public @Nullable MplVariable<?> findVariable(String identifier) {
+    MplVariable<?> result = super.findVariable(identifier);
+    if (result != null) {
+      return result;
+    }
+    if (parent != null) {
+      return parent.findVariable(identifier);
+    }
+    return null;
+  }
 }

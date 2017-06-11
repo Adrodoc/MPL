@@ -55,8 +55,8 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter;
-import de.adrodoc55.minecraft.mpl.interpretation.VariableScope;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.GlobalVariableInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.variable.GlobalVariableScope;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -76,7 +76,7 @@ public class MplGlobalVariableReference extends MplReference {
   private @Nonnull MplCompilerContext context;
 
   public MplGlobalVariableReference(@Nullable String fileNameWithoutExtension, String identifier,
-      GlobalVariableInsert insert, MplCompilerContext context, Set<File> imports, MplSource source)
+      GlobalVariableInsert insert, Set<File> imports, MplSource source, MplCompilerContext context)
       throws IllegalArgumentException {
     super(imports, source);
     setFileNameWithoutExtension(fileNameWithoutExtension);
@@ -102,7 +102,7 @@ public class MplGlobalVariableReference extends MplReference {
 
   @Override
   public void resolve(MplInterpreter interpreter) {
-    VariableScope scope = interpreter.getRootVariableScope();
+    GlobalVariableScope scope = interpreter.getRootVariableScope();
     MplVariable<?> variable = scope.findVariable(identifier);
     if (variable != null) {
       try {

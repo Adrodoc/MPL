@@ -77,11 +77,11 @@ public class MplProcessReference extends MplReference {
    * @param processName the name of the referenced process
    * @param imports the imported files that are expected to contain the process
    * @param source the source that requires {@code this} reference
+   * @param context the {@link MplCompilerContext}
    * @throws IllegalArgumentException if one of the {@code imports} is not a file
    */
-  public MplProcessReference(@Nonnull String processName, MplCompilerContext context,
-      @Nonnull Collection<File> imports, @Nonnull MplSource source)
-      throws IllegalArgumentException {
+  public MplProcessReference(@Nonnull String processName, @Nonnull Collection<File> imports,
+      @Nonnull MplSource source, MplCompilerContext context) throws IllegalArgumentException {
     super(imports, source);
     this.processName = checkNotNull(processName, "processName == null!");
     this.context = checkNotNull(context, "context == null!");

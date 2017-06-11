@@ -37,10 +37,9 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.interpretation;
+package de.adrodoc55.minecraft.mpl.interpretation.variable;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -49,40 +48,54 @@ import de.adrodoc55.minecraft.mpl.ast.variable.MplVariable;
 /**
  * @author Adrodoc55
  */
-public class VariableScope {
-  private final @Nullable VariableScope parent;
-  private final Map<String, MplVariable<?>> variables = new HashMap<>();
+public interface VariableScope {
+  /**
+   * Return the parent {@link VariableScope} or {@code null} if this {@link VariableScope} has no
+   * parent. Note that a {@link GlobalVariableScope} never has a parent whereas a
+   * {@link LocalVariableScope} always has one.
+   *
+   * @return the parent {@link VariableScope} or {@code null}
+   */
+  @Nullable
+  VariableScope getParent();
 
-  public VariableScope(@Nullable VariableScope parent) {
-    this.parent = parent;
-  }
+  List<LocalVariableScope> getChildren();
 
-  public @Nullable VariableScope getParent() {
-    return parent;
-  }
+  void addChildren(LocalVariableScope child);
 
-  public void declareVariable(MplVariable<?> variable) throws DuplicateVariableException {
-    if (findVariable(variable.getIdentifier()) != null) {
-      throw new DuplicateVariableException();
-    }
-    variables.put(variable.getIdentifier(), variable);
-  }
+  /**
+   * Return whether or not a {@link #getChildren() child} may declare a local {@link MplVariable}
+   * with the specified {@code identifier}.
+   *
+   * @param localVariable the local {@link MplVariable}
+   * @return whether or not a {@link #getChildren() child} may declare a local {@link MplVariable}
+   *         with the specified {@code identifier}
+   */
+  boolean mayChildDeclareLocalVariable(String identifier);
+
+  /**
+   * Declares the specified {@link MplVariable} in {@code this} {@link VariableScope}.
+   * <p>
+   * If {@code this} is a {@link LocalVariableScope} then the {@link MplVariable} may only be
+   * declared if {@code this} and no parent {@link LocalVariableScope} has already declared an
+   * {@link MplVariable} with the same {@link MplVariable#getIdentifier() identifier}.
+   * <p>
+   * If {@code this} is a {@link GlobalVariableScope} there is no parent, so the {@link MplVariable}
+   * may be declared if and only if no {@link MplVariable} with the same
+   * {@link MplVariable#getIdentifier() identifier} has already been declared in {@code this}
+   * {@link GlobalVariableScope}.
+   *
+   * @param variable the {@link MplVariable} to declare in this {@link VariableScope}
+   * @throws DuplicateVariableException
+   */
+  void declareVariable(MplVariable<?> variable) throws DuplicateVariableException;
 
   /**
    * Return the {@link MplVariable} with the specified {@code identifier} or {@code null}, if this
-   * {@link VariableScope} and non of the parant scopes contain such a variable.
+   * {@link VariableScope} and non of the parent scopes contain such a variable.
    *
    * @param identifier
    * @return the {@link MplVariable} with the specified {@code identifier} or {@code null}.
    */
-  public @Nullable MplVariable<?> findVariable(String identifier) {
-    MplVariable<?> result = variables.get(identifier);
-    if (result != null) {
-      return result;
-    }
-    if (parent != null) {
-      return parent.findVariable(identifier);
-    }
-    return null;
-  }
+  MplVariable<?> findVariable(String identifier);
 }

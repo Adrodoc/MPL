@@ -15,7 +15,9 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram
 import de.adrodoc55.minecraft.mpl.ast.variable.MplIntegerVariable
+import de.adrodoc55.minecraft.mpl.ast.variable.MplSelectorVariable
 import de.adrodoc55.minecraft.mpl.ast.variable.MplStringVariable
+import de.adrodoc55.minecraft.mpl.ast.variable.MplValueVariable
 import de.adrodoc55.minecraft.mpl.ast.variable.MplVariable
 import de.adrodoc55.minecraft.mpl.ast.variable.selector.TargetSelector
 import de.adrodoc55.minecraft.mpl.ast.variable.type.MplType;
@@ -23,7 +25,7 @@ import de.adrodoc55.minecraft.mpl.ast.variable.value.MplScoreboardValue
 import de.adrodoc55.minecraft.mpl.ast.variable.value.MplValue
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption
 import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter
-import de.adrodoc55.minecraft.mpl.interpretation.VariableScope
+import de.adrodoc55.minecraft.mpl.interpretation.variable.VariableScope
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion
 import spock.lang.Unroll;
 
@@ -164,6 +166,26 @@ public class MplVariableSpec extends MplSpecBase {
   }
 
   @Test
+  public void "Declaring a global and a local variable with the same name"() {
+    given:
+    String id = some($Identifier())
+    String programString = """
+    Integer ${id} = ${some($int())}
+    impulse process main {
+      Integer ${id} = ${some($int())}
+    }
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+    interpreter.rootVariableScope.variables.containsKey(id)
+    interpreter.rootVariableScope.children[0].variables.containsKey(id)
+  }
+
+  @Test
   public void "Declaring a global Integer variable"() {
     given:
     String id = some($Identifier())
@@ -180,7 +202,7 @@ public class MplVariableSpec extends MplSpecBase {
     lastContext.errors.isEmpty()
 
     VariableScope scope = interpreter.rootVariableScope
-    MplIntegerVariable variable = scope.findVariable(id)
+    MplIntegerVariable variable = scope.variables[id]
     variable != null
     variable.value == value
   }
@@ -646,16 +668,62 @@ public class MplVariableSpec extends MplSpecBase {
     Integer ${id} = ${some($int())}
     Integer ${id} = ${some($int())}
     """
-  
+
     when:
     MplInterpreter interpreter = interpret(programString)
-  
+
     then:
     lastContext.errors[0].message == "Duplicate variable ${id}"
     lastContext.errors[0].source.file == lastTempFile
     lastContext.errors[0].source.text == id
     lastContext.errors[0].source.lineNumber == 3
     lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Declaring a duplicate local script variable in two nested scopes"() {
+    given:
+    String id = some($Identifier())
+    String programString = """
+      Integer ${id} = ${some($int())}
+      if: /testfor @p
+      then {
+        Integer ${id} = ${some($int())}
+      }
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors[0].message == "Duplicate variable ${id}"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 5
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Declaring the same local script variable in two different scopes"() {
+    given:
+    String id = some($Identifier())
+    String programString = """
+      if: /testfor @p
+      then {
+        Integer ${id} = ${some($int())}
+      } else {
+        Integer ${id} = ${some($int())}
+      }
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+    interpreter.rootVariableScope.variables.isEmpty()
+    interpreter.rootVariableScope.children[0].variables.containsKey(id)
+    interpreter.rootVariableScope.children[1].variables.containsKey(id)
   }
 
   @Test
@@ -666,13 +734,13 @@ public class MplVariableSpec extends MplSpecBase {
     String programString = """
     Integer ${id} = ${value}
     """
-  
+
     when:
     MplInterpreter interpreter = interpret(programString)
-  
+
     then:
     lastContext.errors.isEmpty()
-  
+
     VariableScope scope = interpreter.rootVariableScope
     MplIntegerVariable variable = scope.findVariable(id)
     variable != null
@@ -687,13 +755,13 @@ public class MplVariableSpec extends MplSpecBase {
     String programString = """
     Selector ${id} = ${value}
     """
-  
+
     when:
     MplInterpreter interpreter = interpret(programString)
-  
+
     then:
     lastContext.errors.isEmpty()
-  
+
     VariableScope scope = interpreter.rootVariableScope
     MplVariable<TargetSelector> variable = scope.findVariable(id)
     variable != null
@@ -709,13 +777,13 @@ public class MplVariableSpec extends MplSpecBase {
     String programString = """
     String ${id} = "${value}"
     """
-  
+
     when:
     MplInterpreter interpreter = interpret(programString)
-  
+
     then:
     lastContext.errors.isEmpty()
-  
+
     VariableScope scope = interpreter.rootVariableScope
     MplStringVariable variable = scope.findVariable(id)
     variable != null
@@ -731,13 +799,13 @@ public class MplVariableSpec extends MplSpecBase {
     String programString = """
     Value ${id} = ${selector} ${scoreboard}
     """
-  
+
     when:
     MplInterpreter interpreter = interpret(programString)
-  
+
     then:
     lastContext.errors.isEmpty()
-  
+
     VariableScope scope = interpreter.rootVariableScope
     MplVariable<MplValue> variable = scope.findVariable(id)
     variable != null
@@ -756,16 +824,16 @@ public class MplVariableSpec extends MplSpecBase {
     Integer ${id} = ${value}
     /say The value is \${${id}}!
     """
-  
+
     when:
     MplProgram program = assembleProgram(programString)
-  
+
     then:
     lastContext.errors.isEmpty()
-  
+
     program.processes.size() == 1
     MplProcess process = program.processes.first()
-  
+
     MplCommand command =  process.chainParts[0]
     command.commandParts.join() == "say The value is ${value}!"
     process.chainParts.size() == 1
@@ -780,16 +848,16 @@ public class MplVariableSpec extends MplSpecBase {
     Selector ${id} = ${value}
     /say The value is \${${id}}!
     """
-  
+
     when:
     MplProgram program = assembleProgram(programString)
-  
+
     then:
     lastContext.errors.isEmpty()
-  
+
     program.processes.size() == 1
     MplProcess process = program.processes.first()
-  
+
     MplCommand command =  process.chainParts[0]
     command.commandParts.join() == "say The value is ${value}!"
     process.chainParts.size() == 1
@@ -804,16 +872,16 @@ public class MplVariableSpec extends MplSpecBase {
     String ${id} = "${value}"
     /say The value is \${${id}}!
     """
-  
+
     when:
     MplProgram program = assembleProgram(programString)
-  
+
     then:
     lastContext.errors.isEmpty()
-  
+
     program.processes.size() == 1
     MplProcess process = program.processes.first()
-  
+
     MplCommand command =  process.chainParts[0]
     command.commandParts.join() == "say The value is ${value}!"
     process.chainParts.size() == 1
@@ -829,10 +897,10 @@ public class MplVariableSpec extends MplSpecBase {
     Value ${id} = ${selector} ${scoreboard}
     /say The value is \${${id}}!
     """
-  
+
     when:
     MplProgram program = assembleProgram(programString)
-  
+
     then:
     lastContext.errors[0].message == "The variable '${id}' of type Value cannot be inserted"
     lastContext.errors[0].source.file == lastTempFile
@@ -848,10 +916,10 @@ public class MplVariableSpec extends MplSpecBase {
     String programString = """
     /say The value is \${${id}}!
     """
-  
+
     when:
     assembleProgram(programString)
-  
+
     then:
     lastContext.errors[0].message == "${id} cannot be resolved to a variable"
     lastContext.errors[0].source.file == lastTempFile
@@ -883,6 +951,57 @@ public class MplVariableSpec extends MplSpecBase {
   }
 
   @Test
+  public void "Declaring a duplicate local variable in two nested scopes"() {
+    given:
+    String id = some($Identifier())
+    String programString = """
+    impulse process main {
+      Integer ${id} = ${some($int())}
+      if: /testfor @p
+      then {
+        Integer ${id} = ${some($int())}
+      }
+    }
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors[0].message == "Duplicate variable ${id}"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == id
+    lastContext.errors[0].source.lineNumber == 6
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Declaring the same local variable in two different scopes"() {
+    given:
+    String id = some($Identifier())
+    String programString = """
+    impulse process main {
+      if: /testfor @p
+      then {
+        Integer ${id} = ${some($int())}
+      } else {
+        Integer ${id} = ${some($int())}
+      }
+    }
+    """
+
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors.isEmpty()
+    interpreter.rootVariableScope.variables.isEmpty()
+    VariableScope processScope = interpreter.rootVariableScope.children[0]
+    processScope.children[0].variables.containsKey(id)
+    processScope.children[1].variables.containsKey(id)
+  }
+
+  @Test
   public void "Declaring a local Integer variable does not put it into the rootVariableScope"() {
     given:
     String id = some($Identifier())
@@ -899,6 +1018,9 @@ public class MplVariableSpec extends MplSpecBase {
     then:
     lastContext.errors.isEmpty()
     interpreter.rootVariableScope.variables.isEmpty()
+    MplIntegerVariable variable = interpreter.rootVariableScope.children[0].variables[id]
+    variable != null
+    variable.value == value
   }
 
   @Test
@@ -918,6 +1040,9 @@ public class MplVariableSpec extends MplSpecBase {
     then:
     lastContext.errors.isEmpty()
     interpreter.rootVariableScope.variables.isEmpty()
+    MplSelectorVariable variable = interpreter.rootVariableScope.children[0].variables[id]
+    variable != null
+    variable.value.toString() == value
   }
 
   @Test
@@ -937,6 +1062,9 @@ public class MplVariableSpec extends MplSpecBase {
     then:
     lastContext.errors.isEmpty()
     interpreter.rootVariableScope.variables.isEmpty()
+    MplStringVariable variable = interpreter.rootVariableScope.children[0].variables[id]
+    variable != null
+    variable.value == value
   }
 
   @Test
@@ -956,7 +1084,10 @@ public class MplVariableSpec extends MplSpecBase {
 
     then:
     lastContext.errors.isEmpty()
-    interpreter.rootVariableScope.variables.isEmpty()
+    MplValueVariable variable = interpreter.rootVariableScope.children[0].variables[id]
+    variable != null
+    variable.value.selector.toString() == selector
+    variable.value.scoreboard == scoreboard
   }
 
   @Test

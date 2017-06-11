@@ -144,6 +144,10 @@ import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer.ChainPartBuffer
 import de.adrodoc55.minecraft.mpl.interpretation.insert.GlobalVariableInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeOriginInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
+import de.adrodoc55.minecraft.mpl.interpretation.variable.DuplicateVariableException;
+import de.adrodoc55.minecraft.mpl.interpretation.variable.GlobalVariableScope;
+import de.adrodoc55.minecraft.mpl.interpretation.variable.LocalVariableScope;
+import de.adrodoc55.minecraft.mpl.interpretation.variable.VariableScope;
 
 /**
  * @author Adrodoc55
@@ -240,11 +244,11 @@ public class MplInterpreter extends MplParserBaseListener {
     return new MplSource(programFile, line, ctx);
   }
 
-  private VariableScope rootVariableScope = new VariableScope(null);
+  private GlobalVariableScope rootVariableScope = new GlobalVariableScope();
 
   private VariableScope currentVariableScope = rootVariableScope;
 
-  public VariableScope getRootVariableScope() {
+  public GlobalVariableScope getRootVariableScope() {
     return rootVariableScope;
   }
 
@@ -253,7 +257,7 @@ public class MplInterpreter extends MplParserBaseListener {
   }
 
   private void pushVariableScope() {
-    currentVariableScope = new VariableScope(currentVariableScope);
+    currentVariableScope = new LocalVariableScope(currentVariableScope);
   }
 
   private void popVariableScope() {
@@ -649,7 +653,7 @@ public class MplInterpreter extends MplParserBaseListener {
     MplSource source =
         toSource(ctx.INSERT_IDENTIFIER(0), ctx.INSERT_DOT(), ctx.INSERT_IDENTIFIER(1));
     references.put(srcProcess, new MplGlobalVariableReference(fileNameWithoutExtension, identifier,
-        insert, context, imports, source));
+        insert, imports, source, context));
     commandPartBuffer.add(insert);
   }
 
@@ -684,7 +688,7 @@ public class MplInterpreter extends MplParserBaseListener {
       return;
     }
     String srcProcess = this.process != null ? this.process.getName() : null;
-    references.put(srcProcess, new MplProcessReference(process, context, imports, source));
+    references.put(srcProcess, new MplProcessReference(process, imports, source, context));
   }
 
   private String toSelector(String text) {
@@ -719,7 +723,7 @@ public class MplInterpreter extends MplParserBaseListener {
       }
 
       String srcProcess = this.process != null ? this.process.getName() : null;
-      references.put(srcProcess, new MplProcessReference(process, context, imports, source));
+      references.put(srcProcess, new MplProcessReference(process, imports, source, context));
     }
   }
 

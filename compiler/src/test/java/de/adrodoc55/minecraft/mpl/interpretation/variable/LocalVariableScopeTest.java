@@ -37,20 +37,21 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.interpretation;
+package de.adrodoc55.minecraft.mpl.interpretation.variable;
 
 import org.junit.Test;
 
 import de.adrodoc55.minecraft.mpl.MplTestBase;
 import de.adrodoc55.minecraft.mpl.ast.variable.MplVariable;
 
-public class VariableScopeTest extends MplTestBase {
+public class LocalVariableScopeTest extends MplTestBase {
 
   @Test
   public void test_declareVariable__Throws_Exception_for_two_Variables_with_the_same_Identifier()
       throws Exception {
     // given:
-    VariableScope underTest = new VariableScope(null);
+    GlobalVariableScope root = new GlobalVariableScope();
+    LocalVariableScope underTest = new LocalVariableScope(root);
     String identifier = some($Identifier());
 
     underTest.declareVariable(some($MplVariable().withIdentifier(identifier)));
@@ -68,11 +69,12 @@ public class VariableScopeTest extends MplTestBase {
   }
 
   @Test
-  public void test_declareVariable__Throws_Exception_when_there_is_already_a_Variable_in_Parent()
+  public void test_declareVariable__Throws_Exception_when_Variable_is_already_defined_in_Parent_Local_VariableScope()
       throws Exception {
     // given:
-    VariableScope parent = new VariableScope(null);
-    VariableScope underTest = new VariableScope(parent);
+    GlobalVariableScope root = new GlobalVariableScope();
+    LocalVariableScope parent = new LocalVariableScope(root);
+    LocalVariableScope underTest = new LocalVariableScope(parent);
     String identifier = some($Identifier());
 
     parent.declareVariable(some($MplVariable().withIdentifier(identifier)));
@@ -90,9 +92,27 @@ public class VariableScopeTest extends MplTestBase {
   }
 
   @Test
-  public void test_findVariable__Returns_correct_Variable() throws Exception {
+  public void test_declareVariable__Works_when_Variable_is_already_defined_in_Parent_Global_VariableScope()
+      throws Exception {
     // given:
-    VariableScope underTest = new VariableScope(null);
+    GlobalVariableScope parent = new GlobalVariableScope();
+    LocalVariableScope underTest = new LocalVariableScope(parent);
+    String identifier = some($Identifier());
+
+    parent.declareVariable(some($MplVariable().withIdentifier(identifier)));
+
+    // when:
+    underTest.declareVariable(some($MplVariable().withIdentifier(identifier)));
+
+    // then:
+    assertThat(underTest.getVariables()).containsKey(identifier);
+  }
+
+  @Test
+  public void test_findVariable__Returns_correct_Variable_in_the_Scope() throws Exception {
+    // given:
+    GlobalVariableScope root = new GlobalVariableScope();
+    LocalVariableScope underTest = new LocalVariableScope(root);
     MplVariable<?> variable = some($MplVariable());
     underTest.declareVariable(variable);
     underTest.declareVariable(some($MplVariable()));
@@ -108,7 +128,8 @@ public class VariableScopeTest extends MplTestBase {
   public void test_findVariable__Returns_null_if_there_is_no_Variable_with_the_specified_Identifier()
       throws Exception {
     // given:
-    VariableScope underTest = new VariableScope(null);
+    GlobalVariableScope root = new GlobalVariableScope();
+    LocalVariableScope underTest = new LocalVariableScope(root);
     underTest.declareVariable(some($MplVariable()));
 
     // when:
@@ -119,10 +140,12 @@ public class VariableScopeTest extends MplTestBase {
   }
 
   @Test
-  public void test_findVariable__Returns_correct_Variable_from_Parent() throws Exception {
+  public void test_findVariable__Returns_correct_Variable_from_Parent_LocalVariableScope()
+      throws Exception {
     // given:
-    VariableScope parent = new VariableScope(null);
-    VariableScope underTest = new VariableScope(parent);
+    GlobalVariableScope root = new GlobalVariableScope();
+    LocalVariableScope parent = new LocalVariableScope(root);
+    LocalVariableScope underTest = new LocalVariableScope(parent);
     MplVariable<?> variable = some($MplVariable());
     parent.declareVariable(variable);
     parent.declareVariable(some($MplVariable()));
@@ -130,6 +153,41 @@ public class VariableScopeTest extends MplTestBase {
 
     // when:
     MplVariable<?> actual = underTest.findVariable(variable.getIdentifier());
+
+    // then:
+    assertThat(actual).isSameAs(variable);
+  }
+
+  @Test
+  public void test_findVariable__Returns_correct_Variable_from_Parent_GlobalVariableScope()
+      throws Exception {
+    // given:
+    GlobalVariableScope parent = new GlobalVariableScope();
+    LocalVariableScope underTest = new LocalVariableScope(parent);
+    MplVariable<?> variable = some($MplVariable());
+    parent.declareVariable(variable);
+    parent.declareVariable(some($MplVariable()));
+    underTest.declareVariable(some($MplVariable()));
+
+    // when:
+    MplVariable<?> actual = underTest.findVariable(variable.getIdentifier());
+
+    // then:
+    assertThat(actual).isSameAs(variable);
+  }
+
+  @Test
+  public void test_findVariable__Returns_local_Variable_over_global_Variable() throws Exception {
+    // given:
+    GlobalVariableScope parent = new GlobalVariableScope();
+    LocalVariableScope underTest = new LocalVariableScope(parent);
+    MplVariable<?> variable = some($MplVariable());
+    String identifier = variable.getIdentifier();
+    parent.declareVariable(some($MplVariable().withIdentifier(identifier)));
+    underTest.declareVariable(variable);
+
+    // when:
+    MplVariable<?> actual = underTest.findVariable(identifier);
 
     // then:
     assertThat(actual).isSameAs(variable);
