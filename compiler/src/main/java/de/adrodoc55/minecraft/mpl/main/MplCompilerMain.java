@@ -47,7 +47,6 @@ import com.beust.jcommander.ParameterException;
 
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
-import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
@@ -68,12 +67,15 @@ public class MplCompilerMain {
       }
       MinecraftVersion version = getVersion(params.getVersion());
       File programFile = params.getInput();
-      MplCompilationResult compiled = compile(programFile, version, params.getCompilerOptions());
+      MplCompilationResult compiled =
+          MplCompiler.compile(programFile, version, params.getCompilerOptions());
       String name = FileUtils.getFilenameWithoutExtension(programFile);
       params.getType().getConverter().write(compiled, name, params.getOutput(), version);
     } catch (ParameterException ex) {
       System.err.println(ex.getLocalizedMessage());
       System.err.println("Run with '-h' to print help");
+    } catch (CompilationFailedException ex) {
+      System.err.println(ex);
     }
   }
 
@@ -89,16 +91,5 @@ public class MplCompilerMain {
       System.out.println("Falling back to version: " + version);
     }
     return version;
-  }
-
-  private static MplCompilationResult compile(File programFile, MinecraftVersion version,
-      CompilerOptions options) throws IOException {
-    try {
-      return MplCompiler.compile(programFile, version, options);
-    } catch (CompilationFailedException ex) {
-      System.err.println(ex);
-      System.exit(-1);
-      return null;
-    }
   }
 }

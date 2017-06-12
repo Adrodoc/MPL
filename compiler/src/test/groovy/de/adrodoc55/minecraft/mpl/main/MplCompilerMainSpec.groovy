@@ -93,7 +93,7 @@ public class MplCompilerMainSpec extends MplSpecBase {
   public void test_startCompiler_with_valid_srcPath() {
     given:
     File file = new File("test.mpl");
-    file.createNewFile();
+    file.text = "/say this is a script file"
     file.deleteOnExit();
 
     String[] args = ["test.mpl", "-o", "a.txt"]

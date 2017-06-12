@@ -909,6 +909,8 @@ class MplCompilerSpec extends MplSpecBase {
     install {
       /say install
     }
+
+    /say this is a script file
     """
     when:
     List<CommandBlockChain> result = place(new File(folder, 'main.mpl'), TRANSMITTER)
@@ -928,6 +930,8 @@ class MplCompilerSpec extends MplSpecBase {
     uninstall {
       /say uninstall
     }
+
+    /say this is a script file
     """
     when:
     List<CommandBlockChain> result = place(new File(folder, 'main.mpl'), TRANSMITTER)
