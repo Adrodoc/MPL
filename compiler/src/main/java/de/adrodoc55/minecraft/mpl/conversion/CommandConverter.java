@@ -86,19 +86,21 @@ public class CommandConverter implements MplConverter {
   }
 
   private static final String tail(MinecraftVersion v) {
-    return "{id:" + v.commandBlockMinecart() + ",Command:setblock ~ ~-2 ~ command_block}," + "{id:"
-        + v.commandBlockMinecart() + ",Command:setblock ~ ~2 ~ command_block 0 " + REPLACE
-        + " {Command:fill ~ ~-3 ~ ~ ~ ~ air}}," + "{id:" + v.commandBlockMinecart()
-        + ",Command:setblock ~ ~1 ~ redstone_block}," + "{id:" + v.commandBlockMinecart()
-        + ",Command:kill @e[type=" + v.commandBlockMinecart() + ",r=0]}]}";
+    return "{id:" + v.commandBlockMinecart()
+        + ",Command:\"blockdata ~ ~-2 ~ {auto:0,Command:\\\"\\\"}\"},"//
+        + "{id:" + v.commandBlockMinecart() + ",Command:\"setblock ~ ~2 ~ command_block 0 "
+        + REPLACE + " {Command:\\\"fill ~ ~-3 ~ ~ ~ ~ air\\\"}\"},"//
+        + "{id:" + v.commandBlockMinecart() + ",Command:\"setblock ~ ~1 ~ redstone_block\"},"//
+        + "{id:" + v.commandBlockMinecart() + ",Command:\"kill @e[type=" + v.commandBlockMinecart()
+        + ",r=0]\"}]}";
   }
 
   private static final String commandHeader(MinecraftVersion v) {
-    return "{id:" + v.commandBlockMinecart() + ",Command:";
+    return "{id:" + v.commandBlockMinecart() + ",Command:\"";
   }
 
   private static final String commandTail(MinecraftVersion v) {
-    return "},";
+    return "\"},";
   }
 
   public static Coordinate3D getOffset(Orientation3D orientation) {
@@ -163,9 +165,9 @@ public class CommandConverter implements MplConverter {
     if (!block.getNeedsRedstone()) {
       sb.append("auto:1,");
     }
-    sb.append("Command:");
+    sb.append("Command:\\\"");
     sb.append(escapeCommand(block.getCommand()));
-    sb.append('}');
+    sb.append("\\\"}");
     sb.append(commandTail(version));
     return sb;
   }
