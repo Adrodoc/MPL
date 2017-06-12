@@ -41,7 +41,7 @@ To get MPL using Maven add the following to your `pom`:
 <dependency>
     <groupId>de.adrodoc55.mpl</groupId>
     <artifactId>mpl-compiler</artifactId>
-    <version>1.2.1</version>
+    <version>1.3.0</version>
     <scope>compile</scope>
 </dependency>
 ```
@@ -54,7 +54,7 @@ repositories {
 }
 
 dependencies {
-  compile 'de.adrodoc55.mpl:mpl-compiler:1.2.1'
+  compile 'de.adrodoc55.mpl:mpl-compiler:1.3.0'
 }
 ```
 
