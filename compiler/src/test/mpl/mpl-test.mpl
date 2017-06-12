@@ -1,5 +1,5 @@
 install {
-  /setblock ${origin + (-2 0 0)} command_block 0 replace {Command:execute @e[name=mpl_tests] ~ ~ ~ setblock ~ ~ ~ redstone_block}
+  /setblock ${origin + (-2 0 0)} command_block 0 replace {Command:"execute @e[name=mpl_tests] ~ ~ ~ setblock ~ ~ ~ redstone_block"}
   /scoreboard objectives add MplTest dummy
   /scoreboard objectives setdisplay sidebar MplTest
 }
