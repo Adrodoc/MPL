@@ -147,6 +147,7 @@ import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 import de.adrodoc55.minecraft.mpl.interpretation.variable.DuplicateVariableException;
 import de.adrodoc55.minecraft.mpl.interpretation.variable.GlobalVariableScope;
 import de.adrodoc55.minecraft.mpl.interpretation.variable.LocalVariableScope;
+import de.adrodoc55.minecraft.mpl.interpretation.variable.RootScriptVariableScope;
 import de.adrodoc55.minecraft.mpl.interpretation.variable.VariableScope;
 
 /**
@@ -244,12 +245,16 @@ public class MplInterpreter extends MplParserBaseListener {
     return new MplSource(programFile, line, ctx);
   }
 
-  private GlobalVariableScope rootVariableScope = new GlobalVariableScope();
-
+  private VariableScope rootVariableScope = new GlobalVariableScope();
   private VariableScope currentVariableScope = rootVariableScope;
 
-  public GlobalVariableScope getRootVariableScope() {
+  public VariableScope getRootVariableScope() {
     return rootVariableScope;
+  }
+
+  private void setRootVariableScope(VariableScope rootVariableScope) {
+    this.rootVariableScope = rootVariableScope;
+    currentVariableScope = rootVariableScope;
   }
 
   public VariableScope getCurrentVariableScope() {
@@ -454,6 +459,7 @@ public class MplInterpreter extends MplParserBaseListener {
   public void enterScriptFile(ScriptFileContext ctx) {
     program.setScript(true);
     pushChainBuffer();
+    setRootVariableScope(new RootScriptVariableScope());
   }
 
   @Override

@@ -636,6 +636,123 @@ public class MplVariableSpec extends MplSpecBase {
   }
 
   @Test
+  public void "Inserting a qualified local Integer variable from a script file"() {
+    given:
+    String id = some($Identifier())
+    int value = some($int())
+    File mainFile = newTempFile()
+    File otherFile = newTempFile()
+    String qualifiedName = getBaseName(otherFile.name) + '.' + id
+    mainFile.text = """
+    impulse process main {
+      /say The value is \${${qualifiedName}}!
+    }
+    """
+    otherFile.text = """
+    Integer ${id} = ${value}
+    /say this is a script file
+    """
+
+    when:
+    MplProgram program = assembleProgram(mainFile)
+
+    then:
+    lastContext.errors[0].message == "The local script variable '${id}' cannot be inserted"
+    lastContext.errors[0].source.file == mainFile
+    lastContext.errors[0].source.text == qualifiedName
+    lastContext.errors[0].source.lineNumber == 3
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Inserting a qualified local Selector variable from a script file"() {
+    given:
+    String id = some($Identifier())
+    String value = "@e[name=${some($Identifier())}]"
+    File mainFile = newTempFile()
+    File otherFile = newTempFile()
+    String qualifiedName = getBaseName(otherFile.name) + '.' + id
+    mainFile.text = """
+    impulse process main {
+      /say The value is \${${qualifiedName}}!
+    }
+    """
+    otherFile.text = """
+    Selector ${id} = ${value}
+    /say this is a script file
+    """
+
+    when:
+    MplProgram program = assembleProgram(mainFile)
+
+    then:
+    lastContext.errors[0].message == "The local script variable '${id}' cannot be inserted"
+    lastContext.errors[0].source.file == mainFile
+    lastContext.errors[0].source.text == qualifiedName
+    lastContext.errors[0].source.lineNumber == 3
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Inserting a qualified local String variable from a script file"() {
+    given:
+    String id = some($Identifier())
+    String value = some($String())
+    File mainFile = newTempFile()
+    File otherFile = newTempFile()
+    String qualifiedName = getBaseName(otherFile.name) + '.' + id
+    mainFile.text = """
+    impulse process main {
+      /say The value is \${${qualifiedName}}!
+    }
+    """
+    otherFile.text = """
+    String ${id} = "${value}"
+    /say this is a script file
+    """
+
+    when:
+    MplProgram program = assembleProgram(mainFile)
+
+    then:
+    lastContext.errors[0].message == "The local script variable '${id}' cannot be inserted"
+    lastContext.errors[0].source.file == mainFile
+    lastContext.errors[0].source.text == qualifiedName
+    lastContext.errors[0].source.lineNumber == 3
+    lastContext.errors.size() == 1
+  }
+
+  @Test
+  public void "Inserting a qualified local Value variable from a script file"() {
+    given:
+    String id = some($Identifier())
+    String selector = "@e[name=${some($Identifier())}]"
+    String scoreboard = some($Identifier())
+    File mainFile = newTempFile()
+    File otherFile = newTempFile()
+    String qualifiedName = getBaseName(otherFile.name) + '.' + id
+    mainFile.text = """
+    impulse process main {
+      /say The value is \${${qualifiedName}}!
+    }
+    """
+    otherFile.text = """
+    Value ${id} = ${selector} ${scoreboard}
+    /say this is a script file
+    """
+
+    when:
+    MplProgram program = assembleProgram(mainFile)
+
+    then:
+    lastContext.errors[0].message == "The local script variable '${id}' cannot be inserted"
+    lastContext.errors[0].source.file == mainFile
+    lastContext.errors[0].source.text == qualifiedName
+    lastContext.errors[0].source.lineNumber == 3
+    lastContext.errors.size() == 1
+  }
+
+  @Test
   public void "Inserting an unknown qualified global variable from a different file"() {
     given:
     String id = some($Identifier())

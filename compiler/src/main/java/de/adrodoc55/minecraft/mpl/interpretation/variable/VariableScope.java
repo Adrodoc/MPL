@@ -67,7 +67,7 @@ public interface VariableScope {
    * Return whether or not a {@link #getChildren() child} may declare a local {@link MplVariable}
    * with the specified {@code identifier}.
    *
-   * @param localVariable the local {@link MplVariable}
+   * @param identifier of the local {@link MplVariable}
    * @return whether or not a {@link #getChildren() child} may declare a local {@link MplVariable}
    *         with the specified {@code identifier}
    */

@@ -56,7 +56,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.GlobalVariableInsert;
-import de.adrodoc55.minecraft.mpl.interpretation.variable.GlobalVariableScope;
+import de.adrodoc55.minecraft.mpl.interpretation.variable.VariableScope;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -102,8 +102,13 @@ public class MplGlobalVariableReference extends MplReference {
 
   @Override
   public void resolve(MplInterpreter interpreter) {
-    GlobalVariableScope scope = interpreter.getRootVariableScope();
-    MplVariable<?> variable = scope.findVariable(identifier);
+    if (interpreter.getProgram().isScript()) {
+      context.addError(new CompilerException(source,
+          "The local script variable '" + identifier + "' cannot be inserted"));
+      return;
+    }
+    VariableScope rootScope = interpreter.getRootVariableScope();
+    MplVariable<?> variable = rootScope.findVariable(identifier);
     if (variable != null) {
       try {
         insert.setVariable(checkInsertable(variable, source));
