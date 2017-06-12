@@ -166,23 +166,21 @@ public class CommandConverter implements MplConverter {
       sb.append("auto:1,");
     }
     sb.append("Command:\\\"");
-    sb.append(escapeCommand(block.getCommand()));
+    sb.append(escapeCommandTwice(block.getCommand()));
     sb.append("\\\"}");
     sb.append(commandTail(version));
     return sb;
   }
 
   /**
-   * A command must be escaped twice, because a OneCommand is nested twice: a command block in a
-   * command block minecraft in a command block.
+   * A command must be escaped twice, because an install command is nested twice: a command block in
+   * a command block minecraft in a command block.
    *
    * @param command
    * @return
    */
-  private static String escapeCommand(String command) {
-    command = StringUtils.escapeBackslashes(command);
-    command = StringUtils.escapeBackslashes(command);
-    return command;
+  private static String escapeCommandTwice(String command) {
+    return StringUtils.escapeCommand(StringUtils.escapeCommand(command));
   }
 
 }

@@ -52,8 +52,14 @@ public class StringUtils {
     throw new Exception("Utils Classes cannot be instantiated!");
   }
 
-  public static String escapeBackslashes(String literal) {
-    return literal.replace("\\", "\\\\");
+  /**
+   * Escape {@code \} and {@code "} with a {@code \}.
+   *
+   * @param literal
+   * @return the escaped {@link String}
+   */
+  public static String escapeCommand(String literal) {
+    return literal.replace("\\", "\\\\").replace("\"", "\\\"");
   }
 
   public static String capitalize(String string) {
