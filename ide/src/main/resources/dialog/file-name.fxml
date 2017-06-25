@@ -55,7 +55,7 @@
     <HBox alignment="CENTER_LEFT" spacing="5">
       <children>
         <Label text="File Name:" />
-        <TextField fx:id="textField" text=".mpl" />
+        <TextField fx:id="textField" />
       </children>
     </HBox>
   </content>

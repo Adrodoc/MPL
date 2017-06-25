@@ -253,6 +253,7 @@ public class MplIdeController {
       String description = "Create a new file resource.";
       FileNameValidator validator = new FileNameValidator(parent);
       FileNameDialog dialog = new FileNameDialog(getWindow(), title, description, validator);
+      dialog.setFileName(".mpl");
       Optional<String> fileName = dialog.showAndWait();
       if (fileName.isPresent()) {
         Path file = parent.resolve(fileName.get());
