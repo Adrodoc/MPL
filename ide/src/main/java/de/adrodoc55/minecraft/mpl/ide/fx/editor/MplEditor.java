@@ -89,6 +89,8 @@ import de.adrodoc55.minecraft.mpl.MplPartitioner;
 import de.adrodoc55.minecraft.mpl.MplPresentationReconciler;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.completion.MplGraphicalCompletionProposal;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.completion.MplProposalComputer;
+import de.adrodoc55.minecraft.mpl.ide.fx.editor.contextinfo.MplContextInformationPresenter;
+import de.adrodoc55.minecraft.mpl.ide.fx.editor.hover.MplHoverInformationProvider;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationPresenter;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
@@ -135,7 +137,7 @@ public class MplEditor extends TextEditor {
     ProposalComputer proposalComputer = new MplProposalComputer(document, editingContext);
     IAnnotationModel annotationModel = new AnnotationModel();
     AnnotationPresenter annotationPresenter = new MplAnnotationPresenter();
-    HoverInformationProvider hoverInformationProvider = null;
+    HoverInformationProvider hoverInformationProvider = new MplHoverInformationProvider();
     CompletionProposalPresenter proposalPresenter = MplGraphicalCompletionProposal::new;
     SearchProvider searchProvider = null;
     NavigationProvider navigationProvider = null;

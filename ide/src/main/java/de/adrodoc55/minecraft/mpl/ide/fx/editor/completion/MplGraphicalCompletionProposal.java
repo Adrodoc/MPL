@@ -46,7 +46,7 @@ import org.eclipse.fx.text.ui.contentassist.IContextInformation;
 import org.eclipse.fx.ui.controls.styledtext.TextSelection;
 import org.eclipse.jface.text.IDocument;
 
-import de.adrodoc55.minecraft.mpl.ide.fx.editor.GraphicalContextInformation;
+import de.adrodoc55.minecraft.mpl.ide.fx.editor.contextinfo.GraphicalContextInformation;
 import javafx.scene.Node;
 import javafx.scene.text.Text;
 

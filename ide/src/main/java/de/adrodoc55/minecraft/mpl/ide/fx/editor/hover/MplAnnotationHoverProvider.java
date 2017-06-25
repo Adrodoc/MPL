@@ -37,40 +37,32 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.fx.editor.marker;
+package de.adrodoc55.minecraft.mpl.ide.fx.editor.hover;
 
-import org.eclipse.fx.text.ui.source.ITextAnnotationPresenter;
+import org.eclipse.fx.text.hover.AnnotationHoverProvider;
+import org.eclipse.fx.text.hover.HoverInfo;
+import org.eclipse.fx.text.hover.HoverInfoType;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.source.Annotation;
 
-import javafx.scene.Node;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.Region;
-import javafx.scene.paint.Paint;
+import de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotation;
 
 /**
  * @author Adrodoc55
  */
-public class MplTextAnnotationPresenter implements ITextAnnotationPresenter {
+public class MplAnnotationHoverProvider implements AnnotationHoverProvider {
   @Override
-  public boolean isApplicable(Annotation annotation) {
-    return annotation instanceof MplAnnotation;
+  public boolean isApplicable(Class<? extends Annotation> annotationType) {
+    return MplAnnotation.class.isAssignableFrom(annotationType);
   }
 
   @Override
-  public Node createNode() {
-    return new Region();
-  }
-
-  @Override
-  public void updateNode(Node node, Annotation annotation) {
+  public HoverInfo getHoverInfo(Annotation annotation) {
     MplAnnotation mplAnnotation = (MplAnnotation) annotation;
-    Region region = (Region) node;
-    Paint paint = mplAnnotation.getAnnotationType().getPaint();
-    region.setBorder(new Border(new BorderStroke(paint, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
-        new BorderWidths(0, 0, 2, 0))));
+    HoverInfoType type = mplAnnotation.getAnnotationType();
+    IRegion region = null;
+    CharSequence hoverContent = mplAnnotation.getText();
+    Object hoverModel = null;
+    return new HoverInfo(type, region, hoverContent, hoverModel);
   }
 }

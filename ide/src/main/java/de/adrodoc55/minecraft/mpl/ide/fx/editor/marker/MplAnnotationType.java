@@ -45,6 +45,8 @@ import java.lang.ref.WeakReference;
 
 import javax.annotation.Nullable;
 
+import org.eclipse.fx.text.hover.HoverInfoType;
+
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -52,7 +54,7 @@ import javafx.scene.paint.Paint;
 /**
  * @author Adrodoc55
  */
-public enum MplAnnotationType {
+public enum MplAnnotationType implements HoverInfoType {
   ERROR(Color.RED, "/icons/error_16.png"), //
   WARNING(Color.GOLD, "/icons/warning_16.png"),//
   ;
@@ -62,6 +64,11 @@ public enum MplAnnotationType {
   private MplAnnotationType(Paint paint, String url) {
     this.paint = checkNotNull(paint, "paint == null!");
     this.url = checkNotNull(url, "url == null!");
+  }
+
+  @Override
+  public String getType() {
+    return name();
   }
 
   public Paint getPaint() {

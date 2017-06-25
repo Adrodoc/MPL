@@ -37,40 +37,50 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.fx.editor.marker;
+package de.adrodoc55.minecraft.mpl.ide.fx.editor.hover;
 
-import org.eclipse.fx.text.ui.source.ITextAnnotationPresenter;
-import org.eclipse.jface.text.source.Annotation;
+import java.util.HashSet;
+import java.util.Set;
 
-import javafx.scene.Node;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.Region;
-import javafx.scene.paint.Paint;
+import javax.annotation.Nullable;
+
+import org.eclipse.fx.code.editor.services.HoverInformationProvider;
+import org.eclipse.fx.text.hover.AnnotationHoverProvider;
+import org.eclipse.fx.text.hover.DocumentHoverProvider;
+import org.eclipse.jface.text.IRegion;
 
 /**
  * @author Adrodoc55
  */
-public class MplTextAnnotationPresenter implements ITextAnnotationPresenter {
+public class MplHoverInformationProvider implements HoverInformationProvider {
   @Override
-  public boolean isApplicable(Annotation annotation) {
-    return annotation instanceof MplAnnotation;
+  public CharSequence getHoverInformation(String partitionType, IRegion region) {
+    return null;
   }
 
   @Override
-  public Node createNode() {
-    return new Region();
+  public IRegion getHoverRegion(String partitionType, int offset) {
+    return null;
   }
 
+  private @Nullable DocumentHoverProvider documentHoverProvider;
+
   @Override
-  public void updateNode(Node node, Annotation annotation) {
-    MplAnnotation mplAnnotation = (MplAnnotation) annotation;
-    Region region = (Region) node;
-    Paint paint = mplAnnotation.getAnnotationType().getPaint();
-    region.setBorder(new Border(new BorderStroke(paint, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
-        new BorderWidths(0, 0, 2, 0))));
+  public DocumentHoverProvider getDocumentHoverProvider() {
+    if (documentHoverProvider == null) {
+      documentHoverProvider = new MplDocumentHoverProvider();
+    }
+    return documentHoverProvider;
+  }
+
+  private @Nullable Set<AnnotationHoverProvider> annotationHoverProviders;
+
+  @Override
+  public Set<AnnotationHoverProvider> getAnnotationHoverProviders() {
+    if (annotationHoverProviders == null) {
+      annotationHoverProviders = new HashSet<>();
+      annotationHoverProviders.add(new MplAnnotationHoverProvider());
+    }
+    return annotationHoverProviders;
   }
 }

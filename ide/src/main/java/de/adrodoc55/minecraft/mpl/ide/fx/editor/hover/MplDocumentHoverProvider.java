@@ -37,40 +37,21 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.fx.editor.marker;
+package de.adrodoc55.minecraft.mpl.ide.fx.editor.hover;
 
-import org.eclipse.fx.text.ui.source.ITextAnnotationPresenter;
-import org.eclipse.jface.text.source.Annotation;
+import java.util.Collections;
+import java.util.Set;
 
-import javafx.scene.Node;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.Region;
-import javafx.scene.paint.Paint;
+import org.eclipse.fx.text.hover.DocumentHoverProvider;
+import org.eclipse.fx.text.hover.HoverInfo;
+import org.eclipse.jface.text.IDocument;
 
 /**
  * @author Adrodoc55
  */
-public class MplTextAnnotationPresenter implements ITextAnnotationPresenter {
+public class MplDocumentHoverProvider implements DocumentHoverProvider {
   @Override
-  public boolean isApplicable(Annotation annotation) {
-    return annotation instanceof MplAnnotation;
-  }
-
-  @Override
-  public Node createNode() {
-    return new Region();
-  }
-
-  @Override
-  public void updateNode(Node node, Annotation annotation) {
-    MplAnnotation mplAnnotation = (MplAnnotation) annotation;
-    Region region = (Region) node;
-    Paint paint = mplAnnotation.getAnnotationType().getPaint();
-    region.setBorder(new Border(new BorderStroke(paint, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
-        new BorderWidths(0, 0, 2, 0))));
+  public Set<HoverInfo> getHoverInfo(IDocument document, int offset) {
+    return Collections.emptySet();
   }
 }
