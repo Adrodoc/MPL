@@ -69,6 +69,7 @@ import org.eclipse.fx.code.editor.services.SearchProvider;
 import org.eclipse.fx.core.AppMemento;
 import org.eclipse.fx.core.ThreadSynchronize;
 import org.eclipse.fx.core.event.EventBus;
+import org.eclipse.fx.text.ui.Feature;
 import org.eclipse.fx.text.ui.contentassist.IContextInformationValidator;
 import org.eclipse.fx.text.ui.source.AnnotationPresenter;
 import org.eclipse.fx.text.ui.source.SourceViewer;
@@ -137,10 +138,12 @@ public class MplEditor extends TextEditor {
     EditorOpener editorOpener = null;
     BehaviorContributor behaviorContributor = null;
     IContextInformationValidator contextInformationValidator = null;
-    return new DefaultSourceViewerConfiguration(threadSynchronize, input, reconciler, appMemento,
-        proposalComputer, annotationModel, annotationPresenter, hoverInformationProvider,
-        proposalPresenter, searchProvider, navigationProvider, editorOpener, behaviorContributor,
-        contextInformationValidator);
+    DefaultSourceViewerConfiguration result = new DefaultSourceViewerConfiguration(
+        threadSynchronize, input, reconciler, appMemento, proposalComputer, annotationModel,
+        annotationPresenter, hoverInformationProvider, proposalPresenter, searchProvider,
+        navigationProvider, editorOpener, behaviorContributor, contextInformationValidator);
+    result.getFeatures().add(Feature.SHOW_LINE_NUMBERS);
+    return result;
   }
 
   private class ModifiedListener implements TextChangeListener {
