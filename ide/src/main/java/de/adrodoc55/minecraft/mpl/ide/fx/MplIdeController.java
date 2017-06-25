@@ -63,8 +63,8 @@ import org.eclipse.fx.ui.controls.filesystem.ResourceEvent;
 import org.eclipse.fx.ui.controls.filesystem.ResourceItem;
 import org.eclipse.fx.ui.controls.filesystem.ResourceTreeView;
 import org.eclipse.fx.ui.controls.filesystem.RootDirItem;
+import org.eclipse.fx.ui.controls.tabpane.DndTabPane;
 
-import de.adrodoc55.commons.eclipse.DndTabPane;
 import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;

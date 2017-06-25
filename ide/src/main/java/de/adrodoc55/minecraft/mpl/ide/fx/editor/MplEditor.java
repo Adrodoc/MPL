@@ -66,6 +66,7 @@ import org.eclipse.fx.code.editor.services.InputDocument;
 import org.eclipse.fx.code.editor.services.NavigationProvider;
 import org.eclipse.fx.code.editor.services.ProposalComputer;
 import org.eclipse.fx.code.editor.services.SearchProvider;
+import org.eclipse.fx.core.AppMemento;
 import org.eclipse.fx.core.ThreadSynchronize;
 import org.eclipse.fx.core.event.EventBus;
 import org.eclipse.fx.text.ui.contentassist.IContextInformationValidator;
@@ -125,6 +126,7 @@ public class MplEditor extends TextEditor {
       EditingContext editingContext) {
     ThreadSynchronize threadSynchronize = null;
     MplPresentationReconciler reconciler = new MplPresentationReconciler();
+    AppMemento appMemento = null;
     ProposalComputer proposalComputer = new MplProposalComputer(document, editingContext);
     IAnnotationModel annotationModel = null;
     AnnotationPresenter annotationPresenter = null;
@@ -135,7 +137,7 @@ public class MplEditor extends TextEditor {
     EditorOpener editorOpener = null;
     BehaviorContributor behaviorContributor = null;
     IContextInformationValidator contextInformationValidator = null;
-    return new DefaultSourceViewerConfiguration(threadSynchronize, input, reconciler,
+    return new DefaultSourceViewerConfiguration(threadSynchronize, input, reconciler, appMemento,
         proposalComputer, annotationModel, annotationPresenter, hoverInformationProvider,
         proposalPresenter, searchProvider, navigationProvider, editorOpener, behaviorContributor,
         contextInformationValidator);

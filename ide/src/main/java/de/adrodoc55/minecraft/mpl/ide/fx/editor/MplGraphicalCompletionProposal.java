@@ -47,6 +47,7 @@ import org.eclipse.fx.ui.controls.styledtext.TextSelection;
 import org.eclipse.jface.text.IDocument;
 
 import javafx.scene.Node;
+import javafx.scene.text.Text;
 
 /**
  * @author Adrodoc55
@@ -59,8 +60,8 @@ public class MplGraphicalCompletionProposal implements ICompletionProposal {
   }
 
   @Override
-  public CharSequence getLabel() {
-    return proposal.getLabel();
+  public Node getContentNode() {
+    return new Text(proposal.getLabel().toString());
   }
 
   @Override

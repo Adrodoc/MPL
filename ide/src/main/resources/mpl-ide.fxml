@@ -42,7 +42,6 @@
  */
 -->
 
-<?import de.adrodoc55.commons.eclipse.DndTabPane?>
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
@@ -55,6 +54,7 @@
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.VBox?>
 <?import org.eclipse.fx.ui.controls.filesystem.ResourceTreeView?>
+<?import org.eclipse.fx.ui.controls.tabpane.DndTabPane?>
 
 <VBox fx:id="root" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.adrodoc55.minecraft.mpl.ide.fx.MplIdeController">
   <children>
