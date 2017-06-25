@@ -106,8 +106,10 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TextArea;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
@@ -527,10 +529,21 @@ public class MplIdeController {
       handleCompilerExceptions(ERROR, ex.getErrors());
       handleCompilerExceptions(WARNING, ex.getWarnings());
       if (showCompilationFailure) {
-        new Alert(AlertType.ERROR, ex.toString()).showAndWait();
+        Alert alert = new Alert(AlertType.ERROR);
+        String title = "Compilation Failed";
+        alert.setTitle(title);
+        alert.setHeaderText(title);
+        TextArea content = new TextArea();
+        content.setText(ex.toString());
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setExpandableContent(content);
+        dialogPane.setExpanded(true);
+        alert.showAndWait();
       }
     } catch (IOException ex) {
-      new Alert(AlertType.ERROR, ex.getMessage()).showAndWait();
+      Alert alert = new Alert(AlertType.ERROR, ex.getMessage());
+      alert.setHeaderText(ex.getClass().getSimpleName());
+      alert.showAndWait();
     }
     return null;
   }
