@@ -88,6 +88,7 @@ import de.adrodoc55.minecraft.mpl.ide.fx.dialog.multicontent.ImportCommandDialog
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.options.OptionsDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.unsaved.UnsavedResourcesDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.MplEditor;
+import de.adrodoc55.minecraft.mpl.ide.fx.editor.MplEditorContext;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotation;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationType;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
@@ -102,6 +103,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.MenuItem;
@@ -369,7 +371,12 @@ public class MplIdeController {
 
   private Tab createAndAttachTab(Path path) {
     BorderPane pane = new BorderPane();
-    MplEditor editor = MplEditor.create(path, pane, eventBus);
+    MplEditor editor = MplEditor.create(path, pane, eventBus, new MplEditorContext() {
+      @Override
+      public void compile(File file) {
+        MplIdeController.this.compile(file, false);
+      }
+    });
 
     ReadOnlyBooleanProperty modifiedProperty = editor.modifiedProperty();
     StringExpression titleText = Bindings.createStringBinding(() -> {
@@ -413,11 +420,12 @@ public class MplIdeController {
   }
 
   @FXML
-  public void save() {
+  public void save() throws IOException {
     MplEditor editor = getSelectedEditor();
-    if (editor != null) {
-      editor.save();
+    if (editor == null) {
+      return;
     }
+    editor.save();
   }
 
   /**
@@ -483,28 +491,32 @@ public class MplIdeController {
   }
 
   @FXML
-  public void compileToImportCommand() throws IOException {
-    MplEditor selectedEditor = getSelectedEditor();
-    if (selectedEditor == null)
-      return;
-    if (warnAboutUnsavedResources())
-      return;
-
-    Window owner = getWindow();
-    File selectedFile = selectedEditor.getFile();
-    clearCompilerExceptions();
-
-    MplCompilationResult result = compile(selectedFile);
+  public void compileToImportCommand() {
+    MplCompilationResult result = compile();
     if (result == null) {
       return;
     }
+    Window owner = getWindow();
     MinecraftVersion version = options.getMinecraftVersion();
     List<String> commands = CommandConverter.convert(result, version);
     ImportCommandDialog dialog = new ImportCommandDialog(owner, commands);
     dialog.showAndWait();
   }
 
-  private MplCompilationResult compile(File selectedFile) throws IOException {
+  private @Nullable MplCompilationResult compile() {
+    MplEditor selectedEditor = getSelectedEditor();
+    if (selectedEditor == null)
+      return null;
+    if (warnAboutUnsavedResources())
+      return null;
+
+    File selectedFile = selectedEditor.getFile();
+    return compile(selectedFile, true);
+  }
+
+  private @Nullable MplCompilationResult compile(File selectedFile,
+      boolean showCompilationFailure) {
+    clearCompilerExceptions();
     try {
       MinecraftVersion version = options.getMinecraftVersion();
       CompilerOptions compilerOptions = options.getCompilerOptions();
@@ -514,8 +526,13 @@ public class MplIdeController {
     } catch (CompilationFailedException ex) {
       handleCompilerExceptions(ERROR, ex.getErrors());
       handleCompilerExceptions(WARNING, ex.getWarnings());
-      return null;
+      if (showCompilationFailure) {
+        new Alert(AlertType.ERROR, ex.toString()).showAndWait();
+      }
+    } catch (IOException ex) {
+      new Alert(AlertType.ERROR, ex.getMessage()).showAndWait();
     }
+    return null;
   }
 
   private void clearCompilerExceptions() {

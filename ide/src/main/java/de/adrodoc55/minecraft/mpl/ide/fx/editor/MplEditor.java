@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.fx.editor;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static javafx.scene.input.KeyCode.DIGIT7;
 import static javafx.scene.input.KeyCode.S;
 import static javafx.scene.input.KeyCombination.SHORTCUT_DOWN;
@@ -109,8 +110,9 @@ import javafx.scene.layout.BorderPane;
  * @author Adrodoc55
  */
 public class MplEditor extends TextEditor {
-  public static MplEditor create(Path path, BorderPane pane, EventBus eventBus) {
-    MplEditor editor = new MplEditor();
+  public static MplEditor create(Path path, BorderPane pane, EventBus eventBus,
+      MplEditorContext editorContext) {
+    MplEditor editor = new MplEditor(editorContext);
     StringInput input = new LocalSourceFileInput(path, StandardCharsets.UTF_8, eventBus);
 
     EditorContextMenuProvider contextMenuProvider = (Control styledText, Type type) -> {
@@ -169,13 +171,15 @@ public class MplEditor extends TextEditor {
     }
   }
 
+  private final MplEditorContext editorContext;
   private final BooleanProperty modified = new SimpleBooleanProperty(this, "modified");
   private final Property<Input<?>> activeInput = new SimpleObjectProperty<>(this, "activeInput");
   private final ModifiedListener modifiedListener = new ModifiedListener();
 
-  public MplEditor() {
+  public MplEditor(MplEditorContext editorContext) {
     setInsertSpacesForTab(true);
     setTabAdvance(2);
+    this.editorContext = checkNotNull(editorContext, "editorContext == null!");
   }
 
   public ReadOnlyBooleanProperty modifiedProperty() {
@@ -192,6 +196,7 @@ public class MplEditor extends TextEditor {
   public void save() {
     super.save();
     modified.set(false);
+    editorContext.compile(getFile());
   }
 
   @Override
