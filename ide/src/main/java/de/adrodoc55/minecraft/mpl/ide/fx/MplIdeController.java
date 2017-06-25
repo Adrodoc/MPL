@@ -316,8 +316,6 @@ public class MplIdeController {
   @FXML
   public void pasteResources() {
     ObservableList<ResourceItem> items = fileExplorer.getSelectedItems();
-
-
     Iterator<ResourceItem> it = items.iterator();
     if (it.hasNext()) {
       ResourceItem first = it.next();
@@ -515,6 +513,7 @@ public class MplIdeController {
       return result;
     } catch (CompilationFailedException ex) {
       handleCompilerExceptions(ERROR, ex.getErrors());
+      handleCompilerExceptions(WARNING, ex.getWarnings());
       return null;
     }
   }
