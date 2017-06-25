@@ -37,52 +37,19 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.fx.dialog.options;
+package de.adrodoc55.minecraft.mpl.ide.fx.dialog.filename;
 
-import static java.util.Objects.requireNonNull;
-
-import java.io.IOException;
-
-import javax.annotation.Nullable;
-
-import de.adrodoc55.minecraft.mpl.ide.fx.MplOptions;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.control.ButtonBar.ButtonData;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.DialogPane;
-import javafx.stage.Modality;
-import javafx.stage.Window;
+import javafx.fxml.FXML;
+import javafx.scene.control.TextField;
 
 /**
  * @author Adrodoc55
  */
-public class OptionsDialog extends Dialog<MplOptions> {
-  private OptionsController controller;
+public class FileNameController {
+  @FXML
+  private TextField textField;
 
-  public OptionsDialog(Window owner, MplOptions oldOptions) {
-    initOwner(owner);
-    initModality(Modality.WINDOW_MODAL);
-    setTitle("Options");
-    setResultConverter(this::convertResult);
-
-    FXMLLoader loader = new FXMLLoader(getClass().getResource("/dialog/options.fxml"));
-    DialogPane root;
-    try {
-      root = loader.load();
-      controller = requireNonNull(loader.getController(), "controller == null!");
-      controller.initialize(oldOptions);
-    } catch (IOException ex) {
-      throw new IllegalStateException("Unable to load FXML file", ex);
-    }
-    root.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-    setDialogPane(root);
-  }
-
-  private @Nullable MplOptions convertResult(ButtonType b) {
-    if (ButtonData.OK_DONE.equals(b.getButtonData())) {
-      return controller.getMplOptions();
-    }
-    return null;
+  public TextField getTextField() {
+    return textField;
   }
 }

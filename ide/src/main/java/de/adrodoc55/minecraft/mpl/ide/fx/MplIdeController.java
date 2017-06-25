@@ -84,6 +84,8 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
+import de.adrodoc55.minecraft.mpl.ide.fx.dialog.filename.FileNameDialog;
+import de.adrodoc55.minecraft.mpl.ide.fx.dialog.filename.FileNameValidator;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.multicontent.ImportCommandDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.options.OptionsDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.unsaved.UnsavedResourcesDialog;
@@ -231,64 +233,107 @@ public class MplIdeController {
     }
   }
 
+  private Path getDirectory(ResourceItem item) {
+    Path path = (Path) item.getNativeResourceObject();
+    if (Files.isDirectory(path)) {
+      return path;
+    }
+    return path.getParent();
+  }
+
   @FXML
   public void newFile() {
     ObservableList<ResourceItem> items = fileExplorer.getSelectedItems();
     Iterator<ResourceItem> it = items.iterator();
     if (it.hasNext()) {
       ResourceItem first = it.next();
-      File dir = getDirectory(first);
-      try {
-        new File(dir, "new123.mpl").createNewFile();
-      } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+      Path parent = getDirectory(first);
+      String title = "New File";
+      String description = "Create a new file resource.";
+      FileNameValidator validator = new FileNameValidator(parent);
+      FileNameDialog dialog = new FileNameDialog(getWindow(), title, description, validator);
+      Optional<String> fileName = dialog.showAndWait();
+      if (fileName.isPresent()) {
+        Path file = parent.resolve(fileName.get());
+        try {
+          Files.createFile(file);
+        } catch (IOException ex) {
+          handleException(ex);
+        }
       }
     }
   }
 
-  private File getDirectory(ResourceItem item) {
-    Path path = (Path) item.getNativeResourceObject();
-    File dir = path.toFile();
-    if (!dir.isDirectory()) {
-      dir = dir.getParentFile();
-    }
-    return dir;
-  }
-
   @FXML
   public void newDirectory() {
-
+    ObservableList<ResourceItem> items = fileExplorer.getSelectedItems();
+    Iterator<ResourceItem> it = items.iterator();
+    if (it.hasNext()) {
+      ResourceItem first = it.next();
+      Path parent = getDirectory(first);
+      String title = "New Directory";
+      String description = "Create a new directory resource.";
+      FileNameValidator validator = new FileNameValidator(parent);
+      FileNameDialog dialog = new FileNameDialog(getWindow(), title, description, validator);
+      Optional<String> dirName = dialog.showAndWait();
+      if (dirName.isPresent()) {
+        Path dir = parent.resolve(dirName.get());
+        try {
+          Files.createDirectory(dir);
+        } catch (IOException ex) {
+          handleException(ex);
+        }
+      }
+    }
   }
 
   @FXML
   public void renameResource() {
-
+    ObservableList<ResourceItem> items = fileExplorer.getSelectedItems();
+    Iterator<ResourceItem> it = items.iterator();
+    if (it.hasNext()) {
+      ResourceItem first = it.next();
+      Path source = (Path) first.getNativeResourceObject();
+      Path parent = source.getParent();
+      String fileType = Files.isDirectory(source) ? "Directory" : "File";
+      String title = "Rename " + fileType;
+      String description = "Create a new " + fileType.toLowerCase() + " resource.";
+      FileNameValidator validator = new FileNameValidator(parent);
+      FileNameDialog dialog = new FileNameDialog(getWindow(), title, description, validator);
+      dialog.setFileName(source.getFileName().toString());
+      Optional<String> dirName = dialog.showAndWait();
+      if (dirName.isPresent()) {
+        Path target = parent.resolve(dirName.get());
+        try {
+          Files.move(source, target);
+        } catch (IOException ex) {
+          handleException(ex);
+        }
+      }
+    }
   }
 
   @FXML
   public void deleteResources() {
     ObservableList<ResourceItem> items = fileExplorer.getSelectedItems();
-
     int itemSize = items.size();
-    String message = "Are you sure you want to delete ";
+    String fileMessagePart;
     if (itemSize == 1) {
-      message += "'" + items.get(0).getName() + "'";
+      fileMessagePart = "'" + items.get(0).getName() + "'";
     } else {
-      message += "these " + itemSize + " files";
+      fileMessagePart = "these " + itemSize + " files";
     }
-    message += "?";
+    String message = "Are you sure you want to delete " + fileMessagePart + "?";
     Alert alert = new Alert(CONFIRMATION, message, ButtonType.YES, ButtonType.NO);
     alert.setHeaderText(null);
     Optional<ButtonType> result = alert.showAndWait();
-
     if (result.isPresent() && ButtonData.YES.equals(result.get().getButtonData())) {
       for (ResourceItem item : items) {
         Path path = (Path) item.getNativeResourceObject();
         try {
           Files.delete(path);
         } catch (IOException ex) {
-          ex.printStackTrace();
+          handleException(ex);
         }
       }
     }
@@ -323,29 +368,24 @@ public class MplIdeController {
     Iterator<ResourceItem> it = items.iterator();
     if (it.hasNext()) {
       ResourceItem first = it.next();
-      Path targetDir = getDirectory(first).toPath();
+      Path parent = getDirectory(first);
 
       Clipboard clipboard = Clipboard.getSystemClipboard();
       List<File> files = clipboard.getFiles();
       Object cut = clipboard.getContent(CUT);
-      if (cut instanceof Boolean && ((Boolean) cut).booleanValue()) {
-        for (File file : files) {
-          try {
-            Files.move(file.toPath(), targetDir.resolve(file.getName()));
-          } catch (IOException ex) {
-            ex.printStackTrace();
+      for (File file : files) {
+        Path source = file.toPath();
+        Path target = parent.resolve(file.getName());
+        try {
+          if (cut instanceof Boolean && ((Boolean) cut).booleanValue()) {
+            Files.move(source, target);
+          } else {
+            Files.copy(source, target);
           }
-        }
-      } else {
-        for (File file : files) {
-          try {
-            Files.copy(file.toPath(), targetDir.resolve(file.getName()));
-          } catch (IOException ex) {
-            ex.printStackTrace();
-          }
+        } catch (IOException ex) {
+          handleException(ex);
         }
       }
-      rootDir.refresh();
     }
   }
 
@@ -541,11 +581,15 @@ public class MplIdeController {
         alert.showAndWait();
       }
     } catch (IOException ex) {
-      Alert alert = new Alert(AlertType.ERROR, ex.getMessage());
-      alert.setHeaderText(ex.getClass().getSimpleName());
-      alert.showAndWait();
+      handleException(ex);
     }
     return null;
+  }
+
+  private void handleException(Exception ex) {
+    Alert alert = new Alert(AlertType.ERROR, ex.getMessage());
+    alert.setHeaderText(ex.getClass().getSimpleName());
+    alert.showAndWait();
   }
 
   private void clearCompilerExceptions() {

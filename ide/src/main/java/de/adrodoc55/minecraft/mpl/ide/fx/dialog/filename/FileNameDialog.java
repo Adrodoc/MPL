@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.fx.dialog.options;
+package de.adrodoc55.minecraft.mpl.ide.fx.dialog.filename;
 
 import static java.util.Objects.requireNonNull;
 
@@ -45,44 +45,70 @@ import java.io.IOException;
 
 import javax.annotation.Nullable;
 
-import de.adrodoc55.minecraft.mpl.ide.fx.MplOptions;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
+import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 
 /**
  * @author Adrodoc55
  */
-public class OptionsDialog extends Dialog<MplOptions> {
-  private OptionsController controller;
+public class FileNameDialog extends Dialog<String> {
+  private final FileNameController controller;
 
-  public OptionsDialog(Window owner, MplOptions oldOptions) {
+  public FileNameDialog(Window owner, String title, String description,
+      FileNameValidator fileNameValidator) {
     initOwner(owner);
     initModality(Modality.WINDOW_MODAL);
-    setTitle("Options");
+    setTitle(title);
     setResultConverter(this::convertResult);
 
-    FXMLLoader loader = new FXMLLoader(getClass().getResource("/dialog/options.fxml"));
+    FXMLLoader loader = new FXMLLoader(getClass().getResource("/dialog/file-name.fxml"));
     DialogPane root;
     try {
       root = loader.load();
-      controller = requireNonNull(loader.getController(), "controller == null!");
-      controller.initialize(oldOptions);
     } catch (IOException ex) {
       throw new IllegalStateException("Unable to load FXML file", ex);
     }
+    controller = requireNonNull(loader.getController(), "controller == null!");
+    setOnShown(e -> Platform.runLater(() -> {
+      TextField textField = controller.getTextField();
+      textField.requestFocus();
+      textField.home();
+    }));
+
     root.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
     setDialogPane(root);
+    setHeaderText(description);
+
+    controller.getTextField().textProperty().addListener((observable, oldValue, newValue) -> {
+      String error = fileNameValidator.test(newValue);
+      if (error == null) {
+        setGraphic(null);
+        setHeaderText(description);
+        root.lookupButton(ButtonType.OK).setDisable(false);
+      } else {
+        setGraphic(new ImageView("/icons/error_16.png"));
+        setHeaderText(error);
+        root.lookupButton(ButtonType.OK).setDisable(true);
+      }
+    });
   }
 
-  private @Nullable MplOptions convertResult(ButtonType b) {
+  private @Nullable String convertResult(ButtonType b) {
     if (ButtonData.OK_DONE.equals(b.getButtonData())) {
-      return controller.getMplOptions();
+      return controller.getTextField().getText();
     }
     return null;
+  }
+
+  public void setFileName(String fileName) {
+    controller.getTextField().setText(fileName);
   }
 }

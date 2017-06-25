@@ -1,3 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
 /*
  * Minecraft Programming Language (MPL): A language for easy development of command block
  * applications including an IDE.
@@ -37,52 +40,23 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.fx.dialog.options;
+-->
 
-import static java.util.Objects.requireNonNull;
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.DialogPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
 
-import java.io.IOException;
-
-import javax.annotation.Nullable;
-
-import de.adrodoc55.minecraft.mpl.ide.fx.MplOptions;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.control.ButtonBar.ButtonData;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.DialogPane;
-import javafx.stage.Modality;
-import javafx.stage.Window;
-
-/**
- * @author Adrodoc55
- */
-public class OptionsDialog extends Dialog<MplOptions> {
-  private OptionsController controller;
-
-  public OptionsDialog(Window owner, MplOptions oldOptions) {
-    initOwner(owner);
-    initModality(Modality.WINDOW_MODAL);
-    setTitle("Options");
-    setResultConverter(this::convertResult);
-
-    FXMLLoader loader = new FXMLLoader(getClass().getResource("/dialog/options.fxml"));
-    DialogPane root;
-    try {
-      root = loader.load();
-      controller = requireNonNull(loader.getController(), "controller == null!");
-      controller.initialize(oldOptions);
-    } catch (IOException ex) {
-      throw new IllegalStateException("Unable to load FXML file", ex);
-    }
-    root.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-    setDialogPane(root);
-  }
-
-  private @Nullable MplOptions convertResult(ButtonType b) {
-    if (ButtonData.OK_DONE.equals(b.getButtonData())) {
-      return controller.getMplOptions();
-    }
-    return null;
-  }
-}
+<DialogPane xmlns="http://javafx.com/javafx/8.0.111"
+  xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="de.adrodoc55.minecraft.mpl.ide.fx.dialog.filename.FileNameController">
+  <content>
+    <HBox alignment="CENTER_LEFT" spacing="5">
+      <children>
+        <Label text="File Name:" />
+        <TextField fx:id="textField" text=".mpl" />
+      </children>
+    </HBox>
+  </content>
+</DialogPane>
