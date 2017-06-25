@@ -50,6 +50,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -319,7 +320,12 @@ public class MplIdeController {
     int itemSize = items.size();
     String fileMessagePart;
     if (itemSize == 1) {
-      fileMessagePart = "'" + items.get(0).getName() + "'";
+      ResourceItem item = items.get(0);
+      fileMessagePart = "'" + item.getName() + "'";
+      Path path = (Path) item.getNativeResourceObject();
+      if (Files.isDirectory(path)) {
+        fileMessagePart += " and all contained files";
+      }
     } else {
       fileMessagePart = "these " + itemSize + " files";
     }
@@ -331,7 +337,11 @@ public class MplIdeController {
       for (ResourceItem item : items) {
         Path path = (Path) item.getNativeResourceObject();
         try {
-          Files.delete(path);
+          List<Path> children =
+              Files.walk(path).sorted(Comparator.reverseOrder()).collect(Collectors.toList());
+          for (Path child : children) {
+            Files.delete(child);
+          }
         } catch (IOException ex) {
           handleException(ex);
         }
