@@ -170,6 +170,8 @@
                   text="New _File" styleClass="new-file" />
                 <MenuItem fx:id="newDirectoryMenuItem" mnemonicParsing="false"
                   onAction="#newDirectory" text="New Directory" styleClass="new-dir" />
+                <MenuItem fx:id="renameResourceMenuItem" onAction="#renameResource"
+                  text="_Rename" styleClass="rename-file" />
                 <MenuItem onAction="#deleteResources" text="_Delete"
                   styleClass="delete" />
                 <MenuItem onAction="#cutResources" text="C_ut"

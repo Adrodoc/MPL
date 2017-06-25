@@ -89,6 +89,14 @@
   -fx-graphic: url('/icons/new_dir_16.png');
 }
 
+.menu-item.rename-file > .label {
+  -fx-graphic: url('/icons/rename_file_16.png');
+}
+
+.menu-item.rename-dir > .label {
+  -fx-graphic: url('/icons/rename_dir_16.png');
+}
+
 .menu-item.delete > .label {
   -fx-graphic: url('/icons/delete_16.png');
 }
