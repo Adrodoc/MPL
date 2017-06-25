@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.fx;
 
+import static de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationType.ERROR;
+import static de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationType.WARNING;
 import static javafx.scene.control.Alert.AlertType.CONFIRMATION;
 
 import java.io.File;
@@ -48,8 +50,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -65,17 +70,26 @@ import org.eclipse.fx.ui.controls.filesystem.ResourceItem;
 import org.eclipse.fx.ui.controls.filesystem.ResourceTreeView;
 import org.eclipse.fx.ui.controls.filesystem.RootDirItem;
 import org.eclipse.fx.ui.controls.tabpane.DndTabPane;
+import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.source.Annotation;
+import org.eclipse.jface.text.source.IAnnotationModel;
+
+import com.google.common.collect.ImmutableListMultimap;
 
 import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.multicontent.ImportCommandDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.options.OptionsDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.unsaved.UnsavedResourcesDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.MplEditor;
+import de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotation;
+import de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationType;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringExpression;
@@ -129,6 +143,9 @@ public class MplIdeController {
   );
 
   private EventBus eventBus = new SimpleEventBus();
+
+  private final Map<Path, Tab> tabs = new HashMap<>();
+  private final Map<Path, TextEditor> editors = new HashMap<>();
 
   private void setRootDir(File directory) {
     if (directory != null) {
@@ -345,10 +362,11 @@ public class MplIdeController {
   }
 
   private Tab provideTab(Path path) {
-    return editorTabPane.getTabs().stream()//
-        .filter(it -> it.getUserData() instanceof MplEditorData)//
-        .filter(it -> ((MplEditorData) it.getUserData()).getPath().equals(path))//
-        .findFirst().orElseGet(() -> createAndAttachTab(path));
+    Tab result = tabs.get(path);
+    if (result != null) {
+      return result;
+    }
+    return createAndAttachTab(path);
   }
 
   private Tab createAndAttachTab(Path path) {
@@ -360,16 +378,22 @@ public class MplIdeController {
       return modifiedProperty.get() ? "*" : "";
     }, modifiedProperty).concat(path.getFileName());
 
-    Tab t = new Tab();
-    t.textProperty().bind(titleText);
-    t.setContent(pane);
-    t.setUserData(new MplEditorData(path, editor));
-    t.setOnCloseRequest(e -> {
-      if (warnAboutUnsavedResources(Arrays.asList(t)))
+    Tab tab = new Tab();
+    tab.textProperty().bind(titleText);
+    tab.setContent(pane);
+    tab.setUserData(new MplEditorData(path, editor));
+    tab.setOnCloseRequest(e -> {
+      if (warnAboutUnsavedResources(Arrays.asList(tab)))
         e.consume();
     });
-    editorTabPane.getTabs().add(t);
-    return t;
+    editorTabPane.getTabs().add(tab);
+    tab.setOnClosed(e -> {
+      editors.remove(path);
+      tabs.remove(path);
+    });
+    editors.put(path, editor);
+    tabs.put(path, tab);
+    return tab;
   }
 
   private @Nullable MplEditor getSelectedEditor() {
@@ -449,9 +473,9 @@ public class MplIdeController {
     Optional<Collection<Path>> resourcesToSave = dialog.showAndWait();
     if (resourcesToSave.isPresent()) {
       for (Path resourceToSave : resourcesToSave.get()) {
-        Optional<? extends TextEditor> editor = getEditor(resourceToSave);
-        if (editor.isPresent()) {
-          editor.get().save();
+        TextEditor editor = editors.get(resourceToSave);
+        if (editor != null) {
+          editor.save();
         }
       }
       return false;
@@ -460,31 +484,65 @@ public class MplIdeController {
     }
   }
 
-  private Optional<? extends TextEditor> getEditor(Path path) {
-    return editorTabPane.getTabs().stream()//
-        .map(Tab::getUserData)//
-        .filter(MplEditorData.class::isInstance)//
-        .map(MplEditorData.class::cast)//
-        .filter(it -> it.getPath().equals(path))//
-        .map(it -> it.getEditor())//
-        .findFirst();
-  }
-
   @FXML
-  public void compileToImportCommand() throws IOException, CompilationFailedException {
-    MplEditor editor = getSelectedEditor();
-    if (editor == null)
+  public void compileToImportCommand() throws IOException {
+    MplEditor selectedEditor = getSelectedEditor();
+    if (selectedEditor == null)
       return;
     if (warnAboutUnsavedResources())
       return;
 
     Window owner = getWindow();
-    File file = editor.getFile();
-    MinecraftVersion version = MinecraftVersion.getDefault();
-    MplCompilationResult result = MplCompiler.compile(file, version, new CompilerOptions());
+    File selectedFile = selectedEditor.getFile();
+    clearCompilerExceptions();
+
+    MplCompilationResult result = compile(selectedFile);
+    if (result == null) {
+      return;
+    }
+    MinecraftVersion version = options.getMinecraftVersion();
     List<String> commands = CommandConverter.convert(result, version);
     ImportCommandDialog dialog = new ImportCommandDialog(owner, commands);
     dialog.showAndWait();
+  }
+
+  private MplCompilationResult compile(File selectedFile) throws IOException {
+    try {
+      MinecraftVersion version = options.getMinecraftVersion();
+      CompilerOptions compilerOptions = options.getCompilerOptions();
+      MplCompilationResult result = MplCompiler.compile(selectedFile, version, compilerOptions);
+      handleCompilerExceptions(WARNING, result.getWarnings());
+      return result;
+    } catch (CompilationFailedException ex) {
+      handleCompilerExceptions(ERROR, ex.getErrors());
+      return null;
+    }
+  }
+
+  private void clearCompilerExceptions() {
+    for (TextEditor editor : editors.values()) {
+      IAnnotationModel annotationModel = editor.getSourceViewer().getAnnotationModel();
+      for (Annotation annotation : (Iterable<Annotation>) annotationModel::getAnnotationIterator) {
+        annotationModel.removeAnnotation(annotation);
+      }
+    }
+  }
+
+  private void handleCompilerExceptions(MplAnnotationType type,
+      ImmutableListMultimap<File, CompilerException> exceptions) {
+    for (Entry<File, Collection<CompilerException>> entry : exceptions.asMap().entrySet()) {
+      File file = entry.getKey();
+      TextEditor editor = editors.get(file.toPath());
+      if (editor != null) {
+        IAnnotationModel annotationModel = editor.getSourceViewer().getAnnotationModel();
+        for (CompilerException ex : entry.getValue()) {
+          MplAnnotation annotation = new MplAnnotation(type, ex.getLocalizedMessage());
+          MplSource source = ex.getSource();
+          Position position = new Position(source.getStartIndex(), source.getLength());
+          annotationModel.addAnnotation(annotation, position);
+        }
+      }
+    }
   }
 
   @FXML

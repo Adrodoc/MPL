@@ -82,10 +82,14 @@ import org.eclipse.fx.ui.controls.styledtext.TextChangingEvent;
 import org.eclipse.fx.ui.controls.styledtext.TextSelection;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentPartitioner;
+import org.eclipse.jface.text.source.AnnotationModel;
 import org.eclipse.jface.text.source.IAnnotationModel;
 
 import de.adrodoc55.minecraft.mpl.MplPartitioner;
 import de.adrodoc55.minecraft.mpl.MplPresentationReconciler;
+import de.adrodoc55.minecraft.mpl.ide.fx.editor.completion.MplGraphicalCompletionProposal;
+import de.adrodoc55.minecraft.mpl.ide.fx.editor.completion.MplProposalComputer;
+import de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationPresenter;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -109,7 +113,7 @@ public class MplEditor extends TextEditor {
 
     EditorContextMenuProvider contextMenuProvider = (Control styledText, Type type) -> {
     };
-    ContextInformationPresenter contextInformationPresenter = null;
+    ContextInformationPresenter contextInformationPresenter = new MplContextInformationPresenter();
     EditingContext editingContext = new DelegatingEditingContext();
     IDocument document = new InputDocument(input, eventBus);
     SourceViewerConfiguration configuration = createConfiguration(input, document, editingContext);
@@ -129,8 +133,8 @@ public class MplEditor extends TextEditor {
     MplPresentationReconciler reconciler = new MplPresentationReconciler();
     AppMemento appMemento = null;
     ProposalComputer proposalComputer = new MplProposalComputer(document, editingContext);
-    IAnnotationModel annotationModel = null;
-    AnnotationPresenter annotationPresenter = null;
+    IAnnotationModel annotationModel = new AnnotationModel();
+    AnnotationPresenter annotationPresenter = new MplAnnotationPresenter();
     HoverInformationProvider hoverInformationProvider = null;
     CompletionProposalPresenter proposalPresenter = MplGraphicalCompletionProposal::new;
     SearchProvider searchProvider = null;
@@ -272,5 +276,4 @@ public class MplEditor extends TextEditor {
     control.setSelectionRange(selection.offset + addedPerLine,
         selection.length + added - addedPerLine);
   }
-
 }

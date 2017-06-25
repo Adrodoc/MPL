@@ -162,7 +162,7 @@ public class MplInterpreter extends MplParserBaseListener {
 
   private FileContext parse() throws IOException {
     byte[] bytes = Files.readAllBytes(programFile.toPath());
-    ANTLRInputStream input = new ANTLRInputStream(FileUtils.toUnixLineEnding(new String(bytes)));
+    ANTLRInputStream input = new ANTLRInputStream(new String(bytes));
     MplLexer lexer = new MplLexer(input);
     TokenStream tokens = new CommonTokenStream(lexer);
     MplParser parser = new MplParser(tokens);

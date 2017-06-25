@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.fx.editor;
+package de.adrodoc55.minecraft.mpl.ide.fx.editor.completion;
 
 import org.eclipse.fx.code.editor.services.CompletionProposal;
 import org.eclipse.fx.code.editor.services.ContextInformation;
@@ -46,6 +46,7 @@ import org.eclipse.fx.text.ui.contentassist.IContextInformation;
 import org.eclipse.fx.ui.controls.styledtext.TextSelection;
 import org.eclipse.jface.text.IDocument;
 
+import de.adrodoc55.minecraft.mpl.ide.fx.editor.GraphicalContextInformation;
 import javafx.scene.Node;
 import javafx.scene.text.Text;
 
