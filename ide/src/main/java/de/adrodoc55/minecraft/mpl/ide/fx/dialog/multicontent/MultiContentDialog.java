@@ -63,19 +63,18 @@ import javafx.stage.Window;
 /**
  * @author Adrodoc55
  */
-public class ImportCommandDialog extends Stage {
+public class MultiContentDialog extends Stage {
   private final VBox container;
 
-  public ImportCommandDialog(Window owner, List<String> importCommands) {
+  public MultiContentDialog(Window owner, String title, List<String> contents) {
     initOwner(owner);
     initModality(Modality.WINDOW_MODAL);
-    int commandCount = importCommands.size();
-    boolean multipleCommands = commandCount > 1;
-    setTitle("Import Command" + (multipleCommands ? "s" : ""));
+    setTitle(title);
     setOnShown(e -> JavaFxUtils.centerOnOwner(this, getOwner()));
     addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPressed);
     addEventFilter(KeyEvent.KEY_RELEASED, this::handleKeyReleased);
 
+    int commandCount = contents.size();
     updateMaxHeight(commandCount);
     int width = 500;
     setMinWidth(width);
@@ -84,21 +83,22 @@ public class ImportCommandDialog extends Stage {
     container = new VBox();
 
     int i = 0;
-    for (String importCommand : importCommands) {
+    for (String content : contents) {
       try {
-        Node importCommandNode =
-            FXMLLoader.load(getClass().getResource("/dialog/import-command.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/dialog/multi-content.fxml"));
+        Node importCommandNode = loader.load();
+        ContentController controller = loader.getController();
 
-        if (multipleCommands) {
-          Label outputLabel = (Label) importCommandNode.lookup("#outputLabel");
+        if (commandCount > 1) {
+          Label outputLabel = controller.getOutputLabel();
           outputLabel.setText("Output " + ++i);
         }
 
-        TextArea commandTextArea = (TextArea) importCommandNode.lookup("#commandTextArea");
-        commandTextArea.setText(importCommand);
-        commandTextArea.focusedProperty().addListener((observable, oldValue, newValue) -> {
+        TextArea contentTextArea = controller.getContentTextArea();
+        contentTextArea.setText(content);
+        contentTextArea.focusedProperty().addListener((observable, oldValue, newValue) -> {
           if (newValue != null && newValue.booleanValue()) {
-            Platform.runLater(commandTextArea::selectAll);
+            Platform.runLater(contentTextArea::selectAll);
           }
         });
 

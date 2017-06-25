@@ -1,6 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<!--
 /*
  * Minecraft Programming Language (MPL): A language for easy development of command block
  * applications including an IDE.
@@ -40,32 +37,59 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
--->
+package de.adrodoc55.minecraft.mpl.ide.fx.dialog.multicontent;
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
+import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.stage.Window;
 
-<VBox fx:id="root" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.adrodoc55.minecraft.mpl.ide.fx.dialog.multicontent.ImportCommandController">
-   <children>
-      <TextArea fx:id="commandTextArea" editable="false" minHeight="50.0" wrapText="true" VBox.vgrow="ALWAYS" />
-      <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="NEVER">
-         <children>
-            <Label fx:id="outputLabel" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="90.0">
-               <padding>
-                  <Insets left="10.0" />
-               </padding>
-            </Label>
-            <Button mnemonicParsing="false" onAction="#copyToClipboard" text="Copy to Clipboard" />
-            <Button fx:id="defaultButton" defaultButton="true" mnemonicParsing="false" onAction="#copyAndClose" text="Copy and Close" />
-            <Button mnemonicParsing="false" onAction="#close" text="Close" />
-         </children>
-         <padding>
-            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
-         </padding>
-      </HBox>
-   </children>
-</VBox>
+/**
+ * @author Adrodoc55
+ */
+public class ContentController {
+  @FXML
+  private Node root;
+  @FXML
+  private TextArea contentTextArea;
+  @FXML
+  private Label outputLabel;
+  @FXML
+  private Button defaultButton;
+
+  @FXML
+  public void copyToClipboard() {
+    String content = contentTextArea.getText();
+    Clipboard clipboard = Clipboard.getSystemClipboard();
+    ClipboardContent clipboardContent = new ClipboardContent();
+    clipboardContent.putString(content);
+    clipboard.setContent(clipboardContent);
+  }
+
+  @FXML
+  public void copyAndClose() {
+    copyToClipboard();
+    close();
+  }
+
+  @FXML
+  public void close() {
+    Window window = root.getScene().getWindow();
+    if (window instanceof MultiContentDialog) {
+      MultiContentDialog dialog = (MultiContentDialog) window;
+      dialog.remove(root);
+    }
+  }
+
+  public TextArea getContentTextArea() {
+    return contentTextArea;
+  }
+
+  public Label getOutputLabel() {
+    return outputLabel;
+  }
+}

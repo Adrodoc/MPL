@@ -84,10 +84,11 @@ import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import de.adrodoc55.minecraft.mpl.conversion.CbseConverter;
 import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.filename.FileNameDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.filename.FileNameValidator;
-import de.adrodoc55.minecraft.mpl.ide.fx.dialog.multicontent.ImportCommandDialog;
+import de.adrodoc55.minecraft.mpl.ide.fx.dialog.multicontent.MultiContentDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.options.OptionsDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.unsaved.UnsavedResourcesDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.MplEditor;
@@ -202,6 +203,12 @@ public class MplIdeController {
 
   private Window getWindow() {
     return root.getScene().getWindow();
+  }
+
+  private void handleException(Exception ex) {
+    Alert alert = new Alert(AlertType.ERROR, ex.getMessage());
+    alert.setHeaderText(ex.getClass().getSimpleName());
+    alert.showAndWait();
   }
 
   @FXML
@@ -546,19 +553,6 @@ public class MplIdeController {
     }
   }
 
-  @FXML
-  public void compileToImportCommand() {
-    MplCompilationResult result = compile();
-    if (result == null) {
-      return;
-    }
-    Window owner = getWindow();
-    MinecraftVersion version = options.getMinecraftVersion();
-    List<String> commands = CommandConverter.convert(result, version);
-    ImportCommandDialog dialog = new ImportCommandDialog(owner, commands);
-    dialog.showAndWait();
-  }
-
   private @Nullable MplCompilationResult compile() {
     MplEditor selectedEditor = getSelectedEditor();
     if (selectedEditor == null)
@@ -570,13 +564,12 @@ public class MplIdeController {
     return compile(selectedFile, true);
   }
 
-  private @Nullable MplCompilationResult compile(File selectedFile,
-      boolean showCompilationFailure) {
-    clearCompilerExceptions();
+  private @Nullable MplCompilationResult compile(File file, boolean showCompilationFailure) {
     try {
+      clearCompilerExceptions();
       MinecraftVersion version = options.getMinecraftVersion();
       CompilerOptions compilerOptions = options.getCompilerOptions();
-      MplCompilationResult result = MplCompiler.compile(selectedFile, version, compilerOptions);
+      MplCompilationResult result = MplCompiler.compile(file, version, compilerOptions);
       handleCompilerExceptions(WARNING, result.getWarnings());
       return result;
     } catch (CompilationFailedException ex) {
@@ -598,12 +591,6 @@ public class MplIdeController {
       handleException(ex);
     }
     return null;
-  }
-
-  private void handleException(Exception ex) {
-    Alert alert = new Alert(AlertType.ERROR, ex.getMessage());
-    alert.setHeaderText(ex.getClass().getSimpleName());
-    alert.showAndWait();
   }
 
   private void clearCompilerExceptions() {
@@ -633,13 +620,36 @@ public class MplIdeController {
   }
 
   @FXML
+  public void compileToImportCommand() {
+    MplCompilationResult result = compile();
+    if (result == null) {
+      return;
+    }
+    Window owner = getWindow();
+    List<String> commands = CommandConverter.convert(result, options.getMinecraftVersion());
+    String title = "Import Command" + (commands.size() > 1 ? "s" : "");
+    MultiContentDialog dialog = new MultiContentDialog(owner, title, commands);
+    dialog.showAndWait();
+  }
+
+  @FXML
   public void compileToStructure() {}
 
   @FXML
   public void compileToSchematic() {}
 
   @FXML
-  public void compileToCbse() {}
+  public void compileToCbse() {
+    MplCompilationResult result = compile();
+    if (result == null) {
+      return;
+    }
+    Window owner = getWindow();
+    String title = "Command block structure editor";
+    String cbse = CbseConverter.convert(result);
+    MultiContentDialog dialog = new MultiContentDialog(owner, title, Arrays.asList(cbse));
+    dialog.showAndWait();
+  }
 
   @FXML
   public void compileToMcedit() {}
