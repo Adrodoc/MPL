@@ -54,15 +54,15 @@
 }
 
 .button.open {
-  -fx-graphic: url('/icons/folder_icon_16.png');
+  -fx-graphic: url('/icons/open_dir_16.png');
 }
 
 .button.save {
-  -fx-graphic: url('/icons/disk_icon_16.png');
+  -fx-graphic: url('/icons/disk_16.png');
 }
 
 .button.compileToImportCommand {
-  -fx-graphic: url('/icons/command_block_icon_16.png');
+  -fx-graphic: url('/icons/command_block_16.png');
 }
 
 .button.compileToStructure {
@@ -79,4 +79,28 @@
 
 .button.compileToMcedit {
   -fx-graphic: url('/icons/mcedit_16.png');
+}
+
+.menu-item.new-file > .label {
+  -fx-graphic: url('/icons/new_file_16.png');
+}
+
+.menu-item.new-dir > .label {
+  -fx-graphic: url('/icons/new_dir_16.png');
+}
+
+.menu-item.delete > .label {
+  -fx-graphic: url('/icons/delete_16.png');
+}
+
+.menu-item.cut > .label {
+  -fx-graphic: url('/icons/cut_16.png');
+}
+
+.menu-item.copy > .label {
+  -fx-graphic: url('/icons/copy_16.png');
+}
+
+.menu-item.paste > .label {
+  -fx-graphic: url('/icons/paste_16.png');
 }

@@ -60,9 +60,9 @@ public class MplFxIdeMain extends Application {
         "Minecraft Programming Language - " + ApplicationUtils.getImplementationVersion());
 
     ObservableList<Image> icons = stage.getIcons();
-    icons.add(new Image(getClass().getResourceAsStream("/icons/command_block_icon.png")));
-    icons.add(new Image(getClass().getResourceAsStream("/icons/command_block_icon_32.png")));
-    icons.add(new Image(getClass().getResourceAsStream("/icons/command_block_icon_16.png")));
+    icons.add(new Image(getClass().getResourceAsStream("/icons/command_block.png")));
+    icons.add(new Image(getClass().getResourceAsStream("/icons/command_block_32.png")));
+    icons.add(new Image(getClass().getResourceAsStream("/icons/command_block_16.png")));
 
     Parent root = FXMLLoader.load(getClass().getResource("/mpl-ide.fxml"));
     Scene scene = new Scene(root, 1000, 500);

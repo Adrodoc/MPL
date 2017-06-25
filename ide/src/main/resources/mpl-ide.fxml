@@ -56,7 +56,8 @@
 <?import org.eclipse.fx.ui.controls.filesystem.ResourceTreeView?>
 <?import org.eclipse.fx.ui.controls.tabpane.DndTabPane?>
 
-<VBox fx:id="root" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.adrodoc55.minecraft.mpl.ide.fx.MplIdeController">
+<VBox fx:id="root" xmlns="http://javafx.com/javafx/8.0.111"
+  xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.adrodoc55.minecraft.mpl.ide.fx.MplIdeController">
   <children>
     <MenuBar VBox.vgrow="NEVER">
       <menus>
@@ -84,7 +85,8 @@
     </MenuBar>
     <ToolBar VBox.vgrow="NEVER">
       <items>
-        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#open">
+        <Button contentDisplay="CENTER" mnemonicParsing="false"
+          onAction="#open">
           <styleClass>
             <String fx:value="open" />
             <String fx:value="icon" />
@@ -93,7 +95,8 @@
             <Tooltip text="Select a new Root-Directory" />
           </tooltip>
         </Button>
-        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#save">
+        <Button contentDisplay="CENTER" mnemonicParsing="false"
+          onAction="#save">
           <styleClass>
             <String fx:value="save" />
             <String fx:value="icon" />
@@ -102,7 +105,8 @@
             <Tooltip text="Save the current File" />
           </tooltip>
         </Button>
-        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToImportCommand">
+        <Button contentDisplay="CENTER" mnemonicParsing="false"
+          onAction="#compileToImportCommand">
           <styleClass>
             <String fx:value="compileToImportCommand" />
             <String fx:value="icon" />
@@ -111,7 +115,8 @@
             <Tooltip text="Compile to Import-Command" />
           </tooltip>
         </Button>
-        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToStructure">
+        <Button contentDisplay="CENTER" mnemonicParsing="false"
+          onAction="#compileToStructure">
           <styleClass>
             <String fx:value="compileToStructure" />
             <String fx:value="icon" />
@@ -120,7 +125,8 @@
             <Tooltip text="Compile to Structure" />
           </tooltip>
         </Button>
-        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToSchematic">
+        <Button contentDisplay="CENTER" mnemonicParsing="false"
+          onAction="#compileToSchematic">
           <styleClass>
             <String fx:value="compileToSchematic" />
             <String fx:value="icon" />
@@ -129,7 +135,8 @@
             <Tooltip text="Compile to Schematic" />
           </tooltip>
         </Button>
-        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToCbse">
+        <Button contentDisplay="CENTER" mnemonicParsing="false"
+          onAction="#compileToCbse">
           <styleClass>
             <String fx:value="compileToCbse" />
             <String fx:value="icon" />
@@ -138,7 +145,8 @@
             <Tooltip text="Compile to Command Block Structure Editor File" />
           </tooltip>
         </Button>
-        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToMcedit">
+        <Button contentDisplay="CENTER" mnemonicParsing="false"
+          onAction="#compileToMcedit">
           <styleClass>
             <String fx:value="compileToMcedit" />
             <String fx:value="icon" />
@@ -158,12 +166,18 @@
           <contextMenu>
             <ContextMenu onShowing="#showResourceContextMenu">
               <items>
-                <MenuItem fx:id="newFileMenuItem" onAction="#newFile" text="New _File" />
-                <MenuItem fx:id="newDirectoryMenuItem" mnemonicParsing="false" onAction="#newDirectory" text="New Directory" />
-                <MenuItem onAction="#deleteResources" text="_Delete" />
-                <MenuItem onAction="#cutResources" text="C_ut" />
-                <MenuItem onAction="#copyResources" text="_Copy" />
-                <MenuItem onAction="#pasteResources" text="_Paste" />
+                <MenuItem fx:id="newFileMenuItem" onAction="#newFile"
+                  text="New _File" styleClass="new-file" />
+                <MenuItem fx:id="newDirectoryMenuItem" mnemonicParsing="false"
+                  onAction="#newDirectory" text="New Directory" styleClass="new-dir" />
+                <MenuItem onAction="#deleteResources" text="_Delete"
+                  styleClass="delete" />
+                <MenuItem onAction="#cutResources" text="C_ut"
+                  styleClass="cut" />
+                <MenuItem onAction="#copyResources" text="_Copy"
+                  styleClass="copy" />
+                <MenuItem onAction="#pasteResources" text="_Paste"
+                  styleClass="paste" />
               </items>
             </ContextMenu>
           </contextMenu>
