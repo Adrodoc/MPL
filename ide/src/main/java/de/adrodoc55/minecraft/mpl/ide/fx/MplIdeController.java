@@ -391,7 +391,10 @@ public class MplIdeController {
           if (cut instanceof Boolean && ((Boolean) cut).booleanValue()) {
             Files.move(source, target);
           } else {
-            Files.copy(source, target);
+            List<Path> children = Files.walk(source).sorted().collect(Collectors.toList());
+            for (Path child : children) {
+              Files.copy(child, target.resolve(source.relativize(child)));
+            }
           }
         } catch (IOException ex) {
           handleException(ex);
