@@ -92,6 +92,7 @@ import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
 import de.adrodoc55.minecraft.mpl.conversion.SchematicConverter;
 import de.adrodoc55.minecraft.mpl.conversion.StructureConverter;
 import de.adrodoc55.minecraft.mpl.ide.fx.MplConstants;
+import de.adrodoc55.minecraft.mpl.ide.fx.MplOptions;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.completion.MplGraphicalCompletionProposal;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.completion.MplProposalComputer;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.contextinfo.MplContextInformationPresenter;
@@ -115,9 +116,8 @@ import javafx.stage.Window;
  * @author Adrodoc55
  */
 public class MplEditor extends TextEditor implements MplSourceViewer.Context {
-  public static MplEditor create(Path path, BorderPane pane, EventBus eventBus,
-      MplEditorContext editorContext) {
-    MplEditor editor = new MplEditor(editorContext);
+  public static MplEditor create(Path path, BorderPane pane, EventBus eventBus, Context context) {
+    MplEditor editor = new MplEditor(context);
     StringInput input = new LocalSourceFileInput(path, StandardCharsets.UTF_8, eventBus);
 
     EditorContextMenuProvider contextMenuProvider = (Control styledText, Type type) -> {
@@ -159,14 +159,21 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
     return result;
   }
 
-  private final MplEditorContext editorContext;
+  public interface Context {
+    MplOptions getMplOptions();
+
+    @Nullable
+    MplCompilationResult compile(File file, boolean silent);
+  }
+
+  private final Context context;
   private final BooleanProperty modified = new SimpleBooleanProperty(this, "modified");
   private final Property<Input<?>> activeInput = new SimpleObjectProperty<>(this, "activeInput");
 
-  public MplEditor(MplEditorContext editorContext) {
+  public MplEditor(Context context) {
     setInsertSpacesForTab(true);
     setTabAdvance(2);
-    this.editorContext = checkNotNull(editorContext, "editorContext == null!");
+    this.context = checkNotNull(context, "context == null!");
   }
 
   public ReadOnlyBooleanProperty modifiedProperty() {
@@ -192,7 +199,7 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
   public void save() {
     super.save();
     setModified(false);
-    editorContext.compile(getFile(), true);
+    context.compile(getFile(), true);
   }
 
   @Override
@@ -231,7 +238,7 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
   }
 
   public File compileToStructure(@Nullable File initialDir) throws IOException {
-    MplCompilationResult result = editorContext.compile(getFile(), false);
+    MplCompilationResult result = context.compile(getFile(), false);
     if (result == null) {
       return null;
     }
@@ -253,7 +260,7 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
   }
 
   public File compileToSchematic(@Nullable File initialDir) throws IOException {
-    MplCompilationResult result = editorContext.compile(getFile(), false);
+    MplCompilationResult result = context.compile(getFile(), false);
     if (result == null) {
       return null;
     }
@@ -275,7 +282,7 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
   }
 
   public File compileToMcedit(@Nullable File initialDir) throws IOException {
-    MplCompilationResult result = editorContext.compile(getFile(), false);
+    MplCompilationResult result = context.compile(getFile(), false);
     if (result == null) {
       return null;
     }
@@ -291,7 +298,7 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
       throws FileNotFoundException, IOException {
     String name = getFileNameWithoutExtension(file);
     OutputStream out = new FileOutputStream(file);
-    MinecraftVersion version = editorContext.getMplOptions().getMinecraftVersion();
+    MinecraftVersion version = context.getMplOptions().getMinecraftVersion();
     converter.write(result, name, out, version);
   }
 }

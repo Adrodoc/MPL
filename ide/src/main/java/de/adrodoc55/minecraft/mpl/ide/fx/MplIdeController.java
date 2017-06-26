@@ -94,7 +94,6 @@ import de.adrodoc55.minecraft.mpl.ide.fx.dialog.multicontent.MultiContentDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.options.OptionsDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.unsaved.UnsavedResourcesDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.MplEditor;
-import de.adrodoc55.minecraft.mpl.ide.fx.editor.MplEditorContext;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotation;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationType;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
@@ -127,7 +126,7 @@ import javafx.stage.WindowEvent;
 /**
  * @author Adrodoc55
  */
-public class MplIdeController implements MplEditorContext {
+public class MplIdeController implements MplEditor.Context {
   @FXML
   private Node root;
 
