@@ -64,30 +64,33 @@
         <Menu text="_File">
           <items>
             <MenuItem mnemonicParsing="false" onAction="#open"
-              text="Open Directory" />
-            <MenuItem mnemonicParsing="false" onAction="#save" text="Save" />
+              styleClass="open" text="Open Directory" />
+            <MenuItem mnemonicParsing="false" onAction="#save"
+              styleClass="save" text="Save" />
             <MenuItem mnemonicParsing="false" onAction="#saveUnder"
-              text="Save under..." />
+              styleClass="save-under" text="Save under..." />
+            <MenuItem mnemonicParsing="false" onAction="#saveAll"
+              styleClass="save-all" text="Save all" />
           </items>
         </Menu>
         <Menu text="_Compile">
           <items>
             <MenuItem mnemonicParsing="false" onAction="#compileToCommand"
-              text="Compile to Command" />
+              styleClass="compileToCommand" text="Compile to Command" />
             <MenuItem mnemonicParsing="false" onAction="#compileToStructure"
-              text="Compile to Structure" />
+              styleClass="compileToStructure" text="Compile to Structure" />
             <MenuItem mnemonicParsing="false" onAction="#compileToStructureUnder"
-              text="Compile to Structure under..." />
+              styleClass="compileToStructure" text="Compile to Structure under..." />
             <MenuItem mnemonicParsing="false" onAction="#compileToSchematic"
-              text="Compile to Schematic" />
+              styleClass="compileToSchematic" text="Compile to Schematic" />
             <MenuItem mnemonicParsing="false" onAction="#compileToSchematicUnder"
-              text="Compile to Schematic under..." />
+              styleClass="compileToSchematic" text="Compile to Schematic under..." />
             <MenuItem mnemonicParsing="false" onAction="#compileToCbse"
-              text="Compile to CBSE" />
+              styleClass="compileToCbse" text="Compile to CBSE" />
             <MenuItem mnemonicParsing="false" onAction="#compileToMcedit"
-              text="Compile to MCEdit Filter" />
+              styleClass="compileToMcedit" text="Compile to MCEdit Filter" />
             <MenuItem mnemonicParsing="false" onAction="#compileToMceditUnder"
-              text="Compile to MCEdit Filter under..." />
+              styleClass="compileToMcedit" text="Compile to MCEdit Filter under..." />
           </items>
         </Menu>
         <Menu text="_Window">
@@ -129,7 +132,7 @@
         <Button contentDisplay="CENTER" mnemonicParsing="false"
           onAction="#compileToCommand">
           <styleClass>
-            <String fx:value="compileToImportCommand" />
+            <String fx:value="compileToCommand" />
             <String fx:value="icon" />
           </styleClass>
           <tooltip>

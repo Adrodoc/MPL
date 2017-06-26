@@ -521,6 +521,13 @@ public class MplIdeController implements MplEditor.Context {
     }
   }
 
+  @FXML
+  public void saveAll() {
+    for (TextEditor editor : editors.values()) {
+      editor.save();
+    }
+  }
+
   /**
    * Warn the User about unsaved Resources, if there are any. Returns {@code true} if the User
    * canceled the Action. <br>

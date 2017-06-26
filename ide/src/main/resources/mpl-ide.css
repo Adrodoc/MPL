@@ -53,6 +53,22 @@
   -fx-background-color: lightblue;
 }
 
+.menu-item.open > .label {
+  -fx-graphic: url('/icons/open_resource.gif');
+}
+
+.menu-item.save > .label {
+  -fx-graphic: url('/icons/save_edit.png');
+}
+
+.menu-item.save-under > .label {
+  -fx-graphic: url('/icons/saveas_edit.png');
+}
+
+.menu-item.save-all > .label {
+  -fx-graphic: url('/icons/saveall_edit.png');
+}
+
 .button.open {
   -fx-graphic: url('/icons/open_resource.gif');
 }
@@ -61,7 +77,27 @@
   -fx-graphic: url('/icons/save_edit.png');
 }
 
-.button.compileToImportCommand {
+.menu-item.compileToCommand > .label {
+  -fx-graphic: url('/icons/command_block_16.png');
+}
+
+.menu-item.compileToStructure > .label {
+  -fx-graphic: url('/icons/structure_block_load_16.png');
+}
+
+.menu-item.compileToSchematic > .label {
+  -fx-graphic: url('/icons/schematic_16.png');
+}
+
+.menu-item.compileToCbse > .label {
+  -fx-graphic: url('/icons/cbse_16.png');
+}
+
+.menu-item.compileToMcedit > .label {
+  -fx-graphic: url('/icons/mcedit_16.png');
+}
+
+.button.compileToCommand {
   -fx-graphic: url('/icons/command_block_16.png');
 }
 
