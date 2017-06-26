@@ -94,7 +94,7 @@ public class FileNameDialog extends Dialog<String> {
         setHeaderText(description);
         root.lookupButton(ButtonType.OK).setDisable(false);
       } else {
-        setGraphic(new ImageView("/icons/error_16.png"));
+        setGraphic(new ImageView("/icons/message_error.png"));
         setHeaderText(error);
         root.lookupButton(ButtonType.OK).setDisable(true);
       }

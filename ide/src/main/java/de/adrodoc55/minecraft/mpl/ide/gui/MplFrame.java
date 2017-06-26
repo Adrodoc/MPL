@@ -456,7 +456,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnButton getBnbtnNew() {
     if (bnbtnNew == null) {
       bnbtnNew = new BnButton();
-      bnbtnNew.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/new_file_16.png")));
+      bnbtnNew.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/newfile_wiz.gif")));
       bnbtnNew.setModelProvider(getLocalModelProvider());
       bnbtnNew.setPath(new Path("this.newFile"));
     }
@@ -466,7 +466,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnButton getBnbtnOpen() {
     if (bnbtnOpen == null) {
       bnbtnOpen = new BnButton();
-      bnbtnOpen.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/open_dir_16.png")));
+      bnbtnOpen.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/open_resource.gif")));
       bnbtnOpen.setPath(new Path("this.openFile"));
       bnbtnOpen.setModelProvider(getLocalModelProvider());
     }
@@ -476,7 +476,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnButton getBnbtnSave() {
     if (bnbtnSave == null) {
       bnbtnSave = new BnButton();
-      bnbtnSave.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/disk_16.png")));
+      bnbtnSave.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/save_edit.png")));
       bnbtnSave.setPath(new Path("this.saveFile"));
       bnbtnSave.setModelProvider(getLocalModelProvider());
     }

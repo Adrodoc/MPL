@@ -55,8 +55,8 @@ import javafx.scene.paint.Paint;
  * @author Adrodoc55
  */
 public enum MplAnnotationType implements HoverInfoType {
-  ERROR(Color.RED, "/icons/error_16.png"), //
-  WARNING(Color.GOLD, "/icons/warning_16.png"),//
+  ERROR(Color.RED, "/icons/quickfix_error_obj.png"), //
+  WARNING(Color.GOLD, "/icons/quickfix_warning_obj.png"),//
   ;
   private final Paint paint;
   private final String url;

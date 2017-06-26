@@ -64,7 +64,6 @@ import javax.annotation.Nullable;
 import org.eclipse.fx.code.editor.fx.TextEditor;
 import org.eclipse.fx.core.event.EventBus;
 import org.eclipse.fx.core.event.SimpleEventBus;
-import org.eclipse.fx.ui.controls.filesystem.DirItem;
 import org.eclipse.fx.ui.controls.filesystem.FileItem;
 import org.eclipse.fx.ui.controls.filesystem.ResourceEvent;
 import org.eclipse.fx.ui.controls.filesystem.ResourceItem;
@@ -227,17 +226,10 @@ public class MplIdeController {
       newFileMenuItem.setDisable(true);
       newDirectoryMenuItem.setDisable(true);
       renameResourceMenuItem.setDisable(true);
-      renameResourceMenuItem.getStyleClass().set(1, "rename-file");
     } else {
       newFileMenuItem.setDisable(false);
       newDirectoryMenuItem.setDisable(false);
       renameResourceMenuItem.setDisable(false);
-      Iterator<ResourceItem> it = items.iterator();
-      if (it.hasNext() && it.next() instanceof DirItem) {
-        renameResourceMenuItem.getStyleClass().set(1, "rename-dir");
-      } else {
-        renameResourceMenuItem.getStyleClass().set(1, "rename-file");
-      }
     }
   }
 

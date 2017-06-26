@@ -54,11 +54,11 @@
 }
 
 .button.open {
-  -fx-graphic: url('/icons/open_dir_16.png');
+  -fx-graphic: url('/icons/open_resource.gif');
 }
 
 .button.save {
-  -fx-graphic: url('/icons/disk_16.png');
+  -fx-graphic: url('/icons/save_edit.png');
 }
 
 .button.compileToImportCommand {
@@ -82,33 +82,29 @@
 }
 
 .menu-item.new-file > .label {
-  -fx-graphic: url('/icons/new_file_16.png');
+  -fx-graphic: url('/icons/newfile_wiz.gif');
 }
 
 .menu-item.new-dir > .label {
-  -fx-graphic: url('/icons/new_dir_16.png');
+  -fx-graphic: url('/icons/newfolder_wiz.png');
 }
 
-.menu-item.rename-file > .label {
-  -fx-graphic: url('/icons/rename_file_16.png');
-}
-
-.menu-item.rename-dir > .label {
-  -fx-graphic: url('/icons/rename_dir_16.png');
+.menu-item.rename > .label {
+  -fx-graphic: url('/icons/correction_linked_rename.png');
 }
 
 .menu-item.delete > .label {
-  -fx-graphic: url('/icons/delete_16.png');
+  -fx-graphic: url('/icons/delete_edit.png');
 }
 
 .menu-item.cut > .label {
-  -fx-graphic: url('/icons/cut_16.png');
+  -fx-graphic: url('/icons/cut_edit.png');
 }
 
 .menu-item.copy > .label {
-  -fx-graphic: url('/icons/copy_16.png');
+  -fx-graphic: url('/icons/copy_edit.png');
 }
 
 .menu-item.paste > .label {
-  -fx-graphic: url('/icons/paste_16.png');
+  -fx-graphic: url('/icons/paste_edit.png');
 }
