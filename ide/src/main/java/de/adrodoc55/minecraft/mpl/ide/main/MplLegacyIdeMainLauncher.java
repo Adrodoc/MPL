@@ -39,53 +39,14 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.main;
 
-import java.io.IOException;
-
-import de.adrodoc55.minecraft.mpl.ide.ApplicationUtils;
-import de.adrodoc55.minecraft.mpl.ide.fx.MplIdeController;
-import de.adrodoc55.minecraft.mpl.main.MplCompilerMain;
-import javafx.application.Application;
-import javafx.collections.ObservableList;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.image.Image;
-import javafx.stage.Stage;
+import com.jdotsoft.jarloader.JarClassLoader;
 
 /**
  * @author Adrodoc55
  */
-public class MplIdeMain extends Application {
-  public static void main(String[] args) throws IOException {
-    if (args.length == 0) {
-      launch(args);
-    } else {
-      MplCompilerMain.main(args);
-    }
-  }
-
-  @Override
-  public void start(Stage stage) throws IOException {
-    stage.setTitle(
-        "Minecraft Programming Language - " + ApplicationUtils.getImplementationVersion());
-
-    ObservableList<Image> icons = stage.getIcons();
-    icons.add(new Image(getClass().getResourceAsStream("/icons/command_block.png")));
-    icons.add(new Image(getClass().getResourceAsStream("/icons/command_block_32.png")));
-    icons.add(new Image(getClass().getResourceAsStream("/icons/command_block_16.png")));
-
-    FXMLLoader loader = new FXMLLoader(getClass().getResource("/mpl-ide.fxml"));
-    Parent root = loader.load();
-    Scene scene = new Scene(root, 1000, 500);
-
-    ObservableList<String> stylesheets = scene.getStylesheets();
-    stylesheets.add("/mpl-ide.css");
-    stylesheets.add("/syntax/highlighting/mpl.css");
-
-    MplIdeController controller = loader.getController();
-    controller.initialize(getHostServices());
-
-    stage.setScene(scene);
-    stage.show();
+public class MplLegacyIdeMainLauncher {
+  public static void main(String[] args) throws Throwable {
+    JarClassLoader jcl = new JarClassLoader();
+    jcl.invokeMain("de.adrodoc55.minecraft.mpl.ide.main.MplLegacyIdeMain", args);
   }
 }
