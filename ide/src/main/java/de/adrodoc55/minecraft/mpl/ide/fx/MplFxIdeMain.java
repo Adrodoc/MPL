@@ -64,12 +64,16 @@ public class MplFxIdeMain extends Application {
     icons.add(new Image(getClass().getResourceAsStream("/icons/command_block_32.png")));
     icons.add(new Image(getClass().getResourceAsStream("/icons/command_block_16.png")));
 
-    Parent root = FXMLLoader.load(getClass().getResource("/mpl-ide.fxml"));
+    FXMLLoader loader = new FXMLLoader(getClass().getResource("/mpl-ide.fxml"));
+    Parent root = loader.load();
     Scene scene = new Scene(root, 1000, 500);
 
     ObservableList<String> stylesheets = scene.getStylesheets();
     stylesheets.add("/mpl-ide.css");
     stylesheets.add("/syntax/highlighting/mpl.css");
+
+    MplIdeController controller = loader.getController();
+    controller.initialize(getHostServices());
 
     stage.setScene(scene);
     stage.show();

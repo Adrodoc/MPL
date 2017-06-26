@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.fx;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.commons.CommonDirectories.getFurthestExistingSubDir;
 import static de.adrodoc55.commons.CommonDirectories.getMCEditDir;
 import static de.adrodoc55.commons.CommonDirectories.getMinecraftDir;
@@ -97,6 +98,7 @@ import de.adrodoc55.minecraft.mpl.ide.fx.editor.MplEditor;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotation;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationType;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
+import javafx.application.HostServices;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringExpression;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -152,6 +154,7 @@ public class MplIdeController implements MplEditor.Context {
       )//
   );
 
+  private HostServices hostServices;
   private EventBus eventBus = new SimpleEventBus();
 
   private final Map<Path, Tab> tabs = new HashMap<>();
@@ -201,6 +204,20 @@ public class MplIdeController implements MplEditor.Context {
     };
     scenePropertyListener.changed(null, null, root.getScene());
     root.sceneProperty().addListener(scenePropertyListener);
+  }
+
+  public void initialize(HostServices hostServices) {
+    this.hostServices = checkNotNull(hostServices, "hostServices == null!");
+  }
+
+  @FXML
+  public void openGithub() {
+    hostServices.showDocument("https://github.com/Adrodoc55/MPL");
+  }
+
+  @FXML
+  public void openWiki() {
+    hostServices.showDocument("https://github.com/Adrodoc55/MPL/wiki");
   }
 
   private Window getWindow() {

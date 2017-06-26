@@ -90,11 +90,6 @@
               text="Compile to MCEdit Filter under..." />
           </items>
         </Menu>
-        <Menu text="_Edit">
-          <items>
-            <MenuItem mnemonicParsing="false" text="Delete" />
-          </items>
-        </Menu>
         <Menu text="_Window">
           <items>
             <MenuItem onAction="#options" text="_Options" />
@@ -102,7 +97,9 @@
         </Menu>
         <Menu text="_Help">
           <items>
-            <MenuItem mnemonicParsing="false" text="About" />
+            <MenuItem mnemonicParsing="false" onAction="#openWiki"
+              text="Wiki" />
+            <MenuItem onAction="#openGithub" text="_About" />
           </items>
         </Menu>
       </menus>
