@@ -117,8 +117,9 @@ import javafx.stage.Window;
  */
 public class MplEditor extends TextEditor implements MplSourceViewer.Context {
   public static MplEditor create(Path path, BorderPane pane, EventBus eventBus, Context context) {
-    MplEditor editor = new MplEditor(context);
-    StringInput input = new LocalSourceFileInput(path, StandardCharsets.UTF_8, eventBus);
+    MplEditor editor = new MplEditor(eventBus, context);
+    StringInput input = new DelegatingLocalSourceFileInput(
+        new LocalSourceFileInput(path, StandardCharsets.UTF_8, eventBus));
 
     EditorContextMenuProvider contextMenuProvider = (Control styledText, Type type) -> {
     };
@@ -167,12 +168,14 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
   }
 
   private final Context context;
+  private final EventBus eventBus;
   private final BooleanProperty modified = new SimpleBooleanProperty(this, "modified");
   private final Property<Input<?>> activeInput = new SimpleObjectProperty<>(this, "activeInput");
 
-  public MplEditor(Context context) {
+  public MplEditor(EventBus eventBus, Context context) {
     setInsertSpacesForTab(true);
     setTabAdvance(2);
+    this.eventBus = checkNotNull(eventBus, "eventBus == null!");
     this.context = checkNotNull(context, "context == null!");
   }
 
@@ -193,6 +196,11 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
     LocalFile localFile = (LocalFile) activeInput.getValue();
     Path path = localFile.getPath();
     return path.toFile();
+  }
+
+  public void setFile(Path path) {
+    DelegatingLocalSourceFileInput input = (DelegatingLocalSourceFileInput) activeInput.getValue();
+    input.setDelegate(new LocalSourceFileInput(path, StandardCharsets.UTF_8, eventBus));
   }
 
   @Override
@@ -230,19 +238,20 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
 
   private @Nullable File structureFile;
 
-  private @Nullable File getStructureFile(@Nullable File initialDir) {
-    if (structureFile == null) {
+  private @Nullable File getStructureFile(@Nullable File initialDir, boolean useCachedFile) {
+    if (!useCachedFile || structureFile == null) {
       structureFile = chooseOutputFile(initialDir, MplConstants.STRUCTURE_EXTENSION);
     }
     return structureFile;
   }
 
-  public File compileToStructure(@Nullable File initialDir) throws IOException {
+  public File compileToStructure(@Nullable File initialDir, boolean useCachedFile)
+      throws IOException {
     MplCompilationResult result = context.compile(getFile(), false);
     if (result == null) {
       return null;
     }
-    File file = getStructureFile(initialDir);
+    File file = getStructureFile(initialDir, useCachedFile);
     if (file == null) {
       return null;
     }
@@ -252,19 +261,20 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
 
   private @Nullable File schematicFile;
 
-  private @Nullable File getSchematicFile(@Nullable File initialDir) {
-    if (schematicFile == null) {
+  private @Nullable File getSchematicFile(@Nullable File initialDir, boolean useCachedFile) {
+    if (!useCachedFile || schematicFile == null) {
       schematicFile = chooseOutputFile(initialDir, MplConstants.SCHEMATIC_EXTENSION);
     }
     return schematicFile;
   }
 
-  public File compileToSchematic(@Nullable File initialDir) throws IOException {
+  public File compileToSchematic(@Nullable File initialDir, boolean useCachedFile)
+      throws IOException {
     MplCompilationResult result = context.compile(getFile(), false);
     if (result == null) {
       return null;
     }
-    File file = getSchematicFile(initialDir);
+    File file = getSchematicFile(initialDir, useCachedFile);
     if (file == null) {
       return null;
     }
@@ -274,19 +284,19 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
 
   private @Nullable File mceditFile;
 
-  private @Nullable File getMceditFile(@Nullable File initialDir) {
-    if (mceditFile == null) {
+  private @Nullable File getMceditFile(@Nullable File initialDir, boolean useCachedFile) {
+    if (!useCachedFile || mceditFile == null) {
       mceditFile = chooseOutputFile(initialDir, MplConstants.MCEDIT_EXTENSION);
     }
     return mceditFile;
   }
 
-  public File compileToMcedit(@Nullable File initialDir) throws IOException {
+  public File compileToMcedit(@Nullable File initialDir, boolean useCachedFile) throws IOException {
     MplCompilationResult result = context.compile(getFile(), false);
     if (result == null) {
       return null;
     }
-    File file = getMceditFile(initialDir);
+    File file = getMceditFile(initialDir, useCachedFile);
     if (file == null) {
       return null;
     }

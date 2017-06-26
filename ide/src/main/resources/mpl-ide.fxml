@@ -63,7 +63,31 @@
       <menus>
         <Menu text="_File">
           <items>
-            <MenuItem mnemonicParsing="false" text="Close" />
+            <MenuItem mnemonicParsing="false" onAction="#open"
+              text="Open Directory" />
+            <MenuItem mnemonicParsing="false" onAction="#save" text="Save" />
+            <MenuItem mnemonicParsing="false" onAction="#saveUnder"
+              text="Save under..." />
+          </items>
+        </Menu>
+        <Menu text="_Compile">
+          <items>
+            <MenuItem mnemonicParsing="false" onAction="#compileToCommand"
+              text="Compile to Command" />
+            <MenuItem mnemonicParsing="false" onAction="#compileToStructure"
+              text="Compile to Structure" />
+            <MenuItem mnemonicParsing="false" onAction="#compileToStructureUnder"
+              text="Compile to Structure under..." />
+            <MenuItem mnemonicParsing="false" onAction="#compileToSchematic"
+              text="Compile to Schematic" />
+            <MenuItem mnemonicParsing="false" onAction="#compileToSchematicUnder"
+              text="Compile to Schematic under..." />
+            <MenuItem mnemonicParsing="false" onAction="#compileToCbse"
+              text="Compile to CBSE" />
+            <MenuItem mnemonicParsing="false" onAction="#compileToMcedit"
+              text="Compile to MCEdit Filter" />
+            <MenuItem mnemonicParsing="false" onAction="#compileToMceditUnder"
+              text="Compile to MCEdit Filter under..." />
           </items>
         </Menu>
         <Menu text="_Edit">
@@ -92,7 +116,7 @@
             <String fx:value="icon" />
           </styleClass>
           <tooltip>
-            <Tooltip text="Select a new Root-Directory" />
+            <Tooltip text="Open Directory" />
           </tooltip>
         </Button>
         <Button contentDisplay="CENTER" mnemonicParsing="false"
@@ -106,7 +130,7 @@
           </tooltip>
         </Button>
         <Button contentDisplay="CENTER" mnemonicParsing="false"
-          onAction="#compileToImportCommand">
+          onAction="#compileToCommand">
           <styleClass>
             <String fx:value="compileToImportCommand" />
             <String fx:value="icon" />
@@ -167,19 +191,19 @@
             <ContextMenu onShowing="#showResourceContextMenu">
               <items>
                 <MenuItem fx:id="newFileMenuItem" onAction="#newFile"
-                  text="New _File" styleClass="new-file" />
+                  styleClass="new-file" text="New _File" />
                 <MenuItem fx:id="newDirectoryMenuItem" mnemonicParsing="false"
-                  onAction="#newDirectory" text="New Directory" styleClass="new-dir" />
+                  onAction="#newDirectory" styleClass="new-dir" text="New Directory" />
                 <MenuItem fx:id="renameResourceMenuItem" onAction="#renameResource"
-                  text="_Rename" styleClass="rename" />
-                <MenuItem onAction="#deleteResources" text="_Delete"
-                  styleClass="delete" />
-                <MenuItem onAction="#cutResources" text="C_ut"
-                  styleClass="cut" />
-                <MenuItem onAction="#copyResources" text="_Copy"
-                  styleClass="copy" />
-                <MenuItem onAction="#pasteResources" text="_Paste"
-                  styleClass="paste" />
+                  styleClass="rename" text="_Rename" />
+                <MenuItem onAction="#deleteResources" styleClass="delete"
+                  text="_Delete" />
+                <MenuItem onAction="#cutResources" styleClass="cut"
+                  text="C_ut" />
+                <MenuItem onAction="#copyResources" styleClass="copy"
+                  text="_Copy" />
+                <MenuItem onAction="#pasteResources" styleClass="paste"
+                  text="_Paste" />
               </items>
             </ContextMenu>
           </contextMenu>

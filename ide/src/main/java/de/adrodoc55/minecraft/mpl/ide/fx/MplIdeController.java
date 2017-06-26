@@ -120,6 +120,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 
@@ -477,12 +478,30 @@ public class MplIdeController implements MplEditor.Context {
   }
 
   @FXML
-  public void save() throws IOException {
+  public void save() {
     MplEditor editor = getSelectedEditor();
     if (editor == null) {
       return;
     }
     editor.save();
+  }
+
+  @FXML
+  public void saveUnder() {
+    MplEditor editor = getSelectedEditor();
+    if (editor == null) {
+      return;
+    }
+    File oldFile = editor.getFile();
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.getExtensionFilters().add(MplConstants.MPL_EXTENSION);
+    fileChooser.setInitialDirectory(oldFile.getParentFile());
+    fileChooser.setInitialFileName(oldFile.getName());
+    File newFile = fileChooser.showSaveDialog(getWindow());
+    if (newFile != null) {
+      editor.setFile(newFile.toPath());
+      editor.save();
+    }
   }
 
   /**
@@ -615,7 +634,7 @@ public class MplIdeController implements MplEditor.Context {
   }
 
   @FXML
-  public void compileToImportCommand() {
+  public void compileToCommand() {
     MplCompilationResult result = compile();
     if (result == null) {
       return;
@@ -631,12 +650,21 @@ public class MplIdeController implements MplEditor.Context {
 
   @FXML
   public void compileToStructure() {
+    compileToStructure(true);
+  }
+
+  @FXML
+  public void compileToStructureUnder() {
+    compileToStructure(false);
+  }
+
+  private void compileToStructure(boolean useCachedFile) {
     MplEditor selectedEditor = getSelectedEditor();
     if (selectedEditor == null) {
       return;
     }
     try {
-      File file = selectedEditor.compileToStructure(structureDir);
+      File file = selectedEditor.compileToStructure(structureDir, useCachedFile);
       if (file != null) {
         structureDir = file.getParentFile();
       }
@@ -649,12 +677,21 @@ public class MplIdeController implements MplEditor.Context {
 
   @FXML
   public void compileToSchematic() {
+    compileToSchematic(true);
+  }
+
+  @FXML
+  public void compileToSchematicUnder() {
+    compileToSchematic(false);
+  }
+
+  private void compileToSchematic(boolean useCachedFile) {
     MplEditor selectedEditor = getSelectedEditor();
     if (selectedEditor == null) {
       return;
     }
     try {
-      File file = selectedEditor.compileToSchematic(schematicDir);
+      File file = selectedEditor.compileToSchematic(schematicDir, useCachedFile);
       if (file != null) {
         schematicDir = file.getParentFile();
       }
@@ -680,12 +717,21 @@ public class MplIdeController implements MplEditor.Context {
 
   @FXML
   public void compileToMcedit() {
+    compileToMcedit(true);
+  }
+
+  @FXML
+  public void compileToMceditUnder() {
+    compileToMcedit(false);
+  }
+
+  private void compileToMcedit(boolean useCachedFile) {
     MplEditor selectedEditor = getSelectedEditor();
     if (selectedEditor == null) {
       return;
     }
     try {
-      File file = selectedEditor.compileToMcedit(mceditDir);
+      File file = selectedEditor.compileToMcedit(mceditDir, useCachedFile);
       if (file != null) {
         mceditDir = file.getParentFile();
       }
