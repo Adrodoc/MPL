@@ -39,6 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.fx;
 
+import static de.adrodoc55.commons.CommonDirectories.getFurthestExistingSubDir;
+import static de.adrodoc55.commons.CommonDirectories.getMCEditDir;
+import static de.adrodoc55.commons.CommonDirectories.getMinecraftDir;
 import static de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationType.ERROR;
 import static de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationType.WARNING;
 import static javafx.scene.control.Alert.AlertType.CONFIRMATION;
@@ -124,7 +127,7 @@ import javafx.stage.WindowEvent;
 /**
  * @author Adrodoc55
  */
-public class MplIdeController {
+public class MplIdeController implements MplEditorContext {
   @FXML
   private Node root;
 
@@ -208,6 +211,11 @@ public class MplIdeController {
     Alert alert = new Alert(AlertType.ERROR, ex.getMessage());
     alert.setHeaderText(ex.getClass().getSimpleName());
     alert.showAndWait();
+  }
+
+  @Override
+  public MplOptions getMplOptions() {
+    return options;
   }
 
   @FXML
@@ -426,12 +434,7 @@ public class MplIdeController {
 
   private Tab createAndAttachTab(Path path) {
     BorderPane pane = new BorderPane();
-    MplEditor editor = MplEditor.create(path, pane, eventBus, new MplEditorContext() {
-      @Override
-      public void compile(File file) {
-        MplIdeController.this.compile(file, false);
-      }
-    });
+    MplEditor editor = MplEditor.create(path, pane, eventBus, this);
 
     ReadOnlyBooleanProperty modifiedProperty = editor.modifiedProperty();
     StringExpression titleText = Bindings.createStringBinding(() -> {
@@ -547,27 +550,28 @@ public class MplIdeController {
 
   private @Nullable MplCompilationResult compile() {
     MplEditor selectedEditor = getSelectedEditor();
-    if (selectedEditor == null)
+    if (selectedEditor == null) {
       return null;
-    if (warnAboutUnsavedResources())
-      return null;
-
-    File selectedFile = selectedEditor.getFile();
-    return compile(selectedFile, true);
+    }
+    return compile(selectedEditor.getFile(), false);
   }
 
-  private @Nullable MplCompilationResult compile(File file, boolean showCompilationFailure) {
+  @Override
+  public @Nullable MplCompilationResult compile(File file, boolean silent) {
+    if (!silent && warnAboutUnsavedResources()) {
+      return null;
+    }
+    clearCompilerExceptions();
+    MinecraftVersion version = options.getMinecraftVersion();
+    CompilerOptions compilerOptions = options.getCompilerOptions();
     try {
-      clearCompilerExceptions();
-      MinecraftVersion version = options.getMinecraftVersion();
-      CompilerOptions compilerOptions = options.getCompilerOptions();
       MplCompilationResult result = MplCompiler.compile(file, version, compilerOptions);
       handleCompilerExceptions(WARNING, result.getWarnings());
       return result;
     } catch (CompilationFailedException ex) {
       handleCompilerExceptions(ERROR, ex.getErrors());
       handleCompilerExceptions(WARNING, ex.getWarnings());
-      if (showCompilationFailure) {
+      if (!silent) {
         Alert alert = new Alert(AlertType.ERROR);
         String title = "Compilation Failed";
         alert.setTitle(title);
@@ -624,11 +628,41 @@ public class MplIdeController {
     dialog.showAndWait();
   }
 
-  @FXML
-  public void compileToStructure() {}
+  private @Nullable File structureDir = getFurthestExistingSubDir(getMinecraftDir(), "saves");
 
   @FXML
-  public void compileToSchematic() {}
+  public void compileToStructure() {
+    MplEditor selectedEditor = getSelectedEditor();
+    if (selectedEditor == null) {
+      return;
+    }
+    try {
+      File file = selectedEditor.compileToStructure(structureDir);
+      if (file != null) {
+        structureDir = file.getParentFile();
+      }
+    } catch (IOException ex) {
+      handleException(ex);
+    }
+  }
+
+  private @Nullable File schematicDir = getFurthestExistingSubDir(getMCEditDir(), "Schematics");
+
+  @FXML
+  public void compileToSchematic() {
+    MplEditor selectedEditor = getSelectedEditor();
+    if (selectedEditor == null) {
+      return;
+    }
+    try {
+      File file = selectedEditor.compileToSchematic(schematicDir);
+      if (file != null) {
+        schematicDir = file.getParentFile();
+      }
+    } catch (IOException ex) {
+      handleException(ex);
+    }
+  }
 
   @FXML
   public void compileToCbse() {
@@ -643,7 +677,21 @@ public class MplIdeController {
     dialog.showAndWait();
   }
 
-  @FXML
-  public void compileToMcedit() {}
+  private @Nullable File mceditDir = getFurthestExistingSubDir(getMCEditDir(), "Filters");
 
+  @FXML
+  public void compileToMcedit() {
+    MplEditor selectedEditor = getSelectedEditor();
+    if (selectedEditor == null) {
+      return;
+    }
+    try {
+      File file = selectedEditor.compileToMcedit(mceditDir);
+      if (file != null) {
+        mceditDir = file.getParentFile();
+      }
+    } catch (IOException ex) {
+      handleException(ex);
+    }
+  }
 }

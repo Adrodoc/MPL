@@ -69,7 +69,7 @@ public class MplCompilerMain {
       MinecraftVersion version = getVersion(params.getVersion());
       File programFile = params.getInput();
       MplCompilationResult compiled = compile(programFile, version, params.getCompilerOptions());
-      String name = FileUtils.getFilenameWithoutExtension(programFile);
+      String name = FileUtils.getFileNameWithoutExtension(programFile);
       params.getType().getConverter().write(compiled, name, params.getOutput(), version);
     } catch (ParameterException ex) {
       System.err.println(ex.getLocalizedMessage());

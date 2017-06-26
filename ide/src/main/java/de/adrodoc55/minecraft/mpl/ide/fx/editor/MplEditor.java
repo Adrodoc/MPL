@@ -40,13 +40,20 @@
 package de.adrodoc55.minecraft.mpl.ide.fx.editor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static de.adrodoc55.commons.FileUtils.getFileNameWithoutExtension;
 import static javafx.scene.input.KeyCode.DIGIT7;
 import static javafx.scene.input.KeyCode.S;
 import static javafx.scene.input.KeyCombination.SHORTCUT_DOWN;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+
+import javax.annotation.Nullable;
 
 import org.eclipse.fx.code.editor.Input;
 import org.eclipse.fx.code.editor.LocalFile;
@@ -88,11 +95,18 @@ import org.eclipse.jface.text.source.IAnnotationModel;
 
 import de.adrodoc55.minecraft.mpl.MplPartitioner;
 import de.adrodoc55.minecraft.mpl.MplPresentationReconciler;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
+import de.adrodoc55.minecraft.mpl.conversion.MplConverter;
+import de.adrodoc55.minecraft.mpl.conversion.PythonConverter;
+import de.adrodoc55.minecraft.mpl.conversion.SchematicConverter;
+import de.adrodoc55.minecraft.mpl.conversion.StructureConverter;
+import de.adrodoc55.minecraft.mpl.ide.fx.MplConstants;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.completion.MplGraphicalCompletionProposal;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.completion.MplProposalComputer;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.contextinfo.MplContextInformationPresenter;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.hover.MplHoverInformationProvider;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationPresenter;
+import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -101,10 +115,14 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.Scene;
 import javafx.scene.control.Control;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Window;
 
 /**
  * @author Adrodoc55
@@ -196,7 +214,7 @@ public class MplEditor extends TextEditor {
   public void save() {
     super.save();
     modified.set(false);
-    editorContext.compile(getFile());
+    editorContext.compile(getFile(), true);
   }
 
   @Override
@@ -282,5 +300,100 @@ public class MplEditor extends TextEditor {
     control.setCaretOffset(selection.offset == caret ? caret + addedPerLine : caret + added);
     control.setSelectionRange(selection.offset + addedPerLine,
         selection.length + added - addedPerLine);
+  }
+
+  private @Nullable Window getWindow() {
+    SourceViewer sourceViewer = getSourceViewer();
+    if (sourceViewer == null)
+      return null;
+    Scene scene = sourceViewer.getScene();
+    if (scene == null)
+      return null;
+    return scene.getWindow();
+  }
+
+  private @Nullable File chooseOutputFile(@Nullable File initialDir,
+      ExtensionFilter extensionFilter) {
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.setTitle("Compile to " + extensionFilter.getDescription());
+    fileChooser.setInitialDirectory(initialDir);
+    String initialFileName = getFileNameWithoutExtension(getFile());
+    fileChooser.setInitialFileName(initialFileName);
+    fileChooser.getExtensionFilters().add(extensionFilter);
+    return fileChooser.showSaveDialog(getWindow());
+  }
+
+  private @Nullable File structureFile;
+
+  private @Nullable File getStructureFile(@Nullable File initialDir) {
+    if (structureFile == null) {
+      structureFile = chooseOutputFile(initialDir, MplConstants.STRUCTURE_EXTENSION);
+    }
+    return structureFile;
+  }
+
+  public File compileToStructure(@Nullable File initialDir) throws IOException {
+    MplCompilationResult result = editorContext.compile(getFile(), false);
+    if (result == null) {
+      return null;
+    }
+    File file = getStructureFile(initialDir);
+    if (file == null) {
+      return null;
+    }
+    compileTo(file, result, new StructureConverter());
+    return file;
+  }
+
+  private @Nullable File schematicFile;
+
+  private @Nullable File getSchematicFile(@Nullable File initialDir) {
+    if (schematicFile == null) {
+      schematicFile = chooseOutputFile(initialDir, MplConstants.SCHEMATIC_EXTENSION);
+    }
+    return schematicFile;
+  }
+
+  public File compileToSchematic(@Nullable File initialDir) throws IOException {
+    MplCompilationResult result = editorContext.compile(getFile(), false);
+    if (result == null) {
+      return null;
+    }
+    File file = getSchematicFile(initialDir);
+    if (file == null) {
+      return null;
+    }
+    compileTo(file, result, new SchematicConverter());
+    return file;
+  }
+
+  private @Nullable File mceditFile;
+
+  private @Nullable File getMceditFile(@Nullable File initialDir) {
+    if (mceditFile == null) {
+      mceditFile = chooseOutputFile(initialDir, MplConstants.MCEDIT_EXTENSION);
+    }
+    return mceditFile;
+  }
+
+  public File compileToMcedit(@Nullable File initialDir) throws IOException {
+    MplCompilationResult result = editorContext.compile(getFile(), false);
+    if (result == null) {
+      return null;
+    }
+    File file = getMceditFile(initialDir);
+    if (file == null) {
+      return null;
+    }
+    compileTo(file, result, new PythonConverter());
+    return file;
+  }
+
+  private void compileTo(File file, MplCompilationResult result, MplConverter converter)
+      throws FileNotFoundException, IOException {
+    String name = getFileNameWithoutExtension(file);
+    OutputStream out = new FileOutputStream(file);
+    MinecraftVersion version = editorContext.getMplOptions().getMinecraftVersion();
+    converter.write(result, name, out, version);
   }
 }

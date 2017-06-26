@@ -37,53 +37,20 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.commons;
+package de.adrodoc55.minecraft.mpl.ide.fx;
 
-import static com.google.common.base.Charsets.UTF_8;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.UndeclaredThrowableException;
-import java.net.URL;
-
-import com.google.common.io.Resources;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 /**
  * @author Adrodoc55
  */
-public class FileUtils {
-  protected FileUtils() throws Exception {
-    throw new Exception("Utils Classes cannot be instantiated!");
-  }
-
-  public static String getFileNameWithoutExtension(File file) {
-    return getFilenameWithoutExtension(file.getName());
-  }
-
-  public static String getFilenameWithoutExtension(String fileName) {
-    int idx = fileName.lastIndexOf('.');
-    String name = (idx == -1) ? fileName : fileName.substring(0, idx);
-    return name;
-  }
-
-  public static String toUnixLineEnding(String text) {
-    return text.replace("\r\n", "\n").replace("\r", "\n");
-  }
-
-  public static String getCanonicalPath(File file) {
-    try {
-      return file.getCanonicalPath();
-    } catch (IOException ex) {
-      return file.getAbsolutePath();
-    }
-  }
-
-  public static String getUtf8String(URL url) {
-    try {
-      return Resources.toString(url, UTF_8);
-    } catch (IOException ex) {
-      throw new UndeclaredThrowableException(ex);
-    }
-  }
-
+public interface MplConstants {
+  public static final ExtensionFilter MPL_EXTENSION =
+      new ExtensionFilter("Minecraft Programming Language", "*.mpl");
+  public static final ExtensionFilter STRUCTURE_EXTENSION =
+      new ExtensionFilter("Structure File", "*.nbt");
+  public static final ExtensionFilter SCHEMATIC_EXTENSION =
+      new ExtensionFilter("Schematic File", "*.schematic");
+  public static final ExtensionFilter MCEDIT_EXTENSION =
+      new ExtensionFilter("MCEdit Filter", "*.py");
 }
