@@ -533,13 +533,13 @@ public class MplIdeController implements MplEditor.Context {
    * canceled the Action. <br>
    * This should be called like this:<br>
    *
-   * <code>
    * <pre>
+   * <code>
    * if (warnAboutUnsavedResources()) {
    *   return; // or whatever you need to do to cancel the current action.
    * }
-   * </pre>
    * </code>
+   * </pre>
    *
    * @return canceled - whether or not the Action should be canceled.
    */
@@ -552,14 +552,15 @@ public class MplIdeController implements MplEditor.Context {
    * {@code true} if the User canceled the Action. <br>
    * This should be called like this:<br>
    *
-   * <code>
    * <pre>
+   * <code>
    * if (warnAboutUnsavedResources(tabs)) {
    *   return; // or whatever you need to do to cancel the current action.
    * }
-   * </pre>
    * </code>
+   * </pre>
    *
+   * @param tabs the {@link Tab}s to search in
    * @return canceled - whether or not the Action should be canceled.
    */
   public boolean warnAboutUnsavedResources(Collection<Tab> tabs) {
