@@ -37,10 +37,38 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.fx.dialog.searchreplace;
+package de.adrodoc55.minecraft.mpl.ide.fx.dialog.findreplace;
+
+import static java.util.Objects.requireNonNull;
+
+import java.io.IOException;
+
+import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
+import javafx.stage.Modality;
+import javafx.stage.Window;
 
 /**
  * @author Adrodoc55
  */
-public class SearchReplaceController {
+public class FindReplaceDialog extends Dialog<Void> {
+  private final FindReplaceController controller;
+
+  public FindReplaceDialog(Window owner) {
+    initOwner(owner);
+    initModality(Modality.WINDOW_MODAL);
+    setTitle("Find/Replace");
+    setResizable(true);
+
+    FXMLLoader loader = new FXMLLoader(getClass().getResource("/dialog/find-replace.fxml"));
+    DialogPane root;
+    try {
+      root = loader.load();
+    } catch (IOException ex) {
+      throw new IllegalStateException("Unable to load FXML file", ex);
+    }
+    controller = requireNonNull(loader.getController(), "controller == null!");
+    setDialogPane(root);
+  }
 }

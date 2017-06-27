@@ -37,38 +37,28 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ide.fx.dialog.searchreplace;
+package de.adrodoc55.minecraft.mpl.ide.fx.dialog.findreplace;
 
-import static java.util.Objects.requireNonNull;
-
-import java.io.IOException;
-
-import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.DialogPane;
-import javafx.stage.Modality;
-import javafx.stage.Window;
+import javafx.fxml.FXML;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 
 /**
  * @author Adrodoc55
  */
-public class SearchReplaceDialog extends Dialog<Void> {
-  private final SearchReplaceController controller;
+public class FindReplaceController {
+  @FXML
+  private Label findLabel;
+  @FXML
+  private Label replaceLabel;
+  @FXML
+  private ComboBox<String> findComboBox;
+  @FXML
+  private ComboBox<String> replaceComboBox;
 
-  public SearchReplaceDialog(Window owner) {
-    initOwner(owner);
-    initModality(Modality.WINDOW_MODAL);
-    setTitle("Search and Replace");
-    setResizable(true);
-
-    FXMLLoader loader = new FXMLLoader(getClass().getResource("/dialog/search-replace.fxml"));
-    DialogPane root;
-    try {
-      root = loader.load();
-    } catch (IOException ex) {
-      throw new IllegalStateException("Unable to load FXML file", ex);
-    }
-    controller = requireNonNull(loader.getController(), "controller == null!");
-    setDialogPane(root);
+  @FXML
+  private void initialize() {
+    findLabel.setLabelFor(findComboBox);
+    replaceLabel.setLabelFor(replaceComboBox);
   }
 }

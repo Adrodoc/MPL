@@ -55,16 +55,16 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<DialogPane xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.adrodoc55.minecraft.mpl.ide.fx.dialog.searchreplace.SearchReplaceController">
+<DialogPane xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.adrodoc55.minecraft.mpl.ide.fx.dialog.findreplace.FindReplaceController">
   <content>
     <VBox spacing="5.0">
       <children>
         <GridPane hgap="5.0" vgap="5.0">
           <children>
-            <Label text="Search:" />
-            <Label text="Replace with:" GridPane.rowIndex="1" />
-            <ComboBox editable="true" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" />
-            <ComboBox editable="true" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Label fx:id="findLabel" mnemonicParsing="true" text="_Find:" />
+            <Label fx:id="replaceLabel" mnemonicParsing="true" text="_Replace with:" GridPane.rowIndex="1" />
+            <ComboBox fx:id="findComboBox" editable="true" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" />
+            <ComboBox fx:id="replaceComboBox" editable="true" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="1" />
           </children>
           <columnConstraints>
             <ColumnConstraints />
@@ -85,7 +85,7 @@
                     <CheckBox text="Wrap _search" GridPane.columnIndex="1" />
                     <CheckBox text="_Whole word" GridPane.rowIndex="1" />
                     <CheckBox text="_Incremental" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                    <CheckBox text="_Regular expression" GridPane.rowIndex="2" />
+                    <CheckBox text="Regular e_xpression" GridPane.rowIndex="2" />
                     <CheckBox text="_Extended (\n, \t, ...)" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                   </children>
                   <padding>
@@ -113,10 +113,10 @@
             </StackPane>
             <VBox spacing="5.0">
               <children>
-                <Button defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Find" />
-                <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Replace" />
-                <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Replace/Find" />
-                <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Replace All" />
+                <Button defaultButton="true" maxWidth="1.7976931348623157E308" text="Fi_nd" />
+                <Button maxWidth="1.7976931348623157E308" text="Re_place" />
+                <Button maxWidth="1.7976931348623157E308" text="Replace/Fin_d" />
+                <Button maxWidth="1.7976931348623157E308" text="Replace _All" />
               </children>
             </VBox>
           </children>
