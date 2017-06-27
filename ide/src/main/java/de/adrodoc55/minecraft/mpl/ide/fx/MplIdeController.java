@@ -91,6 +91,7 @@ import de.adrodoc55.minecraft.mpl.conversion.CbseConverter;
 import de.adrodoc55.minecraft.mpl.conversion.CommandConverter;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.filename.FileNameDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.filename.FileNameValidator;
+import de.adrodoc55.minecraft.mpl.ide.fx.dialog.findreplace.FindReplaceDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.multicontent.MultiContentDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.options.OptionsDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.unsaved.UnsavedResourcesDialog;
@@ -233,6 +234,16 @@ public class MplIdeController implements MplEditor.Context {
   @Override
   public MplOptions getMplOptions() {
     return options;
+  }
+
+  private @Nullable FindReplaceDialog findReplaceDialog;
+
+  @Override
+  public FindReplaceDialog getFindReplaceDialog() {
+    if (findReplaceDialog == null) {
+      findReplaceDialog = new FindReplaceDialog(getWindow());
+    }
+    return findReplaceDialog;
   }
 
   @FXML

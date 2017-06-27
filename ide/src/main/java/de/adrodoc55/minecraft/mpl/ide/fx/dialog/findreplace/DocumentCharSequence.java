@@ -39,25 +39,54 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.fx.dialog.findreplace;
 
-import org.eclipse.fx.text.ui.source.SourceViewer;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import de.adrodoc55.minecraft.mpl.ide.fx.dialog.SecondaryStage;
-import javafx.stage.Window;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
 
 /**
  * @author Adrodoc55
  */
-public class FindReplaceDialog extends SecondaryStage {
-  public FindReplaceDialog(Window owner) {
-    super(owner, FindReplaceDialog.class.getResource("/dialog/find-replace.fxml"));
-    setTitle("Find/Replace");
+public class DocumentCharSequence implements CharSequence {
+  private IDocument document;
+
+  public DocumentCharSequence(IDocument document) {
+    setDocument(document);
   }
 
-  public FindReplaceController getController() {
-    return (FindReplaceController) getLoadedController();
+  public IDocument getDocument() {
+    return document;
   }
 
-  public void setSourceViewer(SourceViewer sourceViewer) {
-    getController().setSourceViewer(sourceViewer);
+  public void setDocument(IDocument document) {
+    this.document = checkNotNull(document, "document == null!");
+  }
+
+  @Override
+  public int length() {
+    return document.getLength();
+  }
+
+  @Override
+  public char charAt(int index) {
+    try {
+      return document.getChar(index);
+    } catch (BadLocationException e) {
+      throw new IndexOutOfBoundsException();
+    }
+  }
+
+  @Override
+  public CharSequence subSequence(int start, int end) {
+    try {
+      return document.get(start, end - start);
+    } catch (BadLocationException e) {
+      throw new IndexOutOfBoundsException();
+    }
+  }
+
+  @Override
+  public String toString() {
+    return document.get();
   }
 }

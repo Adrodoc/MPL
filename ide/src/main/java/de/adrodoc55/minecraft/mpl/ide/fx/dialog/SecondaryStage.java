@@ -115,7 +115,7 @@ public class SecondaryStage extends Stage {
   }
 
   @SuppressWarnings("unchecked")
-  public <T> T getController() {
+  protected <T> T getLoadedController() {
     return (T) controller;
   }
 }

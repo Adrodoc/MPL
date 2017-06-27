@@ -78,12 +78,12 @@
           <children>
             <GridPane hgap="10.0" style="-fx-border-color: -fx-box-border;" vgap="10.0">
               <children>
-                <CheckBox text="_Case sensitivy" />
-                <CheckBox text="Wrap _search" GridPane.columnIndex="1" />
-                <CheckBox text="_Whole word" GridPane.rowIndex="1" />
-                <CheckBox text="_Incremental" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                <CheckBox text="Regular e_xpression" GridPane.rowIndex="2" />
-                <CheckBox text="_Extended (\n, \t, ...)" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <CheckBox fx:id="caseSensitive" text="_Case sensitive" />
+                <CheckBox fx:id="wrapSearch" text="Wrap _search" GridPane.columnIndex="1" />
+                <CheckBox fx:id="wholeWord" text="_Whole word" GridPane.rowIndex="1" />
+                <CheckBox fx:id="incremental" text="_Incremental" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <CheckBox fx:id="regularExpression" text="Regular e_xpression" GridPane.rowIndex="2" />
+                <CheckBox fx:id="extended" text="_Extended (\n, \t, ...)" GridPane.columnIndex="1" GridPane.rowIndex="2" />
               </children>
               <padding>
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
@@ -110,10 +110,10 @@
         </StackPane>
         <VBox spacing="5.0">
           <children>
-            <Button defaultButton="true" maxWidth="1.7976931348623157E308" text="Fi_nd" />
-            <Button maxWidth="1.7976931348623157E308" text="Re_place" />
-            <Button maxWidth="1.7976931348623157E308" text="Replace/Fin_d" />
-            <Button maxWidth="1.7976931348623157E308" text="Replace _All" />
+            <Button defaultButton="true" maxWidth="1.7976931348623157E308" onAction="#find" text="Fi_nd" />
+            <Button maxWidth="1.7976931348623157E308" onAction="#replace" text="Re_place" />
+            <Button maxWidth="1.7976931348623157E308" onAction="#replaceFind" text="Replace/Fin_d" />
+            <Button maxWidth="1.7976931348623157E308" onAction="#replaceAll" text="Replace _All" />
           </children>
         </VBox>
       </children>

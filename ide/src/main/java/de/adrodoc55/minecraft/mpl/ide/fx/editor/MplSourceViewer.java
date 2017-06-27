@@ -41,6 +41,7 @@ package de.adrodoc55.minecraft.mpl.ide.fx.editor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static javafx.scene.input.KeyCode.DIGIT7;
+import static javafx.scene.input.KeyCode.F;
 import static javafx.scene.input.KeyCode.S;
 import static javafx.scene.input.KeyCombination.SHORTCUT_DOWN;
 
@@ -52,6 +53,7 @@ import org.eclipse.fx.ui.controls.styledtext.TextChangedEvent;
 import org.eclipse.fx.ui.controls.styledtext.TextChangingEvent;
 import org.eclipse.fx.ui.controls.styledtext.TextSelection;
 
+import de.adrodoc55.minecraft.mpl.ide.fx.dialog.findreplace.FindReplaceDialog;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.input.KeyCodeCombination;
@@ -65,6 +67,8 @@ public class MplSourceViewer extends SourceViewer {
     void setModified(boolean b);
 
     void save();
+
+    FindReplaceDialog getFindReplaceDialog();
   }
 
   private final Context context;
@@ -117,6 +121,11 @@ public class MplSourceViewer extends SourceViewer {
     }
     if (new KeyCodeCombination(S, SHORTCUT_DOWN).match(event)) {
       save();
+      event.consume();
+      return;
+    }
+    if (new KeyCodeCombination(F, SHORTCUT_DOWN).match(event)) {
+      findReplace();
       event.consume();
       return;
     }
@@ -175,5 +184,12 @@ public class MplSourceViewer extends SourceViewer {
 
   private void save() {
     context.save();
+  }
+
+  private void findReplace() {
+    FindReplaceDialog dialog = context.getFindReplaceDialog();
+    dialog.setSourceViewer(this);
+    dialog.show();
+    dialog.requestFocus();
   }
 }

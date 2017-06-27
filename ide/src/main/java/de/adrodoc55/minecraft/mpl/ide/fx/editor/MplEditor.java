@@ -93,6 +93,7 @@ import de.adrodoc55.minecraft.mpl.conversion.SchematicConverter;
 import de.adrodoc55.minecraft.mpl.conversion.StructureConverter;
 import de.adrodoc55.minecraft.mpl.ide.fx.MplConstants;
 import de.adrodoc55.minecraft.mpl.ide.fx.MplOptions;
+import de.adrodoc55.minecraft.mpl.ide.fx.dialog.findreplace.FindReplaceDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.completion.MplGraphicalCompletionProposal;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.completion.MplProposalComputer;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.contextinfo.MplContextInformationPresenter;
@@ -165,6 +166,8 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
 
     @Nullable
     MplCompilationResult compile(File file, boolean silent);
+
+    FindReplaceDialog getFindReplaceDialog();
   }
 
   private final Context context;
@@ -190,6 +193,11 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
   @Override
   public void setModified(boolean modified) {
     this.modified.set(modified);
+  }
+
+  @Override
+  public FindReplaceDialog getFindReplaceDialog() {
+    return context.getFindReplaceDialog();
   }
 
   public File getFile() {

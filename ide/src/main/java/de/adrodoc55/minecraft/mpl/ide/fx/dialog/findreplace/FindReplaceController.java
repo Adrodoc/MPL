@@ -39,7 +39,19 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.fx.dialog.findreplace;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.awt.Toolkit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.eclipse.fx.text.ui.source.SourceViewer;
+import org.eclipse.fx.ui.controls.styledtext.StyledTextArea;
+import org.eclipse.fx.ui.controls.styledtext.TextSelection;
+import org.eclipse.jface.text.IDocument;
+
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 
@@ -55,10 +67,72 @@ public class FindReplaceController {
   private ComboBox<String> findComboBox;
   @FXML
   private ComboBox<String> replaceComboBox;
+  @FXML
+  private CheckBox caseSensitive;
+  @FXML
+  private CheckBox wrapSearch;
+  @FXML
+  private CheckBox wholeWord;
+  @FXML
+  private CheckBox incremental;
+  @FXML
+  private CheckBox regularExpression;
+  @FXML
+  private CheckBox extended;
 
   @FXML
   private void initialize() {
     findLabel.setLabelFor(findComboBox);
     replaceLabel.setLabelFor(replaceComboBox);
   }
+
+  private SourceViewer sourceViewer;
+
+  public void setSourceViewer(SourceViewer sourceViewer) {
+    this.sourceViewer = checkNotNull(sourceViewer, "sourceViewer == null!");
+  }
+
+  @FXML
+  public void find() {
+    IDocument document = sourceViewer.getDocument();
+    StyledTextArea textWidget = sourceViewer.getTextWidget();
+
+    String findString = findComboBox.getSelectionModel().getSelectedItem();
+    if (!regularExpression.isSelected()) {
+      findString = Pattern.quote(findString);
+      // if(extended.isSelected()) {
+      // findString=
+      // }
+      if (wholeWord.isSelected()) {
+        findString = "\\b" + findString + "\\b";
+      }
+    }
+    Pattern pattern;
+    if (caseSensitive.isSelected()) {
+      pattern = Pattern.compile(findString);
+    } else {
+      pattern = Pattern.compile(findString, Pattern.CASE_INSENSITIVE);
+    }
+    DocumentCharSequence text = new DocumentCharSequence(document);
+    TextSelection initialSelection = textWidget.getSelection();
+    int startIndex = initialSelection.offset + initialSelection.length;
+    Matcher matcher = pattern.matcher(text.subSequence(startIndex, document.getLength()));
+    if (matcher.find()) {
+      int offset = startIndex + matcher.start();
+      int length = startIndex + matcher.end() - offset;
+      textWidget.setCaretOffset(offset);
+      textWidget.setSelectionRange(offset, length);
+    } else {
+      Toolkit.getDefaultToolkit().beep();
+    }
+  }
+
+  @FXML
+  public void replace() {}
+
+  @FXML
+  public void replaceFind() {}
+
+  @FXML
+  public void replaceAll() {}
 }
