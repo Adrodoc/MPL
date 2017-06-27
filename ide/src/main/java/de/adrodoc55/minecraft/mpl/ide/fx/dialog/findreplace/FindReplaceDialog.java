@@ -39,36 +39,15 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.fx.dialog.findreplace;
 
-import static java.util.Objects.requireNonNull;
-
-import java.io.IOException;
-
-import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.DialogPane;
-import javafx.stage.Modality;
+import de.adrodoc55.minecraft.mpl.ide.fx.dialog.SecondaryStage;
 import javafx.stage.Window;
 
 /**
  * @author Adrodoc55
  */
-public class FindReplaceDialog extends Dialog<Void> {
-  private final FindReplaceController controller;
-
+public class FindReplaceDialog extends SecondaryStage {
   public FindReplaceDialog(Window owner) {
-    initOwner(owner);
-    initModality(Modality.WINDOW_MODAL);
+    super(owner, FindReplaceDialog.class.getResource("/dialog/find-replace.fxml"));
     setTitle("Find/Replace");
-    setResizable(true);
-
-    FXMLLoader loader = new FXMLLoader(getClass().getResource("/dialog/find-replace.fxml"));
-    DialogPane root;
-    try {
-      root = loader.load();
-    } catch (IOException ex) {
-      throw new IllegalStateException("Unable to load FXML file", ex);
-    }
-    controller = requireNonNull(loader.getController(), "controller == null!");
-    setDialogPane(root);
   }
 }
