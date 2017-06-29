@@ -110,7 +110,12 @@ public class FindReplaceController {
 
   public void setSourceViewer(SourceViewer sourceViewer) {
     this.sourceViewer = checkNotNull(sourceViewer, "sourceViewer == null!");
-    adapter = new FindReplaceDocumentAdapter(sourceViewer.getDocument());
+    IDocument document = sourceViewer.getDocument();
+    adapter = new FindReplaceDocumentAdapter(document);
+    TextSelection selection = sourceViewer.getTextWidget().getSelection();
+    CharSequence selectedText =
+        adapter.subSequence(selection.offset, selection.offset + selection.length);
+    findComboBox.setValue(selectedText.toString());
   }
 
   private void clearMessage() {
