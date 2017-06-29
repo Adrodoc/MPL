@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.ide.fx.dialog.findreplace;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.nullToEmpty;
 
 import java.awt.Toolkit;
 import java.util.regex.PatternSyntaxException;
@@ -196,7 +197,7 @@ public class FindReplaceController {
     disableReplaceButtons(true);
 
     updateHistory(replaceComboBox);
-    String replaceString = replaceComboBox.getValue();
+    String replaceString = nullToEmpty(replaceComboBox.getValue());
     return adapter.replace(replaceString, isSet(regularExpression));
   }
 
@@ -249,7 +250,7 @@ public class FindReplaceController {
   private IRegion findStartingAt(int startOffset, FindReplaceDocumentAdapter adapter)
       throws BadLocationException, PatternSyntaxException {
     updateHistory(findComboBox);
-    String findString = findComboBox.getValue();
+    String findString = nullToEmpty(findComboBox.getValue());
     boolean forwardSearch = true;
     boolean caseSensitive = isSet(this.caseSensitive);
     boolean wholeWord = isSet(this.wholeWord);
@@ -260,13 +261,15 @@ public class FindReplaceController {
 
   private void updateHistory(ComboBox<String> findComboBox) {
     String value = findComboBox.getValue();
-    ObservableList<String> items = findComboBox.getItems();
-    if (!items.contains(value)) {
-      items.add(0, value);
-      if (items.size() > 31) {
-        items.remove(31, items.size());
+    if (value != null) {
+      ObservableList<String> items = findComboBox.getItems();
+      if (!items.contains(value)) {
+        items.add(0, value);
+        if (items.size() > 31) {
+          items.remove(31, items.size());
+        }
+        findComboBox.getSelectionModel().select(value);
       }
-      findComboBox.getSelectionModel().select(value);
     }
   }
 }
