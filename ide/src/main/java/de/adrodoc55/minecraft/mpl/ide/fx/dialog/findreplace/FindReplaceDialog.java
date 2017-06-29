@@ -41,6 +41,7 @@ package de.adrodoc55.minecraft.mpl.ide.fx.dialog.findreplace;
 
 import org.eclipse.fx.text.ui.source.SourceViewer;
 
+import de.adrodoc55.minecraft.mpl.ide.fx.ExceptionHandler;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.SecondaryStage;
 import javafx.stage.Window;
 
@@ -48,9 +49,10 @@ import javafx.stage.Window;
  * @author Adrodoc55
  */
 public class FindReplaceDialog extends SecondaryStage {
-  public FindReplaceDialog(Window owner) {
+  public FindReplaceDialog(Window owner, ExceptionHandler exceptionHandler) {
     super(owner, FindReplaceDialog.class.getResource("/dialog/find-replace.fxml"));
     setTitle("Find/Replace");
+    getController().initialize(exceptionHandler);
   }
 
   public FindReplaceController getController() {

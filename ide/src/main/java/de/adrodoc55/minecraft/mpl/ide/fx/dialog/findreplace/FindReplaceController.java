@@ -57,6 +57,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
 import de.adrodoc55.commons.RegexUtils;
+import de.adrodoc55.minecraft.mpl.ide.fx.ExceptionHandler;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -94,6 +95,8 @@ public class FindReplaceController {
   @FXML
   private Label messageLabel;
 
+  private ExceptionHandler exceptionHandler;
+
   @FXML
   private void initialize() {
     findLabel.setLabelFor(findComboBox);
@@ -101,6 +104,16 @@ public class FindReplaceController {
     wholeWord.disableProperty().bind(regularExpression.selectedProperty());
     wrapSearch.setSelected(true);
     incremental.setSelected(true);
+    findComboBox.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
+      if (isSet(incremental)) {
+        int startIndex = sourceViewer.getTextWidget().getSelection().offset;
+        findIncremental(startIndex, newValue);
+      }
+    });
+  }
+
+  public void initialize(ExceptionHandler exceptionHandler) {
+    this.exceptionHandler = checkNotNull(exceptionHandler, "exceptionHandler == null!");
   }
 
   private boolean isSet(CheckBox checkBox) {
@@ -146,6 +159,8 @@ public class FindReplaceController {
   public void replaceAll() throws BadLocationException {
     try {
       disableReplaceButtons(true);
+      updateHistory(findComboBox);
+      String findString = nullToEmpty(findComboBox.getValue());
 
       IDocument document = sourceViewer.getDocument();
       Document copy = new Document(document.get());
@@ -154,7 +169,7 @@ public class FindReplaceController {
       int startOffset = -1;
       IRegion lastReplaceRegion = null;
       FindReplaceDocumentAdapter adapter = new FindReplaceDocumentAdapter(copy);
-      while (findStartingAt(startOffset, adapter) != null) {
+      while (findStartingAt(startOffset, findString, adapter) != null) {
         lastReplaceRegion = replace(adapter);
         startOffset = lastReplaceRegion.getOffset() + lastReplaceRegion.getLength();
         count++;
@@ -202,16 +217,23 @@ public class FindReplaceController {
   }
 
   @FXML
-  public void find() throws BadLocationException {
+  public void find() {
+    TextSelection initialSelection = sourceViewer.getTextWidget().getSelection();
+    int startIndex = initialSelection.offset + initialSelection.length;
+
+    updateHistory(findComboBox);
+    String findString = nullToEmpty(findComboBox.getValue());
+    findIncremental(startIndex, findString);
+  }
+
+  private void findIncremental(int startIndex, String findString) {
     try {
       clearMessage();
-      StyledTextArea textWidget = sourceViewer.getTextWidget();
-      TextSelection initialSelection = textWidget.getSelection();
-      int startIndex = initialSelection.offset + initialSelection.length;
+      TextSelection initialSelection = sourceViewer.getTextWidget().getSelection();
 
-      IRegion found = findStartingAt(startIndex, adapter);
+      IRegion found = findStartingAt(startIndex, findString, adapter);
       if (found == null && isSet(wrapSearch)) {
-        found = findStartingAt(-1, adapter);
+        found = findStartingAt(-1, findString, adapter);
         if (found != null) {
           showInfo("Wrapped search");
           if (initialSelection.offset == found.getOffset()
@@ -227,6 +249,8 @@ public class FindReplaceController {
       }
     } catch (PatternSyntaxException ex) {
       handlePatternSyntaxException(ex);
+    } catch (BadLocationException ex) {
+      exceptionHandler.handleException(ex);
     }
   }
 
@@ -247,10 +271,8 @@ public class FindReplaceController {
     }
   }
 
-  private IRegion findStartingAt(int startOffset, FindReplaceDocumentAdapter adapter)
-      throws BadLocationException, PatternSyntaxException {
-    updateHistory(findComboBox);
-    String findString = nullToEmpty(findComboBox.getValue());
+  private IRegion findStartingAt(int startOffset, String findString,
+      FindReplaceDocumentAdapter adapter) throws BadLocationException, PatternSyntaxException {
     boolean forwardSearch = true;
     boolean caseSensitive = isSet(this.caseSensitive);
     boolean wholeWord = isSet(this.wholeWord);

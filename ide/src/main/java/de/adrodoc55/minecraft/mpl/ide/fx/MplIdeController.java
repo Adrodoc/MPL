@@ -130,7 +130,7 @@ import javafx.stage.WindowEvent;
 /**
  * @author Adrodoc55
  */
-public class MplIdeController implements MplEditor.Context {
+public class MplIdeController implements ExceptionHandler, MplEditor.Context {
   @FXML
   private Node root;
 
@@ -225,7 +225,8 @@ public class MplIdeController implements MplEditor.Context {
     return root.getScene().getWindow();
   }
 
-  private void handleException(Exception ex) {
+  @Override
+  public void handleException(Exception ex) {
     Alert alert = new Alert(AlertType.ERROR, ex.getMessage());
     alert.setHeaderText(ex.getClass().getSimpleName());
     alert.showAndWait();
@@ -241,7 +242,7 @@ public class MplIdeController implements MplEditor.Context {
   @Override
   public FindReplaceDialog getFindReplaceDialog() {
     if (findReplaceDialog == null) {
-      findReplaceDialog = new FindReplaceDialog(getWindow());
+      findReplaceDialog = new FindReplaceDialog(getWindow(), this);
     }
     return findReplaceDialog;
   }
