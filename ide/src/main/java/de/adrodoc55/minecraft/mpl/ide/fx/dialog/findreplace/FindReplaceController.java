@@ -55,6 +55,7 @@ import org.eclipse.jface.text.FindReplaceDocumentAdapter;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
+import de.adrodoc55.commons.RegexUtils;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -113,9 +114,12 @@ public class FindReplaceController {
     IDocument document = sourceViewer.getDocument();
     adapter = new FindReplaceDocumentAdapter(document);
     TextSelection selection = sourceViewer.getTextWidget().getSelection();
-    CharSequence selectedText =
-        adapter.subSequence(selection.offset, selection.offset + selection.length);
-    findComboBox.setValue(selectedText.toString());
+    String selectedText =
+        adapter.subSequence(selection.offset, selection.offset + selection.length).toString();
+    if (isSet(regularExpression)) {
+      selectedText = RegexUtils.escape(selectedText);
+    }
+    findComboBox.setValue(selectedText);
   }
 
   private void clearMessage() {
