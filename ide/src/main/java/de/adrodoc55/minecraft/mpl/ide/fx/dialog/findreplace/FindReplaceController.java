@@ -55,6 +55,7 @@ import org.eclipse.jface.text.FindReplaceDocumentAdapter;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -98,6 +99,10 @@ public class FindReplaceController {
     wholeWord.disableProperty().bind(regularExpression.selectedProperty());
     wrapSearch.setSelected(true);
     incremental.setSelected(true);
+  }
+
+  private boolean isSet(CheckBox checkBox) {
+    return !checkBox.isDisabled() && checkBox.isSelected();
   }
 
   private SourceViewer sourceViewer;
@@ -167,7 +172,8 @@ public class FindReplaceController {
       throws BadLocationException {
     disableReplaceButtons(true);
 
-    String replaceString = replaceComboBox.getSelectionModel().getSelectedItem();
+    updateHistory(replaceComboBox);
+    String replaceString = replaceComboBox.getValue();
     try {
       return adapter.replace(replaceString, isSet(regularExpression));
     } catch (PatternSyntaxException ex) {
@@ -221,7 +227,8 @@ public class FindReplaceController {
 
   private IRegion findStartingAt(int startOffset, FindReplaceDocumentAdapter adapter)
       throws BadLocationException {
-    String findString = findComboBox.getSelectionModel().getSelectedItem();
+    updateHistory(findComboBox);
+    String findString = findComboBox.getValue();
     boolean forwardSearch = true;
     boolean caseSensitive = isSet(this.caseSensitive);
     boolean wholeWord = isSet(this.wholeWord);
@@ -230,7 +237,15 @@ public class FindReplaceController {
         regExSearch);
   }
 
-  private boolean isSet(CheckBox checkBox) {
-    return !checkBox.isDisabled() && checkBox.isSelected();
+  private void updateHistory(ComboBox<String> findComboBox) {
+    String value = findComboBox.getValue();
+    ObservableList<String> items = findComboBox.getItems();
+    if (!items.contains(value)) {
+      items.add(0, value);
+      if (items.size() > 31) {
+        items.remove(31, items.size());
+      }
+      findComboBox.getSelectionModel().select(value);
+    }
   }
 }
