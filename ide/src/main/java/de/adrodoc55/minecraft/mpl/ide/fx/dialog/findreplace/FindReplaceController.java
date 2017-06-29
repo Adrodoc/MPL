@@ -132,84 +132,96 @@ public class FindReplaceController {
     messageLabel.setText(message);
   }
 
+  private void handlePatternSyntaxException(PatternSyntaxException ex) {
+    showError(ex.getDescription());
+    Toolkit.getDefaultToolkit().beep();
+  }
+
   @FXML
   public void replaceAll() throws BadLocationException {
-    disableReplaceButtons(true);
+    try {
+      disableReplaceButtons(true);
 
-    IDocument document = sourceViewer.getDocument();
-    Document copy = new Document(document.get());
+      IDocument document = sourceViewer.getDocument();
+      Document copy = new Document(document.get());
 
-    int count = 0;
-    int startOffset = -1;
-    IRegion lastReplaceRegion = null;
-    FindReplaceDocumentAdapter adapter = new FindReplaceDocumentAdapter(copy);
-    while (findStartingAt(startOffset, adapter) != null) {
-      lastReplaceRegion = replace(adapter);
-      if (lastReplaceRegion == null) {
-        return;
+      int count = 0;
+      int startOffset = -1;
+      IRegion lastReplaceRegion = null;
+      FindReplaceDocumentAdapter adapter = new FindReplaceDocumentAdapter(copy);
+      while (findStartingAt(startOffset, adapter) != null) {
+        lastReplaceRegion = replace(adapter);
+        startOffset = lastReplaceRegion.getOffset() + lastReplaceRegion.getLength();
+        count++;
       }
-      startOffset = lastReplaceRegion.getOffset() + lastReplaceRegion.getLength();
-      count++;
-    }
 
-    if (count == 0) {
-      showInfo("String not found");
-    } else {
-      document.set(copy.get());
-      selectRegionOrBeep(lastReplaceRegion);
-      showInfo(count + " Occurences replaced");
+      if (count == 0) {
+        showInfo("String not found");
+      } else {
+        document.set(copy.get());
+        selectRegionOrBeep(lastReplaceRegion);
+        showInfo(count + " Occurences replaced");
+      }
+    } catch (PatternSyntaxException ex) {
+      handlePatternSyntaxException(ex);
     }
   }
 
   @FXML
   public void replaceFind() throws BadLocationException {
-    replace(adapter);
-    find();
+    try {
+      replace(adapter);
+      find();
+    } catch (PatternSyntaxException ex) {
+      handlePatternSyntaxException(ex);
+    }
   }
 
   @FXML
   public void replace() throws BadLocationException {
-    IRegion replaced = replace(adapter);
-    selectRegionOrBeep(replaced);
+    try {
+      IRegion replaced = replace(adapter);
+      selectRegionOrBeep(replaced);
+    } catch (PatternSyntaxException ex) {
+      handlePatternSyntaxException(ex);
+    }
   }
 
   private @Nullable IRegion replace(FindReplaceDocumentAdapter adapter)
-      throws BadLocationException {
+      throws BadLocationException, PatternSyntaxException {
     disableReplaceButtons(true);
 
     updateHistory(replaceComboBox);
     String replaceString = replaceComboBox.getValue();
-    try {
-      return adapter.replace(replaceString, isSet(regularExpression));
-    } catch (PatternSyntaxException ex) {
-      showError(ex.getDescription());
-      Toolkit.getDefaultToolkit().beep();
-      return null;
-    }
+    return adapter.replace(replaceString, isSet(regularExpression));
   }
 
   @FXML
   public void find() throws BadLocationException {
-    clearMessage();
-    StyledTextArea textWidget = sourceViewer.getTextWidget();
-    TextSelection initialSelection = textWidget.getSelection();
-    int startIndex = initialSelection.offset + initialSelection.length;
+    try {
+      clearMessage();
+      StyledTextArea textWidget = sourceViewer.getTextWidget();
+      TextSelection initialSelection = textWidget.getSelection();
+      int startIndex = initialSelection.offset + initialSelection.length;
 
-    IRegion found = findStartingAt(startIndex, adapter);
-    if (found == null && isSet(wrapSearch)) {
-      found = findStartingAt(-1, adapter);
-      if (found != null) {
-        showInfo("Wrapped search");
-        if (initialSelection.offset == found.getOffset()
-            && initialSelection.length == found.getLength()) {
-          Toolkit.getDefaultToolkit().beep();
+      IRegion found = findStartingAt(startIndex, adapter);
+      if (found == null && isSet(wrapSearch)) {
+        found = findStartingAt(-1, adapter);
+        if (found != null) {
+          showInfo("Wrapped search");
+          if (initialSelection.offset == found.getOffset()
+              && initialSelection.length == found.getLength()) {
+            Toolkit.getDefaultToolkit().beep();
+          }
         }
       }
-    }
-    disableReplaceButtons(found == null);
-    selectRegionOrBeep(found);
-    if (found == null) {
-      showInfo("String not found");
+      disableReplaceButtons(found == null);
+      selectRegionOrBeep(found);
+      if (found == null) {
+        showInfo("String not found");
+      }
+    } catch (PatternSyntaxException ex) {
+      handlePatternSyntaxException(ex);
     }
   }
 
@@ -231,7 +243,7 @@ public class FindReplaceController {
   }
 
   private IRegion findStartingAt(int startOffset, FindReplaceDocumentAdapter adapter)
-      throws BadLocationException {
+      throws BadLocationException, PatternSyntaxException {
     updateHistory(findComboBox);
     String findString = findComboBox.getValue();
     boolean forwardSearch = true;
