@@ -42,18 +42,25 @@ package de.adrodoc55.minecraft.mpl.ide.fx.dialog.findreplace;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.awt.Toolkit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
+import javax.annotation.Nullable;
 
 import org.eclipse.fx.text.ui.source.SourceViewer;
 import org.eclipse.fx.ui.controls.styledtext.StyledTextArea;
 import org.eclipse.fx.ui.controls.styledtext.TextSelection;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.FindReplaceDocumentAdapter;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.paint.Color;
 
 /**
  * @author Adrodoc55
@@ -78,48 +85,133 @@ public class FindReplaceController {
   @FXML
   private CheckBox regularExpression;
   @FXML
-  private CheckBox extended;
+  private Button replaceButton;
+  @FXML
+  private Button replaceFindButton;
+  @FXML
+  private Label messageLabel;
 
   @FXML
   private void initialize() {
     findLabel.setLabelFor(findComboBox);
     replaceLabel.setLabelFor(replaceComboBox);
+    wholeWord.disableProperty().bind(regularExpression.selectedProperty());
+    wrapSearch.setSelected(true);
+    incremental.setSelected(true);
   }
 
   private SourceViewer sourceViewer;
+  private FindReplaceDocumentAdapter adapter;
 
   public void setSourceViewer(SourceViewer sourceViewer) {
     this.sourceViewer = checkNotNull(sourceViewer, "sourceViewer == null!");
+    adapter = new FindReplaceDocumentAdapter(sourceViewer.getDocument());
+  }
+
+  private void clearMessage() {
+    messageLabel.setText("");
+  }
+
+  private void showInfo(String message) {
+    messageLabel.setTextFill(Color.BLACK);
+    messageLabel.setText(message);
+  }
+
+  private void showError(String message) {
+    messageLabel.setTextFill(Color.RED);
+    messageLabel.setText(message);
   }
 
   @FXML
-  public void find() {
-    IDocument document = sourceViewer.getDocument();
-    StyledTextArea textWidget = sourceViewer.getTextWidget();
+  public void replaceAll() throws BadLocationException {
+    disableReplaceButtons(true);
 
-    String findString = findComboBox.getSelectionModel().getSelectedItem();
-    if (!regularExpression.isSelected()) {
-      findString = Pattern.quote(findString);
-      // if(extended.isSelected()) {
-      // findString=
-      // }
-      if (wholeWord.isSelected()) {
-        findString = "\\b" + findString + "\\b";
+    IDocument document = sourceViewer.getDocument();
+    Document copy = new Document(document.get());
+
+    int count = 0;
+    int startOffset = -1;
+    IRegion lastReplaceRegion = null;
+    FindReplaceDocumentAdapter adapter = new FindReplaceDocumentAdapter(copy);
+    while (findStartingAt(startOffset, adapter) != null) {
+      lastReplaceRegion = replace(adapter);
+      if (lastReplaceRegion == null) {
+        return;
       }
+      startOffset = lastReplaceRegion.getOffset() + lastReplaceRegion.getLength();
+      count++;
     }
-    Pattern pattern;
-    if (caseSensitive.isSelected()) {
-      pattern = Pattern.compile(findString);
+
+    if (count == 0) {
+      showInfo("String not found");
     } else {
-      pattern = Pattern.compile(findString, Pattern.CASE_INSENSITIVE);
+      document.set(copy.get());
+      selectRegionOrBeep(lastReplaceRegion);
+      showInfo(count + " Occurences replaced");
     }
-    DocumentCharSequence text = new DocumentCharSequence(document);
+  }
+
+  @FXML
+  public void replaceFind() throws BadLocationException {
+    replace(adapter);
+    find();
+  }
+
+  @FXML
+  public void replace() throws BadLocationException {
+    IRegion replaced = replace(adapter);
+    selectRegionOrBeep(replaced);
+  }
+
+  private @Nullable IRegion replace(FindReplaceDocumentAdapter adapter)
+      throws BadLocationException {
+    disableReplaceButtons(true);
+
+    String replaceString = replaceComboBox.getSelectionModel().getSelectedItem();
+    try {
+      return adapter.replace(replaceString, isSet(regularExpression));
+    } catch (PatternSyntaxException ex) {
+      showError(ex.getDescription());
+      Toolkit.getDefaultToolkit().beep();
+      return null;
+    }
+  }
+
+  @FXML
+  public void find() throws BadLocationException {
+    clearMessage();
+    StyledTextArea textWidget = sourceViewer.getTextWidget();
     TextSelection initialSelection = textWidget.getSelection();
     int startIndex = initialSelection.offset + initialSelection.length;
-    Matcher matcher = pattern.matcher(text.subSequence(startIndex, document.getLength()));
-    if (matcher.find()) {
-      int offset = startIndex + matcher.start();
-      int length = startIndex + matcher.end() - offset;
+
+    IRegion found = findStartingAt(startIndex, adapter);
+    if (found == null && isSet(wrapSearch)) {
+      found = findStartingAt(-1, adapter);
+      if (found != null) {
+        showInfo("Wrapped search");
+        if (initialSelection.offset == found.getOffset()
+            && initialSelection.length == found.getLength()) {
+          Toolkit.getDefaultToolkit().beep();
+        }
+      }
+    }
+    disableReplaceButtons(found == null);
+    selectRegionOrBeep(found);
+    if (found == null) {
+      showInfo("String not found");
+    }
+  }
+
+  private void disableReplaceButtons(boolean disable) {
+    replaceButton.setDisable(disable);
+    replaceFindButton.setDisable(disable);
+  }
+
+  private void selectRegionOrBeep(IRegion found) {
+    if (found != null) {
+      int offset = found.getOffset();
+      int length = found.getLength();
+      StyledTextArea textWidget = sourceViewer.getTextWidget();
       textWidget.setCaretOffset(offset);
       textWidget.setSelectionRange(offset, length);
     } else {
@@ -127,12 +219,18 @@ public class FindReplaceController {
     }
   }
 
-  @FXML
-  public void replace() {}
+  private IRegion findStartingAt(int startOffset, FindReplaceDocumentAdapter adapter)
+      throws BadLocationException {
+    String findString = findComboBox.getSelectionModel().getSelectedItem();
+    boolean forwardSearch = true;
+    boolean caseSensitive = isSet(this.caseSensitive);
+    boolean wholeWord = isSet(this.wholeWord);
+    boolean regExSearch = isSet(regularExpression);
+    return adapter.find(startOffset, findString, forwardSearch, caseSensitive, wholeWord,
+        regExSearch);
+  }
 
-  @FXML
-  public void replaceFind() {}
-
-  @FXML
-  public void replaceAll() {}
+  private boolean isSet(CheckBox checkBox) {
+    return !checkBox.isDisabled() && checkBox.isSelected();
+  }
 }

@@ -74,52 +74,56 @@
     </GridPane>
     <HBox spacing="5.0">
       <children>
-        <StackPane HBox.hgrow="ALWAYS">
+        <VBox HBox.hgrow="ALWAYS">
           <children>
-            <GridPane hgap="10.0" style="-fx-border-color: -fx-box-border;" vgap="10.0">
+            <StackPane>
               <children>
-                <CheckBox fx:id="caseSensitive" text="_Case sensitive" />
-                <CheckBox fx:id="wrapSearch" text="Wrap _search" GridPane.columnIndex="1" />
-                <CheckBox fx:id="wholeWord" text="_Whole word" GridPane.rowIndex="1" />
-                <CheckBox fx:id="incremental" text="_Incremental" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                <CheckBox fx:id="regularExpression" text="Regular e_xpression" GridPane.rowIndex="2" />
-                <CheckBox fx:id="extended" text="_Extended (\n, \t, ...)" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <GridPane hgap="5.0" style="-fx-border-color: -fx-box-border;" vgap="5.0">
+                  <children>
+                    <CheckBox fx:id="caseSensitive" text="_Case sensitive" />
+                    <CheckBox fx:id="wrapSearch" text="Wrap _search" GridPane.columnIndex="1" />
+                    <CheckBox fx:id="wholeWord" text="_Whole word" GridPane.rowIndex="1" />
+                    <CheckBox fx:id="incremental" text="_Incremental" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                    <CheckBox fx:id="regularExpression" text="Regular e_xpression" GridPane.columnSpan="2" GridPane.rowIndex="2" />
+                  </children>
+                  <padding>
+                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                  </padding>
+                  <StackPane.margin>
+                    <Insets bottom="9.0" top="9.0" />
+                  </StackPane.margin>
+                  <columnConstraints>
+                    <ColumnConstraints />
+                    <ColumnConstraints />
+                  </columnConstraints>
+                  <rowConstraints>
+                    <RowConstraints />
+                    <RowConstraints />
+                    <RowConstraints />
+                  </rowConstraints>
+                </GridPane>
+                <Label style="-fx-background-color: -fx-background;" text="Options" StackPane.alignment="TOP_LEFT">
+                  <StackPane.margin>
+                    <Insets left="10.0" right="10.0" />
+                  </StackPane.margin>
+                </Label>
               </children>
-              <padding>
-                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-              </padding>
-              <StackPane.margin>
-                <Insets bottom="9.0" top="9.0" />
-              </StackPane.margin>
-              <columnConstraints>
-                <ColumnConstraints />
-                <ColumnConstraints />
-              </columnConstraints>
-              <rowConstraints>
-                <RowConstraints />
-                <RowConstraints />
-                <RowConstraints />
-              </rowConstraints>
-            </GridPane>
-            <Label style="-fx-background-color: -fx-background;" text="Options" StackPane.alignment="TOP_LEFT">
-              <StackPane.margin>
-                <Insets left="10.0" right="10.0" />
-              </StackPane.margin>
-            </Label>
+            </StackPane>
+            <Label fx:id="messageLabel" />
           </children>
-        </StackPane>
+        </VBox>
         <VBox spacing="5.0">
           <children>
             <Button defaultButton="true" maxWidth="1.7976931348623157E308" onAction="#find" text="Fi_nd" />
-            <Button maxWidth="1.7976931348623157E308" onAction="#replace" text="Re_place" />
-            <Button maxWidth="1.7976931348623157E308" onAction="#replaceFind" text="Replace/Fin_d" />
+            <Button fx:id="replaceButton" maxWidth="1.7976931348623157E308" onAction="#replace" text="Re_place" />
+            <Button fx:id="replaceFindButton" maxWidth="1.7976931348623157E308" onAction="#replaceFind" text="Replace/Fin_d" />
             <Button maxWidth="1.7976931348623157E308" onAction="#replaceAll" text="Replace _All" />
           </children>
         </VBox>
       </children>
     </HBox>
   </children>
-   <padding>
-      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-   </padding>
+  <padding>
+    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+  </padding>
 </VBox>
