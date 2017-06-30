@@ -50,6 +50,7 @@ dependencies {
 // ----------------------------------------------------------------------------------------------------
 
 jar {
+  includeEmptyDirs = false
   exclude 'de/adrodoc55/minecraft/mpl/ide/main/MplIdeMainLauncher.class'
   manifest {
     attributes(
@@ -64,12 +65,14 @@ jar {
 }
 
 task standaloneJar(type: Jar) {
+  includeEmptyDirs = false
   from sourceSets.main.output
   (configurations.runtime).each { File file ->
     if(file.isDirectory()) {
       from file
     } else if (file.isFile() && file.name.endsWith('.jar')) {
       from(file) { into '/lib' }
+      from(zipTree(file)) { include('**/*.css', '**/*.png') }
     }
   }
   manifest {

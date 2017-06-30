@@ -116,6 +116,7 @@ eclipse {
 // ----------------------------------------------------------------------------------------------------
 
 jar {
+  includeEmptyDirs = false
   exclude 'de/adrodoc55/minecraft/mpl/main/MplCompilerMainLauncher.class'
   manifest {
     attributes(
@@ -130,6 +131,7 @@ jar {
 }
 
 task standaloneJar(type: Jar) {
+  includeEmptyDirs = false
   from sourceSets.main.output
   configurations.runtime.each { File file ->
     if(file.isDirectory()) {
