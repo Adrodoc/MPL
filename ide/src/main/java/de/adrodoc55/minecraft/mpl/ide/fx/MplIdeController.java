@@ -64,6 +64,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
+import javax.swing.filechooser.FileSystemView;
 
 import org.eclipse.fx.code.editor.fx.TextEditor;
 import org.eclipse.fx.core.AppMemento;
@@ -189,17 +190,17 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
     fileExplorer.addEventHandler(ResourceEvent.openResourceEvent(),
         e -> openResources(e.getResourceItems()));
 
-    setRootDir(new File("C:/Users/Adrian/Documents/Mpl"));
+    setRootDir(
+        getFurthestExistingSubDir(FileSystemView.getFileSystemView().getDefaultDirectory(), "mpl"));
 
     ObservableList<ResourceItem> items = fileExplorer.getSelectedItems();
-    BooleanBinding disableFileMenuItems =
-        Bindings.createBooleanBinding(() -> items.size() != 1, items);
-    newFileMenuItem.disableProperty().bind(disableFileMenuItems);
-    newDirectoryMenuItem.disableProperty().bind(disableFileMenuItems);
-    renameResourceMenuItem.disableProperty().bind(disableFileMenuItems);
-    contextNewFileMenuItem.disableProperty().bind(disableFileMenuItems);
-    contextNewDirectoryMenuItem.disableProperty().bind(disableFileMenuItems);
-    contextRenameResourceMenuItem.disableProperty().bind(disableFileMenuItems);
+    BooleanBinding disable = Bindings.createBooleanBinding(() -> items.size() != 1, items);
+    newFileMenuItem.disableProperty().bind(disable);
+    newDirectoryMenuItem.disableProperty().bind(disable);
+    renameResourceMenuItem.disableProperty().bind(disable);
+    contextNewFileMenuItem.disableProperty().bind(disable);
+    contextNewDirectoryMenuItem.disableProperty().bind(disable);
+    contextRenameResourceMenuItem.disableProperty().bind(disable);
   }
 
   private void setupWindowCloseRequestListener() {
