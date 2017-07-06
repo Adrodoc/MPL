@@ -53,10 +53,6 @@ public class MplAppMemento implements AppMemento {
       DefaultSourceViewerConfiguration.class.getName() + ".hoverWindowWidth";
   private final static String KEY_HOVER_WINDOW_HEIGHT =
       DefaultSourceViewerConfiguration.class.getName() + ".hoverWindowHeight";
-  private final static String KEY_PROPOSAL_WINDOW_WIDTH =
-      DefaultSourceViewerConfiguration.class.getName() + ".proposalWindowWidth";
-  private final static String KEY_PROPOSAL_WINDOW_HEIGHT =
-      DefaultSourceViewerConfiguration.class.getName() + ".proposalWindowHeight";
 
   private final Map<String, String> strings = new HashMap<>();
   private final Map<String, Boolean> booleans = new HashMap<>();
@@ -66,8 +62,6 @@ public class MplAppMemento implements AppMemento {
   public MplAppMemento() {
     put(KEY_HOVER_WINDOW_WIDTH, 400d);
     put(KEY_HOVER_WINDOW_HEIGHT, 50d);
-    put(KEY_PROPOSAL_WINDOW_WIDTH, 400d);
-    put(KEY_PROPOSAL_WINDOW_HEIGHT, 50d);
   }
 
   @Override
