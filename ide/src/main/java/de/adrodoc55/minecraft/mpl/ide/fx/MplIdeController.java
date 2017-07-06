@@ -102,6 +102,7 @@ import de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationType;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import javafx.application.HostServices;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.StringExpression;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -138,17 +139,23 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
   private Parent root;
 
   @FXML
-  private DndTabPane editorTabPane;
-
-  private RootDirItem rootDir;
-  @FXML
-  private ResourceTreeView fileExplorer;
-  @FXML
   private MenuItem newFileMenuItem;
   @FXML
   private MenuItem newDirectoryMenuItem;
   @FXML
   private MenuItem renameResourceMenuItem;
+
+  private RootDirItem rootDir;
+  @FXML
+  private ResourceTreeView fileExplorer;
+  @FXML
+  private MenuItem contextNewFileMenuItem;
+  @FXML
+  private MenuItem contextNewDirectoryMenuItem;
+  @FXML
+  private MenuItem contextRenameResourceMenuItem;
+  @FXML
+  private DndTabPane editorTabPane;
 
   private MplOptions options = new MplOptions(//
       MinecraftVersion.getDefault(), //
@@ -183,6 +190,16 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
         e -> openResources(e.getResourceItems()));
 
     setRootDir(new File("C:/Users/Adrian/Documents/Mpl"));
+
+    ObservableList<ResourceItem> items = fileExplorer.getSelectedItems();
+    BooleanBinding disableFileMenuItems =
+        Bindings.createBooleanBinding(() -> items.size() != 1, items);
+    newFileMenuItem.disableProperty().bind(disableFileMenuItems);
+    newDirectoryMenuItem.disableProperty().bind(disableFileMenuItems);
+    renameResourceMenuItem.disableProperty().bind(disableFileMenuItems);
+    contextNewFileMenuItem.disableProperty().bind(disableFileMenuItems);
+    contextNewDirectoryMenuItem.disableProperty().bind(disableFileMenuItems);
+    contextRenameResourceMenuItem.disableProperty().bind(disableFileMenuItems);
   }
 
   private void setupWindowCloseRequestListener() {
@@ -268,20 +285,6 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
     Optional<MplOptions> result = dialog.showAndWait();
     if (result.isPresent()) {
       options = result.get();
-    }
-  }
-
-  @FXML
-  public void showResourceContextMenu(WindowEvent e) {
-    ObservableList<ResourceItem> items = fileExplorer.getSelectedItems();
-    if (items.size() > 1) {
-      newFileMenuItem.setDisable(true);
-      newDirectoryMenuItem.setDisable(true);
-      renameResourceMenuItem.setDisable(true);
-    } else {
-      newFileMenuItem.setDisable(false);
-      newDirectoryMenuItem.setDisable(false);
-      renameResourceMenuItem.setDisable(false);
     }
   }
 
