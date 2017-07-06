@@ -51,10 +51,9 @@ import javax.annotation.Nullable;
 import org.eclipse.fx.text.ui.source.SourceViewer;
 import org.eclipse.fx.ui.controls.styledtext.StyledTextArea;
 import org.eclipse.fx.ui.controls.styledtext.TextSelection;
+import org.eclipse.fx.ui.controls.styledtext.events.UndoHintEvent;
 import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.FindReplaceDocumentAdapter;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
 import de.adrodoc55.commons.RegexUtils;
@@ -217,23 +216,25 @@ public class FindReplaceController {
       updateHistory(findComboBox);
       String findString = nullToEmpty(findComboBox.getValue());
 
-      IDocument document = sourceViewer.getDocument();
-      Document copy = new Document(document.get());
-
       int count = 0;
       int startOffset = -1;
       IRegion lastReplaceRegion = null;
-      FindReplaceDocumentAdapter adapter = new FindReplaceDocumentAdapter(copy);
-      while (findStartingAt(startOffset, findString, adapter) != null) {
-        lastReplaceRegion = replace(adapter);
-        startOffset = lastReplaceRegion.getOffset() + lastReplaceRegion.getLength();
-        count++;
+
+      StyledTextArea textWidget = sourceViewer.getTextWidget();
+      textWidget.fireEvent(UndoHintEvent.createBeginCompoundChangeEvent());
+      try {
+        while (findStartingAt(startOffset, findString, adapter) != null) {
+          lastReplaceRegion = replace(adapter);
+          startOffset = lastReplaceRegion.getOffset() + lastReplaceRegion.getLength();
+          count++;
+        }
+      } finally {
+        textWidget.fireEvent(UndoHintEvent.createEndCompoundChangeEvent());
       }
 
       if (count == 0) {
         showInfo("String not found");
       } else {
-        document.set(copy.get());
         selectRegionOrBeep(lastReplaceRegion);
         showInfo(count + " Occurences replaced");
       }
