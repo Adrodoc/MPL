@@ -66,6 +66,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 import org.eclipse.fx.code.editor.fx.TextEditor;
+import org.eclipse.fx.core.AppMemento;
 import org.eclipse.fx.core.event.EventBus;
 import org.eclipse.fx.core.event.SimpleEventBus;
 import org.eclipse.fx.ui.controls.filesystem.FileItem;
@@ -159,6 +160,7 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
 
   private HostServices hostServices;
   private EventBus eventBus = new SimpleEventBus();
+  private AppMemento appMemento = new MplAppMemento();
 
   private final Map<Path, Tab> tabs = new HashMap<>();
   private final Map<Path, TextEditor> editors = new HashMap<>();
@@ -476,7 +478,7 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
 
   private Tab createAndAttachTab(Path path) {
     BorderPane pane = new BorderPane();
-    MplEditor editor = MplEditor.create(path, pane, eventBus, this);
+    MplEditor editor = MplEditor.create(path, pane, eventBus, appMemento, this);
 
     ReadOnlyBooleanProperty modifiedProperty = editor.modifiedProperty();
     StringExpression titleText = Bindings.createStringBinding(() -> {

@@ -117,7 +117,8 @@ import javafx.stage.Window;
  * @author Adrodoc55
  */
 public class MplEditor extends TextEditor implements MplSourceViewer.Context {
-  public static MplEditor create(Path path, BorderPane pane, EventBus eventBus, Context context) {
+  public static MplEditor create(Path path, BorderPane pane, EventBus eventBus,
+      AppMemento appMemento, Context context) {
     MplEditor editor = new MplEditor(eventBus, context);
     StringInput input = new DelegatingLocalSourceFileInput(
         new LocalSourceFileInput(path, StandardCharsets.UTF_8, eventBus));
@@ -127,7 +128,8 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
     ContextInformationPresenter contextInformationPresenter = new MplContextInformationPresenter();
     EditingContext editingContext = new DelegatingEditingContext();
     IDocument document = new InputDocument(input, eventBus);
-    SourceViewerConfiguration configuration = createConfiguration(input, document, editingContext);
+    SourceViewerConfiguration configuration =
+        createConfiguration(input, document, editingContext, appMemento);
     IDocumentPartitioner partitioner = new MplPartitioner();
     Property<Input<?>> activeInput = editor.activeInput;
     @SuppressWarnings("unchecked")
@@ -139,10 +141,9 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
   }
 
   private static SourceViewerConfiguration createConfiguration(Input<?> input, IDocument document,
-      EditingContext editingContext) {
+      EditingContext editingContext, AppMemento appMemento) {
     ThreadSynchronize threadSynchronize = null;
     MplPresentationReconciler reconciler = new MplPresentationReconciler();
-    AppMemento appMemento = null;
     ProposalComputer proposalComputer = new MplProposalComputer(document, editingContext);
     IAnnotationModel annotationModel = new AnnotationModel();
     AnnotationPresenter annotationPresenter = new MplAnnotationPresenter();

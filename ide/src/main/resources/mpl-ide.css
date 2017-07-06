@@ -42,7 +42,7 @@
   -fx-background-color: transparent;
   -fx-border-color: transparent;
   -fx-border-width: 0.0;
-  -fx-padding: 2px;
+  -fx-padding: 2.0px;
 }
 
 .button.icon:hover {
@@ -143,4 +143,8 @@
 
 .menu-item.paste > .label {
   -fx-graphic: url('/icons/paste_edit.png');
+}
+
+.resize-popup-pane HBox > .label {
+  -fx-text-fill: white;
 }
