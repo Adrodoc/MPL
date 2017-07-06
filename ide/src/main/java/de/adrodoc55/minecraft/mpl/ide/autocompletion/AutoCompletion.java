@@ -42,6 +42,8 @@ package de.adrodoc55.minecraft.mpl.ide.autocompletion;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
@@ -61,7 +63,7 @@ public class AutoCompletion {
     throw new Throwable("Utils Classes cannot be instantiated!");
   }
 
-  public static AutoCompletionContext getContext(int index, String text) {
+  public static @Nullable AutoCompletionContext getContext(int index, String text) {
     ANTLRInputStream input = new ANTLRInputStream(text);
     MplLexer lexer = new MplLexer(input);
     lexer.removeErrorListeners();

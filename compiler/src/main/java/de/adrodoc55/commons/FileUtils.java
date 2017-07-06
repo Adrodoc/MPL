@@ -56,7 +56,7 @@ public class FileUtils {
     throw new Exception("Utils Classes cannot be instantiated!");
   }
 
-  public static String getFilenameWithoutExtension(File file) {
+  public static String getFileNameWithoutExtension(File file) {
     return getFilenameWithoutExtension(file.getName());
   }
 

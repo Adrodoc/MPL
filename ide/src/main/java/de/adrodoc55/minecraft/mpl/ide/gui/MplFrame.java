@@ -77,6 +77,8 @@ import org.beanfabrics.model.ListPM;
 import org.beanfabrics.swing.BnButton;
 import org.beanfabrics.swing.BnMenuItem;
 
+import de.adrodoc55.minecraft.mpl.ide.ApplicationUtils;
+
 /**
  * The MplFrame is a {@link View} on a {@link MplFramePM}.
  *
@@ -120,9 +122,9 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
    * Constructs a new <code>MplFrame</code>.
    */
   public MplFrame() {
-    super("Minecraft Programming Language - " + getVersion());
+    super("Minecraft Programming Language - " + ApplicationUtils.getImplementationVersion());
     setIconImage(Toolkit.getDefaultToolkit()
-        .getImage(MplFrame.class.getResource("/icons/command_block_icon.png")));
+        .getImage(MplFrame.class.getResource("/icons/command_block.png")));
     init();
     setSize(1000, 500);
     setLocationRelativeTo(null);
@@ -146,15 +148,6 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
         }
       }
     });
-  }
-
-  private static String getVersion() {
-    String version = MplFrame.class.getPackage().getImplementationVersion();
-    if (version != null) {
-      return version;
-    } else {
-      return "local build";
-    }
   }
 
   private void init() {
@@ -463,7 +456,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnButton getBnbtnNew() {
     if (bnbtnNew == null) {
       bnbtnNew = new BnButton();
-      bnbtnNew.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/new_file_icon_16.png")));
+      bnbtnNew.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/newfile_wiz.gif")));
       bnbtnNew.setModelProvider(getLocalModelProvider());
       bnbtnNew.setPath(new Path("this.newFile"));
     }
@@ -473,7 +466,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnButton getBnbtnOpen() {
     if (bnbtnOpen == null) {
       bnbtnOpen = new BnButton();
-      bnbtnOpen.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/folder_icon_16.png")));
+      bnbtnOpen.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/open_resource.gif")));
       bnbtnOpen.setPath(new Path("this.openFile"));
       bnbtnOpen.setModelProvider(getLocalModelProvider());
     }
@@ -483,7 +476,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
   private BnButton getBnbtnSave() {
     if (bnbtnSave == null) {
       bnbtnSave = new BnButton();
-      bnbtnSave.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/disk_icon_16.png")));
+      bnbtnSave.setIcon(new ImageIcon(MplFrame.class.getResource("/icons/save_edit.png")));
       bnbtnSave.setPath(new Path("this.saveFile"));
       bnbtnSave.setModelProvider(getLocalModelProvider());
     }
@@ -494,7 +487,7 @@ public class MplFrame extends JFrame implements View<MplFramePM>, ModelSubscribe
     if (bnbtnCompileToCommand == null) {
       bnbtnCompileToCommand = new BnButton();
       bnbtnCompileToCommand
-          .setIcon(new ImageIcon(MplFrame.class.getResource("/icons/command_block_icon_16.png")));
+          .setIcon(new ImageIcon(MplFrame.class.getResource("/icons/command_block_16.png")));
       bnbtnCompileToCommand.setPath(new Path("this.compileToCommand"));
       bnbtnCompileToCommand.setModelProvider(getLocalModelProvider());
     }

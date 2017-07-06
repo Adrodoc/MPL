@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+/*
+ * Minecraft Programming Language (MPL): A language for easy development of command block
+ * applications including an IDE.
+ *
+ * © Copyright (C) 2016 Adrodoc55
+ *
+ * This file is part of MPL.
+ *
+ * MPL is free software: you can redistribute it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * MPL is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MPL. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ *
+ *
+ * Minecraft Programming Language (MPL): Eine Sprache für die einfache Entwicklung von Commandoblock
+ * Anwendungen, inklusive einer IDE.
+ *
+ * © Copyright (C) 2016 Adrodoc55
+ *
+ * Diese Datei ist Teil von MPL.
+ *
+ * MPL ist freie Software: Sie können diese unter den Bedingungen der GNU General Public License,
+ * wie von der Free Software Foundation, Version 3 der Lizenz oder (nach Ihrer Wahl) jeder späteren
+ * veröffentlichten Version, weiterverbreiten und/oder modifizieren.
+ *
+ * MPL wird in der Hoffnung, dass es nützlich sein wird, aber OHNE JEDE GEWÄHRLEISTUNG,
+ * bereitgestellt; sogar ohne die implizite Gewährleistung der MARKTFÄHIGKEIT oder EIGNUNG FÜR EINEN
+ * BESTIMMTEN ZWECK. Siehe die GNU General Public License für weitere Details.
+ *
+ * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
+ * nicht, siehe <http://www.gnu.org/licenses/>.
+ */
+-->
+
+<?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.VBox?>
+<?import org.eclipse.fx.ui.controls.filesystem.ResourceTreeView?>
+<?import org.eclipse.fx.ui.controls.tabpane.DndTabPane?>
+
+<VBox fx:id="root" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.111" fx:controller="de.adrodoc55.minecraft.mpl.ide.fx.MplIdeController">
+  <children>
+    <MenuBar VBox.vgrow="NEVER">
+      <menus>
+        <Menu text="_File">
+          <items>
+            <MenuItem onAction="#open" styleClass="open" text="_Open Directory" />
+            <MenuItem onAction="#save" styleClass="save" text="_Save" />
+            <MenuItem onAction="#saveUnder" styleClass="save-under" text="Save under..." />
+            <MenuItem onAction="#saveAll" styleClass="save-all" text="Save all" />
+            <SeparatorMenuItem />
+            <MenuItem fx:id="newFileMenuItem" onAction="#newFile" styleClass="new-file" text="_New File..." />
+            <MenuItem fx:id="newDirectoryMenuItem" onAction="#newDirectory" styleClass="new-dir" text="New Directory..." />
+            <MenuItem fx:id="renameResourceMenuItem" onAction="#renameResource" styleClass="rename" text="_Rename selected Resource..." />
+            <MenuItem onAction="#deleteResources" styleClass="delete" text="_Delete selected Resources..." />
+            <MenuItem onAction="#cutResources" styleClass="cut" text="C_ut selected Resources" />
+            <MenuItem onAction="#copyResources" styleClass="copy" text="_Copy selected Resources" />
+            <MenuItem onAction="#pasteResources" styleClass="paste" text="_Paste Resources" />
+          </items>
+        </Menu>
+        <Menu text="_Compile">
+          <items>
+            <MenuItem mnemonicParsing="false" onAction="#compileToCommand" styleClass="compileToCommand" text="Compile to Command" />
+            <MenuItem mnemonicParsing="false" onAction="#compileToStructure" styleClass="compileToStructure" text="Compile to Structure" />
+            <MenuItem mnemonicParsing="false" onAction="#compileToStructureUnder" styleClass="compileToStructure" text="Compile to Structure under..." />
+            <MenuItem mnemonicParsing="false" onAction="#compileToSchematic" styleClass="compileToSchematic" text="Compile to Schematic" />
+            <MenuItem mnemonicParsing="false" onAction="#compileToSchematicUnder" styleClass="compileToSchematic" text="Compile to Schematic under..." />
+            <MenuItem mnemonicParsing="false" onAction="#compileToCbse" styleClass="compileToCbse" text="Compile to CBSE" />
+            <MenuItem mnemonicParsing="false" onAction="#compileToMcedit" styleClass="compileToMcedit" text="Compile to MCEdit Filter" />
+            <MenuItem mnemonicParsing="false" onAction="#compileToMceditUnder" styleClass="compileToMcedit" text="Compile to MCEdit Filter under..." />
+          </items>
+        </Menu>
+        <Menu text="_Window">
+          <items>
+            <MenuItem onAction="#options" text="_Options" />
+          </items>
+        </Menu>
+        <Menu text="_Help">
+          <items>
+            <MenuItem mnemonicParsing="false" onAction="#openWiki" text="Wiki" />
+            <MenuItem onAction="#openGithub" text="_About" />
+          </items>
+        </Menu>
+      </menus>
+    </MenuBar>
+    <ToolBar VBox.vgrow="NEVER">
+      <items>
+        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#open">
+          <styleClass>
+            <String fx:value="open" />
+            <String fx:value="icon" />
+          </styleClass>
+          <tooltip>
+            <Tooltip text="Open Directory" />
+          </tooltip>
+        </Button>
+        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#save">
+          <styleClass>
+            <String fx:value="save" />
+            <String fx:value="icon" />
+          </styleClass>
+          <tooltip>
+            <Tooltip text="Save the current File" />
+          </tooltip>
+        </Button>
+        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToCommand">
+          <styleClass>
+            <String fx:value="compileToCommand" />
+            <String fx:value="icon" />
+          </styleClass>
+          <tooltip>
+            <Tooltip text="Compile to Import-Command" />
+          </tooltip>
+        </Button>
+        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToStructure">
+          <styleClass>
+            <String fx:value="compileToStructure" />
+            <String fx:value="icon" />
+          </styleClass>
+          <tooltip>
+            <Tooltip text="Compile to Structure" />
+          </tooltip>
+        </Button>
+        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToSchematic">
+          <styleClass>
+            <String fx:value="compileToSchematic" />
+            <String fx:value="icon" />
+          </styleClass>
+          <tooltip>
+            <Tooltip text="Compile to Schematic" />
+          </tooltip>
+        </Button>
+        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToCbse">
+          <styleClass>
+            <String fx:value="compileToCbse" />
+            <String fx:value="icon" />
+          </styleClass>
+          <tooltip>
+            <Tooltip text="Compile to Command Block Structure Editor File" />
+          </tooltip>
+        </Button>
+        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToMcedit">
+          <styleClass>
+            <String fx:value="compileToMcedit" />
+            <String fx:value="icon" />
+          </styleClass>
+          <tooltip>
+            <Tooltip text="Compile to MCEdit Filter" />
+          </tooltip>
+        </Button>
+      </items>
+      <padding>
+        <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
+      </padding>
+    </ToolBar>
+    <SplitPane dividerPositions="0.3" VBox.vgrow="ALWAYS">
+      <items>
+        <ResourceTreeView fx:id="fileExplorer">
+          <contextMenu>
+            <ContextMenu>
+              <items>
+                <MenuItem fx:id="contextNewFileMenuItem" onAction="#newFile" styleClass="new-file" text="_New File..." />
+                <MenuItem fx:id="contextNewDirectoryMenuItem" onAction="#newDirectory" styleClass="new-dir" text="New Directory..." />
+                <MenuItem fx:id="contextRenameResourceMenuItem" onAction="#renameResource" styleClass="rename" text="_Rename selected Resource..." />
+                <MenuItem onAction="#deleteResources" styleClass="delete" text="_Delete selected Resources..." />
+                <MenuItem onAction="#cutResources" styleClass="cut" text="C_ut selected Resources" />
+                <MenuItem onAction="#copyResources" styleClass="copy" text="_Copy selected Resources" />
+                <MenuItem onAction="#pasteResources" styleClass="paste" text="_Paste Resources" />
+              </items>
+            </ContextMenu>
+          </contextMenu>
+        </ResourceTreeView>
+        <DndTabPane fx:id="editorTabPane" tabClosingPolicy="ALL_TABS" />
+      </items>
+    </SplitPane>
+  </children>
+</VBox>

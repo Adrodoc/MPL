@@ -110,9 +110,10 @@ public class MplCompiler {
    * @throws CompilationFailedException if at least one {@link CompilerException} ocurred
    */
   protected void checkErrors() throws CompilationFailedException {
-    Set<CompilerException> errors = provideContext().getErrors();
+    MplCompilerContext context = provideContext();
+    Set<CompilerException> errors = context.getErrors();
     if (!errors.isEmpty()) {
-      throw new CompilationFailedException(errors);
+      throw new CompilationFailedException(errors, context.getWarnings());
     }
   }
 

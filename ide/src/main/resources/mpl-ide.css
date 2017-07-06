@@ -1,0 +1,150 @@
+/*
+ * Minecraft Programming Language (MPL): A language for easy development of command block
+ * applications including an IDE.
+ *
+ * © Copyright (C) 2016 Adrodoc55
+ *
+ * This file is part of MPL.
+ *
+ * MPL is free software: you can redistribute it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * MPL is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MPL. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ *
+ *
+ * Minecraft Programming Language (MPL): Eine Sprache für die einfache Entwicklung von Commandoblock
+ * Anwendungen, inklusive einer IDE.
+ *
+ * © Copyright (C) 2016 Adrodoc55
+ *
+ * Diese Datei ist Teil von MPL.
+ *
+ * MPL ist freie Software: Sie können diese unter den Bedingungen der GNU General Public License,
+ * wie von der Free Software Foundation, Version 3 der Lizenz oder (nach Ihrer Wahl) jeder späteren
+ * veröffentlichten Version, weiterverbreiten und/oder modifizieren.
+ *
+ * MPL wird in der Hoffnung, dass es nützlich sein wird, aber OHNE JEDE GEWÄHRLEISTUNG,
+ * bereitgestellt; sogar ohne die implizite Gewährleistung der MARKTFÄHIGKEIT oder EIGNUNG FÜR EINEN
+ * BESTIMMTEN ZWECK. Siehe die GNU General Public License für weitere Details.
+ *
+ * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
+ * nicht, siehe <http://www.gnu.org/licenses/>.
+ */
+
+.button.icon {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent;
+  -fx-border-width: 0.0;
+  -fx-padding: 2.0px;
+}
+
+.button.icon:hover {
+  -fx-background-color: lavender;
+}
+
+.button.icon:pressed {
+  -fx-background-color: lightblue;
+}
+
+.menu-item.open > .label {
+  -fx-graphic: url('/icons/open_resource.gif');
+}
+
+.menu-item.save > .label {
+  -fx-graphic: url('/icons/save_edit.png');
+}
+
+.menu-item.save-under > .label {
+  -fx-graphic: url('/icons/saveas_edit.png');
+}
+
+.menu-item.save-all > .label {
+  -fx-graphic: url('/icons/saveall_edit.png');
+}
+
+.button.open {
+  -fx-graphic: url('/icons/open_resource.gif');
+}
+
+.button.save {
+  -fx-graphic: url('/icons/save_edit.png');
+}
+
+.menu-item.compileToCommand > .label {
+  -fx-graphic: url('/icons/command_block_16.png');
+}
+
+.menu-item.compileToStructure > .label {
+  -fx-graphic: url('/icons/structure_block_load_16.png');
+}
+
+.menu-item.compileToSchematic > .label {
+  -fx-graphic: url('/icons/schematic_16.png');
+}
+
+.menu-item.compileToCbse > .label {
+  -fx-graphic: url('/icons/cbse_16.png');
+}
+
+.menu-item.compileToMcedit > .label {
+  -fx-graphic: url('/icons/mcedit_16.png');
+}
+
+.button.compileToCommand {
+  -fx-graphic: url('/icons/command_block_16.png');
+}
+
+.button.compileToStructure {
+  -fx-graphic: url('/icons/structure_block_load_16.png');
+}
+
+.button.compileToSchematic {
+  -fx-graphic: url('/icons/schematic_16.png');
+}
+
+.button.compileToCbse {
+  -fx-graphic: url('/icons/cbse_16.png');
+}
+
+.button.compileToMcedit {
+  -fx-graphic: url('/icons/mcedit_16.png');
+}
+
+.menu-item.new-file > .label {
+  -fx-graphic: url('/icons/newfile_wiz.gif');
+}
+
+.menu-item.new-dir > .label {
+  -fx-graphic: url('/icons/newfolder_wiz.png');
+}
+
+.menu-item.rename > .label {
+  -fx-graphic: url('/icons/correction_linked_rename.png');
+}
+
+.menu-item.delete > .label {
+  -fx-graphic: url('/icons/delete_edit.png');
+}
+
+.menu-item.cut > .label {
+  -fx-graphic: url('/icons/cut_edit.png');
+}
+
+.menu-item.copy > .label {
+  -fx-graphic: url('/icons/copy_edit.png');
+}
+
+.menu-item.paste > .label {
+  -fx-graphic: url('/icons/paste_edit.png');
+}
+
+.resize-popup-pane HBox > .label {
+  -fx-text-fill: white;
+}

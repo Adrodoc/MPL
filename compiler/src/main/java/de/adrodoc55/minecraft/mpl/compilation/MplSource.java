@@ -100,6 +100,10 @@ public class MplSource {
     this.text = text;
   }
 
+  public int getLength() {
+    return stopIndex - startIndex + 1;
+  }
+
   public @Nullable String getText() {
     if (text == null) {
       try {
@@ -112,7 +116,7 @@ public class MplSource {
   }
 
   private int getEndIndexInLine() {
-    return charPositionInLine + stopIndex - startIndex + 1;
+    return charPositionInLine + getLength();
   }
 
   private void reconstructText(Iterable<? extends ParseTree> children) {

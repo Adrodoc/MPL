@@ -55,10 +55,12 @@ import org.antlr.v4.runtime.Token;
 import de.adrodoc55.commons.DocumentUtils;
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.commons.Filter;
+import lombok.Getter;
 
 /**
  * @author Adrodoc55
  */
+@Getter
 public abstract class AutoCompletionAction {
   private static final Pattern INSERT = Pattern.compile("(?<!\\$)(\\$+)(?:\\{([^}\\n]*)\\})?");
 
@@ -66,7 +68,7 @@ public abstract class AutoCompletionAction {
   private static final Filter<String> CURSOR_INSERTS = insert -> CURSOR.equals(insert);
   private static final Filter<String> NON_CURSOR_INSERTS = insert -> !CURSOR.equals(insert);
 
-  private final int startIndex;
+  protected final int startIndex;
   protected final @Nullable Token token;
 
   public AutoCompletionAction(int startIndex, @Nullable Token token) {
@@ -77,14 +79,10 @@ public abstract class AutoCompletionAction {
   public void performOn(JTextComponent component) {
     Element root = component.getDocument().getDefaultRootElement();
     Element line = root.getElement(root.getElementIndex(startIndex));
-    int indentCount = startIndex - line.getStartOffset();
-    String indent = new String(new char[indentCount]).replace('\0', ' ');
+    int offsetInLine = startIndex - line.getStartOffset();
 
-    String template = FileUtils.toUnixLineEnding(getTemplate());
-    template = template.replace("\n", "\n" + indent);
-    template = replaceVariables(template, NON_CURSOR_INSERTS);
-    int cursorIndex = getCursorIndex(template);
-    template = replaceVariables(template, CURSOR_INSERTS);
+    int cursorIndex = getCursorIndex(offsetInLine);
+    String template = processTemplate(offsetInLine);
     try {
       int length = getLength();
       DocumentUtils.replace(component.getDocument(), startIndex, length, template);
@@ -94,7 +92,23 @@ public abstract class AutoCompletionAction {
     }
   }
 
-  private int getCursorIndex(String template) {
+  public String processTemplate(int offsetInLine) {
+    return processTemplate(offsetInLine, true);
+  }
+
+  private String processTemplate(int offsetInLine, boolean processCursor) {
+    String template = FileUtils.toUnixLineEnding(getTemplate());
+    String indent = new String(new char[offsetInLine]).replace('\0', ' ');
+    template = template.replace("\n", "\n" + indent);
+    template = replaceVariables(template, NON_CURSOR_INSERTS);
+    if (processCursor) {
+      template = replaceVariables(template, CURSOR_INSERTS);
+    }
+    return template;
+  }
+
+  public int getCursorIndex(int offsetInLine) {
+    CharSequence template = processTemplate(offsetInLine, false);
     Matcher matcher = INSERT.matcher(template);
     while (matcher.find()) {
       String match = matcher.group(2);
@@ -149,7 +163,7 @@ public abstract class AutoCompletionAction {
       return "";
   }
 
-  private int getLength() {
+  public int getLength() {
     if (token != null)
       return token.getStopIndex() - startIndex + 1;
     else
@@ -161,4 +175,8 @@ public abstract class AutoCompletionAction {
   public abstract String getDisplayName();
 
   public abstract boolean shouldBeProposed(AutoCompletionContext context);
+
+  public CharSequence getDescription() {
+    return processTemplate(0);
+  }
 }

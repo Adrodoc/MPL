@@ -39,6 +39,8 @@
  */
 package de.adrodoc55.minecraft.mpl.main;
 
+import static de.adrodoc55.minecraft.mpl.compilation.MplCompiler.compile;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -48,7 +50,6 @@ import com.beust.jcommander.ParameterException;
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
-import de.adrodoc55.minecraft.mpl.compilation.MplCompiler;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 
 /**
@@ -67,9 +68,8 @@ public class MplCompilerMain {
       }
       MinecraftVersion version = getVersion(params.getVersion());
       File programFile = params.getInput();
-      MplCompilationResult compiled =
-          MplCompiler.compile(programFile, version, params.getCompilerOptions());
-      String name = FileUtils.getFilenameWithoutExtension(programFile);
+      MplCompilationResult compiled = compile(programFile, version, params.getCompilerOptions());
+      String name = FileUtils.getFileNameWithoutExtension(programFile);
       params.getType().getConverter().write(compiled, name, params.getOutput(), version);
     } catch (ParameterException ex) {
       System.err.println(ex.getLocalizedMessage());

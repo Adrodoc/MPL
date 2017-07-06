@@ -57,18 +57,26 @@ public class CompilationFailedException extends Exception {
   private static final long serialVersionUID = 1L;
 
   private final ImmutableListMultimap<File, CompilerException> errors;
+  private final ImmutableListMultimap<File, CompilerException> warnings;
 
-  public CompilationFailedException(Iterable<CompilerException> errors) {
+  public CompilationFailedException(Iterable<CompilerException> errors,
+      Iterable<CompilerException> warnings) {
     this.errors = Multimaps.index(errors, e -> e.getSource().getFile());
+    this.warnings = Multimaps.index(warnings, e -> e.getSource().getFile());
   }
 
   public CompilationFailedException(String message, NotEnoughSpaceException ex) {
     super(message, ex);
     errors = ImmutableListMultimap.of();
+    warnings = ImmutableListMultimap.of();
   }
 
   public ImmutableListMultimap<File, CompilerException> getErrors() {
     return errors;
+  }
+
+  public ImmutableListMultimap<File, CompilerException> getWarnings() {
+    return warnings;
   }
 
   @Override
