@@ -63,11 +63,11 @@
       <menus>
         <Menu text="_File">
           <items>
-            <MenuItem mnemonicParsing="false" onAction="#open" styleClass="open" text="_Open Directory" />
-            <MenuItem mnemonicParsing="false" onAction="#save" styleClass="save" text="_Save" />
-            <MenuItem mnemonicParsing="false" onAction="#saveUnder" styleClass="save-under" text="Save under..." />
-            <MenuItem mnemonicParsing="false" onAction="#saveAll" styleClass="save-all" text="Save all" />
-            <SeparatorMenuItem mnemonicParsing="false" />
+            <MenuItem onAction="#open" styleClass="open" text="_Open Directory" />
+            <MenuItem onAction="#save" styleClass="save" text="_Save" />
+            <MenuItem onAction="#saveUnder" styleClass="save-under" text="Save under..." />
+            <MenuItem onAction="#saveAll" styleClass="save-all" text="Save all" />
+            <SeparatorMenuItem />
             <MenuItem fx:id="newFileMenuItem" onAction="#newFile" styleClass="new-file" text="_New File..." />
             <MenuItem fx:id="newDirectoryMenuItem" onAction="#newDirectory" styleClass="new-dir" text="New Directory..." />
             <MenuItem fx:id="renameResourceMenuItem" onAction="#renameResource" styleClass="rename" text="_Rename selected Resource..." />
