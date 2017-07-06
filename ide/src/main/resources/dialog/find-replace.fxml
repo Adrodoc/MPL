@@ -114,10 +114,10 @@
         </VBox>
         <VBox spacing="5.0">
           <children>
-            <Button defaultButton="true" maxWidth="1.7976931348623157E308" onAction="#find" text="Fi_nd" />
+            <Button fx:id="findButton" defaultButton="true" maxWidth="1.7976931348623157E308" onAction="#find" text="Fi_nd" />
             <Button fx:id="replaceButton" maxWidth="1.7976931348623157E308" onAction="#replace" text="Re_place" />
             <Button fx:id="replaceFindButton" maxWidth="1.7976931348623157E308" onAction="#replaceFind" text="Replace/Fin_d" />
-            <Button maxWidth="1.7976931348623157E308" onAction="#replaceAll" text="Replace _All" />
+            <Button fx:id="replaceAllButton" maxWidth="1.7976931348623157E308" onAction="#replaceAll" text="Replace _All" />
           </children>
         </VBox>
       </children>

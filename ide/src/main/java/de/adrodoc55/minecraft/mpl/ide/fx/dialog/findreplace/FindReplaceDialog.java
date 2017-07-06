@@ -39,8 +39,6 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.fx.dialog.findreplace;
 
-import org.eclipse.fx.text.ui.source.SourceViewer;
-
 import de.adrodoc55.minecraft.mpl.ide.fx.ExceptionHandler;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.SecondaryStage;
 import javafx.stage.Window;
@@ -57,9 +55,5 @@ public class FindReplaceDialog extends SecondaryStage {
 
   public FindReplaceController getController() {
     return (FindReplaceController) getLoadedController();
-  }
-
-  public void setSourceViewer(SourceViewer sourceViewer) {
-    getController().setSourceViewer(sourceViewer);
   }
 }

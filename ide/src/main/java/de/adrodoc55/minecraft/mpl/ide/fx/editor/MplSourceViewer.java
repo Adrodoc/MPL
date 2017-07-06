@@ -53,6 +53,7 @@ import org.eclipse.fx.ui.controls.styledtext.TextChangedEvent;
 import org.eclipse.fx.ui.controls.styledtext.TextChangingEvent;
 import org.eclipse.fx.ui.controls.styledtext.TextSelection;
 
+import de.adrodoc55.minecraft.mpl.ide.fx.dialog.findreplace.FindReplaceController;
 import de.adrodoc55.minecraft.mpl.ide.fx.dialog.findreplace.FindReplaceDialog;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -188,7 +189,9 @@ public class MplSourceViewer extends SourceViewer {
 
   private void findReplace() {
     FindReplaceDialog dialog = context.getFindReplaceDialog();
-    dialog.setSourceViewer(this);
+    FindReplaceController controller = dialog.getController();
+    controller.setFocusOwner(this);
+    controller.extractSelectedText();
     dialog.show();
     dialog.requestFocus();
   }

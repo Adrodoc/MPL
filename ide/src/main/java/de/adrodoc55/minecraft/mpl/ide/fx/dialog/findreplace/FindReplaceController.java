@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.ide.fx.dialog.findreplace;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.nullToEmpty;
 
 import java.awt.Toolkit;
@@ -58,8 +59,13 @@ import org.eclipse.jface.text.IRegion;
 
 import de.adrodoc55.commons.RegexUtils;
 import de.adrodoc55.minecraft.mpl.ide.fx.ExceptionHandler;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -89,9 +95,13 @@ public class FindReplaceController {
   @FXML
   private CheckBox regularExpression;
   @FXML
+  private Button findButton;
+  @FXML
   private Button replaceButton;
   @FXML
   private Button replaceFindButton;
+  @FXML
+  private Button replaceAllButton;
   @FXML
   private Label messageLabel;
 
@@ -101,15 +111,20 @@ public class FindReplaceController {
   private void initialize() {
     findLabel.setLabelFor(findComboBox);
     replaceLabel.setLabelFor(replaceComboBox);
-    wholeWord.disableProperty().bind(regularExpression.selectedProperty());
-    wrapSearch.setSelected(true);
-    incremental.setSelected(true);
     findComboBox.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
-      if (isSet(incremental)) {
+      if (isSet(incremental) && isSourceViewerSelected()) {
         int startIndex = sourceViewer.getTextWidget().getSelection().offset;
         findIncremental(startIndex, newValue);
       }
     });
+    wholeWord.disableProperty().bind(regularExpression.selectedProperty());
+    wrapSearch.setSelected(true);
+    incremental.setSelected(true);
+    findButton.disableProperty().bind(sourceViewerSelected.not());
+    replaceButton.disableProperty().bind(sourceViewerSelected.not().or(replaceButtonDisable));
+    replaceFindButton.disableProperty()
+        .bind(sourceViewerSelected.not().or(replaceFindButtonDisable));
+    replaceAllButton.disableProperty().bind(sourceViewerSelected.not());
   }
 
   public void initialize(ExceptionHandler exceptionHandler) {
@@ -120,13 +135,52 @@ public class FindReplaceController {
     return !checkBox.isDisabled() && checkBox.isSelected();
   }
 
-  private SourceViewer sourceViewer;
-  private FindReplaceDocumentAdapter adapter;
+  private final BooleanProperty replaceButtonDisable = new SimpleBooleanProperty();
+  private final BooleanProperty replaceFindButtonDisable = new SimpleBooleanProperty();
 
-  public void setSourceViewer(SourceViewer sourceViewer) {
+  private void disableReplaceButtons(boolean disable) {
+    replaceButtonDisable.set(disable);
+    replaceFindButtonDisable.set(disable);
+  }
+
+  private @Nullable SourceViewer sourceViewer;
+  private @Nullable FindReplaceDocumentAdapter adapter;
+  private final BooleanProperty sourceViewerSelected = new SimpleBooleanProperty();
+
+  public ReadOnlyBooleanProperty sourceViewerSelectedProperty() {
+    return sourceViewerSelected;
+  }
+
+  public boolean isSourceViewerSelected() {
+    return sourceViewerSelected.get();
+  }
+
+  public void checkSourceViewerSelected() throws IllegalStateException {
+    checkState(isSourceViewerSelected(), "No SourceViewer selected");
+  }
+
+  public void setFocusOwner(Node node) {
+    Parent parent = node.getParent();
+    if (node instanceof SourceViewer) {
+      setSourceViewer((SourceViewer) node);
+    } else if (parent instanceof SourceViewer) {
+      setSourceViewer((SourceViewer) parent);
+    } else {
+      sourceViewer = null;
+      adapter = null;
+      sourceViewerSelected.set(false);
+    }
+  }
+
+  private void setSourceViewer(SourceViewer sourceViewer) {
     this.sourceViewer = checkNotNull(sourceViewer, "sourceViewer == null!");
-    IDocument document = sourceViewer.getDocument();
-    adapter = new FindReplaceDocumentAdapter(document);
+    adapter = new FindReplaceDocumentAdapter(sourceViewer.getDocument());
+    disableReplaceButtons(true);
+    sourceViewerSelected.set(true);
+  }
+
+  public void extractSelectedText() {
+    checkSourceViewerSelected();
     TextSelection selection = sourceViewer.getTextWidget().getSelection();
     String selectedText =
         adapter.subSequence(selection.offset, selection.offset + selection.length).toString();
@@ -158,6 +212,7 @@ public class FindReplaceController {
   @FXML
   public void replaceAll() throws BadLocationException {
     try {
+      checkSourceViewerSelected();
       disableReplaceButtons(true);
       updateHistory(findComboBox);
       String findString = nullToEmpty(findComboBox.getValue());
@@ -190,6 +245,7 @@ public class FindReplaceController {
   @FXML
   public void replaceFind() throws BadLocationException {
     try {
+      checkSourceViewerSelected();
       replace(adapter);
       find();
     } catch (PatternSyntaxException ex) {
@@ -200,6 +256,7 @@ public class FindReplaceController {
   @FXML
   public void replace() throws BadLocationException {
     try {
+      checkSourceViewerSelected();
       IRegion replaced = replace(adapter);
       selectRegionOrBeep(replaced);
     } catch (PatternSyntaxException ex) {
@@ -218,6 +275,7 @@ public class FindReplaceController {
 
   @FXML
   public void find() {
+    checkSourceViewerSelected();
     TextSelection initialSelection = sourceViewer.getTextWidget().getSelection();
     int startIndex = initialSelection.offset + initialSelection.length;
 
@@ -252,11 +310,6 @@ public class FindReplaceController {
     } catch (BadLocationException ex) {
       exceptionHandler.handleException(ex);
     }
-  }
-
-  private void disableReplaceButtons(boolean disable) {
-    replaceButton.setDisable(disable);
-    replaceFindButton.setDisable(disable);
   }
 
   private void selectRegionOrBeep(IRegion found) {

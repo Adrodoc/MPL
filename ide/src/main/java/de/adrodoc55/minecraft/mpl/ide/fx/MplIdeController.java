@@ -103,12 +103,14 @@ import javafx.application.HostServices;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringExpression;
 import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -132,7 +134,7 @@ import javafx.stage.WindowEvent;
  */
 public class MplIdeController implements ExceptionHandler, MplEditor.Context {
   @FXML
-  private Node root;
+  private Parent root;
 
   @FXML
   private DndTabPane editorTabPane;
@@ -243,6 +245,17 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
   public FindReplaceDialog getFindReplaceDialog() {
     if (findReplaceDialog == null) {
       findReplaceDialog = new FindReplaceDialog(getWindow(), this);
+      ChangeListener<Node> focusOwnerListener = (observable, oldValue,
+          newValue) -> findReplaceDialog.getController().setFocusOwner(newValue);
+      ChangeListener<Scene> sceneListener = (observable, oldValue, newValue) -> {
+        if (oldValue != null)
+          oldValue.focusOwnerProperty().removeListener(focusOwnerListener);
+        if (newValue != null)
+          newValue.focusOwnerProperty().addListener(focusOwnerListener);
+      };
+      ReadOnlyObjectProperty<Scene> sceneProperty = root.sceneProperty();
+      sceneProperty.addListener(sceneListener);
+      sceneListener.changed(sceneProperty, null, sceneProperty.get());
     }
     return findReplaceDialog;
   }
