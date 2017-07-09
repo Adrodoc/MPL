@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation;
 
+import static de.adrodoc55.commons.FileUtils.getCanonicalFile;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static java.util.stream.Collectors.toList;
 

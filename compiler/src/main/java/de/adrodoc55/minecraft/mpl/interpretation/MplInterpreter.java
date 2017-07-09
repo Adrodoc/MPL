@@ -41,6 +41,7 @@ package de.adrodoc55.minecraft.mpl.interpretation;
 
 import static com.google.common.base.Preconditions.checkState;
 import static de.adrodoc55.commons.ArrayUtils.nonNullElementsIn;
+import static de.adrodoc55.commons.FileUtils.getCanonicalFile;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
 import static de.adrodoc55.minecraft.mpl.ast.variable.Insertable.checkInsertable;
@@ -74,7 +75,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 
-import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
@@ -291,7 +291,7 @@ public class MplInterpreter extends MplParserBaseListener {
   public void enterImportDeclaration(ImportDeclarationContext ctx) {
     Token token = ctx.STRING().getSymbol();
     String importPath = MplLexerUtils.getContainedString(token);
-    File file = new File(programFile.getParentFile(), importPath);
+    File file = getCanonicalFile(new File(programFile.getParentFile(), importPath));
     addFileImport(ctx, file);
   }
 
@@ -340,7 +340,7 @@ public class MplInterpreter extends MplParserBaseListener {
   public void enterInclude(IncludeContext ctx) {
     String includePath = MplLexerUtils.getContainedString(ctx.STRING().getSymbol());
     Token token = ctx.STRING().getSymbol();
-    File includeFile = new File(programFile.getParentFile(), includePath);
+    File includeFile = getCanonicalFile(new File(programFile.getParentFile(), includePath));
     MplSource source = toSource(token);
     if (!included.add(includeFile)) {
       context.addError(new CompilerException(source, "Duplicate include"));
@@ -393,8 +393,7 @@ public class MplInterpreter extends MplParserBaseListener {
       }
       return added;
     } else if (!file.exists()) {
-      String path = FileUtils.getCanonicalPath(file);
-      context.addError(new CompilerException(source, "Could not find '" + path + "'"));
+      context.addError(new CompilerException(source, "Could not find '" + file + "'"));
       return false;
     } else {
       context.addError(new CompilerException(source,

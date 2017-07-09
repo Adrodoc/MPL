@@ -70,11 +70,11 @@ public class FileUtils {
     return text.replace("\r\n", "\n").replace("\r", "\n");
   }
 
-  public static String getCanonicalPath(File file) {
+  public static File getCanonicalFile(File file) {
     try {
-      return file.getCanonicalPath();
+      return file.getCanonicalFile();
     } catch (IOException ex) {
-      return file.getAbsolutePath();
+      throw new UndeclaredThrowableException(ex);
     }
   }
 

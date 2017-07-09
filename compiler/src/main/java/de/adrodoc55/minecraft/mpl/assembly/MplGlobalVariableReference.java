@@ -43,8 +43,8 @@ import static de.adrodoc55.minecraft.mpl.ast.variable.Insertable.checkInsertable
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -76,8 +76,8 @@ public class MplGlobalVariableReference extends MplReference {
   private @Nonnull MplCompilerContext context;
 
   public MplGlobalVariableReference(@Nullable String fileNameWithoutExtension, String identifier,
-      GlobalVariableInsert insert, Set<File> imports, MplSource source, MplCompilerContext context)
-      throws IllegalArgumentException {
+      GlobalVariableInsert insert, Collection<? extends File> imports, MplSource source,
+      MplCompilerContext context) throws IllegalArgumentException {
     super(imports, source);
     setFileNameWithoutExtension(fileNameWithoutExtension);
     setIdentifier(identifier);

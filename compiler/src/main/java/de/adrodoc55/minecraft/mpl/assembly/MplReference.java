@@ -50,7 +50,6 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter;
@@ -88,8 +87,7 @@ public abstract class MplReference {
   private void setImports(Collection<? extends File> imports) throws IllegalArgumentException {
     for (File file : imports) {
       if (!file.isFile()) {
-        throw new IllegalArgumentException(
-            "The import '" + FileUtils.getCanonicalPath(file) + "' is not a file!");
+        throw new IllegalArgumentException("The import '" + file + "' is not a file!");
       }
     }
     this.imports.clear();
