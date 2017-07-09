@@ -61,6 +61,7 @@ public class MplCompilerContext {
   private final Set<CompilerException> warnings = new LinkedHashSet<>();
   private final Set<MplInclude> included = new LinkedHashSet<>();
   private final Set<MplInclude> toInclude = new LinkedHashSet<>();
+  private boolean ignoreWarnings;
 
   public MplCompilerContext(MinecraftVersion version, CompilerOption... options) {
     this(version, new CompilerOptions(options));
@@ -94,12 +95,16 @@ public class MplCompilerContext {
    * @param ex the exception that occured
    * @return true if the instance had not yet been posted
    */
-  public boolean addError(CompilerException ex) {
-    return errors.add(ex);
+  public void addError(CompilerException ex) {
+    errors.add(ex);
   }
 
   public Set<CompilerException> getErrors() {
     return Collections.unmodifiableSet(errors);
+  }
+
+  public void setIgnoreWarnings(boolean ignoreWarnings) {
+    this.ignoreWarnings = ignoreWarnings;
   }
 
   public void clearWarnings() {
@@ -113,8 +118,10 @@ public class MplCompilerContext {
    * @param ex the exception that occured
    * @return true if the instance had not yet been posted
    */
-  public boolean addWarning(CompilerException ex) {
-    return warnings.add(ex);
+  public void addWarning(CompilerException ex) {
+    if (!ignoreWarnings) {
+      warnings.add(ex);
+    }
   }
 
   public Set<CompilerException> getWarnings() {

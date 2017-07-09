@@ -170,7 +170,6 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
 
   @Override
   public CommandAssert hasModifiers(Modifiable modifiers) {
-    isNotNull();
     mode().isEqualTo(modifiers.getMode());
     conditional().isEqualTo(modifiers.isConditional());
     needsRedstone().isEqualTo(modifiers.getNeedsRedstone());
@@ -179,29 +178,29 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
 
   @Override
   public CommandAssert matches(MplCommand expected) {
-    isNotInternal();
     hasMinecraftCommand(expected.getMinecraftCommand());
     hasModifiers(expected);
+    isNotInternal();
     return myself;
   }
 
   @Override
   public CommandAssert matchesAsImpulse(MplCommand expected) {
-    isNotInternal();
     hasMinecraftCommand(expected.getMinecraftCommand());
     hasMode(IMPULSE);
     hasConditional(expected.isConditional());
     hasNeedsRedstone(expected.getNeedsRedstone());
+    isNotInternal();
     return myself;
   }
 
   @Override
   public CommandAssert matchesAsConditional(MplCommand expected) {
-    isNotInternal();
     hasMinecraftCommand(expected.getMinecraftCommand());
     hasMode(expected.getMode());
     isConditional();
     hasNeedsRedstone(expected.getNeedsRedstone());
+    isNotInternal();
     return myself;
   }
 
@@ -252,19 +251,19 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
 
   @Override
   public CommandAssert isTestforSuccessCommand(int relative, Mode referencedMode, boolean success) {
-    isInternal();
     hasCommandParts("testforblock ", new RelativeThisInsert(relative),
         " " + referencedMode.getStringBlockId() + " -1 {SuccessCount:" + (success ? 1 : 0) + "}");
     hasMode(CHAIN);
     doesNotNeedRedstone();
+    isInternal();
     return myself;
   }
 
   @Override
   public CommandAssert isNormalizingCommand() {
-    isInternal();
     hasCommandParts("testforblock ~ ~ ~ chain_command_block");
     hasModifiers(modifier(CHAIN, CONDITIONAL));
+    isInternal();
     return myself;
   }
 }

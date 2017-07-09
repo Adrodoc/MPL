@@ -44,6 +44,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.Iterator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -53,6 +54,7 @@ import com.google.common.annotations.VisibleForTesting;
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.commons.collections.Deques;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ChainPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
@@ -179,5 +181,55 @@ public class MplIf extends ModifiableChainPart implements ChainPartBuffer {
     Deque<ChainPart> oldThen = thenParts;
     thenParts = elseParts;
     elseParts = oldThen;
+  }
+
+  public boolean needsNormalizer() {
+    if (!not) {
+      return containsConditionReferenceIgnoringFirstNonIf(thenParts);
+    } else {
+      if (!thenParts.isEmpty()) {
+        if (!elseParts.isEmpty())
+          return true;
+        else
+          return false;
+      }
+      return containsConditionReferenceIgnoringFirstNonIf(elseParts);
+    }
+  }
+
+  private static boolean containsConditionReferenceIgnoringFirstNonIf(
+      Iterable<ChainPart> iterable) {
+    Iterator<ChainPart> it = iterable.iterator();
+    if (it.hasNext()) {
+      ChainPart first = it.next(); // Ignore the first element ...
+      if (first instanceof MplIf) {
+        it = iterable.iterator(); // ... only if it is not a nested if
+      }
+    }
+    return containsConditionReference(it);
+  }
+
+  private static boolean containsConditionReference(Iterator<ChainPart> it) {
+    while (it.hasNext()) {
+      ChainPart chainPart = it.next();
+      if (chainPart instanceof MplIf) {
+        if (((MplIf) chainPart).needsParentNormalizer()) {
+          return true;
+        }
+      } else if (chainPart instanceof Modifiable) {
+        if (!((Modifiable) chainPart).isConditional()) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private boolean needsParentNormalizer() {
+    if (not) {
+      return containsConditionReference(thenParts.iterator());
+    } else {
+      return containsConditionReference(elseParts.iterator());
+    }
   }
 }

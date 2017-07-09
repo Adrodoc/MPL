@@ -67,7 +67,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class MplAstVisitorTest_OhneTransmitter extends MplAstVisitorTest {
+public class MplMainAstVisitorTest_OhneTransmitter extends MplMainAstVisitorTest {
   @Override
   protected MplCompilerContext newContext() {
     CompilerOptions options = new CompilerOptions(DEBUG);

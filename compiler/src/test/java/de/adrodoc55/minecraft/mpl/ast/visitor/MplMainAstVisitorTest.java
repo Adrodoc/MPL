@@ -93,7 +93,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public abstract class MplAstVisitorTest extends MplTestBase {
+public abstract class MplMainAstVisitorTest extends MplTestBase {
   protected MplCompilerContext context;
   protected MplMainAstVisitor underTest;
 
