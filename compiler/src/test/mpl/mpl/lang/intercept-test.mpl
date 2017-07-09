@@ -11,7 +11,7 @@ impulse process test_intercept {
   intercept add_one_to_MplTest
 
   // then:
-  /scoreboard players test MplTest MplTest 4 4
+  /scoreboard players test MplTest MplTest 5 5
   conditional: notify continue_tests
   invert: start fail
 }
