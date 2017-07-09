@@ -82,7 +82,6 @@ public class ProcessCommandsHelper {
   /**
    * Returns a command that starts whatever is at the execution coordinates.
    *
-   * @param options
    * @return a command that starts whatever is at the execution coordinates
    */
   @CheckReturnValue
@@ -125,7 +124,6 @@ public class ProcessCommandsHelper {
   /**
    * Returns a command that stops whatever is at the execution coordinates.
    *
-   * @param options
    * @return a command that stops whatever is at the execution coordinates
    */
   @CheckReturnValue

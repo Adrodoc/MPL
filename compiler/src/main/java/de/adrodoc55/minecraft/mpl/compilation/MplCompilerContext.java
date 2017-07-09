@@ -93,7 +93,6 @@ public class MplCompilerContext {
    * error.
    *
    * @param ex the exception that occured
-   * @return true if the instance had not yet been posted
    */
   public void addError(CompilerException ex) {
     errors.add(ex);
@@ -116,7 +115,6 @@ public class MplCompilerContext {
    * warning.
    *
    * @param ex the exception that occured
-   * @return true if the instance had not yet been posted
    */
   public void addWarning(CompilerException ex) {
     if (!ignoreWarnings) {

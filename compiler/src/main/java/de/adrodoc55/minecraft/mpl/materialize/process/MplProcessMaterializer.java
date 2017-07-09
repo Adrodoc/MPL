@@ -197,6 +197,7 @@ public class MplProcessMaterializer extends ProcessCommandsHelper {
   /**
    * Returns null if the specified {@code process} is of type {@link ProcessType#INLINE}.
    *
+   * @param program the {@link MplProgram} that contains the {@code process}
    * @param process the {@link MplProcess} to convert
    * @return result a new {@link CommandChain}
    */

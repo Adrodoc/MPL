@@ -56,7 +56,7 @@ import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInclude;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter;
-import de.adrodoc55.minecraft.mpl.materialize.process.MplProcessMaterializer;
+import de.adrodoc55.minecraft.mpl.materialize.process.MplProcessAstVisitor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -107,7 +107,7 @@ public class MplProcessReference extends MplReference {
   }
 
   /**
-   * This is handled in {@link MplProcessMaterializer#checkProcessExists(ModifiableChainPart, String )}
+   * This is handled in {@link MplProcessAstVisitor#checkProcessExists(ModifiableChainPart, String)}
    */
   @Override
   public void handleNotFound() {}
