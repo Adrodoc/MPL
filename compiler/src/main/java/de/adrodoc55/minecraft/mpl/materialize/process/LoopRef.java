@@ -39,45 +39,22 @@
  */
 package de.adrodoc55.minecraft.mpl.materialize.process;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayDeque;
-import java.util.Deque;
+import javax.annotation.Nonnull;
 
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-public class MplProcessAstVisitorContext implements MplProcessAstVisitor.Context {
-  private final MplProgram program;
-  private final Deque<IfNestingLayer> ifNestingLayers = new ArrayDeque<>();
-  private final Deque<MplWhile> loops = new ArrayDeque<>();
-  private final Deque<LoopRef> loopRefs = new ArrayDeque<>();
+/**
+ * @author Adrodoc55
+ */
+@RequiredArgsConstructor
+@Getter
+public abstract class LoopRef {
+  private final @Nonnull MplWhile loop;
 
-  public MplProcessAstVisitorContext(MplProgram program) {
-    this.program = checkNotNull(program, "program == null!");
-  }
+  public void setEntryLink(ChainLink entryLink) {}
 
-  @Override
-  public void setBreakpoint(MplSource breakpoint) {}
-
-  @Override
-  public MplProgram getProgram() {
-    return program;
-  }
-
-  @Override
-  public Deque<IfNestingLayer> getIfNestingLayers() {
-    return ifNestingLayers;
-  }
-
-  @Override
-  public Deque<MplWhile> getLoops() {
-    return loops;
-  }
-
-  @Override
-  public Deque<LoopRef> getLoopRefs() {
-    return loopRefs;
-  }
+  public void setExitLink(ChainLink exitLink) {}
 }

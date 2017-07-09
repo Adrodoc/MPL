@@ -75,7 +75,6 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.ast.visitor.IfNestingLayer;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
@@ -269,6 +268,9 @@ public class MplProcessMaterializer extends ProcessCommandsHelper {
   private MplProcessAstVisitor.Context newVisitorContext(MplProgram program) {
     return new MplProcessAstVisitor.Context() {
       private final Deque<IfNestingLayer> ifNestingLayers = new ArrayDeque<>();
+      private final Deque<MplWhile> loops = new ArrayDeque<>();
+      private final Deque<LoopRef> loopRefs = new ArrayDeque<>();
+
 
       @Override
       public void setBreakpoint(MplSource breakpoint) {
@@ -283,6 +285,16 @@ public class MplProcessMaterializer extends ProcessCommandsHelper {
       @Override
       public Deque<IfNestingLayer> getIfNestingLayers() {
         return ifNestingLayers;
+      }
+
+      @Override
+      public Deque<MplWhile> getLoops() {
+        return loops;
+      }
+
+      @Override
+      public Deque<LoopRef> getLoopRefs() {
+        return loopRefs;
       }
     };
   }

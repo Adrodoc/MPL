@@ -66,7 +66,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nonnull;
 
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.MplNode;
@@ -90,7 +89,6 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.ast.visitor.ContainsMatchVisitor;
-import de.adrodoc55.minecraft.mpl.ast.visitor.IfNestingLayer;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
@@ -105,7 +103,6 @@ import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetedThisInsert;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
-import lombok.Getter;
 
 /**
  * @author Adrodoc55
@@ -118,6 +115,10 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
     void setBreakpoint(MplSource breakpoint);
 
     Deque<IfNestingLayer> getIfNestingLayers();
+
+    Deque<MplWhile> getLoops();
+
+    Deque<LoopRef> getLoopRefs();
   }
 
   protected final Context context;
@@ -510,12 +511,10 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
   // ----------------------------------------------------------------------------------------------------
   // @formatter:on
 
-  private Deque<MplWhile> loops = new ArrayDeque<>();
-
   @Override
   public List<ChainLink> visitWhile(MplWhile mplWhile) {
     List<ChainLink> result = new ArrayList<>();
-    loops.push(mplWhile);
+    context.getLoops().push(mplWhile);
 
     String condition = mplWhile.getCondition();
     boolean hasInitialCondition = condition != null && !mplWhile.isTrailing();
@@ -611,7 +610,7 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
     ChainLink exitLink = exit.get(0);
     skipLoopInsert.setTarget(exitLink);
 
-    for (Iterator<LoopRef> it = loopRefs.iterator(); it.hasNext();) {
+    for (Iterator<LoopRef> it = context.getLoopRefs().iterator(); it.hasNext();) {
       LoopRef ref = it.next();
       if (ref.getLoop() == mplWhile) {
         ref.setEntryLink(entryLink);
@@ -620,24 +619,9 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
       }
     }
 
-    loops.pop();
+    context.getLoops().pop();
     resolveAllTargetedThisInserts(result);
     return result;
-  }
-
-  private Deque<LoopRef> loopRefs = new ArrayDeque<>();
-
-  @Getter
-  private abstract class LoopRef {
-    private final @Nonnull MplWhile loop;
-
-    public LoopRef(MplWhile loop) {
-      this.loop = checkNotNull(loop, "loop == null!");
-    }
-
-    void setEntryLink(ChainLink entryLink) {}
-
-    void setExitLink(ChainLink exitLink) {}
   }
 
   @Override
@@ -750,7 +734,7 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
   private List<Command> getBreakLoop(MplWhile loop) {
     List<Command> result = new ArrayList<>();
     result.add(newExitLoopCommand(loop));
-    for (MplWhile innerLoop : loops) {
+    for (MplWhile innerLoop : context.getLoops()) {
       Command stop = newLoopStoppingCommand(innerLoop);
       stop.setConditional(true);
       result.add(stop);
@@ -798,7 +782,7 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
   @CheckReturnValue
   private List<Command> getContinueLoop(MplWhile loop) {
     List<Command> result = new ArrayList<>();
-    for (MplWhile innerLoop : loops) {
+    for (MplWhile innerLoop : context.getLoops()) {
       Command stop = newLoopStoppingCommand(innerLoop);
       stop.setConditional(true);
       result.add(stop);
@@ -835,7 +819,7 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
   @CheckReturnValue
   private Command newLoopStartingCommand(MplWhile loop) {
     TargetedThisInsert insert = new TargetedThisInsert();
-    loopRefs.add(new LoopRef(loop) {
+    context.getLoopRefs().add(new LoopRef(loop) {
       @Override
       public void setEntryLink(ChainLink entryLink) {
         insert.setTarget(entryLink);
@@ -853,7 +837,7 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
   @CheckReturnValue
   private Command newLoopStoppingCommand(MplWhile loop) {
     TargetedThisInsert insert = new TargetedThisInsert();
-    loopRefs.add(new LoopRef(loop) {
+    context.getLoopRefs().add(new LoopRef(loop) {
       @Override
       public void setEntryLink(ChainLink entryLink) {
         insert.setTarget(entryLink);
@@ -871,7 +855,7 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
   @CheckReturnValue
   private Command newExitLoopCommand(MplWhile loop) {
     TargetedThisInsert insert = new TargetedThisInsert();
-    loopRefs.add(new LoopRef(loop) {
+    context.getLoopRefs().add(new LoopRef(loop) {
       @Override
       public void setExitLink(ChainLink exitLink) {
         insert.setTarget(exitLink);
@@ -879,5 +863,4 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
     });
     return newInternalCommand(getStartCommand(insert), modifier());
   }
-
 }
