@@ -37,12 +37,14 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.visitor;
+package de.adrodoc55.minecraft.mpl.materialize.process;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink.resolveAllTargetedThisInserts;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DELETE_ON_UNINSTALL;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
@@ -56,8 +58,6 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 
 import org.antlr.v4.runtime.CommonToken;
-
-import com.google.common.annotations.VisibleForTesting;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
@@ -75,10 +75,12 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.minecraft.mpl.ast.visitor.IfNestingLayer;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ProcessCommandsHelper;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
@@ -86,34 +88,35 @@ import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 /**
  * @author Adrodoc55
  */
-public class MplMainAstVisitor extends MplProcessAstVisitor {
-  @VisibleForTesting
-  MplProgram program;
-
-  private Deque<IfNestingLayer> ifNestingLayers = new ArrayDeque<>();
+public class MplProcessMaterializer extends ProcessCommandsHelper {
+  private final MplProgram program;
+  private final MplProcessAstVisitor visitor;
+  private final Deque<IfNestingLayer> ifNestingLayers = new ArrayDeque<>();
   private MplSource breakpoint;
 
-  public MplMainAstVisitor(MplCompilerContext context) {
-    super(context);
+  public MplProcessMaterializer(MplProgram program, MplCompilerContext compilerContext) {
+    super(compilerContext.getOptions());
+    this.program = checkNotNull(program, "program == null!");
+    visitor = new MplProcessAstVisitor(compilerContext, new MplProcessAstVisitor.Context() {
+
+      @Override
+      public void setBreakpoint(MplSource breakpoint) {
+        MplProcessMaterializer.this.breakpoint = breakpoint;
+      }
+
+      @Override
+      public MplProgram getProgram() {
+        return program;
+      }
+
+      @Override
+      public Deque<IfNestingLayer> getIfNestingLayers() {
+        return ifNestingLayers;
+      }
+    });
   }
 
-  @Override
-  public void setBreakpoint(MplSource breakpoint) {
-    this.breakpoint = breakpoint;
-  }
-
-  @Override
-  protected MplProgram getProgram() {
-    return program;
-  }
-
-  @Override
-  public Deque<IfNestingLayer> getIfNestingLayers() {
-    return ifNestingLayers;
-  }
-
-  public ChainContainer visitProgram(MplProgram program) {
-    this.program = program;
+  public ChainContainer materialize() {
     Orientation3D orientation = program.getOrientation();
     Coordinate3D max = program.getMax();
     CommandChain install = visitInstall(program);
@@ -250,15 +253,15 @@ public class MplMainAstVisitor extends MplProcessAstVisitor {
       result.add(new MplSkip());
     }
     for (ChainPart chainPart : chainParts) {
-      result.addAll(chainPart.accept(this));
+      result.addAll(chainPart.accept(visitor));
     }
     if (process.isRepeating() && containsSkip) {
       result.addAll(getRestartBackref(result.get(0), false));
-      resolveReferences(result);
+      resolveAllTargetedThisInserts(result);
     }
     if (!process.isRepeating() && name != null && !"install".equals(name)
         && !"uninstall".equals(name)) {
-      result.addAll(visitIgnoringWarnings(new MplNotify(name, process.getSource())));
+      result.addAll(visitor.visitIgnoringWarnings(new MplNotify(name, process.getSource())));
     }
     return new CommandChain(name, result, process.getTags());
   }
@@ -277,5 +280,4 @@ public class MplMainAstVisitor extends MplProcessAstVisitor {
     }
     return false;
   }
-
 }

@@ -13,7 +13,6 @@ import javax.annotation.Nullable;
 
 import de.adrodoc55.commons.ExtendedAbstractAssert;
 import de.adrodoc55.minecraft.mpl.MplAssertionFactory;
-import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
 public class ChainLinkIterableAssert
@@ -108,10 +107,11 @@ public class ChainLinkIterableAssert
   }
 
   public ChainLinkIterableAssert isUnconditionalNotify(String event) {
+    ProcessCommandsHelper helper = new ProcessCommandsHelper(options);
     Iterator<? extends ChainLink> it = actual.iterator();
     assertThat(it.next())
         .hasCommandParts(
-            "execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + MplUtils.getStartCommand(options))
+            "execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + helper.getStartCommand())
         .hasModifiers(modifier());
     assertThat(it.next()).isInternal().hasCommandParts("kill @e[name=" + event + NOTIFY + "]")
         .hasModifiers(modifier());

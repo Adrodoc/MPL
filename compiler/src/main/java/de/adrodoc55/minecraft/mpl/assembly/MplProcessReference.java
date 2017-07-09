@@ -51,12 +51,12 @@ import de.adrodoc55.commons.StringUtils;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.ast.visitor.MplMainAstVisitor;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInclude;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter;
+import de.adrodoc55.minecraft.mpl.materialize.process.MplProcessMaterializer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -107,7 +107,7 @@ public class MplProcessReference extends MplReference {
   }
 
   /**
-   * This is handled in {@link MplMainAstVisitor#checkProcessExists(ModifiableChainPart, String )}
+   * This is handled in {@link MplProcessMaterializer#checkProcessExists(ModifiableChainPart, String )}
    */
   @Override
   public void handleNotFound() {}

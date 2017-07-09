@@ -37,26 +37,35 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.commands.chainlinks;
+package de.adrodoc55.minecraft.mpl.materialize.process;
 
-import de.adrodoc55.commons.CopyScope.Copyable;
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.coordinate.Direction3D;
-import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * @author Adrodoc55
- */
-public interface ChainLink extends Copyable {
-  GeneratedBy getGeneratedBy();
+import java.util.ArrayDeque;
+import java.util.Deque;
 
-  MplBlock toBlock(Coordinate3D coordinate, Direction3D direction);
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.minecraft.mpl.ast.visitor.IfNestingLayer;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 
-  default void resolveTargetedThisInserts(Iterable<? extends ChainLink> chainLinks) {}
+public class MplProcessAstVisitorContext implements MplProcessAstVisitor.Context {
+  private final MplProgram program;
+  private final Deque<IfNestingLayer> ifNestingLayers = new ArrayDeque<>();
 
-  public static void resolveAllTargetedThisInserts(Iterable<? extends ChainLink> chainLinks) {
-    for (ChainLink chainLink : chainLinks) {
-      chainLink.resolveTargetedThisInserts(chainLinks);
-    }
+  public MplProcessAstVisitorContext(MplProgram program) {
+    this.program = checkNotNull(program, "program == null!");
+  }
+
+  @Override
+  public void setBreakpoint(MplSource breakpoint) {}
+
+  @Override
+  public MplProgram getProgram() {
+    return program;
+  }
+
+  @Override
+  public Deque<IfNestingLayer> getIfNestingLayers() {
+    return ifNestingLayers;
   }
 }

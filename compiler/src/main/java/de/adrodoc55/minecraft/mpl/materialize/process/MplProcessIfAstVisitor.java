@@ -37,9 +37,8 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.visitor;
+package de.adrodoc55.minecraft.mpl.materialize.process;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
 
@@ -47,8 +46,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import de.adrodoc55.commons.collections.Lists;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
@@ -66,53 +63,28 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreak;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.minecraft.mpl.ast.visitor.IfNestingLayer;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
-import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 
 /**
  * @author Adrodoc55
  */
 public class MplProcessIfAstVisitor extends MplProcessAstVisitor {
-  private final Supplier<? extends MplProgram> getProgram;
-  private final Supplier<? extends Deque<IfNestingLayer>> getIfNestingLayers;
-  private final Consumer<MplSource> setBreakpoint;
+  private boolean firstChainPart = true;
 
   public MplProcessIfAstVisitor(MplCompilerContext compilerContext,
-      Supplier<? extends MplProgram> getProgram,
-      Supplier<? extends Deque<IfNestingLayer>> getIfNestingLayers,
-      Consumer<MplSource> setBreakpoint) {
-    super(compilerContext);
-    this.getProgram = checkNotNull(getProgram, "getProgram == null!");
-    this.getIfNestingLayers = checkNotNull(getIfNestingLayers, "getIfNestingLayers == null!");
-    this.setBreakpoint = checkNotNull(setBreakpoint, "setBreakpoint == null!");
+      MplProcessAstVisitor.Context context) {
+    super(compilerContext, context);
   }
-
-  @Override
-  protected MplProgram getProgram() {
-    return getProgram.get();
-  }
-
-  @Override
-  protected Deque<IfNestingLayer> getIfNestingLayers() {
-    return getIfNestingLayers.get();
-  }
-
-  @Override
-  protected void setBreakpoint(MplSource breakpoint) {
-    setBreakpoint.accept(breakpoint);
-  }
-
-  private boolean firstChainPart = true;
 
   private List<ChainLink> visitModifiableChainPart(ModifiableChainPart chainPart) {
     List<ChainLink> result = new ArrayList<>();
     addInvertingCommandIfInvert(result, chainPart);
     if (chainPart.getConditional() != CONDITIONAL) {
-      IfNestingLayer currentLayer = getIfNestingLayers.get().getFirst();
+      IfNestingLayer currentLayer = context.getIfNestingLayers().getFirst();
       if (!firstChainPart || currentLayer.dependsOnFailure()) {
         result.addAll(getConditionReferences(chainPart));
       }
@@ -132,7 +104,7 @@ public class MplProcessIfAstVisitor extends MplProcessAstVisitor {
    */
   private List<ChainLink> getConditionReferences(ModifiableChainPart chainPart) {
     Deque<IfNestingLayer> requiredReferences = new ArrayDeque<>();
-    for (IfNestingLayer layer : getIfNestingLayers.get()) {
+    for (IfNestingLayer layer : context.getIfNestingLayers()) {
       requiredReferences.push(layer);
       if (!layer.dependsOnFailure()) {
         break;

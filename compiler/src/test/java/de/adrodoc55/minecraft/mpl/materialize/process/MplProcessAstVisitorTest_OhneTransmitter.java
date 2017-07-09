@@ -37,7 +37,7 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.visitor;
+package de.adrodoc55.minecraft.mpl.materialize.process;
 
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
@@ -46,7 +46,6 @@ import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 
-import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 
@@ -58,60 +57,17 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplBreak;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class MplMainAstVisitorTest_OhneTransmitter extends MplMainAstVisitorTest {
+public class MplProcessAstVisitorTest_OhneTransmitter extends MplProcessAstVisitorTest {
   @Override
   protected MplCompilerContext newContext() {
     CompilerOptions options = new CompilerOptions(DEBUG);
     return new MplCompilerContext(MinecraftVersion.getDefault(), options);
-  }
-
-  @Override
-  protected MplMainAstVisitor newUnderTest(MplCompilerContext context) {
-    MplMainAstVisitor result = new MplMainAstVisitor(context);
-    result.program = new MplProgram(new File(""), context);
-    return result;
-  }
-
-  // @formatter:off
-  // ----------------------------------------------------------------------------------------------------
-  //    ____
-  //   |  _ \  _ __  ___    ___  ___  ___  ___
-  //   | |_) || '__|/ _ \  / __|/ _ \/ __|/ __|
-  //   |  __/ | |  | (_) || (__|  __/\__ \\__ \
-  //   |_|    |_|   \___/  \___|\___||___/|___/
-  //
-  // ----------------------------------------------------------------------------------------------------
-  // @formatter:on
-
-  @Test
-  @Override
-  public void test_a_nameless_process_doesnt_have_startup_commands() {
-    // given:
-    MplCommand first = some($MplCommand().withConditional(UNCONDITIONAL));
-    MplCommand second = some($MplCommand()//
-        .withPrevious(first)//
-        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
-    MplProcess process = some($MplProcess()//
-        .withName((String) null)//
-        .withChainParts(listOf(first, second)));
-
-    // when:
-    CommandChain result = underTest.visitProcess(process);
-
-    // then:
-    Iterator<ChainLink> it = result.getCommands().iterator();
-    assertThat(it.next()).matches(first);
-    assertThat(it.next()).matches(second);
-    assertThat(it).isEmpty();
   }
 
   // @formatter:off

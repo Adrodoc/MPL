@@ -45,9 +45,6 @@ import static de.adrodoc55.minecraft.coordinate.Direction3D.NORTH;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.SOUTH;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.UP;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.WEST;
-import static de.adrodoc55.minecraft.mpl.MplUtils.getStopCommand;
-import static de.adrodoc55.minecraft.mpl.MplUtils.getStopCommandHeader;
-import static de.adrodoc55.minecraft.mpl.MplUtils.getStopCommandTrailer;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newCommand;
@@ -89,6 +86,7 @@ import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.CommandBuilder;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkipBuilder;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ProcessCommandsHelper;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContextBuilder;
@@ -382,16 +380,17 @@ public class MplTestBase extends MplAssertionFactory {
   @GenerateMplPojoBuilder
   public static List<ChainLink> validChainCommands(CompilerOptions options,
       Collection<? extends ChainLink> commands) {
+    ProcessCommandsHelper helper = new ProcessCommandsHelper(options);
     List<ChainLink> result = new ArrayList<>();
     if (options.hasOption(TRANSMITTER)) {
       result.add(new MplSkip());
       CommandPartBuffer cpb = new CommandPartBuffer();
-      cpb.add(getStopCommandHeader(options));
+      cpb.add(helper.getStopCommandHeader());
       cpb.add(new RelativeThisInsert(-1));
-      cpb.add(getStopCommandTrailer(options));
+      cpb.add(helper.getStopCommandTrailer());
       result.add(newCommand(cpb, modifier(IMPULSE)));
     } else {
-      result.add(newCommand(getStopCommand(options), modifier(IMPULSE)));
+      result.add(newCommand(helper.getStopCommand(), modifier(IMPULSE)));
     }
     if (commands != null && !commands.isEmpty()) {
       result.add(some($Command()));

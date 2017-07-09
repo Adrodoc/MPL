@@ -39,9 +39,6 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
-import static de.adrodoc55.minecraft.mpl.MplUtils.getStopCommand;
-import static de.adrodoc55.minecraft.mpl.MplUtils.getStopCommandHeader;
-import static de.adrodoc55.minecraft.mpl.MplUtils.getStopCommandTrailer;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
@@ -58,7 +55,6 @@ import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.AbstractObjectAssert;
 import org.assertj.core.api.ObjectAssert;
 
-import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -212,26 +208,29 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
 
   @Override
   public CommandAssert isStartCommand(int relative) {
+    ProcessCommandsHelper helper = new ProcessCommandsHelper(options);
     hasCommandParts(//
-        MplUtils.getStartCommandHeader(options), //
+        helper.getStartCommandHeader(), //
         new RelativeThisInsert(relative), //
-        MplUtils.getStartCommandTrailer(options)//
+        helper.getStartCommandTrailer()//
     );
     return myself;
   }
 
   @Override
   public CommandAssert isStopCommand() {
-    hasCommandParts(getStopCommand(options));
+    ProcessCommandsHelper helper = new ProcessCommandsHelper(options);
+    hasCommandParts(helper.getStopCommand());
     return myself;
   }
 
   @Override
   public CommandAssert isStopCommand(int relative) {
+    ProcessCommandsHelper helper = new ProcessCommandsHelper(options);
     hasCommandParts(//
-        getStopCommandHeader(options), //
+        helper.getStopCommandHeader(), //
         new RelativeThisInsert(relative), //
-        getStopCommandTrailer(options)//
+        helper.getStopCommandTrailer()//
     );
     return myself;
   }
