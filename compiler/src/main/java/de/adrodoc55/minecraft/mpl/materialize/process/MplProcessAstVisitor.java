@@ -241,39 +241,39 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
   }
 
   @Override
-  public List<ChainLink> visitStart(MplStart start) {
+  public List<ChainLink> visitStart(MplStart mplStart) {
     List<ChainLink> result = new ArrayList<>(2);
-    String selector = start.getSelector();
+    String selector = mplStart.getSelector();
     String processName = selector.substring(8, selector.length() - 1);
-    checkProcessExists(start, processName);
-    checkNotInlineProcess(start, processName);
-    addInvertingCommandIfInvert(result, start);
+    checkProcessExists(mplStart, processName);
+    checkNotInlineProcess(mplStart, processName);
+    addInvertingCommandIfInvert(result, mplStart);
 
     String command = "execute " + selector + " ~ ~ ~ " + getStartCommand();
-    result.add(newCommand(command, start));
+    result.add(newCommand(command, mplStart));
     return result;
   }
 
   @Override
-  public List<ChainLink> visitStop(MplStop stop) {
+  public List<ChainLink> visitStop(MplStop mplStop) {
     List<ChainLink> result = new ArrayList<>(2);
-    String selector = stop.getSelector();
+    String selector = mplStop.getSelector();
     String processName = selector.substring(8, selector.length() - 1);
-    checkProcessExists(stop, processName);
-    checkNotInlineProcess(stop, processName);
-    addInvertingCommandIfInvert(result, stop);
+    checkProcessExists(mplStop, processName);
+    checkNotInlineProcess(mplStop, processName);
+    addInvertingCommandIfInvert(result, mplStop);
 
     String command = "execute " + selector + " ~ ~ ~ " + getStopCommand();
-    result.add(newCommand(command, stop));
+    result.add(newCommand(command, mplStop));
     return result;
   }
 
   @Override
-  public List<ChainLink> visitWaitfor(MplWaitfor waitfor) {
+  public List<ChainLink> visitWaitfor(MplWaitfor mplWaitfor) {
     List<ChainLink> result = new ArrayList<>();
-    checkIsUsed(waitfor);
-    String event = waitfor.getEvent();
-    checkNotInlineProcess(waitfor, event);
+    checkIsUsed(mplWaitfor);
+    String event = mplWaitfor.getEvent();
+    checkNotInlineProcess(mplWaitfor, event);
 
     List<ChainLink> dest = newJumpDestination(false);
 
@@ -285,21 +285,21 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
         " {CustomName:" + event + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
     Command summon = newInternalCommand(summonCpb, modifier());
 
-    if (waitfor.getConditional() == UNCONDITIONAL) {
-      summon.setModifier(waitfor);
+    if (mplWaitfor.getConditional() == UNCONDITIONAL) {
+      summon.setModifier(mplWaitfor);
       result.add(summon);
     } else {
       Command noWait = newInternalCommand(getStartCommand(dest.get(0)), modifier(CONDITIONAL));
-      if (waitfor.getConditional() == CONDITIONAL) {
-        summon.setModifier(waitfor);
+      if (mplWaitfor.getConditional() == CONDITIONAL) {
+        summon.setModifier(mplWaitfor);
         result.add(summon);
-        result.add(newInvertingCommand(waitfor.getMode()));
+        result.add(newInvertingCommand(mplWaitfor.getMode()));
         result.add(noWait);
       } else { // conditional == INVERT
-        noWait.setModifier(waitfor);
+        noWait.setModifier(mplWaitfor);
         summon.setConditional(true);
         result.add(noWait);
-        result.add(newInvertingCommand(waitfor.getMode()));
+        result.add(newInvertingCommand(mplWaitfor.getMode()));
         result.add(summon);
       }
     }
@@ -314,12 +314,12 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
    * {@link MplNotify} for the event of the waitfor. If the waitfor is not used, a compiler warning
    * is added.
    *
-   * @param waitfor the {@link MplWaitfor}
+   * @param mplWaitfor the {@link MplWaitfor}
    * @return {@code true} if the specified waitfor is used, {@code false} otherwise
    */
-  private boolean checkIsUsed(MplWaitfor waitfor) {
+  private boolean checkIsUsed(MplWaitfor mplWaitfor) {
     MplProgram program = context.getProgram();
-    String event = waitfor.getEvent();
+    String event = mplWaitfor.getEvent();
     boolean triggeredByProcess = program.streamProcesses()//
         .anyMatch(p -> event.equals(p.getName()));
     if (triggeredByProcess) {
@@ -335,19 +335,19 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
         return true;
       }
     }
-    compilerContext.addWarning(
-        new CompilerException(waitfor.getSource(), "The event " + event + " is never triggered"));
+    compilerContext.addWarning(new CompilerException(mplWaitfor.getSource(),
+        "The event " + event + " is never triggered"));
     return false;
   }
 
   @Override
-  public List<ChainLink> visitNotify(MplNotify notify) {
+  public List<ChainLink> visitNotify(MplNotify mplNotify) {
     List<ChainLink> result = new ArrayList<>(3);
-    String event = notify.getEvent();
-    checkIsUsed(notify);
-    addInvertingCommandIfInvert(result, notify);
+    String event = mplNotify.getEvent();
+    checkIsUsed(mplNotify);
+    addInvertingCommandIfInvert(result, mplNotify);
 
-    ModifierBuffer modifier = modifier(notify.getConditional());
+    ModifierBuffer modifier = modifier(mplNotify.getConditional());
     result.add(
         newCommand("execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + getStartCommand(), modifier));
     result.add(newInternalCommand("kill @e[name=" + event + NOTIFY + "]", modifier));
@@ -359,11 +359,11 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
    * {@link MplWaitfor} for the event of the notify. If the notify is not used, a compiler warning
    * is added.
    *
-   * @param notify the {@link MplNotify}
+   * @param mplNotify the {@link MplNotify}
    * @return {@code true} if the specified notify is used, {@code false} otherwise
    */
-  private boolean checkIsUsed(MplNotify notify) {
-    String event = notify.getEvent();
+  private boolean checkIsUsed(MplNotify mplNotify) {
+    String event = mplNotify.getEvent();
     for (MplProcess mplProcess : context.getProgram().getAllProcesses()) {
       ContainsMatchVisitor visitor = new ContainsMatchVisitor(
           cp -> ((cp instanceof MplWaitfor) && event.equals(((MplWaitfor) cp).getEvent()))
@@ -374,17 +374,17 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
       }
     }
     compilerContext.addWarning(
-        new CompilerException(notify.getSource(), "The event " + event + " is never used"));
+        new CompilerException(mplNotify.getSource(), "The event " + event + " is never used"));
     return false;
   }
 
   @Override
-  public List<ChainLink> visitIntercept(MplIntercept intercept) {
+  public List<ChainLink> visitIntercept(MplIntercept mplIntercept) {
     List<ChainLink> result = new ArrayList<>();
-    String event = intercept.getEvent();
-    checkProcessExists(intercept, event);
-    checkNotInlineProcess(intercept, event);
-    Conditional conditional = intercept.getConditional();
+    String event = mplIntercept.getEvent();
+    checkProcessExists(mplIntercept, event);
+    checkNotInlineProcess(mplIntercept, event);
+    Conditional conditional = mplIntercept.getConditional();
 
     Command entitydata = newInternalCommand(
         "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}",
@@ -402,12 +402,12 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
         .add(" {CustomName:" + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
     ChainLink summon = newInternalCommand(summonCpb, modifier(conditional));
 
-    if (intercept.getConditional() == UNCONDITIONAL) {
+    if (mplIntercept.getConditional() == UNCONDITIONAL) {
       result.add(entitydata);
       result.add(summon);
     } else {
       ChainLink noWait = newInternalCommand(getStartCommand(trc.get(0)), modifier(CONDITIONAL));
-      if (intercept.getConditional() == CONDITIONAL) {
+      if (mplIntercept.getConditional() == CONDITIONAL) {
         result.add(entitydata);
         result.add(summon);
         result.add(newInvertingCommand(CHAIN));
@@ -451,9 +451,9 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
   }
 
   @Override
-  public List<ChainLink> visitSkip(MplSkip skip) {
+  public List<ChainLink> visitSkip(MplSkip mplSkip) {
     List<ChainLink> result = new ArrayList<>(1);
-    result.add(skip);
+    result.add(mplSkip);
     return result;
   }
 

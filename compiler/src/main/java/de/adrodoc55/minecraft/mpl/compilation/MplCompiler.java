@@ -122,7 +122,7 @@ public class MplCompiler {
   }
 
   public ChainContainer materialize(MplProgram program) {
-    return new MplProcessMaterializer(program, provideContext()).materialize();
+    return new MplProcessMaterializer(provideContext()).materialize(program);
   }
 
   public List<CommandBlockChain> place(ChainContainer container) throws CompilationFailedException {

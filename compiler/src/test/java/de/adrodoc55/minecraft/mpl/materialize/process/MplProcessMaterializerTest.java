@@ -86,15 +86,16 @@ public abstract class MplProcessMaterializerTest extends MplTestBase {
   @Before
   public void before() {
     context = newContext();
-    MplProgram program = new MplProgram(new File(""), context);
-    underTest = newUnderTest(program);
-  }
-
-  private MplProcessMaterializer newUnderTest(MplProgram program) {
-    return new MplProcessMaterializer(program, context);
+    underTest = new MplProcessMaterializer(context);
   }
 
   protected abstract MplCompilerContext newContext();
+
+  protected CommandChain visitProcess(MplProcess process) {
+    MplProgram program = new MplProgram(new File(""), context);
+    program.addProcess(process);
+    return underTest.visitProcess(program, process);
+  }
 
   public <CL extends ChainLink> ChainLinkAssert<?, CL> assertThat(@Nullable CL actual) {
     return assertThat(actual, context.getOptions());
@@ -126,7 +127,7 @@ public abstract class MplProcessMaterializerTest extends MplTestBase {
         .withChainParts(mplCommands));
 
     // when:
-    CommandChain result = underTest.visitProcess(process);
+    CommandChain result = visitProcess(process);
 
     // then:
     mplCommands.get(0).setMode(REPEAT);
@@ -148,7 +149,7 @@ public abstract class MplProcessMaterializerTest extends MplTestBase {
         .withChainParts(mplCommands));
 
     // when:
-    CommandChain result = underTest.visitProcess(process);
+    CommandChain result = visitProcess(process);
 
     // then:
     Iterator<ChainLink> it = result.getCommands().iterator();
@@ -165,7 +166,7 @@ public abstract class MplProcessMaterializerTest extends MplTestBase {
     MplProcess process = some($MplProcess().withTags(tags));
 
     // when:
-    CommandChain result = underTest.visitProcess(process);
+    CommandChain result = visitProcess(process);
 
     // then:
     assertThat(result.getTags()).containsExactlyElementsOf(tags);
@@ -177,7 +178,7 @@ public abstract class MplProcessMaterializerTest extends MplTestBase {
     MplProcess process = some($MplProcess().withType(INLINE));
 
     // when:
-    CommandChain result = underTest.visitProcess(process);
+    CommandChain result = visitProcess(process);
 
     // then:
     assertThat(result).isNull();
@@ -195,7 +196,7 @@ public abstract class MplProcessMaterializerTest extends MplTestBase {
         .withChainParts(listOf(first, second)));
 
     // when:
-    CommandChain result = underTest.visitProcess(process);
+    CommandChain result = visitProcess(process);
 
     // then:
     Iterator<ChainLink> it = result.getCommands().iterator();
@@ -232,7 +233,7 @@ public abstract class MplProcessMaterializerTest extends MplTestBase {
         .withChainParts(listOf(first, second)));
 
     // when:
-    CommandChain result = underTest.visitProcess(process);
+    CommandChain result = visitProcess(process);
 
     // then:
     Iterator<ChainLink> it = result.getCommands().iterator();
@@ -258,7 +259,7 @@ public abstract class MplProcessMaterializerTest extends MplTestBase {
         .withChainParts(listOf(first, second)));
 
     // when:
-    CommandChain result = underTest.visitProcess(process);
+    CommandChain result = visitProcess(process);
 
     // then:
     Iterator<ChainLink> it = result.getCommands().iterator();
@@ -301,7 +302,7 @@ public abstract class MplProcessMaterializerTest extends MplTestBase {
     MplProgram program = some($MplProgram().withProcesses(listOf(main, inline)));
 
     // when:
-    ChainContainer result = newUnderTest(program).materialize();
+    ChainContainer result = underTest.materialize(program);
 
     // then:
     List<CommandChain> chains = result.getChains();
@@ -333,7 +334,7 @@ public abstract class MplProcessMaterializerTest extends MplTestBase {
         .withChainParts(listOf(mplBreakpoint))));
 
     // when:
-    ChainContainer result = newUnderTest(program).materialize();
+    ChainContainer result = underTest.materialize(program);
 
     // then:
     Condition<CommandChain> condition = new Condition<CommandChain>() {
@@ -371,7 +372,7 @@ public abstract class MplProcessMaterializerTest extends MplTestBase {
         .withChainParts(listOf(mplIf)));
 
     // when:
-    CommandChain result = underTest.visitProcess(process);
+    CommandChain result = visitProcess(process);
 
     // then:
     Iterator<ChainLink> it = result.getCommands().iterator();
@@ -398,7 +399,7 @@ public abstract class MplProcessMaterializerTest extends MplTestBase {
         .withChainParts(listOf(mplIf)));
 
     // when:
-    CommandChain result = underTest.visitProcess(process);
+    CommandChain result = visitProcess(process);
 
     // then:
     Iterator<ChainLink> it = result.getCommands().iterator();
@@ -411,5 +412,4 @@ public abstract class MplProcessMaterializerTest extends MplTestBase {
     assertThat(it.next()).matchesAsConditional(then1);
     assertThat(it).isEmpty();
   }
-
 }

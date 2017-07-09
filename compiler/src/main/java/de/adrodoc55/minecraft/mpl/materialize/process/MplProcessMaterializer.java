@@ -89,34 +89,15 @@ import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
  * @author Adrodoc55
  */
 public class MplProcessMaterializer extends ProcessCommandsHelper {
-  private final MplProgram program;
-  private final MplProcessAstVisitor visitor;
-  private final Deque<IfNestingLayer> ifNestingLayers = new ArrayDeque<>();
+  private final MplCompilerContext compilerContext;
   private MplSource breakpoint;
 
-  public MplProcessMaterializer(MplProgram program, MplCompilerContext compilerContext) {
+  public MplProcessMaterializer(MplCompilerContext compilerContext) {
     super(compilerContext.getOptions());
-    this.program = checkNotNull(program, "program == null!");
-    visitor = new MplProcessAstVisitor(compilerContext, new MplProcessAstVisitor.Context() {
-
-      @Override
-      public void setBreakpoint(MplSource breakpoint) {
-        MplProcessMaterializer.this.breakpoint = breakpoint;
-      }
-
-      @Override
-      public MplProgram getProgram() {
-        return program;
-      }
-
-      @Override
-      public Deque<IfNestingLayer> getIfNestingLayers() {
-        return ifNestingLayers;
-      }
-    });
+    this.compilerContext = checkNotNull(compilerContext, "compilerContext == null!");
   }
 
-  public ChainContainer materialize() {
+  public ChainContainer materialize(MplProgram program) {
     Orientation3D orientation = program.getOrientation();
     Coordinate3D max = program.getMax();
     CommandChain install = visitInstall(program);
@@ -124,7 +105,7 @@ public class MplProcessMaterializer extends ProcessCommandsHelper {
 
     List<CommandChain> chains = new ArrayList<>(program.getProcesses().size());
     for (MplProcess process : program.getProcesses()) {
-      CommandChain chain = visitProcess(process);
+      CommandChain chain = visitProcess(program, process);
       if (chain != null) {
         chains.add(chain);
       }
@@ -147,7 +128,7 @@ public class MplProcessMaterializer extends ProcessCommandsHelper {
     if (install == null) {
       install = new MplProcess("install", defaultSource(program.getProgramFile()));
     }
-    return visitProcess(install);
+    return visitProcess(program, install);
   }
 
   private boolean isInstallRequired(MplProgram program) {
@@ -163,7 +144,7 @@ public class MplProcessMaterializer extends ProcessCommandsHelper {
     if (uninstall == null) {
       uninstall = new MplProcess("uninstall", defaultSource(program.getProgramFile()));
     }
-    return visitProcess(uninstall);
+    return visitProcess(program, uninstall);
   }
 
   private boolean isUninstallRequired(MplProgram program) {
@@ -210,7 +191,7 @@ public class MplProcessMaterializer extends ProcessCommandsHelper {
     commands.add(new MplNotify("breakpoint", breakpoint));
 
     process.setChainParts(commands);
-    return visitProcess(process);
+    return visitProcess(program, process);
   }
 
   /**
@@ -219,7 +200,7 @@ public class MplProcessMaterializer extends ProcessCommandsHelper {
    * @param process the {@link MplProcess} to convert
    * @return result a new {@link CommandChain}
    */
-  public @Nullable CommandChain visitProcess(MplProcess process) {
+  public @Nullable CommandChain visitProcess(MplProgram program, MplProcess process) {
     if (process.getType() == INLINE) {
       return null;
     }
@@ -252,6 +233,9 @@ public class MplProcessMaterializer extends ProcessCommandsHelper {
     } else if (options.hasOption(TRANSMITTER)) {
       result.add(new MplSkip());
     }
+
+    MplProcessAstVisitor visitor =
+        new MplProcessAstVisitor(compilerContext, newVisitorContext(program));
     for (ChainPart chainPart : chainParts) {
       result.addAll(chainPart.accept(visitor));
     }
@@ -279,5 +263,26 @@ public class MplProcessMaterializer extends ProcessCommandsHelper {
       }
     }
     return false;
+  }
+
+  private MplProcessAstVisitor.Context newVisitorContext(MplProgram program) {
+    return new MplProcessAstVisitor.Context() {
+      private final Deque<IfNestingLayer> ifNestingLayers = new ArrayDeque<>();
+
+      @Override
+      public void setBreakpoint(MplSource breakpoint) {
+        MplProcessMaterializer.this.breakpoint = breakpoint;
+      }
+
+      @Override
+      public MplProgram getProgram() {
+        return program;
+      }
+
+      @Override
+      public Deque<IfNestingLayer> getIfNestingLayers() {
+        return ifNestingLayers;
+      }
+    };
   }
 }

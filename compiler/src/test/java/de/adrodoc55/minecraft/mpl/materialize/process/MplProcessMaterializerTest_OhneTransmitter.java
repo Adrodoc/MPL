@@ -89,7 +89,7 @@ public class MplProcessMaterializerTest_OhneTransmitter extends MplProcessMateri
         .withChainParts(listOf(first, second)));
 
     // when:
-    CommandChain result = underTest.visitProcess(process);
+    CommandChain result = visitProcess(process);
 
     // then:
     Iterator<ChainLink> it = result.getCommands().iterator();
