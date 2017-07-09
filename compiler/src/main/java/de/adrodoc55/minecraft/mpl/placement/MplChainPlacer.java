@@ -255,7 +255,7 @@ public abstract class MplChainPlacer {
     result.addAll(commands);
     for (CommandBlockChain chain : chains) {
       String name = chain.getName();
-      if (name == null || name == "install" || name == "uninstall") {
+      if (name == null || "install".equals(name) || "uninstall".equals(name)) {
         continue;
       }
       Coordinate3D chainStart = chain.getBlocks().get(0).getCoordinate();
