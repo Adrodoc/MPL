@@ -25,3 +25,11 @@ impulse process add_one_to_MplTest {
   // 1 tick delay end
   /scoreboard players add MplTest MplTest 1
 }
+
+impulse process add_one_to_MplTest_impulse {
+  /scoreboard players add MplTest MplTest 1
+}
+
+inline process add_one_to_MplTest_inline {
+  /scoreboard players add MplTest MplTest 1
+}
