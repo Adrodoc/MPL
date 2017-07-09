@@ -73,16 +73,14 @@ public class MplGlobalVariableReference extends MplReference {
   private @Nullable String fileNameWithoutExtension;
   private @Nonnull String identifier;
   private @Nonnull GlobalVariableInsert insert;
-  private @Nonnull MplCompilerContext context;
 
   public MplGlobalVariableReference(@Nullable String fileNameWithoutExtension, String identifier,
-      GlobalVariableInsert insert, Collection<? extends File> imports, MplSource source,
-      MplCompilerContext context) throws IllegalArgumentException {
+      GlobalVariableInsert insert, Collection<? extends File> imports, MplSource source)
+      throws IllegalArgumentException {
     super(imports, source);
     setFileNameWithoutExtension(fileNameWithoutExtension);
     setIdentifier(identifier);
     setInsert(insert);
-    setContext(context);
   }
 
   public String getQualifiedName() {
@@ -103,7 +101,7 @@ public class MplGlobalVariableReference extends MplReference {
   @Override
   public void resolve(MplInterpreter interpreter) {
     if (interpreter.getProgram().isScript()) {
-      context.addError(new CompilerException(source,
+      interpreter.getContext().addError(new CompilerException(source,
           "The local script variable '" + identifier + "' cannot be inserted"));
       return;
     }
@@ -113,7 +111,7 @@ public class MplGlobalVariableReference extends MplReference {
       try {
         insert.setVariable(checkInsertable(variable, source));
       } catch (CompilerException ex) {
-        context.addError(ex);
+        interpreter.getContext().addError(ex);
       }
     } else {
       throw new IllegalArgumentException(
@@ -128,7 +126,7 @@ public class MplGlobalVariableReference extends MplReference {
   }
 
   @Override
-  public void handleNotFound() {
+  public void handleNotFound(MplCompilerContext context) {
     context.addError(
         new CompilerException(source, getQualifiedName() + " cannot be resolved to a variable"));
   }

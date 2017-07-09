@@ -78,6 +78,7 @@ public class MplCompilerContext {
     warnings.addAll(context.warnings);
     included.addAll(context.included);
     toInclude.addAll(context.toInclude);
+    toInclude.removeAll(included);
   }
 
   public MinecraftVersion getVersion() {

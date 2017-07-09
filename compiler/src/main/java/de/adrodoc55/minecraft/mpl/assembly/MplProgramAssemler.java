@@ -167,11 +167,11 @@ public class MplProgramAssemler {
     }
 
     if (found.isEmpty()) {
-      reference.handleNotFound();
+      reference.handleNotFound(context);
     } else if (found.size() == 1) {
       MplInterpreter interpreter = found.get(0);
-      context.addContext(interpreter.getContext());
       reference.resolve(interpreter);
+      context.addContext(interpreter.getContext());
     } else if (found.size() > 1) {
       List<File> files = found.stream().map(MplInterpreter::getProgramFile).collect(toList());
       context.addError(reference.createAmbigiousException(files));

@@ -658,7 +658,7 @@ public class MplInterpreter extends MplParserBaseListener {
     MplSource source =
         toSource(ctx.INSERT_IDENTIFIER(0), ctx.INSERT_DOT(), ctx.INSERT_IDENTIFIER(1));
     references.put(srcProcess, new MplGlobalVariableReference(fileNameWithoutExtension, identifier,
-        insert, imports, source, context));
+        insert, imports, source));
     commandPartBuffer.add(insert);
   }
 
@@ -693,7 +693,7 @@ public class MplInterpreter extends MplParserBaseListener {
       return;
     }
     String srcProcess = this.process != null ? this.process.getName() : null;
-    references.put(srcProcess, new MplProcessReference(process, imports, source, context));
+    references.put(srcProcess, new MplProcessReference(process, imports, source));
   }
 
   private String toSelector(String text) {
@@ -728,7 +728,7 @@ public class MplInterpreter extends MplParserBaseListener {
       }
 
       String srcProcess = this.process != null ? this.process.getName() : null;
-      references.put(srcProcess, new MplProcessReference(process, imports, source, context));
+      references.put(srcProcess, new MplProcessReference(process, imports, source));
     }
   }
 

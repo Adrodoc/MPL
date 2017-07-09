@@ -51,6 +51,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
+import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter;
 import lombok.EqualsAndHashCode;
@@ -100,5 +101,5 @@ public abstract class MplReference {
 
   public abstract CompilerException createAmbigiousException(List<File> found);
 
-  public abstract void handleNotFound();
+  public abstract void handleNotFound(MplCompilerContext context);
 }
