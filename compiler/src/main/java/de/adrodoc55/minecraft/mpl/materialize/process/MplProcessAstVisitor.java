@@ -67,6 +67,7 @@ import java.util.List;
 
 import javax.annotation.CheckReturnValue;
 
+import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.MplNode;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
@@ -247,18 +248,19 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
     return afterVisit(result);
   }
 
-  private List<ChainLink> visitCallInline(MplCall mplCall, MplProcess process) {
+  protected List<ChainLink> visitCallInline(MplCall mplCall, MplProcess process) {
     List<ChainLink> result = new ArrayList<>();
+    List<ChainPart> chainParts = new CopyScope().copy(process.getChainParts());
     if (mplCall.isConditional()) {
       boolean not = mplCall.getConditional() == INVERT;
       context.getIfNestingLayers().push(new IfNestingLayer(not, context.getPrevious()));
       MplProcessIfAstVisitor visitor = new MplProcessIfAstVisitor(compilerContext, context);
-      for (ChainPart cp : process.getChainParts()) {
+      for (ChainPart cp : chainParts) {
         result.addAll(cp.accept(visitor));
       }
       context.getIfNestingLayers().pop();
     } else {
-      for (ChainPart cp : process.getChainParts()) {
+      for (ChainPart cp : chainParts) {
         result.addAll(cp.accept(this));
       }
     }

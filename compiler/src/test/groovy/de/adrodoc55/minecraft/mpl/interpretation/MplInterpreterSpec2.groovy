@@ -931,6 +931,68 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   // ----------------------------------------------------------------------------------------------------
+  //     ____        _  _
+  //    / ___| __ _ | || |
+  //   | |    / _` || || |
+  //   | |___| (_| || || |
+  //    \____|\__,_||_||_|
+  //
+  // ----------------------------------------------------------------------------------------------------
+
+  @Test
+  @Unroll("#modifier call with identifer")
+  public void "call with identifer"(String modifier, Conditional conditional) {
+    given:
+    String identifier = some($Identifier())
+    String programString = """
+    /say hi
+    ${modifier} ${identifier}()
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    lastContext.errors.isEmpty()
+    program.processes.size() == 1
+    MplProcess process = program.processes.first()
+
+    ModifierBuffer modifierBuffer = new ModifierBuffer()
+    modifierBuffer.setConditional(conditional);
+
+    process.chainParts[0] == new MplCommand('/say hi', source())
+    process.chainParts[1] == new MplCall(identifier, modifierBuffer, source())
+    process.chainParts.size() == 2
+    where:
+    modifier        | conditional
+    ''              | UNCONDITIONAL
+    'unconditional:'| UNCONDITIONAL
+    'conditional:'  | CONDITIONAL
+    'invert:'       | INVERT
+  }
+
+  @Test
+  @Unroll("call with illegal modifier: '#modifier'")
+  public void "call with illegal modifier"(String modifier) {
+    given:
+    String identifier = some($Identifier())
+    String programString = """
+    ${modifier}: ${identifier}()
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+
+    then:
+    lastContext.errors[0].message == "Illegal modifier for call; only unconditional, conditional and invert are permitted"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == modifier
+    lastContext.errors[0].source.lineNumber == 2
+    lastContext.errors.size() == 1
+
+    where:
+    modifier << commandOnlyModifier
+  }
+
+  // ----------------------------------------------------------------------------------------------------
   //    ____   _                _
   //   / ___| | |_  __ _  _ __ | |_
   //   \___ \ | __|/ _` || '__|| __|

@@ -685,8 +685,11 @@ public class MplInterpreter extends MplParserBaseListener {
     TerminalNode identifier = ctx.IDENTIFIER();
     String process = identifier.getText();
     MplSource source = toSource(identifier.getSymbol());
-    MplCall call = new MplCall(process, source);
-    chainBuffer.add(call);
+    MplCall call = new MplCall(process, modifierBuffer, source);
+    addModifiableChainPart(call);
+
+    checkNoModifier(call.getName(), modifierBuffer.getModeToken());
+    checkNoModifier(call.getName(), modifierBuffer.getNeedsRedstoneToken());
 
     if (program.isScript()) {
       return;

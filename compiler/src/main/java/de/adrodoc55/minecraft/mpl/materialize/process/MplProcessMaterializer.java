@@ -242,12 +242,12 @@ public class MplProcessMaterializer extends ProcessCommandsHelper {
     }
     if (process.isRepeating() && containsSkip) {
       result.addAll(getRestartBackref(result.get(0), false));
-      resolveAllTargetedThisInserts(result);
     }
     if (!process.isRepeating() && name != null && !"install".equals(name)
         && !"uninstall".equals(name)) {
       result.addAll(visitor.visitIgnoringWarnings(new MplNotify(name, process.getSource())));
     }
+    resolveAllTargetedThisInserts(result);
     return new CommandChain(name, result, process.getTags());
   }
 
