@@ -42,12 +42,10 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
@@ -78,12 +76,6 @@ public class MplNotify extends ModifiableChainPart {
     this.event = checkNotNull(event, "event == null!");
   }
 
-  public MplNotify(String event, ExtendedModifiable modifier, @Nullable Dependable previous,
-      @Nonnull MplSource source) {
-    super(modifier, previous, source);
-    this.event = checkNotNull(event, "event == null!");
-  }
-
   @Deprecated
   protected MplNotify(MplNotify original) {
     super(original);
@@ -109,10 +101,5 @@ public class MplNotify extends ModifiableChainPart {
   @Override
   public boolean canBeDependedOn() {
     return true;
-  }
-
-  @Override
-  public Mode getModeForInverting() {
-    return getMode();
   }
 }

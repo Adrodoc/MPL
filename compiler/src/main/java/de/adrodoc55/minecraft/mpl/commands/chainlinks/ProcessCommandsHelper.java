@@ -37,14 +37,14 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.visitor;
+package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInternalCommand;
-import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 
@@ -53,14 +53,7 @@ import java.util.List;
 
 import javax.annotation.CheckReturnValue;
 
-import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
@@ -69,26 +62,31 @@ import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetedThisInsert;
 /**
  * @author Adrodoc55
  */
-public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>> {
+public class ProcessCommandsHelper {
   protected final CompilerOptions options;
 
-  public MplBaseAstVisitor(CompilerOptions options) {
-    this.options = options;
+  public ProcessCommandsHelper(CompilerOptions options) {
+    this.options = checkNotNull(options, "options == null!");
   }
 
   @CheckReturnValue
-  private String getStartCommandHeader() {
-    return MplUtils.getStartCommandHeader(options);
+  public String getStartCommandHeader() {
+    return options.hasOption(TRANSMITTER) ? "setblock " : "blockdata ";
   }
 
   @CheckReturnValue
-  private String getStartCommandTrailer() {
-    return MplUtils.getStartCommandTrailer(options);
+  public String getStartCommandTrailer() {
+    return options.hasOption(TRANSMITTER) ? " redstone_block" : " {auto:1b}";
   }
 
+  /**
+   * Returns a command that starts whatever is at the execution coordinates.
+   *
+   * @return a command that starts whatever is at the execution coordinates
+   */
   @CheckReturnValue
-  protected String getStartCommand() {
-    return MplUtils.getStartCommand(options);
+  public String getStartCommand() {
+    return getStartCommandHeader() + "~ ~ ~" + getStartCommandTrailer();
   }
 
   @CheckReturnValue
@@ -106,18 +104,31 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
   }
 
   @CheckReturnValue
-  private String getStopCommandHeader() {
-    return MplUtils.getStopCommandHeader(options);
+  public String getStopCommandHeader() {
+    return options.hasOption(TRANSMITTER) ? "setblock " : "blockdata ";
   }
 
   @CheckReturnValue
-  private String getStopCommandTrailer() {
-    return MplUtils.getStopCommandTrailer(options);
+  public String getStopCommandTrailer() {
+    if (options.hasOption(TRANSMITTER)) {
+      if (options.hasOption(DEBUG)) {
+        return " air";
+      } else {
+        return " stone";
+      }
+    } else {
+      return " {auto:0b}";
+    }
   }
 
+  /**
+   * Returns a command that stops whatever is at the execution coordinates.
+   *
+   * @return a command that stops whatever is at the execution coordinates
+   */
   @CheckReturnValue
-  protected String getStopCommand() {
-    return MplUtils.getStopCommand(options);
+  public String getStopCommand() {
+    return getStopCommandHeader() + "~ ~ ~" + getStopCommandTrailer();
   }
 
   @CheckReturnValue
@@ -167,33 +178,6 @@ public abstract class MplBaseAstVisitor implements MplAstVisitor<List<ChainLink>
         result.add(newCommand(getStopCommand(), modifier(IMPULSE)));
       }
       return result;
-    }
-  }
-
-  /**
-   * Checks if the given {@link ModifiableChainPart} has the {@link Conditional#INVERT INVERT}
-   * modifier. If it does, an {@link Commands#newInvertingCommand inverting command} is added to
-   * {@code commands}. If {@code chainPart} does not have predecessor an
-   * {@link IllegalStateException} is thrown.
-   *
-   * @param commands the list to add to
-   * @param chainPart the {@link ModifiableChainPart} to check
-   * @throws IllegalStateException if {@code chainPart} does not have predecessor
-   * @see ModifiableChainPart#getPrevious()
-   */
-  protected static void addInvertingCommandIfInvert(List<? super Command> commands,
-      ModifiableChainPart chainPart) throws IllegalStateException {
-    if (chainPart.getConditional() == Conditional.INVERT) {
-      Dependable previous = chainPart.getPrevious();
-      checkState(previous != null,
-          "Cannot invert ChainPart; no previous command found for " + chainPart);
-      commands.add(newInvertingCommand(previous));
-    }
-  }
-
-  protected static void resolveReferences(List<ChainLink> chainLinks) {
-    for (ChainLink chainLink : chainLinks) {
-      chainLink.resolveTargetedThisInserts(chainLinks);
     }
   }
 }

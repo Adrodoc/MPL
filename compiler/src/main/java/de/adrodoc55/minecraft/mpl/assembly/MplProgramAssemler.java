@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.assembly;
 
+import static de.adrodoc55.commons.FileUtils.getCanonicalFile;
 import static java.util.stream.Collectors.toList;
 
 import java.io.File;
@@ -51,7 +52,6 @@ import java.util.Map;
 
 import org.antlr.v4.runtime.CommonToken;
 
-import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
@@ -83,6 +83,7 @@ public class MplProgramAssemler {
   }
 
   public MplProgram assemble(File programFile) throws IOException {
+    programFile = getCanonicalFile(programFile);
     // Don't cache the first interpreter, because it's program is mutable and will be changed
     MplInterpreter main = MplInterpreter.interpret(programFile, context);
     MplProgram program = main.getProgram();
@@ -123,8 +124,8 @@ public class MplProgramAssemler {
           resolveReferences(interpreter.getReferences().values());
         }
       } catch (IOException ex) {
-        context.addError(new CompilerException(include.getSource(),
-            "Cannot include file '" + FileUtils.getCanonicalPath(file) + "'", ex));
+        context.addError(
+            new CompilerException(include.getSource(), "Cannot include file '" + file + "'", ex));
       }
     }
   }
@@ -161,19 +162,18 @@ public class MplProgramAssemler {
           }
         }
       } catch (IOException ex) {
-        context.addError(new CompilerException(source,
-            "Cannot read file '" + FileUtils.getCanonicalPath(file) + "'", ex));
+        context.addError(new CompilerException(source, "Cannot read file '" + file + "'", ex));
       }
     }
 
     if (found.isEmpty()) {
-      reference.handleNotFound();
+      reference.handleNotFound(context);
     } else if (found.size() == 1) {
       MplInterpreter interpreter = found.get(0);
-      context.addContext(interpreter.getContext());
       reference.resolve(interpreter);
+      context.addContext(interpreter.getContext());
     } else if (found.size() > 1) {
-      List<File> files = found.stream().map(i -> i.getProgramFile()).collect(toList());
+      List<File> files = found.stream().map(MplInterpreter::getProgramFile).collect(toList());
       context.addError(reference.createAmbigiousException(files));
     }
   }

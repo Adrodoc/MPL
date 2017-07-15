@@ -37,11 +37,8 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.visitor;
+package de.adrodoc55.minecraft.mpl.materialize.process;
 
-import static de.adrodoc55.minecraft.mpl.MplTestUtils.findByName;
-import static de.adrodoc55.minecraft.mpl.MplTestUtils.makeValid;
-import static de.adrodoc55.minecraft.mpl.MplTestUtils.mapToCommands;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
@@ -49,27 +46,18 @@ import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept.INTERCEPTED;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
-import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
-import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import com.google.common.collect.Iterators;
-
-import de.adrodoc55.minecraft.mpl.MplTestBase;
-import de.adrodoc55.minecraft.mpl.MplUtils;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
@@ -82,215 +70,63 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
-import de.adrodoc55.minecraft.mpl.chain.CommandChain;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgramBuilder;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLinkAssert;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLinkIterableAssert;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ProcessCommandsHelper;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public abstract class MplAstVisitorTest extends MplTestBase {
+public abstract class MplProcessAstVisitorTest extends MplMaterializationTestBase {
   protected MplCompilerContext context;
-  protected MplMainAstVisitor underTest;
+  protected MplProcessAstVisitor underTest;
+  protected ProcessCommandsHelper helper;
 
   @Before
   public void before() {
     context = newContext();
-    underTest = newUnderTest(context);
+    underTest = some($UnderTest());
+    helper = new ProcessCommandsHelper(getOptions());
+  }
+
+  @Override
+  protected CompilerOptions getOptions() {
+    return context.getOptions();
+  }
+
+  protected abstract MplCompilerContext newContext();
+
+  @GenerateMplPojoBuilder
+  public static MplProcessAstVisitor createMplProcessAstVisitor(MplCompilerContext compilerContext,
+      MplProgram program) {
+    return new MplProcessAstVisitor(compilerContext, new MplProcessAstVisitorContext(program));
+  }
+
+  public MplProcessAstVisitorBuilder $UnderTest() {
+    return new MplProcessAstVisitorBuilder()//
+        .withCompilerContext(context)//
+        .withProgram($MplProgram())//
+    ;
+  }
+
+  @Override
+  public MplProgramBuilder $MplProgram() {
+    return super.$MplProgram().withContext(context);
   }
 
   protected String markerEntity() {
     return context.getVersion().markerEntity();
   }
 
-  protected abstract MplCompilerContext newContext();
-
-  protected abstract MplMainAstVisitor newUnderTest(MplCompilerContext context);
-
   protected String getStartCommand() {
-    return MplUtils.getStartCommand(context.getOptions());
+    return helper.getStartCommand();
   }
 
   protected String getOffCommand() {
-    return MplUtils.getStopCommand(context.getOptions());
-  }
-
-  public <CL extends ChainLink> ChainLinkAssert<?, CL> assertThat(@Nullable CL actual) {
-    return assertThat(actual, context.getOptions());
-  }
-
-  public ChainLinkIterableAssert assertThatNext(@Nullable Iterator<ChainLink> actual) {
-    return new ChainLinkIterableAssert(actual, context.getOptions());
-  }
-
-  // @formatter:off
-  // ----------------------------------------------------------------------------------------------------
-  //    ____
-  //   |  _ \  _ __  ___    ___  ___  ___  ___
-  //   | |_) || '__|/ _ \  / __|/ _ \/ __|/ __|
-  //   |  __/ | |  | (_) || (__|  __/\__ \\__ \
-  //   |_|    |_|   \___/  \___|\___||___/|___/
-  //
-  // ----------------------------------------------------------------------------------------------------
-  // @formatter:on
-  public abstract void test_a_nameless_process_doesnt_have_startup_commands();
-
-  @Test
-  public void test_a_repeat_process_with_chainparts_results_in_a_chain_with_chainlinks()
-      throws Exception {
-    // given:
-    List<MplCommand> mplCommands = makeValid(listOf(several(), $MplCommand()));
-    MplProcess process = some($MplProcess()//
-        .withRepeating(true)//
-        .withChainParts(mplCommands));
-
-    // when:
-    CommandChain result = underTest.visitProcess(process);
-
-    // then:
-    mplCommands.get(0).setMode(REPEAT);
-    mplCommands.get(0).setNeedsRedstone(true);
-    List<ChainLink> commands = mapToCommands(mplCommands);
-    if (underTest.options.hasOption(TRANSMITTER)) {
-      commands.add(0, new MplSkip());
-    }
-    assertThat(result.getCommands()).containsExactlyElementsOf(commands);
-  }
-
-  @Test
-  public void test_an_impulse_process_ends_with_notify() throws Exception {
-    // given:
-    List<MplCommand> mplCommands = makeValid(listOf(several(), $MplCommand()//
-        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL))));
-    MplProcess process = some($MplProcess()//
-        .withRepeating(false)//
-        .withChainParts(mplCommands));
-
-    // when:
-    CommandChain result = underTest.visitProcess(process);
-
-    // then:
-    Iterator<ChainLink> it = result.getCommands().iterator();
-    assertThatNext(it).isNotInternal().isJumpDestination();
-    Iterators.advance(it, mplCommands.size());
-    assertThatNext(it).isNotInternal().isUnconditionalNotify(process.getName());
-    assertThat(it).isEmpty();
-  }
-
-  @Test
-  public void test_a_process_with_tags_results_in_a_chain_with_tags() throws Exception {
-    // given:
-    List<String> tags = some($listOf(several(), $String()));
-    MplProcess process = some($MplProcess().withTags(tags));
-
-    // when:
-    CommandChain result = underTest.visitProcess(process);
-
-    // then:
-    assertThat(result.getTags()).containsExactlyElementsOf(tags);
-  }
-
-  @Test
-  public void test_an_inline_process_is_ignored() throws Exception {
-    // given:
-    MplProcess process = some($MplProcess().withType(INLINE));
-
-    // when:
-    CommandChain result = underTest.visitProcess(process);
-
-    // then:
-    assertThat(result).isNull();
-  }
-
-  @Test
-  public void test_a_repeat_process_uses_a_repeat_command_block() {
-    // given:
-    MplCommand first = some($MplCommand().withConditional(UNCONDITIONAL));
-    MplCommand second = some($MplCommand()//
-        .withPrevious(first)//
-        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
-    MplProcess process = some($MplProcess()//
-        .withRepeating(true)//
-        .withChainParts(listOf(first, second)));
-
-    // when:
-    CommandChain result = underTest.visitProcess(process);
-
-    // then:
-    Iterator<ChainLink> it = result.getCommands().iterator();
-    if (context.getOptions().hasOption(TRANSMITTER))
-      assertThat(it.next()).isSkip().isNotInternal();
-    assertThat(it.next()).hasMinecraftCommand(first.getMinecraftCommand()).hasModifiers(REPEAT);
-    assertThat(it.next()).matches(second);
-    assertThat(it).isEmpty();
-  }
-
-  // @formatter:off
-  // ----------------------------------------------------------------------------------------------------
-  //    ___                          _
-  //   |_ _| _ __ __   __ ___  _ __ | |_
-  //    | | | '_ \\ \ / // _ \| '__|| __|
-  //    | | | | | |\ V /|  __/| |   | |_
-  //   |___||_| |_| \_/  \___||_|    \__|
-  //
-  // ----------------------------------------------------------------------------------------------------
-  // @formatter:on
-
-  @Test
-  public void test_invert_modifier_referenziert_den_richtigen_mode() {
-    // given:
-    MplCommand first = some($MplCommand()//
-        .withConditional(UNCONDITIONAL));
-
-    MplCommand second = some($MplCommand()//
-        .withConditional(INVERT)//
-        .withPrevious(first));
-
-    MplProcess process = some($MplProcess()//
-        .withRepeating(false)//
-        .withChainParts(listOf(first, second)));
-
-    // when:
-    CommandChain result = underTest.visitProcess(process);
-
-    // then:
-    Iterator<ChainLink> it = result.getCommands().iterator();
-    assertThatNext(it).isNotInternal().isJumpDestination();
-    assertThat(it.next()).matches(first);
-    assertThat(it.next()).isInvertingCommandFor(first.getMode()); // Important line!
-    assertThat(it.next()).matches(second);
-    assertThatNext(it).isNotInternal().isUnconditionalNotify(process.getName());
-  }
-
-  @Test
-  public void test_Der_erste_invert_in_einem_repeating_process_referenziert_einen_repeating_command_block() {
-    // given:
-    MplCommand first = some($MplCommand()//
-        .withConditional(UNCONDITIONAL));
-
-    MplCommand second = some($MplCommand()//
-        .withConditional(INVERT)//
-        .withPrevious(first));
-
-    MplProcess process = some($MplProcess()//
-        .withRepeating(true)//
-        .withChainParts(listOf(first, second)));
-
-    // when:
-    CommandChain result = underTest.visitProcess(process);
-
-    // then:
-    Iterator<ChainLink> it = result.getCommands().iterator();
-    if (context.getOptions().hasOption(TRANSMITTER))
-      assertThat(it.next()).isSkip().isNotInternal();
-    assertThat(it.next()).hasMinecraftCommand(first.getMinecraftCommand()).hasModifiers(REPEAT);
-    assertThat(it.next()).isInvertingCommandFor(REPEAT); // Important line!
-    assertThat(it.next()).matches(second);
-    assertThat(it).isEmpty();
+    return helper.getStopCommand();
   }
 
   // @formatter:off
@@ -305,43 +141,10 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   // @formatter:on
 
   @Test
-  public void test_calling_an_inline_process_will_inline_all_ChainParts() {
-    // given:
-    List<MplCommand> mplCommands = makeValid(listOf(several(), $MplCommand()));
-    MplProcess inline = some($MplProcess()//
-        .withType(INLINE)//
-        .withRepeating(false)//
-        .withChainParts(mplCommands));
-    MplProcess main = some($MplProcess()//
-        .withRepeating(false)//
-        .withChainParts(listOf(//
-            some($MplCall()//
-                .withProcess(inline.getName())//
-                .withMode(CHAIN)//
-                .withConditional(UNCONDITIONAL)//
-                .withNeedsRedstone(false))//
-    )));
-    MplProgram program = some($MplProgram().withProcesses(listOf(main, inline)));
-
-    // when:
-    ChainContainer result = underTest.visitProgram(program);
-
-    // then:
-    List<CommandChain> chains = result.getChains();
-    assertThat(chains).hasSize(1);
-    CommandChain mainChain = findByName(main.getName(), chains);
-    assertThat(mainChain.getCommands())
-        .containsSequence(mapToCommands(mplCommands).toArray(new ChainLink[0]));
-  }
-
-  @Test
   public void test_unconditional_Call() {
     // given:
     MplCall mplCall = some($MplCall()//
         .withConditional(UNCONDITIONAL));
-    underTest.program = some($MplProgram().withProcesses(listOf(//
-        some($MplProcess().withName(mplCall.getProcess()))//
-    )));
 
     // when:
     List<ChainLink> result = mplCall.accept(underTest);
@@ -365,11 +168,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   @Test
   public void test_conditional_Call() {
     // given:
-    MplCall mplCall = some($MplCall()//
-        .withConditional(CONDITIONAL));
-    underTest.program = some($MplProgram().withProcesses(listOf(//
-        some($MplProcess().withName(mplCall.getProcess()))//
-    )));
+    MplCall mplCall = some($MplCall().withConditional(CONDITIONAL));
 
     // when:
     List<ChainLink> result = mplCall.accept(underTest);
@@ -393,27 +192,15 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   @Test
   public void test_invert_Call() {
     // given:
-    Mode modeForInverting = some($Mode());
-    MplCall mplCall = some($MplCall()//
-        .withConditional(CONDITIONAL).withPrevious(new Dependable() {
-          @Override
-          public boolean canBeDependedOn() {
-            return true;
-          }
-
-          @Override
-          public Mode getModeForInverting() {
-            return modeForInverting;
-          }
-        }));
-    underTest.program = some($MplProgram().withProcesses(listOf(//
-        some($MplProcess().withName(mplCall.getProcess()))//
-    )));
+    Mode mode = some($Mode());
+    underTest.context.setPrevious(() -> mode);
+    MplCall mplCall = some($MplCall().withConditional(INVERT));
 
     // when:
     List<ChainLink> result = mplCall.accept(underTest);
 
     // then:
+    underTest.context.setPrevious(() -> mode);
     List<ChainLink> expected = new ArrayList<>();
     MplStart mplStart = some($MplStart()//
         .withSelector("@e[name=" + mplCall.getProcess() + "]")//
@@ -427,6 +214,32 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     expected.addAll(mplWaitfor.accept(underTest));
 
     assertThat(result).containsExactlyElementsOf(expected);
+  }
+
+  @Test
+  public void test_calling_an_inline_process_will_inline_all_ChainParts() {
+    // given:
+    List<MplCommand> mplCommands = listOf(several(), $MplCommand()//
+        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
+    MplProcess inline = some($MplProcess()//
+        .withType(INLINE)//
+        .withRepeating(false)//
+        .withChainParts(mplCommands));
+    MplProgram program = some($MplProgram().withProcesses(listOf(inline)));
+    MplProcessAstVisitor underTest = some($UnderTest().withProgram(program));
+
+    MplCall mplCall = some($MplCall()//
+        .withProcess(inline.getName())//
+        .withMode(CHAIN)//
+        .withConditional(UNCONDITIONAL)//
+        .withNeedsRedstone(false)//
+    );
+
+    // when:
+    List<ChainLink> result = mplCall.accept(underTest);
+
+    // then:
+    assertMatches(result, mplCommands);
   }
 
   // @formatter:off
@@ -443,10 +256,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   @Test
   public void test_unconditional_Start() {
     // given:
-    MplStart mplStart = some($MplStart()//
-        .withConditional(UNCONDITIONAL));
-    Mode mode = mplStart.getMode();
-    boolean needsRedstone = mplStart.getNeedsRedstone();
+    MplStart mplStart = some($MplStart().withConditional(UNCONDITIONAL));
 
     // when:
     List<ChainLink> result = mplStart.accept(underTest);
@@ -455,17 +265,14 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     Iterator<ChainLink> it = result.iterator();
     assertThat(it.next()).isNotInternal()
         .hasCommandParts("execute " + mplStart.getSelector() + " ~ ~ ~ " + getStartCommand())
-        .hasMode(mode).isNotConditional().hasNeedsRedstone(needsRedstone);
+        .hasModifiers(mplStart);
     assertThat(it).isEmpty();
   }
 
   @Test
   public void test_conditional_Start() {
     // given:
-    MplStart mplStart = some($MplStart()//
-        .withConditional(CONDITIONAL));
-    Mode mode = mplStart.getMode();
-    boolean needsRedstone = mplStart.getNeedsRedstone();
+    MplStart mplStart = some($MplStart().withConditional(CONDITIONAL));
 
     // when:
     List<ChainLink> result = mplStart.accept(underTest);
@@ -474,39 +281,26 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     Iterator<ChainLink> it = result.iterator();
     assertThat(it.next()).isNotInternal()
         .hasCommandParts("execute " + mplStart.getSelector() + " ~ ~ ~ " + getStartCommand())
-        .hasMode(mode).isConditional().hasNeedsRedstone(needsRedstone);
+        .hasModifiers(mplStart);
     assertThat(it).isEmpty();
   }
 
   @Test
   public void test_invert_Start() {
     // given:
-    Mode modeForInverting = some($Mode());
-    MplStart mplStart = some($MplStart()//
-        .withConditional(INVERT)//
-        .withPrevious(new Dependable() {
-          @Override
-          public boolean canBeDependedOn() {
-            return true;
-          }
-
-          @Override
-          public Mode getModeForInverting() {
-            return modeForInverting;
-          }
-        }));
-    Mode mode = mplStart.getMode();
-    boolean needsRedstone = mplStart.getNeedsRedstone();
+    Mode mode = some($Mode());
+    underTest.context.setPrevious(() -> mode);
+    MplStart mplStart = some($MplStart().withConditional(INVERT));
 
     // when:
     List<ChainLink> result = mplStart.accept(underTest);
 
     // then:
     Iterator<ChainLink> it = result.iterator();
-    assertThat(it.next()).isInvertingCommandFor(modeForInverting);
+    assertThat(it.next()).isInvertingCommandFor(mode);
     assertThat(it.next()).isNotInternal()
         .hasCommandParts("execute " + mplStart.getSelector() + " ~ ~ ~ " + getStartCommand())
-        .hasMode(mode).isConditional().hasNeedsRedstone(needsRedstone);
+        .hasModifiers(mplStart);
     assertThat(it).isEmpty();
   }
 
@@ -524,10 +318,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   @Test
   public void test_unconditional_Stop() {
     // given:
-    MplStop mplStop = some($MplStop()//
-        .withConditional(UNCONDITIONAL));
-    Mode mode = mplStop.getMode();
-    boolean needsRedstone = mplStop.getNeedsRedstone();
+    MplStop mplStop = some($MplStop().withConditional(UNCONDITIONAL));
 
     // when:
     List<ChainLink> result = mplStop.accept(underTest);
@@ -536,17 +327,14 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     Iterator<ChainLink> it = result.iterator();
     assertThat(it.next()).isNotInternal()
         .hasCommandParts("execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand())
-        .hasMode(mode).isNotConditional().hasNeedsRedstone(needsRedstone);
+        .hasModifiers(mplStop);
     assertThat(it).isEmpty();
   }
 
   @Test
   public void test_conditional_Stop() {
     // given:
-    MplStop mplStop = some($MplStop()//
-        .withConditional(CONDITIONAL));
-    Mode mode = mplStop.getMode();
-    boolean needsRedstone = mplStop.getNeedsRedstone();
+    MplStop mplStop = some($MplStop().withConditional(CONDITIONAL));
 
     // when:
     List<ChainLink> result = mplStop.accept(underTest);
@@ -555,39 +343,26 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     Iterator<ChainLink> it = result.iterator();
     assertThat(it.next()).isNotInternal()
         .hasCommandParts("execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand())
-        .hasMode(mode).isConditional().hasNeedsRedstone(needsRedstone);
+        .hasModifiers(mplStop);
     assertThat(it).isEmpty();
   }
 
   @Test
   public void test_invert_Stop() {
     // given:
-    Mode modeForInverting = some($Mode());
-    MplStop mplStop = some($MplStop()//
-        .withConditional(INVERT)//
-        .withPrevious(new Dependable() {
-          @Override
-          public boolean canBeDependedOn() {
-            return true;
-          }
-
-          @Override
-          public Mode getModeForInverting() {
-            return modeForInverting;
-          }
-        }));
-    Mode mode = mplStop.getMode();
-    boolean needsRedstone = mplStop.getNeedsRedstone();
+    Mode mode = some($Mode());
+    underTest.context.setPrevious(() -> mode);
+    MplStop mplStop = some($MplStop().withConditional(INVERT));
 
     // when:
     List<ChainLink> result = mplStop.accept(underTest);
 
     // then:
     Iterator<ChainLink> it = result.iterator();
-    assertThat(it.next()).isInvertingCommandFor(modeForInverting);
+    assertThat(it.next()).isInvertingCommandFor(mode);
     assertThat(it.next()).isNotInternal()
         .hasCommandParts("execute " + mplStop.getSelector() + " ~ ~ ~ " + getOffCommand())
-        .hasMode(mode).isConditional().hasNeedsRedstone(needsRedstone);
+        .hasModifiers(mplStop);
     assertThat(it).isEmpty();
   }
 
@@ -605,8 +380,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   @Test
   public void test_unconditional_Waitfor() {
     // given:
-    MplWaitfor mplWaitfor = some($MplWaitfor()//
-        .withConditional(UNCONDITIONAL));
+    MplWaitfor mplWaitfor = some($MplWaitfor().withConditional(UNCONDITIONAL));
 
     // when:
     List<ChainLink> result = mplWaitfor.accept(underTest);
@@ -625,8 +399,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   @Test
   public void test_conditional_Waitfor() {
     // given:
-    MplWaitfor mplWaitfor = some($MplWaitfor()//
-        .withConditional(CONDITIONAL));
+    MplWaitfor mplWaitfor = some($MplWaitfor().withConditional(CONDITIONAL));
 
     // when:
     List<ChainLink> result = mplWaitfor.accept(underTest);
@@ -647,8 +420,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   @Test
   public void test_invert_Waitfor() {
     // given:
-    MplWaitfor mplWaitfor = some($MplWaitfor()//
-        .withConditional(INVERT));
+    MplWaitfor mplWaitfor = some($MplWaitfor().withConditional(INVERT));
 
     // when:
     List<ChainLink> result = mplWaitfor.accept(underTest);
@@ -680,8 +452,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   @Test
   public void test_unconditional_Notify() {
     // given:
-    MplNotify mplNotify = some($MplNotify()//
-        .withConditional(UNCONDITIONAL));
+    MplNotify mplNotify = some($MplNotify().withConditional(UNCONDITIONAL));
 
     // when:
     List<ChainLink> result = mplNotify.accept(underTest);
@@ -691,7 +462,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     assertThat(it.next()).isNotInternal()
         .hasCommandParts(
             "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getStartCommand())
-        .hasDefaultModifiers();
+        .hasModifiers(mplNotify);
     assertThat(it.next()).isInternal()
         .hasCommandParts("kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]")
         .hasDefaultModifiers();
@@ -701,8 +472,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   @Test
   public void test_conditional_Notify() {
     // given:
-    MplNotify mplNotify = some($MplNotify()//
-        .withConditional(CONDITIONAL));
+    MplNotify mplNotify = some($MplNotify().withConditional(CONDITIONAL));
 
     // when:
     List<ChainLink> result = mplNotify.accept(underTest);
@@ -712,7 +482,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     assertThat(it.next()).isNotInternal()
         .hasCommandParts(
             "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getStartCommand())
-        .hasModifiers(CONDITIONAL);
+        .hasModifiers(mplNotify);
     assertThat(it.next()).isInternal()
         .hasCommandParts("kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]")
         .hasModifiers(CONDITIONAL);
@@ -723,19 +493,8 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   public void test_invert_Notify() {
     // given:
     Mode mode = some($Mode());
-    MplNotify mplNotify = some($MplNotify()//
-        .withConditional(INVERT)//
-        .withPrevious(new Dependable() {
-          @Override
-          public boolean canBeDependedOn() {
-            return true;
-          }
-
-          @Override
-          public Mode getModeForInverting() {
-            return mode;
-          }
-        }));
+    underTest.context.setPrevious(() -> mode);
+    MplNotify mplNotify = some($MplNotify().withConditional(INVERT));
 
     // when:
     List<ChainLink> result = mplNotify.accept(underTest);
@@ -746,7 +505,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     assertThat(it.next()).isNotInternal()
         .hasCommandParts(
             "execute @e[name=" + mplNotify.getEvent() + NOTIFY + "] ~ ~ ~ " + getStartCommand())
-        .hasModifiers(CONDITIONAL);
+        .hasModifiers(mplNotify);
     assertThat(it.next()).isInternal()
         .hasCommandParts("kill @e[name=" + mplNotify.getEvent() + NOTIFY + "]")
         .hasModifiers(CONDITIONAL);
@@ -800,20 +559,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     // given:
     String event = some($String());
     Mode mode = some($Mode());
+    underTest.context.setPrevious(() -> mode);
     MplIntercept mplIntercept = some($MplIntercept()//
         .withEvent(event)//
         .withConditional(CONDITIONAL)//
-        .withPrevious(new Dependable() {
-          @Override
-          public boolean canBeDependedOn() {
-            return true;
-          }
-
-          @Override
-          public Mode getModeForInverting() throws UnsupportedOperationException {
-            return mode;
-          }
-        }));
+    );
 
     // when:
     List<ChainLink> result = mplIntercept.accept(underTest);
@@ -847,20 +597,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     // given:
     String event = some($String());
     Mode mode = some($Mode());
+    underTest.context.setPrevious(() -> mode);
     MplIntercept mplIntercept = some($MplIntercept()//
         .withEvent(event)//
         .withConditional(INVERT)//
-        .withPrevious(new Dependable() {
-          @Override
-          public boolean canBeDependedOn() {
-            return true;
-          }
-
-          @Override
-          public Mode getModeForInverting() throws UnsupportedOperationException {
-            return mode;
-          }
-        }));
+    );
 
     // when:
     List<ChainLink> result = mplIntercept.accept(underTest);
@@ -901,29 +642,6 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   // @formatter:on
 
   @Test
-  public void test_when_visiting_a_breakpoint_the_breakpoint_process_is_added() {
-    // given:
-    MplBreakpoint mplBreakpoint = some($MplBreakpoint()//
-        .withConditional(UNCONDITIONAL));
-
-    MplProgram program = some($MplProgram());
-    program.addProcess(some($MplProcess()//
-        .withChainParts(listOf(mplBreakpoint))));
-
-    // when:
-    ChainContainer result = underTest.visitProgram(program);
-
-    // then:
-    Condition<CommandChain> condition = new Condition<CommandChain>() {
-      @Override
-      public boolean matches(CommandChain value) {
-        return "breakpoint".equals(value.getName());
-      }
-    };
-    assertThat(result.getChains()).haveExactly(1, condition);
-  }
-
-  @Test
   public void test_unconditional_Breakpoint() {
     // given:
     MplBreakpoint mplBreakpoint = some($MplBreakpoint()//
@@ -951,8 +669,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   @Test
   public void test_conditional_Breakpoint() {
     // given:
-    MplBreakpoint mplBreakpoint = some($MplBreakpoint()//
-        .withConditional(CONDITIONAL));
+    MplBreakpoint mplBreakpoint = some($MplBreakpoint().withConditional(CONDITIONAL));
 
     // when:
     List<ChainLink> result = mplBreakpoint.accept(underTest);
@@ -979,19 +696,8 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   public void test_invert_Breakpoint() {
     // given:
     Mode mode = some($Mode());
-    MplBreakpoint mplBreakpoint = some($MplBreakpoint()//
-        .withConditional(INVERT)//
-        .withPrevious(new Dependable() {
-          @Override
-          public boolean canBeDependedOn() {
-            return true;
-          }
-
-          @Override
-          public Mode getModeForInverting() {
-            return mode;
-          }
-        }));
+    underTest.context.setPrevious(() -> mode);
+    MplBreakpoint mplBreakpoint = some($MplBreakpoint().withConditional(INVERT));
 
     // when:
     List<ChainLink> result = mplBreakpoint.accept(underTest);
@@ -1048,22 +754,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   public void test_If_modifier_mit_invert_gelten_fuer_condition() {
     // given:
     Mode mode = some($Mode());
-
+    underTest.context.setPrevious(() -> mode);
     MplIf mplIf = some($MplIf()//
         .withMode($Mode())//
         .withConditional(INVERT)//
         .withNeedsRedstone($boolean())//
-        .withPrevious(new Dependable() {
-          @Override
-          public boolean canBeDependedOn() {
-            return true;
-          }
-
-          @Override
-          public Mode getModeForInverting() {
-            return mode;
-          }
-        })//
     );
 
     // when:
@@ -1159,35 +854,6 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   }
 
   @Test
-  public void test_If_with_one_Else_in_a_repeat_Process_results_in_an_Invert_which_references_a_Repeating_Command() {
-    // given:
-    MplCommand else1 = some($MplCommand()//
-        .withConditional(UNCONDITIONAL));
-
-    MplIf mplIf = some($MplIf()//
-        .withNot(false)//
-        .withElseParts(listOf(else1)));
-
-    MplProcess process = some($MplProcess()//
-        .withRepeating(true)//
-        .withChainParts(listOf(mplIf)));
-
-    // when:
-    CommandChain result = underTest.visitProcess(process);
-
-    // then:
-    Iterator<ChainLink> it = result.getCommands().iterator();
-    if (context.getOptions().hasOption(TRANSMITTER))
-      assertThat(it.next()).isSkip().isNotInternal();
-
-    assertThat(it.next()).isNotInternal().hasCommandParts(mplIf.getCondition())
-        .hasModifiers(REPEAT);
-    assertThat(it.next()).isInvertingCommandFor(REPEAT); // Important line!
-    assertThat(it.next()).matchesAsConditional(else1);
-    assertThat(it).isEmpty();
-  }
-
-  @Test
   public void test_If_not_with_one_Then_results_in_an_Invert() {
     // given:
     MplCommand then1 = some($MplCommand().withConditional(UNCONDITIONAL));
@@ -1203,33 +869,6 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     Iterator<ChainLink> it = result.iterator();
     assertThat(it.next()).isNotInternal().hasCommandParts(mplIf.getCondition());
     assertThat(it.next()).isInvertingCommandFor(CHAIN);
-    assertThat(it.next()).matchesAsConditional(then1);
-    assertThat(it).isEmpty();
-  }
-
-  @Test
-  public void test_If_not_with_one_Then_in_a_repeat_Process_results_in_an_Invert_which_references_a_Repeating_Command() {
-    // given:
-    MplCommand then1 = some($MplCommand().withConditional(UNCONDITIONAL));
-    MplIf mplIf = some($MplIf()//
-        .withNot(true)//
-        .withThenParts(listOf(then1)));
-
-    MplProcess process = some($MplProcess()//
-        .withRepeating(true)//
-        .withChainParts(listOf(mplIf)));
-
-    // when:
-    CommandChain result = underTest.visitProcess(process);
-
-    // then:
-    Iterator<ChainLink> it = result.getCommands().iterator();
-    if (context.getOptions().hasOption(TRANSMITTER))
-      assertThat(it.next()).isSkip().isNotInternal();
-
-    assertThat(it.next()).isNotInternal().hasCommandParts(mplIf.getCondition())
-        .hasModifiers(REPEAT);
-    assertThat(it.next()).isInvertingCommandFor(REPEAT); // Important line!
     assertThat(it.next()).matchesAsConditional(then1);
     assertThat(it).isEmpty();
   }
@@ -1504,19 +1143,14 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   @Test
   public void test_If_mit_invert_im_then() {
     // given:
-    MplCommand then1 = some($MplCommand()//
-        .withConditional(UNCONDITIONAL));
-
-    MplCommand then2 = some($MplCommand()//
-        .withConditional(INVERT)//
-        .withPrevious(then1));
-
-    MplCommand then3 = some($MplCommand()//
-        .withConditional(UNCONDITIONAL));
+    MplCommand then1 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand then2 = some($MplCommand().withConditional(INVERT));
+    MplCommand then3 = some($MplCommand().withConditional(UNCONDITIONAL));
 
     MplIf mplIf = some($MplIf()//
         .withNot(false)//
-        .withThenParts(listOf(then1, then2, then3)));
+        .withThenParts(listOf(then1, then2, then3))//
+    );
 
     // when:
     List<ChainLink> result = mplIf.accept(underTest);
@@ -1561,19 +1195,14 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   @Test
   public void test_If_mit_invert_im_else() {
     // given:
-    MplCommand else1 = some($MplCommand()//
-        .withConditional(UNCONDITIONAL));
-
-    MplCommand else2 = some($MplCommand()//
-        .withConditional(INVERT)//
-        .withPrevious(else1));
-
-    MplCommand else3 = some($MplCommand()//
-        .withConditional(UNCONDITIONAL));
+    MplCommand else1 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand else2 = some($MplCommand().withConditional(INVERT));
+    MplCommand else3 = some($MplCommand().withConditional(UNCONDITIONAL));
 
     MplIf mplIf = some($MplIf()//
         .withNot(false)//
-        .withElseParts(listOf(else1, else2, else3)));
+        .withElseParts(listOf(else1, else2, else3))//
+    );
 
     // when:
     List<ChainLink> result = mplIf.accept(underTest);
@@ -1597,6 +1226,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     MplCommand then1 = some($MplCommand().withConditional(UNCONDITIONAL));
     MplCommand then2 = some($MplCommand().withConditional(CONDITIONAL));
     MplCommand then3 = some($MplCommand().withConditional(UNCONDITIONAL));
+
     MplIf mplIf = some($MplIf()//
         .withNot(true)//
         .withThenParts(listOf(then1, then2, then3)));
@@ -1618,18 +1248,14 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   @Test
   public void test_If_not_mit_invert_im_then() {
     // given:
-    MplCommand then1 = some($MplCommand()//
-        .withConditional(UNCONDITIONAL));
+    MplCommand then1 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand then2 = some($MplCommand().withConditional(INVERT));
+    MplCommand then3 = some($MplCommand().withConditional(UNCONDITIONAL));
 
-    MplCommand then2 = some($MplCommand()//
-        .withConditional(INVERT)//
-        .withPrevious(then1));
-
-    MplCommand then3 = some($MplCommand()//
-        .withConditional(UNCONDITIONAL));
     MplIf mplIf = some($MplIf()//
         .withNot(true)//
-        .withThenParts(listOf(then1, then2, then3)));
+        .withThenParts(listOf(then1, then2, then3))//
+    );
 
     // when:
     List<ChainLink> result = mplIf.accept(underTest);
@@ -1653,9 +1279,11 @@ public abstract class MplAstVisitorTest extends MplTestBase {
     MplCommand else1 = some($MplCommand().withConditional(UNCONDITIONAL));
     MplCommand else2 = some($MplCommand().withConditional(CONDITIONAL));
     MplCommand else3 = some($MplCommand().withConditional(UNCONDITIONAL));
+
     MplIf mplIf = some($MplIf()//
         .withNot(true)//
-        .withElseParts(listOf(else1, else2, else3)));
+        .withElseParts(listOf(else1, else2, else3))//
+    );
 
     // when:
     List<ChainLink> result = mplIf.accept(underTest);
@@ -1694,15 +1322,9 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   @Test
   public void test_If_not_mit_invert_im_else() {
     // given:
-    MplCommand else1 = some($MplCommand()//
-        .withConditional(UNCONDITIONAL));
-
-    MplCommand else2 = some($MplCommand()//
-        .withConditional(INVERT)//
-        .withPrevious(else1));
-
-    MplCommand else3 = some($MplCommand()//
-        .withConditional(UNCONDITIONAL));
+    MplCommand else1 = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand else2 = some($MplCommand().withConditional(INVERT));
+    MplCommand else3 = some($MplCommand().withConditional(UNCONDITIONAL));
 
     MplIf mplIf = some($MplIf()//
         .withNot(true)//
@@ -1872,23 +1494,13 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   public void test_While_repeat_modifier_mit_invert_gelten_fuer_condition() {
     // given:
     Mode mode = some($Mode());
-
+    underTest.context.setPrevious(() -> mode);
     MplWhile mplWhile = some($MplWhile()//
         .withTrailing(false)//
         .withMode($Mode())//
         .withConditional(INVERT)//
         .withNeedsRedstone($boolean())//
-        .withPrevious(new Dependable() {
-          @Override
-          public boolean canBeDependedOn() {
-            return true;
-          }
-
-          @Override
-          public Mode getModeForInverting() {
-            return mode;
-          }
-        }));
+    );
 
     // when:
     List<ChainLink> result = mplWhile.accept(underTest);
@@ -1931,7 +1543,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
 
     // then:
     int ref = result.size() - 3;
-    if (underTest.options.hasOption(TRANSMITTER)) {
+    if (getOptions().hasOption(TRANSMITTER)) {
       ref--;
     }
     Iterator<ChainLink> it = result.iterator();
@@ -1944,30 +1556,20 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   public void test_repeat_While_invert_modifier_erzeugt_invert_jump() {
     // given:
     Mode mode = some($Mode());
-
+    underTest.context.setPrevious(() -> mode);
     MplWhile mplWhile = some($MplWhile()//
         .withTrailing(true)//
         .withMode($Mode())//
         .withConditional(INVERT)//
         .withNeedsRedstone($boolean())//
-        .withPrevious(new Dependable() {
-          @Override
-          public boolean canBeDependedOn() {
-            return true;
-          }
-
-          @Override
-          public Mode getModeForInverting() {
-            return mode;
-          }
-        }));
+    );
 
     // when:
     List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
     int ref = result.size() - 1;
-    if (underTest.options.hasOption(TRANSMITTER)) {
+    if (getOptions().hasOption(TRANSMITTER)) {
       ref--;
     }
     Iterator<ChainLink> it = result.iterator();
@@ -2011,7 +1613,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
 
     // then:
     int ref = result.size() - 3;
-    if (underTest.options.hasOption(TRANSMITTER)) {
+    if (getOptions().hasOption(TRANSMITTER)) {
       ref--;
     }
     Iterator<ChainLink> it = result.iterator();
@@ -2024,7 +1626,7 @@ public abstract class MplAstVisitorTest extends MplTestBase {
   public void test_repeat_invert_modifier_erzeugt_invert_jump() {
     // given:
     Mode mode = some($Mode());
-
+    underTest.context.setPrevious(() -> mode);
     MplWhile mplWhile = some($MplWhile()//
         .withCondition((String) null)//
         .withNot($boolean())//
@@ -2032,24 +1634,14 @@ public abstract class MplAstVisitorTest extends MplTestBase {
         .withMode($Mode())//
         .withConditional(INVERT)//
         .withNeedsRedstone($boolean())//
-        .withPrevious(new Dependable() {
-          @Override
-          public boolean canBeDependedOn() {
-            return true;
-          }
-
-          @Override
-          public Mode getModeForInverting() {
-            return mode;
-          }
-        }));
+    );
 
     // when:
     List<ChainLink> result = mplWhile.accept(underTest);
 
     // then:
     int ref = result.size() - 1;
-    if (underTest.options.hasOption(TRANSMITTER)) {
+    if (getOptions().hasOption(TRANSMITTER)) {
       ref--;
     }
     Iterator<ChainLink> it = result.iterator();

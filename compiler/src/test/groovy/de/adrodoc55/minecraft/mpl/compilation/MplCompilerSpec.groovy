@@ -634,7 +634,6 @@ class MplCompilerSpec extends MplSpecBase {
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
 
     then:
-    result.processes.size() == 3
     MplProcess main = result.processes.find { it.name == 'main' }
     main.chainParts.contains(new MplCommand('/this is the main process', source()))
 
@@ -643,6 +642,85 @@ class MplCompilerSpec extends MplSpecBase {
 
     MplProcess other2 = result.processes.find { it.name == 'other2' }
     other2.chainParts.contains(new MplCommand('/this is the other2 process', source()))
+    result.processes.size() == 3
+  }
+
+  @Test
+  public void "the imports of a referenced imported file are not processed"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    import "newFolder1/newFile1.mpl"
+
+    remote process main {
+      /this is the main process
+      start unknownProcess
+    }
+    """
+    new File(folder, 'newFolder1').mkdirs()
+    new File(folder, 'newFolder1/newFile1.mpl').text = """
+    import "../newFolder2/newFile2.mpl"
+
+    remote process other1 {
+      /this is the other1 process
+      start other2
+    }
+    """
+    new File(folder, 'newFolder2').mkdirs()
+    new File(folder, 'newFolder2/newFile2.mpl').text = """
+    remote process other2 {
+      /this is the other2 process
+    }
+    """
+    when:
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
+    then:
+    MplProcess main = result.processes.find { it.name == 'main' }
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
+    result.processes.size() == 1
+  }
+
+  @Test
+  public void "the referenced imports of a referenced imported file are processed"() {
+    given:
+    File folder = tempFolder.root
+    new File(folder, 'main.mpl').text = """
+    import "newFolder1/newFile1.mpl"
+
+    remote process main {
+      /this is the main process
+      start other1
+    }
+    """
+    new File(folder, 'newFolder1').mkdirs()
+    new File(folder, 'newFolder1/newFile1.mpl').text = """
+    import "../newFolder2/newFile2.mpl"
+
+    remote process other1 {
+      /this is the other1 process
+      start other2
+    }
+    """
+    new File(folder, 'newFolder2').mkdirs()
+    new File(folder, 'newFolder2/newFile2.mpl').text = """
+    remote process other2 {
+      /this is the other2 process
+    }
+    """
+    when:
+    MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
+
+    then:
+    MplProcess main = result.processes.find { it.name == 'main' }
+    main.chainParts.contains(new MplCommand('/this is the main process', source()))
+
+    MplProcess other1 = result.processes.find { it.name == 'other1' }
+    other1.chainParts.contains(new MplCommand('/this is the other1 process', source()))
+
+    MplProcess other2 = result.processes.find { it.name == 'other2' }
+    other2.chainParts.contains(new MplCommand('/this is the other2 process', source()))
+    result.processes.size() == 3
   }
 
   @Test

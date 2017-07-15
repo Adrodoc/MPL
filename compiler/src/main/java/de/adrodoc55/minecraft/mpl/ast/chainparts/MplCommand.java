@@ -46,7 +46,6 @@ import javax.annotation.Nonnull;
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
@@ -111,10 +110,5 @@ public class MplCommand extends ModifiableChainPart {
   @Override
   public boolean canBeDependedOn() {
     return true;
-  }
-
-  @Override
-  public Mode getModeForInverting() {
-    return getMode();
   }
 }

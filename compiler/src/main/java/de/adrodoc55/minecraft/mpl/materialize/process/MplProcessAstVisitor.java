@@ -37,9 +37,10 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.visitor;
+package de.adrodoc55.minecraft.mpl.materialize.process;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
@@ -48,18 +49,15 @@ import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept.INTERCEPTED
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
-import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
+import static de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink.resolveAllTargetedThisInserts;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInternalCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newInvertingCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNormalizingCommand;
-import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newTestforSuccessCommand;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DELETE_ON_UNINSTALL;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 
-import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,18 +66,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import org.antlr.v4.runtime.CommonToken;
-
-import com.google.common.annotations.VisibleForTesting;
 
 import de.adrodoc55.commons.CopyScope;
-import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.coordinate.Orientation3D;
-import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
+import de.adrodoc55.minecraft.mpl.ast.MplNode;
 import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.InternalMplCommand;
@@ -98,11 +88,14 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplContinue;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
-import de.adrodoc55.minecraft.mpl.chain.CommandChain;
+import de.adrodoc55.minecraft.mpl.ast.visitor.ContainsMatchVisitor;
+import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
+import de.adrodoc55.minecraft.mpl.commands.Dependable;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ProcessCommandsHelper;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
@@ -111,199 +104,64 @@ import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetedThisInsert;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 /**
  * @author Adrodoc55
  */
-public class MplMainAstVisitor extends MplBaseAstVisitor {
-  private final MplCompilerContext context;
-  @VisibleForTesting
-  MplProgram program;
+public class MplProcessAstVisitor extends ProcessCommandsHelper
+    implements MplAstVisitor<List<ChainLink>> {
+  public interface Context {
+    MplProgram getProgram();
 
-  private MplSource breakpoint;
+    Dependable getPrevious();
 
-  public MplMainAstVisitor(MplCompilerContext context) {
-    super(context.getOptions());
+    void setPrevious(Dependable previous);
+
+    void setBreakpoint(MplSource breakpoint);
+
+    Deque<IfNestingLayer> getIfNestingLayers();
+
+    Deque<MplWhile> getLoops();
+
+    Deque<LoopRef> getLoopRefs();
+  }
+
+  protected final Context context;
+  protected final MplCompilerContext compilerContext;
+
+  public MplProcessAstVisitor(MplCompilerContext compilerContext, Context context) {
+    super(compilerContext.getOptions());
+    this.compilerContext = checkNotNull(compilerContext, "compilerContext == null!");
     this.context = checkNotNull(context, "context == null!");
   }
 
-  public ChainContainer visitProgram(MplProgram program) {
-    this.program = program;
-    Orientation3D orientation = program.getOrientation();
-    Coordinate3D max = program.getMax();
-    CommandChain install = visitInstall(program);
-    CommandChain uninstall = visitUninstall(program);
-
-    List<CommandChain> chains = new ArrayList<>(program.getProcesses().size());
-    for (MplProcess process : program.getProcesses()) {
-      CommandChain chain = visitProcess(process);
-      if (chain != null) {
-        chains.add(chain);
-      }
+  public List<ChainLink> visitIgnoringWarnings(MplNode mplNode) {
+    try {
+      compilerContext.setIgnoreWarnings(true);
+      return mplNode.accept(this);
+    } finally {
+      compilerContext.setIgnoreWarnings(false);
     }
-    if (breakpoint != null) {
-      chains.add(getBreakpointProcess(program));
-    }
-    return new ChainContainer(orientation, max, install, uninstall, chains, program.getHash());
-  }
-
-  private static MplSource defaultSource(File programFile) {
-    return new MplSource(programFile, "", new CommonToken(MplLexer.PROCESS));
-  }
-
-  private CommandChain visitInstall(MplProgram program) {
-    if (!isInstallRequired(program)) {
-      return new CommandChain("install", new ArrayList<>(0));
-    }
-    MplProcess install = program.getInstall();
-    if (install == null) {
-      install = new MplProcess("install", defaultSource(program.getProgramFile()));
-    }
-    return visitProcess(install);
-  }
-
-  private boolean isInstallRequired(MplProgram program) {
-    return program.getInstall() != null//
-        || isUninstallRequired(program);
-  }
-
-  private CommandChain visitUninstall(MplProgram program) {
-    if (!isUninstallRequired(program)) {
-      return new CommandChain("uninstall", new ArrayList<>(0));
-    }
-    MplProcess uninstall = program.getUninstall();
-    if (uninstall == null) {
-      uninstall = new MplProcess("uninstall", defaultSource(program.getProgramFile()));
-    }
-    return visitProcess(uninstall);
-  }
-
-  private boolean isUninstallRequired(MplProgram program) {
-    return program.getUninstall() != null//
-        || options.hasOption(DELETE_ON_UNINSTALL)//
-        || program.getProcesses().stream().anyMatch(p -> p.getName() != null);
-  }
-
-  @CheckReturnValue
-  private CommandChain getBreakpointProcess(MplProgram program) {
-    String hash = program.getHash();
-    MplProcess process = new MplProcess("breakpoint", breakpoint);
-    List<ChainPart> commands = new ArrayList<>();
-
-    // Pause
-    if (!options.hasOption(TRANSMITTER)) {
-      commands.add(new MplCommand("/execute @e[tag=" + hash + "] ~ ~ ~ clone ~ ~ ~ ~ ~ ~ ~ ~1 ~",
-          breakpoint));
-    }
-    commands.add(new MplCommand("/tp @e[tag=" + hash + "] ~ ~1 ~", breakpoint));
-    if (!options.hasOption(TRANSMITTER)) {
-      commands.add(new MplCommand("/execute @e[tag=" + hash + "] ~ ~ ~ blockdata ~ ~ ~ {Command:}",
-          breakpoint));
-    }
-
-    commands.add(new MplCommand(
-        "tellraw @a [{\"text\":\"[tp to breakpoint]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/tp @p @e[name=breakpoint_NOTIFY,c=-1]\"}},{\"text\":\" \"},{\"text\":\"[continue program]\",\"color\":\"gold\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/execute @e[name=breakpoint_CONTINUE"
-            + NOTIFY + "] ~ ~ ~ " + getStartCommand() + "\"}}]",
-        breakpoint));
-
-    commands.add(new MplWaitfor("breakpoint_CONTINUE", breakpoint));
-    commands.add(new MplCommand("/kill @e[name=breakpoint_CONTINUE" + NOTIFY + "]", breakpoint));
-
-    // Unpause
-    commands.add(new MplCommand(
-        "/execute @e[tag=" + hash + "] ~ ~ ~ clone ~ ~ ~ ~ ~ ~ ~ ~-1 ~ force move", breakpoint));
-    commands.add(new MplCommand("/tp @e[tag=" + hash + "] ~ ~-1 ~", breakpoint));
-    if (!options.hasOption(TRANSMITTER)) {
-      commands.add(new MplCommand(
-          "/execute @e[tag=" + hash + "] ~ ~ ~ blockdata ~ ~ ~ {Command:" + getStopCommand() + "}",
-          breakpoint));
-    }
-
-    commands.add(new MplNotify("breakpoint", breakpoint));
-
-    process.setChainParts(commands);
-    return visitProcess(process);
-  }
-
-  private List<ChainLink> visitIgnoringWarnings(ChainPart cp) {
-    MplCompilerContext context = new MplCompilerContext(this.context.getVersion(), options);
-    MplMainAstVisitor visitor = new MplMainAstVisitor(context);
-    visitor.program = program;
-    List<ChainLink> accept = cp.accept(visitor);
-    context.clearWarnings();
-    this.context.addContext(context);
-    return accept;
   }
 
   /**
-   * Returns null if the specified {@code process} is of type {@link ProcessType#INLINE}.
+   * Checks if the given {@link ModifiableChainPart} has the {@link Conditional#INVERT INVERT}
+   * modifier. If it does, an {@link Commands#newInvertingCommand inverting command} is added to
+   * {@code commands}. If {@code chainPart} does not have predecessor an
+   * {@link IllegalStateException} is thrown.
    *
-   * @param process the {@link MplProcess} to convert
-   * @return result a new {@link CommandChain}
+   * @param commands the list to add to
+   * @param chainPart the {@link ModifiableChainPart} to check
+   * @throws IllegalStateException if {@code chainPart} does not have predecessor
    */
-  public @Nullable CommandChain visitProcess(MplProcess process) {
-    if (process.getType() == INLINE) {
-      return null;
+  protected void addInvertingCommandIfInvert(List<? super Command> commands,
+      ModifiableChainPart chainPart) throws IllegalStateException {
+    if (chainPart.getConditional() == Conditional.INVERT) {
+      Dependable previous = context.getPrevious();
+      checkState(previous != null,
+          "Cannot invert ChainPart; no previous command found for " + chainPart);
+      commands.add(newInvertingCommand(previous));
     }
-    List<ChainPart> chainParts = new CopyScope().copy(process.getChainParts());
-    List<ChainLink> result = new ArrayList<>(chainParts.size());
-    boolean containsSkip = containsHighlevelSkip(chainParts);
-    String name = process.getName();
-    if (name != null) {
-      if (process.isRepeating()) {
-        if (options.hasOption(TRANSMITTER)) {
-          result.add(new MplSkip());
-        }
-        if (chainParts.isEmpty()) {
-          chainParts.add(new MplCommand("", process.getSource()));
-        }
-        ChainPart first = chainParts.get(0);
-        try {
-          if (containsSkip) {
-            first.setMode(IMPULSE);
-          } else {
-            first.setMode(REPEAT);
-          }
-          first.setNeedsRedstone(true);
-        } catch (IllegalModifierException ex) {
-          throw new IllegalStateException(ex.getMessage(), ex);
-        }
-      } else {
-        result.addAll(newJumpDestination(false));
-      }
-    } else if (options.hasOption(TRANSMITTER)) {
-      result.add(new MplSkip());
-    }
-    for (ChainPart chainPart : chainParts) {
-      result.addAll(chainPart.accept(this));
-    }
-    if (process.isRepeating() && containsSkip) {
-      result.addAll(getRestartBackref(result.get(0), false));
-      resolveReferences(result);
-    }
-    if (!process.isRepeating() && name != null && !"install".equals(name)
-        && !"uninstall".equals(name)) {
-      result.addAll(visitIgnoringWarnings(new MplNotify(name, process.getSource())));
-    }
-    return new CommandChain(name, result, process.getTags());
-  }
-
-  private boolean containsHighlevelSkip(List<ChainPart> chainParts) {
-    for (ChainPart chainPart : chainParts) {
-      if (chainPart instanceof MplWaitfor//
-          || chainPart instanceof MplIntercept//
-          || chainPart instanceof MplBreakpoint//
-          || chainPart instanceof MplWhile//
-          || chainPart instanceof MplBreak//
-          || chainPart instanceof MplContinue//
-      ) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
@@ -318,9 +176,9 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
    */
   private boolean checkProcessExists(ModifiableChainPart chainpart, String processName) {
     checkNotNull(processName, "processName == null!");
-    if (!program.containsProcess(processName)) {
+    if (!context.getProgram().containsProcess(processName)) {
       if (!"breakpoint".equals(processName)) {
-        context.addWarning(new CompilerException(chainpart.getSource(),
+        compilerContext.addWarning(new CompilerException(chainpart.getSource(),
             "Could not resolve process " + processName));
       }
       return false;
@@ -339,92 +197,114 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
    */
   private boolean checkNotInlineProcess(ModifiableChainPart chainpart, String processName) {
     checkNotNull(processName, "processName == null!");
-    MplProcess process = program.getProcess(processName);
+    MplProcess process = context.getProgram().getProcess(processName);
     if (process != null && process.getType() == ProcessType.INLINE) {
-      context.addError(new CompilerException(chainpart.getSource(),
+      compilerContext.addError(new CompilerException(chainpart.getSource(),
           "Cannot " + chainpart.getName() + " an inline process"));
       return false;
     }
     return true;
   }
 
-  @Override
-  public List<ChainLink> visitInternalCommand(InternalMplCommand command) {
-    return command.getChainLinks();
+  private List<ChainLink> afterVisit(List<ChainLink> result) {
+    if (!result.isEmpty()) {
+      context.setPrevious(result.get(result.size() - 1));
+    }
+    return result;
   }
 
   @Override
-  public List<ChainLink> visitCommand(MplCommand command) {
-    List<ChainLink> result = new ArrayList<>(2);
-    addInvertingCommandIfInvert(result, command);
+  public List<ChainLink> visitInternalCommand(InternalMplCommand mplCommand) {
+    return afterVisit(mplCommand.getChainLinks());
+  }
 
-    CommandPartBuffer cmd = command.getMinecraftCommand();
-    result.add(newCommand(cmd, command));
-    return result;
+  @Override
+  public List<ChainLink> visitCommand(MplCommand mplCommand) {
+    List<ChainLink> result = new ArrayList<>(2);
+    addInvertingCommandIfInvert(result, mplCommand);
+
+    CommandPartBuffer cmd = mplCommand.getMinecraftCommand();
+    result.add(newCommand(cmd, mplCommand));
+    return afterVisit(result);
   }
 
   @Override
   public List<ChainLink> visitCall(MplCall mplCall) {
-    List<ChainLink> result = new ArrayList<>();
     String processName = mplCall.getProcess();
     if (checkProcessExists(mplCall, processName)) {
-      MplProcess process = program.getProcess(processName);
+      MplProcess process = context.getProgram().getProcess(processName);
       if (process.getType() == INLINE) {
-        for (ChainPart cp : process.getChainParts()) {
-          result.addAll(cp.accept(this));
-        }
-        return result;
+        return visitCallInline(mplCall, process);
       }
     }
+    List<ChainLink> result = new ArrayList<>();
     ModifierBuffer modifier = new ModifierBuffer();
     modifier.setConditional(mplCall.isConditional() ? CONDITIONAL : UNCONDITIONAL);
-    MplStart mplStart = new MplStart("@e[name=" + processName + "]", mplCall, mplCall.getPrevious(),
-        mplCall.getSource());
+    MplStart mplStart = new MplStart("@e[name=" + processName + "]", mplCall, mplCall.getSource());
     result.addAll(mplStart.accept(this));
 
     MplWaitfor mplWaitfor = new MplWaitfor(processName, modifier, mplCall.getSource());
     result.addAll(visitIgnoringWarnings(mplWaitfor));
-    return result;
+    return afterVisit(result);
+  }
+
+  protected List<ChainLink> visitCallInline(MplCall mplCall, MplProcess process) {
+    List<ChainLink> result = new ArrayList<>();
+    List<ChainPart> chainParts = new CopyScope().copy(process.getChainParts());
+    if (mplCall.isConditional()) {
+      boolean not = mplCall.getConditional() == INVERT;
+      context.getIfNestingLayers().push(new IfNestingLayer(not, context.getPrevious()));
+      MplProcessIfAstVisitor visitor = new MplProcessIfAstVisitor(compilerContext, context);
+      for (ChainPart cp : chainParts) {
+        result.addAll(cp.accept(visitor));
+      }
+      context.getIfNestingLayers().pop();
+    } else {
+      for (ChainPart cp : chainParts) {
+        result.addAll(cp.accept(this));
+      }
+    }
+    return afterVisit(result);
   }
 
   @Override
-  public List<ChainLink> visitStart(MplStart start) {
+  public List<ChainLink> visitStart(MplStart mplStart) {
     List<ChainLink> result = new ArrayList<>(2);
-    String selector = start.getSelector();
+    String selector = mplStart.getSelector();
     String processName = selector.substring(8, selector.length() - 1);
-    checkProcessExists(start, processName);
-    checkNotInlineProcess(start, processName);
-    addInvertingCommandIfInvert(result, start);
+    checkProcessExists(mplStart, processName);
+    checkNotInlineProcess(mplStart, processName);
+    addInvertingCommandIfInvert(result, mplStart);
 
     String command = "execute " + selector + " ~ ~ ~ " + getStartCommand();
-    result.add(newCommand(command, start));
-    return result;
+    result.add(newCommand(command, mplStart));
+    return afterVisit(result);
   }
 
   @Override
-  public List<ChainLink> visitStop(MplStop stop) {
+  public List<ChainLink> visitStop(MplStop mplStop) {
     List<ChainLink> result = new ArrayList<>(2);
-    String selector = stop.getSelector();
+    String selector = mplStop.getSelector();
     String processName = selector.substring(8, selector.length() - 1);
-    checkProcessExists(stop, processName);
-    checkNotInlineProcess(stop, processName);
-    addInvertingCommandIfInvert(result, stop);
+    checkProcessExists(mplStop, processName);
+    checkNotInlineProcess(mplStop, processName);
+    addInvertingCommandIfInvert(result, mplStop);
 
     String command = "execute " + selector + " ~ ~ ~ " + getStopCommand();
-    result.add(newCommand(command, stop));
-    return result;
+    result.add(newCommand(command, mplStop));
+    return afterVisit(result);
   }
 
   @Override
-  public List<ChainLink> visitWaitfor(MplWaitfor waitfor) {
+  public List<ChainLink> visitWaitfor(MplWaitfor mplWaitfor) {
     List<ChainLink> result = new ArrayList<>();
-    checkIsUsed(waitfor);
-    String event = waitfor.getEvent();
-    checkNotInlineProcess(waitfor, event);
+    checkIsUsed(mplWaitfor);
+    String event = mplWaitfor.getEvent();
+    checkNotInlineProcess(mplWaitfor, event);
 
     List<ChainLink> dest = newJumpDestination(false);
 
-    MinecraftVersion version = context.getVersion();
+    MinecraftVersion version = compilerContext.getVersion();
     CommandPartBuffer summonCpb = new CommandPartBuffer();
     summonCpb.add("summon " + version.markerEntity() + " ");
     summonCpb.add(new TargetedThisInsert(dest.get(0)));
@@ -432,27 +312,27 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
         " {CustomName:" + event + NOTIFY + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
     Command summon = newInternalCommand(summonCpb, modifier());
 
-    if (waitfor.getConditional() == UNCONDITIONAL) {
-      summon.setModifier(waitfor);
+    if (mplWaitfor.getConditional() == UNCONDITIONAL) {
+      summon.setModifier(mplWaitfor);
       result.add(summon);
     } else {
       Command noWait = newInternalCommand(getStartCommand(dest.get(0)), modifier(CONDITIONAL));
-      if (waitfor.getConditional() == CONDITIONAL) {
-        summon.setModifier(waitfor);
+      if (mplWaitfor.getConditional() == CONDITIONAL) {
+        summon.setModifier(mplWaitfor);
         result.add(summon);
-        result.add(newInvertingCommand(waitfor.getMode()));
+        result.add(newInvertingCommand(mplWaitfor.getMode()));
         result.add(noWait);
       } else { // conditional == INVERT
-        noWait.setModifier(waitfor);
+        noWait.setModifier(mplWaitfor);
         summon.setConditional(true);
         result.add(noWait);
-        result.add(newInvertingCommand(waitfor.getMode()));
+        result.add(newInvertingCommand(mplWaitfor.getMode()));
         result.add(summon);
       }
     }
     result.addAll(dest);
-    resolveReferences(result);
-    return result;
+    resolveAllTargetedThisInserts(result);
+    return afterVisit(result);
   }
 
   /**
@@ -461,11 +341,12 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
    * {@link MplNotify} for the event of the waitfor. If the waitfor is not used, a compiler warning
    * is added.
    *
-   * @param waitfor the {@link MplWaitfor}
+   * @param mplWaitfor the {@link MplWaitfor}
    * @return {@code true} if the specified waitfor is used, {@code false} otherwise
    */
-  private boolean checkIsUsed(MplWaitfor waitfor) {
-    String event = waitfor.getEvent();
+  private boolean checkIsUsed(MplWaitfor mplWaitfor) {
+    MplProgram program = context.getProgram();
+    String event = mplWaitfor.getEvent();
     boolean triggeredByProcess = program.streamProcesses()//
         .anyMatch(p -> event.equals(p.getName()));
     if (triggeredByProcess) {
@@ -481,23 +362,23 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
         return true;
       }
     }
-    context.addWarning(
-        new CompilerException(waitfor.getSource(), "The event " + event + " is never triggered"));
+    compilerContext.addWarning(new CompilerException(mplWaitfor.getSource(),
+        "The event " + event + " is never triggered"));
     return false;
   }
 
   @Override
-  public List<ChainLink> visitNotify(MplNotify notify) {
+  public List<ChainLink> visitNotify(MplNotify mplNotify) {
     List<ChainLink> result = new ArrayList<>(3);
-    String event = notify.getEvent();
-    checkIsUsed(notify);
-    addInvertingCommandIfInvert(result, notify);
+    String event = mplNotify.getEvent();
+    checkIsUsed(mplNotify);
+    addInvertingCommandIfInvert(result, mplNotify);
 
-    ModifierBuffer modifier = modifier(notify.getConditional());
-    result.add(
-        newCommand("execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + getStartCommand(), modifier));
-    result.add(newInternalCommand("kill @e[name=" + event + NOTIFY + "]", modifier));
-    return result;
+    result.add(newCommand("execute @e[name=" + event + NOTIFY + "] ~ ~ ~ " + getStartCommand(),
+        mplNotify));
+    result.add(newInternalCommand("kill @e[name=" + event + NOTIFY + "]",
+        modifier(mplNotify.getConditional())));
+    return afterVisit(result);
   }
 
   /**
@@ -505,12 +386,12 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
    * {@link MplWaitfor} for the event of the notify. If the notify is not used, a compiler warning
    * is added.
    *
-   * @param notify the {@link MplNotify}
+   * @param mplNotify the {@link MplNotify}
    * @return {@code true} if the specified notify is used, {@code false} otherwise
    */
-  private boolean checkIsUsed(MplNotify notify) {
-    String event = notify.getEvent();
-    for (MplProcess mplProcess : program.getAllProcesses()) {
+  private boolean checkIsUsed(MplNotify mplNotify) {
+    String event = mplNotify.getEvent();
+    for (MplProcess mplProcess : context.getProgram().getAllProcesses()) {
       ContainsMatchVisitor visitor = new ContainsMatchVisitor(
           cp -> ((cp instanceof MplWaitfor) && event.equals(((MplWaitfor) cp).getEvent()))
               || ((cp instanceof MplCall) && event.equals(((MplCall) cp).getProcess())));
@@ -519,18 +400,18 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
         return true;
       }
     }
-    context.addWarning(
-        new CompilerException(notify.getSource(), "The event " + event + " is never used"));
+    compilerContext.addWarning(
+        new CompilerException(mplNotify.getSource(), "The event " + event + " is never used"));
     return false;
   }
 
   @Override
-  public List<ChainLink> visitIntercept(MplIntercept intercept) {
+  public List<ChainLink> visitIntercept(MplIntercept mplIntercept) {
     List<ChainLink> result = new ArrayList<>();
-    String event = intercept.getEvent();
-    checkProcessExists(intercept, event);
-    checkNotInlineProcess(intercept, event);
-    Conditional conditional = intercept.getConditional();
+    String event = mplIntercept.getEvent();
+    checkProcessExists(mplIntercept, event);
+    checkNotInlineProcess(mplIntercept, event);
+    Conditional conditional = mplIntercept.getConditional();
 
     Command entitydata = newInternalCommand(
         "entitydata @e[name=" + event + "] {CustomName:" + event + INTERCEPTED + "}",
@@ -539,7 +420,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
 
     List<ChainLink> trc = newJumpDestination(false);
 
-    MinecraftVersion version = context.getVersion();
+    MinecraftVersion version = compilerContext.getVersion();
 
     CommandPartBuffer summonCpb = new CommandPartBuffer();
     summonCpb.add("summon " + version.markerEntity() + " ");
@@ -548,12 +429,12 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
         .add(" {CustomName:" + event + ",NoGravity:1b,Invisible:1b,Invulnerable:1b,Marker:1b}");
     ChainLink summon = newInternalCommand(summonCpb, modifier(conditional));
 
-    if (intercept.getConditional() == UNCONDITIONAL) {
+    if (mplIntercept.getConditional() == UNCONDITIONAL) {
       result.add(entitydata);
       result.add(summon);
     } else {
       ChainLink noWait = newInternalCommand(getStartCommand(trc.get(0)), modifier(CONDITIONAL));
-      if (intercept.getConditional() == CONDITIONAL) {
+      if (mplIntercept.getConditional() == CONDITIONAL) {
         result.add(entitydata);
         result.add(summon);
         result.add(newInvertingCommand(CHAIN));
@@ -569,17 +450,17 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     result.add(newInternalCommand("kill @e[name=" + event + ",r=2]"));
     result.add(newInternalCommand(
         "entitydata @e[name=" + event + INTERCEPTED + "] {CustomName:" + event + "}"));
-    resolveReferences(result);
-    return result;
+    resolveAllTargetedThisInserts(result);
+    return afterVisit(result);
   }
 
   @Override
   public List<ChainLink> visitBreakpoint(MplBreakpoint mplBreakpoint) {
     if (!options.hasOption(DEBUG)) {
-      return Collections.emptyList();
+      return afterVisit(Collections.emptyList());
     }
     List<ChainLink> result = new ArrayList<>();
-    this.breakpoint = mplBreakpoint.getSource();
+    context.setBreakpoint(mplBreakpoint.getSource());
 
     addInvertingCommandIfInvert(result, mplBreakpoint);
 
@@ -593,14 +474,14 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     // MplWaitfor mplWaitfor = new MplWaitfor("breakpoint", modifier, mplBreakpoint.getSource());
     // result.addAll(mplStart.accept(this));
     // result.addAll(mplWaitfor.accept(this));
-    return result;
+    return afterVisit(result);
   }
 
   @Override
-  public List<ChainLink> visitSkip(MplSkip skip) {
+  public List<ChainLink> visitSkip(MplSkip mplSkip) {
     List<ChainLink> result = new ArrayList<>(1);
-    result.add(skip);
-    return result;
+    result.add(mplSkip);
+    return afterVisit(result);
   }
 
   // @formatter:off
@@ -614,21 +495,6 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
   // ----------------------------------------------------------------------------------------------------
   // @formatter:on
 
-  @RequiredArgsConstructor
-  @Getter
-  @Setter
-  private static class IfNestingLayer {
-    private final boolean not;
-    private final @Nonnull Command ref;
-    private boolean inElse;
-
-    public boolean isDependingOnFailure() {
-      return not ^ inElse;
-    }
-  }
-
-  private Deque<IfNestingLayer> ifNestingLayers = new ArrayDeque<>();
-
   @Override
   public List<ChainLink> visitIf(MplIf mplIf) {
     List<ChainLink> result = new ArrayList<>();
@@ -636,154 +502,28 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
 
     Command ref = newCommand(mplIf.getCondition(), mplIf);
     result.add(ref);
-    if (needsNormalizer(mplIf)) {
+    if (mplIf.needsNormalizer()) {
       ref = newNormalizingCommand();
       result.add(ref);
     }
     IfNestingLayer layer = new IfNestingLayer(mplIf.isNot(), ref);
-    ifNestingLayers.push(layer);
+    context.getIfNestingLayers().push(layer);
 
-    // then
+    MplProcessIfAstVisitor ifVisitor = new MplProcessIfAstVisitor(compilerContext, context);
+
     layer.setInElse(false);
-    Deque<ChainPart> thenParts = new ArrayDeque<>(mplIf.getThenParts());
-    boolean emptyThen = thenParts.isEmpty();
-    if (!mplIf.isNot() && !emptyThen) {
-      // First then does not need a reference
-      result.addAll(getAsConditional(thenParts.pop()));
+    for (ChainPart thenPart : mplIf.getThenParts()) {
+      result.addAll(thenPart.accept(ifVisitor));
     }
-    result.addAll(getAllWithRef(thenParts));
 
-    // else
     layer.setInElse(true);
-    Deque<ChainPart> elseParts = new ArrayDeque<>(mplIf.getElseParts());
-    boolean emptyElse = elseParts.isEmpty();
-    if (mplIf.isNot() && emptyThen && !emptyElse) {
-      // First else does not need a reference, if there is no then part
-      result.addAll(getAsConditional(elseParts.pop()));
+    for (ChainPart elsePart : mplIf.getElseParts()) {
+      result.addAll(elsePart.accept(ifVisitor));
     }
-    result.addAll(getAllWithRef(elseParts));
 
-    ifNestingLayers.pop();
-    resolveReferences(result);
-    return result;
-  }
-
-  private List<ChainLink> getAllWithRef(Iterable<ChainPart> chainParts) {
-    List<ChainLink> result = new ArrayList<>();
-    for (ChainPart chainPart : chainParts) {
-      result.addAll(getWithRef(cast(chainPart)));
-    }
-    return result;
-  }
-
-  private List<ChainLink> getWithRef(ModifiableChainPart chainPart) {
-    List<ChainLink> result = new ArrayList<>();
-    addInvertingCommandIfInvert(result, chainPart);
-    if (chainPart.getConditional() != CONDITIONAL) {
-      result.addAll(getConditionReferences(chainPart));
-    }
-    result.addAll(getAsConditional(chainPart));
-    return result;
-  }
-
-  /**
-   * Add's all references to required {@link MplIf}s. If the chainPart depends on the parent's
-   * failure a reference to the grandparent is also added. This method is recursive and will add
-   * parent references, until the root is reached or until a layer depends on it's parent's success
-   * rather that failure.
-   *
-   * @return
-   */
-  private List<ChainLink> getConditionReferences(ModifiableChainPart chainPart) {
-    Deque<IfNestingLayer> requiredReferences = new ArrayDeque<>();
-    for (IfNestingLayer layer : ifNestingLayers) {
-      requiredReferences.push(layer);
-      boolean dependingOnFailure = layer.isNot() ^ layer.isInElse();
-      if (!dependingOnFailure) {
-        break;
-      }
-    }
-    List<ChainLink> result = new ArrayList<>(requiredReferences.size());
-    if (chainPart.getConditional() == UNCONDITIONAL) {
-      IfNestingLayer first = requiredReferences.pop();
-      result.add(getConditionReference(first));
-    }
-    for (IfNestingLayer layer : requiredReferences) {
-      Command ref = getConditionReference(layer);
-      ref.setConditional(true);
-      result.add(ref);
-    }
-    return result;
-  }
-
-  private Command getConditionReference(IfNestingLayer layer) {
-    Command referenced = layer.getRef();
-    boolean success = !layer.isDependingOnFailure();
-    return newTestforSuccessCommand(referenced, success);
-  }
-
-  private List<ChainLink> getAsConditional(ChainPart chainPart) {
-    cast(chainPart).setConditional(CONDITIONAL);
-    return chainPart.accept(this);
-  }
-
-  private static ModifiableChainPart cast(ChainPart chainPart) {
-    try {
-      return (ModifiableChainPart) chainPart;
-    } catch (ClassCastException ex) {
-      throw new IllegalStateException("If cannot contain " + chainPart.getName(), ex);
-    }
-  }
-
-  public static boolean needsNormalizer(MplIf mplIf) {
-    if (!mplIf.isNot()) {
-      return containsConditionReferenceIgnoringFirstNonIf(mplIf.getThenParts());
-    } else {
-      if (!mplIf.getThenParts().isEmpty()) {
-        if (!mplIf.getElseParts().isEmpty())
-          return true;
-        else
-          return false;
-      }
-      return containsConditionReferenceIgnoringFirstNonIf(mplIf.getElseParts());
-    }
-  }
-
-  private static boolean containsConditionReferenceIgnoringFirstNonIf(
-      Iterable<ChainPart> iterable) {
-    Iterator<ChainPart> it = iterable.iterator();
-    if (it.hasNext()) {
-      ChainPart first = it.next(); // Ignore the first element ...
-      if (first instanceof MplIf) {
-        it = iterable.iterator(); // ... only if it is not a nested if
-      }
-    }
-    return containsConditionReference(it);
-  }
-
-  private static boolean containsConditionReference(Iterator<ChainPart> it) {
-    while (it.hasNext()) {
-      ChainPart chainPart = it.next();
-      if (chainPart instanceof MplIf) {
-        if (needsParentNormalizer((MplIf) chainPart)) {
-          return true;
-        }
-      } else if (chainPart instanceof ModifiableChainPart) {
-        ModifiableChainPart cp = (ModifiableChainPart) chainPart;
-        if (!cp.isConditional()) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  private static boolean needsParentNormalizer(MplIf mplIf) {
-    if (mplIf.isNot()) {
-      return containsConditionReference(mplIf.getThenParts().iterator());
-    } else {
-      return containsConditionReference(mplIf.getElseParts().iterator());
-    }
+    context.getIfNestingLayers().pop();
+    resolveAllTargetedThisInserts(result);
+    return afterVisit(result);
   }
 
   // @formatter:off
@@ -797,12 +537,10 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
   // ----------------------------------------------------------------------------------------------------
   // @formatter:on
 
-  private Deque<MplWhile> loops = new ArrayDeque<>();
-
   @Override
   public List<ChainLink> visitWhile(MplWhile mplWhile) {
     List<ChainLink> result = new ArrayList<>();
-    loops.push(mplWhile);
+    context.getLoops().push(mplWhile);
 
     String condition = mplWhile.getCondition();
     boolean hasInitialCondition = condition != null && !mplWhile.isTrailing();
@@ -898,7 +636,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     ChainLink exitLink = exit.get(0);
     skipLoopInsert.setTarget(exitLink);
 
-    for (Iterator<LoopRef> it = loopRefs.iterator(); it.hasNext();) {
+    for (Iterator<LoopRef> it = context.getLoopRefs().iterator(); it.hasNext();) {
       LoopRef ref = it.next();
       if (ref.getLoop() == mplWhile) {
         ref.setEntryLink(entryLink);
@@ -907,24 +645,9 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       }
     }
 
-    loops.pop();
-    resolveReferences(result);
-    return result;
-  }
-
-  private Deque<LoopRef> loopRefs = new ArrayDeque<>();
-
-  @Getter
-  private abstract class LoopRef {
-    private final @Nonnull MplWhile loop;
-
-    public LoopRef(MplWhile loop) {
-      this.loop = checkNotNull(loop, "loop == null!");
-    }
-
-    void setEntryLink(ChainLink entryLink) {}
-
-    void setExitLink(ChainLink exitLink) {}
+    context.getLoops().pop();
+    resolveAllTargetedThisInserts(result);
+    return afterVisit(result);
   }
 
   @Override
@@ -937,7 +660,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       List<Command> breakLoop = getBreakLoop(loop);
       breakLoop.get(0).setModifier(mplBreak);
       result.addAll(breakLoop);
-      return result;
+      return afterVisit(result);
     }
     List<ChainLink> dest = newJumpDestination(false);
     Command dontBreak = newInternalCommand(getStartCommand(dest.get(0)), modifier(CONDITIONAL));
@@ -954,8 +677,8 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
       result.addAll(getBreakLoop(loop, true));
     }
     result.addAll(dest);
-    resolveReferences(result);
-    return result;
+    resolveAllTargetedThisInserts(result);
+    return afterVisit(result);
   }
 
   @Override
@@ -976,13 +699,12 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
         continueLoop.get(0).setModifier(mplContinue);
         result.addAll(continueLoop);
       }
-      return result;
+      return afterVisit(result);
     }
     MplSource source = mplContinue.getSource();
     MplIf outerIf = new MplIf(false, "//", source);
-    outerIf.setMode(mplContinue.getPrevious().getModeForInverting());
+    outerIf.setMode(context.getPrevious().getMode());
     outerIf.setConditional(mplContinue.isConditional() ? CONDITIONAL : UNCONDITIONAL);
-    outerIf.setPrevious(mplContinue.getPrevious());
     outerIf.enterThen();
     if (condition != null) {
       MplIf innerIf = new MplIf(false, condition, source);
@@ -1006,10 +728,10 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     result.addAll(ifResult);
 
     result.addAll(end);
-    resolveReferences(result);
+    resolveAllTargetedThisInserts(result);
     // FIXME: Dirty Hack: The condition of an if should be an instance of Dependable
     result.removeIf(it -> it == ifResult.get(0));
-    return result;
+    return afterVisit(result);
   }
 
   /**
@@ -1037,7 +759,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
   private List<Command> getBreakLoop(MplWhile loop) {
     List<Command> result = new ArrayList<>();
     result.add(newExitLoopCommand(loop));
-    for (MplWhile innerLoop : loops) {
+    for (MplWhile innerLoop : context.getLoops()) {
       Command stop = newLoopStoppingCommand(innerLoop);
       stop.setConditional(true);
       result.add(stop);
@@ -1085,7 +807,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
   @CheckReturnValue
   private List<Command> getContinueLoop(MplWhile loop) {
     List<Command> result = new ArrayList<>();
-    for (MplWhile innerLoop : loops) {
+    for (MplWhile innerLoop : context.getLoops()) {
       Command stop = newLoopStoppingCommand(innerLoop);
       stop.setConditional(true);
       result.add(stop);
@@ -1122,7 +844,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
   @CheckReturnValue
   private Command newLoopStartingCommand(MplWhile loop) {
     TargetedThisInsert insert = new TargetedThisInsert();
-    loopRefs.add(new LoopRef(loop) {
+    context.getLoopRefs().add(new LoopRef(loop) {
       @Override
       public void setEntryLink(ChainLink entryLink) {
         insert.setTarget(entryLink);
@@ -1140,7 +862,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
   @CheckReturnValue
   private Command newLoopStoppingCommand(MplWhile loop) {
     TargetedThisInsert insert = new TargetedThisInsert();
-    loopRefs.add(new LoopRef(loop) {
+    context.getLoopRefs().add(new LoopRef(loop) {
       @Override
       public void setEntryLink(ChainLink entryLink) {
         insert.setTarget(entryLink);
@@ -1158,7 +880,7 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
   @CheckReturnValue
   private Command newExitLoopCommand(MplWhile loop) {
     TargetedThisInsert insert = new TargetedThisInsert();
-    loopRefs.add(new LoopRef(loop) {
+    context.getLoopRefs().add(new LoopRef(loop) {
       @Override
       public void setExitLink(ChainLink exitLink) {
         insert.setTarget(exitLink);
@@ -1166,5 +888,4 @@ public class MplMainAstVisitor extends MplBaseAstVisitor {
     });
     return newInternalCommand(getStartCommand(insert), modifier());
   }
-
 }

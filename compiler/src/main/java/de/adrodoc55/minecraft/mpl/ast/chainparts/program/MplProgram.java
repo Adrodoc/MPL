@@ -57,7 +57,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
-import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.commons.Named;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
@@ -128,8 +127,8 @@ public class MplProgram implements Named {
     MplSource oldSource = previous.getSource();
     MplSource newSource = process.getSource();
     if (!newSource.getFile().equals(oldSource.getFile())) {
-      oldMessage += "; was also found in " + FileUtils.getCanonicalPath(newSource.getFile());
-      newMessage += "; was also found in " + FileUtils.getCanonicalPath(oldSource.getFile());
+      oldMessage += "; was also found in " + newSource.getFile();
+      newMessage += "; was also found in " + oldSource.getFile();
     }
     context.addError(new CompilerException(oldSource, oldMessage));
     context.addError(new CompilerException(newSource, newMessage));

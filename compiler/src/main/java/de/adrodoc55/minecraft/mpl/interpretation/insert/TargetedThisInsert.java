@@ -43,7 +43,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nullable;
 
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.Dependable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -57,15 +57,15 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class TargetedThisInsert {
-  private @Nullable ChainLink target;
+  private @Nullable Dependable target;
 
   public TargetedThisInsert() {}
 
-  public TargetedThisInsert(ChainLink target) {
+  public TargetedThisInsert(Dependable target) {
     setTarget(target);
   }
 
-  public void setTarget(ChainLink target) {
+  public void setTarget(Dependable target) {
     this.target = checkNotNull(target, "target == null!");
   }
 }

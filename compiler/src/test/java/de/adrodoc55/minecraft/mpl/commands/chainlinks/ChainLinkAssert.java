@@ -114,6 +114,14 @@ public class ChainLinkAssert<S extends ChainLinkAssert<S, A>, A extends ChainLin
     return asCommand().hasCommandParts(commandParts);
   }
 
+  public CommandAssert hasMode(Mode mode) {
+    return asCommand().hasMode(mode);
+  }
+
+  public CommandAssert doesNeedRedstone() {
+    return asCommand().doesNeedRedstone();
+  }
+
   public CommandAssert hasDefaultModifiers() {
     return asCommand().hasDefaultModifiers();
   }

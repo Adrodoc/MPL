@@ -41,6 +41,7 @@ package de.adrodoc55.minecraft.mpl.interpretation;
 
 import static com.google.common.base.Preconditions.checkState;
 import static de.adrodoc55.commons.ArrayUtils.nonNullElementsIn;
+import static de.adrodoc55.commons.FileUtils.getCanonicalFile;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
 import static de.adrodoc55.minecraft.mpl.ast.variable.Insertable.checkInsertable;
@@ -74,7 +75,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 
-import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
@@ -291,7 +291,7 @@ public class MplInterpreter extends MplParserBaseListener {
   public void enterImportDeclaration(ImportDeclarationContext ctx) {
     Token token = ctx.STRING().getSymbol();
     String importPath = MplLexerUtils.getContainedString(token);
-    File file = new File(programFile.getParentFile(), importPath);
+    File file = getCanonicalFile(new File(programFile.getParentFile(), importPath));
     addFileImport(ctx, file);
   }
 
@@ -340,7 +340,7 @@ public class MplInterpreter extends MplParserBaseListener {
   public void enterInclude(IncludeContext ctx) {
     String includePath = MplLexerUtils.getContainedString(ctx.STRING().getSymbol());
     Token token = ctx.STRING().getSymbol();
-    File includeFile = new File(programFile.getParentFile(), includePath);
+    File includeFile = getCanonicalFile(new File(programFile.getParentFile(), includePath));
     MplSource source = toSource(token);
     if (!included.add(includeFile)) {
       context.addError(new CompilerException(source, "Duplicate include"));
@@ -393,8 +393,7 @@ public class MplInterpreter extends MplParserBaseListener {
       }
       return added;
     } else if (!file.exists()) {
-      String path = FileUtils.getCanonicalPath(file);
-      context.addError(new CompilerException(source, "Could not find '" + path + "'"));
+      context.addError(new CompilerException(source, "Could not find '" + file + "'"));
       return false;
     } else {
       context.addError(new CompilerException(source,
@@ -603,7 +602,6 @@ public class MplInterpreter extends MplParserBaseListener {
       return;
     }
     if (prev.canBeDependedOn()) {
-      chainPart.setPrevious(prev);
       chainBuffer.add(chainPart);
     } else {
       Token token = modifierBuffer.getConditionalToken();
@@ -659,7 +657,7 @@ public class MplInterpreter extends MplParserBaseListener {
     MplSource source =
         toSource(ctx.INSERT_IDENTIFIER(0), ctx.INSERT_DOT(), ctx.INSERT_IDENTIFIER(1));
     references.put(srcProcess, new MplGlobalVariableReference(fileNameWithoutExtension, identifier,
-        insert, imports, source, context));
+        insert, imports, source));
     commandPartBuffer.add(insert);
   }
 
@@ -687,14 +685,17 @@ public class MplInterpreter extends MplParserBaseListener {
     TerminalNode identifier = ctx.IDENTIFIER();
     String process = identifier.getText();
     MplSource source = toSource(identifier.getSymbol());
-    MplCall call = new MplCall(process, source);
-    chainBuffer.add(call);
+    MplCall call = new MplCall(process, modifierBuffer, source);
+    addModifiableChainPart(call);
+
+    checkNoModifier(call.getName(), modifierBuffer.getModeToken());
+    checkNoModifier(call.getName(), modifierBuffer.getNeedsRedstoneToken());
 
     if (program.isScript()) {
       return;
     }
     String srcProcess = this.process != null ? this.process.getName() : null;
-    references.put(srcProcess, new MplProcessReference(process, imports, source, context));
+    references.put(srcProcess, new MplProcessReference(process, imports, source));
   }
 
   private String toSelector(String text) {
@@ -729,7 +730,7 @@ public class MplInterpreter extends MplParserBaseListener {
       }
 
       String srcProcess = this.process != null ? this.process.getName() : null;
-      references.put(srcProcess, new MplProcessReference(process, imports, source, context));
+      references.put(srcProcess, new MplProcessReference(process, imports, source));
     }
   }
 

@@ -42,7 +42,6 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
@@ -72,12 +71,6 @@ public class MplBreakpoint extends ModifiableChainPart {
   @GenerateMplPojoBuilder
   public MplBreakpoint(String message, ExtendedModifiable modifier, @Nonnull MplSource source) {
     super(modifier, source);
-    this.message = checkNotNull(message, "message == null!");
-  }
-
-  public MplBreakpoint(String message, ExtendedModifiable modifier, @Nullable Dependable previous,
-      @Nonnull MplSource source) {
-    super(modifier, previous, source);
     this.message = checkNotNull(message, "message == null!");
   }
 

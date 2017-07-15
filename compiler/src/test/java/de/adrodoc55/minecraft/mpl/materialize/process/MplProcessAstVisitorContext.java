@@ -37,30 +37,61 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.visitor;
+package de.adrodoc55.minecraft.mpl.materialize.process;
 
-import java.util.Arrays;
-import java.util.Collection;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import de.adrodoc55.commons.collections.Collections;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
-/**
- * @author Adrodoc55
- */
-public class MplAstFlattener extends MplDeepAstVisitor<Collection<ChainPart>> {
-  public static Collection<ChainPart> flatten(Collection<ChainPart> ast) {
-    MplAstFlattener flattener = new MplAstFlattener();
-    return flattener.toResult(flattener.visit(ast));
+import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.minecraft.mpl.commands.Dependable;
+import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
+
+public class MplProcessAstVisitorContext implements MplProcessAstVisitor.Context {
+  private final MplProgram program;
+  private Dependable previous;
+  private final Deque<IfNestingLayer> ifNestingLayers = new ArrayDeque<>();
+  private final Deque<MplWhile> loops = new ArrayDeque<>();
+  private final Deque<LoopRef> loopRefs = new ArrayDeque<>();
+
+  @GenerateMplPojoBuilder
+  public MplProcessAstVisitorContext(MplProgram program) {
+    this.program = checkNotNull(program, "program == null!");
   }
 
   @Override
-  protected Collection<ChainPart> visit(ChainPart chainPart) {
-    return Arrays.asList(chainPart);
+  public MplProgram getProgram() {
+    return program;
   }
 
   @Override
-  protected Collection<ChainPart> toResult(Collection<Collection<ChainPart>> results) {
-    return Collections.concat(results);
+  public Dependable getPrevious() {
+    return previous;
+  }
+
+  @Override
+  public void setPrevious(Dependable previous) {
+    this.previous = previous;
+  }
+
+  @Override
+  public void setBreakpoint(MplSource breakpoint) {}
+
+  @Override
+  public Deque<IfNestingLayer> getIfNestingLayers() {
+    return ifNestingLayers;
+  }
+
+  @Override
+  public Deque<MplWhile> getLoops() {
+    return loops;
+  }
+
+  @Override
+  public Deque<LoopRef> getLoopRefs() {
+    return loopRefs;
   }
 }

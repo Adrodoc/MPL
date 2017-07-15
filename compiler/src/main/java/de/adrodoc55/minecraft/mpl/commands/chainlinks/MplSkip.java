@@ -48,6 +48,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.blocks.Transmitter;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
@@ -82,6 +83,16 @@ public class MplSkip implements ChainPart, ChainLink {
   }
 
   @Override
+  public boolean canBeDependedOn() {
+    return false;
+  }
+
+  @Override
+  public Mode getMode() {
+    return null;
+  }
+
+  @Override
   public GeneratedBy getGeneratedBy() {
     return internal ? GeneratedBy.MATERIALIZER : GeneratedBy.USER;
   }
@@ -100,5 +111,4 @@ public class MplSkip implements ChainPart, ChainLink {
   public <T> T accept(MplAstVisitor<T> visitor) {
     return visitor.visitSkip(this);
   }
-
 }

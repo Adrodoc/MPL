@@ -37,39 +37,46 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.chainparts;
+package de.adrodoc55.minecraft.mpl.materialize.process;
 
+import java.util.Iterator;
+import java.util.List;
+
+import javax.annotation.Nullable;
+
+import de.adrodoc55.minecraft.mpl.MplTestBase;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLinkAssert;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLinkIterableAssert;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
-/**
- * @author Adrodoc55
- */
-public interface Dependable {
-  /**
-   * Returns whether a following CONDITIONAL or INVERT {@link ChainPart} can depend on this.
-   * <p>
-   * Subclasses that are dependable should override this method along with
-   * {@link #getModeForInverting()}.
-   *
-   * @return whether a following {@link ChainPart} can depend on this
-   */
-  default boolean canBeDependedOn() {
-    return false;
+public abstract class MplMaterializationTestBase extends MplTestBase {
+  protected abstract CompilerOptions getOptions();
+
+  public <CL extends ChainLink> ChainLinkAssert<?, CL> assertThat(@Nullable CL actual) {
+    return assertThat(actual, getOptions());
   }
 
-  /**
-   * Returns the {@link Mode} that should be used for an invert depending on this {@link ChainPart}
-   * (optional operation).
-   * <p>
-   * Subclasses that are dependable should override this method along with
-   * {@link #canBeDependedOn()}.
-   *
-   * @return the {@link Mode} of this {@link ChainPart}
-   * @throws UnsupportedOperationException if this {@link ChainPart} is not dependable as defined by
-   *         {@link #canBeDependedOn()}
-   */
-  default Mode getModeForInverting() throws UnsupportedOperationException {
-    throw new UnsupportedOperationException(
-        "The class " + getClass() + " is not dependable and does not have a mode");
+  public ChainLinkIterableAssert assertThatNext(@Nullable Iterator<ChainLink> actual) {
+    return new ChainLinkIterableAssert(actual, getOptions());
+  }
+
+  public void assertMatches(List<ChainLink> actual, List<MplCommand> expected) {
+    Iterator<ChainLink> act = actual.iterator();
+    Iterator<MplCommand> exp = expected.iterator();
+    assertMatches(act, exp);
+    assertThat(act).isEmpty();
+    assertThat(exp).isEmpty();
+  }
+
+  public void assertMatches(Iterator<ChainLink> actual, Iterator<MplCommand> expected) {
+    Mode previousMode = null;
+    while (actual.hasNext() && expected.hasNext()) {
+      MplCommand expectedElement = expected.next();
+      assertThatNext(actual).matches(expectedElement, previousMode);
+      previousMode = expectedElement.getMode();
+    }
   }
 }

@@ -45,8 +45,6 @@ import java.nio.charset.CharacterCodingException;
 
 import javax.annotation.Nonnull;
 
-import de.adrodoc55.commons.FileUtils;
-
 /**
  * @author Adrodoc55
  */
@@ -76,8 +74,7 @@ public class CompilerException extends Exception {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    String path = FileUtils.getCanonicalPath(source.getFile());
-    sb.append(path).append(':').append(source.getLineNumber()).append(":\n");
+    sb.append(source.getFile()).append(':').append(source.getLineNumber()).append(":\n");
     sb.append(this.getLocalizedMessage()).append("\n");
     int count = source.getCharPositionInLine();
     if (count >= 0) {

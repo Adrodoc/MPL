@@ -43,14 +43,21 @@ import de.adrodoc55.commons.CopyScope.Copyable;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
+import de.adrodoc55.minecraft.mpl.commands.Dependable;
 
 /**
  * @author Adrodoc55
  */
-public interface ChainLink extends Copyable {
+public interface ChainLink extends Dependable, Copyable {
   GeneratedBy getGeneratedBy();
 
   MplBlock toBlock(Coordinate3D coordinate, Direction3D direction);
 
   default void resolveTargetedThisInserts(Iterable<? extends ChainLink> chainLinks) {}
+
+  public static void resolveAllTargetedThisInserts(Iterable<? extends ChainLink> chainLinks) {
+    for (ChainLink chainLink : chainLinks) {
+      chainLink.resolveTargetedThisInserts(chainLinks);
+    }
+  }
 }

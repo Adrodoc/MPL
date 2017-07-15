@@ -51,12 +51,12 @@ import de.adrodoc55.commons.StringUtils;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ModifiableChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.ast.visitor.MplMainAstVisitor;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInclude;
 import de.adrodoc55.minecraft.mpl.interpretation.MplInterpreter;
+import de.adrodoc55.minecraft.mpl.materialize.process.MplProcessAstVisitor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -69,7 +69,6 @@ import lombok.ToString;
 @Getter
 public class MplProcessReference extends MplReference {
   private final @Nonnull String processName;
-  private final @Nonnull MplCompilerContext context;
 
   /**
    * Constructs a reference to a process.
@@ -77,14 +76,13 @@ public class MplProcessReference extends MplReference {
    * @param processName the name of the referenced process
    * @param imports the imported files that are expected to contain the process
    * @param source the source that requires {@code this} reference
-   * @param context the {@link MplCompilerContext}
    * @throws IllegalArgumentException if one of the {@code imports} is not a file
    */
-  public MplProcessReference(@Nonnull String processName, @Nonnull Collection<File> imports,
-      @Nonnull MplSource source, MplCompilerContext context) throws IllegalArgumentException {
+  public MplProcessReference(@Nonnull String processName,
+      @Nonnull Collection<? extends File> imports, @Nonnull MplSource source)
+      throws IllegalArgumentException {
     super(imports, source);
     this.processName = checkNotNull(processName, "processName == null!");
-    this.context = checkNotNull(context, "context == null!");
   }
 
   @Override
@@ -97,7 +95,7 @@ public class MplProcessReference extends MplReference {
     File programFile = interpreter.getProgramFile();
     MplProgram program = interpreter.getProgram();
     MplProcess process = program.getProcess(processName);
-    context.addInclude(new MplInclude(process.getName(), programFile, source));
+    interpreter.getContext().addInclude(new MplInclude(process.getName(), programFile, source));
   }
 
   @Override
@@ -107,8 +105,10 @@ public class MplProcessReference extends MplReference {
   }
 
   /**
-   * This is handled in {@link MplMainAstVisitor#checkProcessExists(ModifiableChainPart, String )}
+   * This is handled in {@link MplProcessAstVisitor#checkProcessExists(ModifiableChainPart, String)}
+   *
+   * @param context the {@link MplCompilerContext}
    */
   @Override
-  public void handleNotFound() {}
+  public void handleNotFound(MplCompilerContext context) {}
 }

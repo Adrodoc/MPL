@@ -39,9 +39,6 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
-import static de.adrodoc55.minecraft.mpl.MplUtils.getStopCommand;
-import static de.adrodoc55.minecraft.mpl.MplUtils.getStopCommandHeader;
-import static de.adrodoc55.minecraft.mpl.MplUtils.getStopCommandTrailer;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
@@ -58,7 +55,6 @@ import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.AbstractObjectAssert;
 import org.assertj.core.api.ObjectAssert;
 
-import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -115,6 +111,7 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
     return myself;
   }
 
+  @Override
   public CommandAssert hasMode(Mode mode) {
     mode().isEqualTo(mode);
     return myself;
@@ -140,6 +137,7 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
     return myself;
   }
 
+  @Override
   public CommandAssert doesNeedRedstone() {
     needsRedstone().isTrue();
     return myself;
@@ -170,7 +168,6 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
 
   @Override
   public CommandAssert hasModifiers(Modifiable modifiers) {
-    isNotNull();
     mode().isEqualTo(modifiers.getMode());
     conditional().isEqualTo(modifiers.isConditional());
     needsRedstone().isEqualTo(modifiers.getNeedsRedstone());
@@ -179,29 +176,29 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
 
   @Override
   public CommandAssert matches(MplCommand expected) {
-    isNotInternal();
     hasMinecraftCommand(expected.getMinecraftCommand());
     hasModifiers(expected);
+    isNotInternal();
     return myself;
   }
 
   @Override
   public CommandAssert matchesAsImpulse(MplCommand expected) {
-    isNotInternal();
     hasMinecraftCommand(expected.getMinecraftCommand());
     hasMode(IMPULSE);
     hasConditional(expected.isConditional());
     hasNeedsRedstone(expected.getNeedsRedstone());
+    isNotInternal();
     return myself;
   }
 
   @Override
   public CommandAssert matchesAsConditional(MplCommand expected) {
-    isNotInternal();
     hasMinecraftCommand(expected.getMinecraftCommand());
     hasMode(expected.getMode());
     isConditional();
     hasNeedsRedstone(expected.getNeedsRedstone());
+    isNotInternal();
     return myself;
   }
 
@@ -213,26 +210,29 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
 
   @Override
   public CommandAssert isStartCommand(int relative) {
+    ProcessCommandsHelper helper = new ProcessCommandsHelper(options);
     hasCommandParts(//
-        MplUtils.getStartCommandHeader(options), //
+        helper.getStartCommandHeader(), //
         new RelativeThisInsert(relative), //
-        MplUtils.getStartCommandTrailer(options)//
+        helper.getStartCommandTrailer()//
     );
     return myself;
   }
 
   @Override
   public CommandAssert isStopCommand() {
-    hasCommandParts(getStopCommand(options));
+    ProcessCommandsHelper helper = new ProcessCommandsHelper(options);
+    hasCommandParts(helper.getStopCommand());
     return myself;
   }
 
   @Override
   public CommandAssert isStopCommand(int relative) {
+    ProcessCommandsHelper helper = new ProcessCommandsHelper(options);
     hasCommandParts(//
-        getStopCommandHeader(options), //
+        helper.getStopCommandHeader(), //
         new RelativeThisInsert(relative), //
-        getStopCommandTrailer(options)//
+        helper.getStopCommandTrailer()//
     );
     return myself;
   }
@@ -252,19 +252,19 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
 
   @Override
   public CommandAssert isTestforSuccessCommand(int relative, Mode referencedMode, boolean success) {
-    isInternal();
     hasCommandParts("testforblock ", new RelativeThisInsert(relative),
         " " + referencedMode.getStringBlockId() + " -1 {SuccessCount:" + (success ? 1 : 0) + "}");
     hasMode(CHAIN);
     doesNotNeedRedstone();
+    isInternal();
     return myself;
   }
 
   @Override
   public CommandAssert isNormalizingCommand() {
-    isInternal();
     hasCommandParts("testforblock ~ ~ ~ chain_command_block");
     hasModifiers(modifier(CHAIN, CONDITIONAL));
+    isInternal();
     return myself;
   }
 }

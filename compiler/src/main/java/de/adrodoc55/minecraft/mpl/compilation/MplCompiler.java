@@ -54,10 +54,10 @@ import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.assembly.MplProgramAssemler;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
-import de.adrodoc55.minecraft.mpl.ast.visitor.MplMainAstVisitor;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
+import de.adrodoc55.minecraft.mpl.materialize.process.MplProcessMaterializer;
 import de.adrodoc55.minecraft.mpl.placement.MplDebugProgramPlacer;
 import de.adrodoc55.minecraft.mpl.placement.MplProgramPlacer;
 import de.adrodoc55.minecraft.mpl.placement.NotEnoughSpaceException;
@@ -122,7 +122,7 @@ public class MplCompiler {
   }
 
   public ChainContainer materialize(MplProgram program) {
-    return new MplMainAstVisitor(provideContext()).visitProgram(program);
+    return new MplProcessMaterializer(provideContext()).materialize(program);
   }
 
   public List<CommandBlockChain> place(ChainContainer container) throws CompilationFailedException {

@@ -64,7 +64,7 @@ public class MplProgramBuilder {
     program = main;
     addedFiles.add(programFile);
     program.getProcesses().stream()//
-        .map(p -> p.getName())//
+        .map(MplProcess::getName)//
         .forEach(name -> programContent.put(programFile, name));
   }
 
