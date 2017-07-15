@@ -135,7 +135,7 @@ public class Commands {
     return newInternalCommand(cpb, modifier(Conditional.valueOf(conditional)));
   }
 
-  public static Command newTestforSuccessCommand(Command target, boolean success) {
+  public static Command newTestforSuccessCommand(Dependable target, boolean success) {
     CommandPartBuffer cpb = new CommandPartBuffer();
     cpb.add(getTestforSuccessHeader());
     cpb.add(new TargetedThisInsert(target));

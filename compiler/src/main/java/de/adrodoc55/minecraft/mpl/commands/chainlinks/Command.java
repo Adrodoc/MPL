@@ -58,6 +58,7 @@ import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Direction3D;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
+import de.adrodoc55.minecraft.mpl.commands.Dependable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
@@ -156,7 +157,7 @@ public class Command implements ChainLink, Modifiable {
     if (self == -1) {
       throwNotFoundException("This");
     }
-    ChainLink target = insert.getTarget();
+    Dependable target = insert.getTarget();
     int ref = Iterables.indexOf(chainLinks, it -> it == target);
     if (ref == -1) {
       throwNotFoundException("The referenced chainLink");

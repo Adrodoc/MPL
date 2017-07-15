@@ -229,17 +229,14 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
 
   @Override
   public List<ChainLink> visitCall(MplCall mplCall) {
-    List<ChainLink> result = new ArrayList<>();
     String processName = mplCall.getProcess();
     if (checkProcessExists(mplCall, processName)) {
       MplProcess process = context.getProgram().getProcess(processName);
       if (process.getType() == INLINE) {
-        for (ChainPart cp : process.getChainParts()) {
-          result.addAll(cp.accept(this));
-        }
-        return afterVisit(result);
+        return visitCallInline(mplCall, process);
       }
     }
+    List<ChainLink> result = new ArrayList<>();
     ModifierBuffer modifier = new ModifierBuffer();
     modifier.setConditional(mplCall.isConditional() ? CONDITIONAL : UNCONDITIONAL);
     MplStart mplStart = new MplStart("@e[name=" + processName + "]", mplCall, mplCall.getSource());
@@ -247,6 +244,24 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
 
     MplWaitfor mplWaitfor = new MplWaitfor(processName, modifier, mplCall.getSource());
     result.addAll(visitIgnoringWarnings(mplWaitfor));
+    return afterVisit(result);
+  }
+
+  private List<ChainLink> visitCallInline(MplCall mplCall, MplProcess process) {
+    List<ChainLink> result = new ArrayList<>();
+    if (mplCall.isConditional()) {
+      boolean not = mplCall.getConditional() == INVERT;
+      context.getIfNestingLayers().push(new IfNestingLayer(not, context.getPrevious()));
+      MplProcessIfAstVisitor visitor = new MplProcessIfAstVisitor(compilerContext, context);
+      for (ChainPart cp : process.getChainParts()) {
+        result.addAll(cp.accept(visitor));
+      }
+      context.getIfNestingLayers().pop();
+    } else {
+      for (ChainPart cp : process.getChainParts()) {
+        result.addAll(cp.accept(this));
+      }
+    }
     return afterVisit(result);
   }
 

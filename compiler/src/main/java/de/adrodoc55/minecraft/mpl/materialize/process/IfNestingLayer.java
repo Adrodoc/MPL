@@ -43,6 +43,7 @@ import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newTestfor
 
 import javax.annotation.Nonnull;
 
+import de.adrodoc55.minecraft.mpl.commands.Dependable;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -56,7 +57,7 @@ import lombok.Setter;
 @Setter
 public class IfNestingLayer {
   private final boolean not;
-  private final @Nonnull Command ref;
+  private final @Nonnull Dependable ref;
   private boolean inElse;
 
   /**
