@@ -11,8 +11,13 @@ import java.util.NoSuchElementException;
 
 import javax.annotation.Nullable;
 
+import org.assertj.core.api.AbstractBooleanAssert;
+
 import de.adrodoc55.commons.ExtendedAbstractAssert;
 import de.adrodoc55.minecraft.mpl.MplAssertionFactory;
+import de.adrodoc55.minecraft.mpl.ast.Conditional;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
 public class ChainLinkIterableAssert
@@ -80,18 +85,12 @@ public class ChainLinkIterableAssert
     return MplAssertionFactory.assertThat(chainLink, options);
   }
 
-  public ChainLinkIterableAssert hasInternal(boolean internal) {
-    assertThat(actual.iterator().next()).hasInternal(internal);
-    return myself;
-  }
-
-  public ChainLinkIterableAssert isInternal() {
-    assertThat(actual.iterator().next()).isInternal();
-    return myself;
-  }
-
-  public ChainLinkIterableAssert isNotInternal() {
-    assertThat(actual.iterator().next()).isNotInternal();
+  public ChainLinkIterableAssert matches(MplCommand expected, Mode previousMode) {
+    Iterator<? extends ChainLink> iterator = actual.iterator();
+    if (expected.getConditional() == Conditional.INVERT) {
+      assertThat(iterator.next()).isInvertingCommandFor(previousMode);
+    }
+    assertThat(iterator.next()).matches(expected);
     return myself;
   }
 
@@ -115,6 +114,40 @@ public class ChainLinkIterableAssert
         .hasModifiers(modifier());
     assertThat(it.next()).isInternal().hasCommandParts("kill @e[name=" + event + NOTIFY + "]")
         .hasModifiers(modifier());
+    return myself;
+  }
+
+  public AbstractBooleanAssert<?> internal() {
+    return assertThat(actual.iterator().next()).internal();
+  }
+
+  public ChainLinkIterableAssert hasInternal(boolean internal) {
+    assertThat(actual.iterator().next()).hasInternal(internal);
+    return myself;
+  }
+
+  public ChainLinkIterableAssert isInternal() {
+    assertThat(actual.iterator().next()).isInternal();
+    return myself;
+  }
+
+  public ChainLinkIterableAssert isNotInternal() {
+    assertThat(actual.iterator().next()).isNotInternal();
+    return myself;
+  }
+
+  public ChainLinkIterableAssert isSkip() {
+    assertThat(actual.iterator().next()).isSkip();
+    return myself;
+  }
+
+  public ChainLinkIterableAssert hasMode(Mode mode) {
+    assertThat(actual.iterator().next()).hasMode(mode);
+    return myself;
+  }
+
+  public ChainLinkIterableAssert doesNeedRedstone() {
+    assertThat(actual.iterator().next()).doesNeedRedstone();
     return myself;
   }
 }

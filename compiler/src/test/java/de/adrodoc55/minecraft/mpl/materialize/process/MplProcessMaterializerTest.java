@@ -39,14 +39,10 @@
  */
 package de.adrodoc55.minecraft.mpl.materialize.process;
 
-import static de.adrodoc55.minecraft.mpl.MplTestUtils.findByName;
-import static de.adrodoc55.minecraft.mpl.MplTestUtils.makeValid;
-import static de.adrodoc55.minecraft.mpl.MplTestUtils.mapToCommands;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
-import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 import static org.junit.runners.MethodSorters.NAME_ASCENDING;
@@ -55,16 +51,11 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 
-import com.google.common.collect.Iterators;
-
-import de.adrodoc55.minecraft.mpl.MplTestBase;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
@@ -73,13 +64,11 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLinkAssert;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLinkIterableAssert;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 
 @FixMethodOrder(NAME_ASCENDING)
-public abstract class MplProcessMaterializerTest extends MplTestBase {
+public abstract class MplProcessMaterializerTest extends MplMaterializationTestBase {
   protected MplCompilerContext context;
   protected MplProcessMaterializer underTest;
 
@@ -89,20 +78,17 @@ public abstract class MplProcessMaterializerTest extends MplTestBase {
     underTest = new MplProcessMaterializer(context);
   }
 
+  @Override
+  protected CompilerOptions getOptions() {
+    return context.getOptions();
+  }
+
   protected abstract MplCompilerContext newContext();
 
   protected CommandChain visitProcess(MplProcess process) {
     MplProgram program = new MplProgram(new File(""), context);
     program.addProcess(process);
     return underTest.visitProcess(program, process);
-  }
-
-  public <CL extends ChainLink> ChainLinkAssert<?, CL> assertThat(@Nullable CL actual) {
-    return assertThat(actual, context.getOptions());
-  }
-
-  public ChainLinkIterableAssert assertThatNext(@Nullable Iterator<ChainLink> actual) {
-    return new ChainLinkIterableAssert(actual, context.getOptions());
   }
 
   // @formatter:off
@@ -118,32 +104,31 @@ public abstract class MplProcessMaterializerTest extends MplTestBase {
   public abstract void test_a_nameless_process_doesnt_have_startup_commands();
 
   @Test
-  public void test_a_repeat_process_with_chainparts_results_in_a_chain_with_chainlinks()
-      throws Exception {
+  public void test_a_repeat_process_with_chainparts_results_in_a_chain_with_chainlinks() {
     // given:
-    List<MplCommand> mplCommands = makeValid(listOf(several(), $MplCommand()));
+    List<MplCommand> mplCommands = listOf(several(), $MplCommand());
     MplProcess process = some($MplProcess()//
         .withRepeating(true)//
         .withChainParts(mplCommands));
+
+    Iterator<MplCommand> exp = mplCommands.iterator();
 
     // when:
     CommandChain result = visitProcess(process);
 
     // then:
-    mplCommands.get(0).setMode(REPEAT);
-    mplCommands.get(0).setNeedsRedstone(true);
-    List<ChainLink> commands = mapToCommands(mplCommands);
-    if (context.getOptions().hasOption(TRANSMITTER)) {
-      commands.add(0, new MplSkip());
-    }
-    assertThat(result.getCommands()).containsExactlyElementsOf(commands);
+    Iterator<ChainLink> act = result.getCommands().iterator();
+    assertThatNext(act).isSkip();
+    assertThatNext(act).hasMode(REPEAT).doesNeedRedstone();
+    assertMatches(act, exp);
+    assertThat(act).isEmpty();
+    assertThat(exp).isEmpty();
   }
 
   @Test
   public void test_an_impulse_process_ends_with_notify() throws Exception {
     // given:
-    List<MplCommand> mplCommands = makeValid(listOf(several(), $MplCommand()//
-        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL))));
+    List<MplCommand> mplCommands = listOf(several(), $MplCommand());
     MplProcess process = some($MplProcess()//
         .withRepeating(false)//
         .withChainParts(mplCommands));
@@ -152,11 +137,13 @@ public abstract class MplProcessMaterializerTest extends MplTestBase {
     CommandChain result = visitProcess(process);
 
     // then:
-    Iterator<ChainLink> it = result.getCommands().iterator();
-    assertThatNext(it).isNotInternal().isJumpDestination();
-    Iterators.advance(it, mplCommands.size());
-    assertThatNext(it).isNotInternal().isUnconditionalNotify(process.getName());
-    assertThat(it).isEmpty();
+    Iterator<ChainLink> act = result.getCommands().iterator();
+    assertThatNext(act).isJumpDestination().isNotInternal();
+    Iterator<MplCommand> exp = mplCommands.iterator();
+    assertMatches(act, exp);
+    assertThatNext(act).isUnconditionalNotify(process.getName()).isNotInternal();
+    assertThat(act).isEmpty();
+    assertThat(exp).isEmpty();
   }
 
   @Test
@@ -269,47 +256,6 @@ public abstract class MplProcessMaterializerTest extends MplTestBase {
     assertThat(it.next()).isInvertingCommandFor(REPEAT); // Important line!
     assertThat(it.next()).matches(second);
     assertThat(it).isEmpty();
-  }
-
-  // @formatter:off
-  // ----------------------------------------------------------------------------------------------------
-  //     ____        _  _
-  //    / ___| __ _ | || |
-  //   | |    / _` || || |
-  //   | |___| (_| || || |
-  //    \____|\__,_||_||_|
-  //
-  // ----------------------------------------------------------------------------------------------------
-  // @formatter:on
-
-  @Test
-  public void test_calling_an_inline_process_will_inline_all_ChainParts() {
-    // given:
-    List<MplCommand> mplCommands = makeValid(listOf(several(), $MplCommand()));
-    MplProcess inline = some($MplProcess()//
-        .withType(INLINE)//
-        .withRepeating(false)//
-        .withChainParts(mplCommands));
-    MplProcess main = some($MplProcess()//
-        .withRepeating(false)//
-        .withChainParts(listOf(//
-            some($MplCall()//
-                .withProcess(inline.getName())//
-                .withMode(CHAIN)//
-                .withConditional(UNCONDITIONAL)//
-                .withNeedsRedstone(false))//
-    )));
-    MplProgram program = some($MplProgram().withProcesses(listOf(main, inline)));
-
-    // when:
-    ChainContainer result = underTest.materialize(program);
-
-    // then:
-    List<CommandChain> chains = result.getChains();
-    assertThat(chains).hasSize(1);
-    CommandChain mainChain = findByName(main.getName(), chains);
-    assertThat(mainChain.getCommands())
-        .containsSequence(mapToCommands(mplCommands).toArray(new ChainLink[0]));
   }
 
   // @formatter:off

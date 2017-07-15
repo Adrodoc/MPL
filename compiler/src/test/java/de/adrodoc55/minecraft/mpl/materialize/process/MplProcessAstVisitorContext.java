@@ -47,6 +47,7 @@ import java.util.Deque;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 public class MplProcessAstVisitorContext implements MplProcessAstVisitor.Context {
   private final MplProgram program;
@@ -54,6 +55,7 @@ public class MplProcessAstVisitorContext implements MplProcessAstVisitor.Context
   private final Deque<MplWhile> loops = new ArrayDeque<>();
   private final Deque<LoopRef> loopRefs = new ArrayDeque<>();
 
+  @GenerateMplPojoBuilder
   public MplProcessAstVisitorContext(MplProgram program) {
     this.program = checkNotNull(program, "program == null!");
   }

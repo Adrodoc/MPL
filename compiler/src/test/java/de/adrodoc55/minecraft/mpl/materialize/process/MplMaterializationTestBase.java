@@ -37,29 +37,46 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl;
+package de.adrodoc55.minecraft.mpl.materialize.process;
 
-import java.util.Collection;
-import java.util.NoSuchElementException;
+import java.util.Iterator;
+import java.util.List;
 
-import de.adrodoc55.commons.Named;
+import javax.annotation.Nullable;
 
-public class MplTestUtils extends MplTestBase {
+import de.adrodoc55.minecraft.mpl.MplTestBase;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
+import de.adrodoc55.minecraft.mpl.commands.Mode;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLinkAssert;
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLinkIterableAssert;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 
-  /**
-   * Finds the first {@link Named} element in the given {@code collection}. If no element with the
-   * given {@code name} can be found a {@link NoSuchElementException} will be thrown.
-   *
-   * @param name to search by
-   * @param collection the {@link Collection} to search in
-   * @return the found element
-   * @throws NoSuchElementException if the collection does not contain an element with the given
-   *         name
-   */
-  public static <N extends Named> N findByName(String name, Collection<N> collection)
-      throws NoSuchElementException {
-    return collection.stream()//
-        .filter(c -> name.equals(c.getName()))//
-        .findFirst().get();
+public abstract class MplMaterializationTestBase extends MplTestBase {
+  protected abstract CompilerOptions getOptions();
+
+  public <CL extends ChainLink> ChainLinkAssert<?, CL> assertThat(@Nullable CL actual) {
+    return assertThat(actual, getOptions());
+  }
+
+  public ChainLinkIterableAssert assertThatNext(@Nullable Iterator<ChainLink> actual) {
+    return new ChainLinkIterableAssert(actual, getOptions());
+  }
+
+  public void assertMatches(List<ChainLink> actual, List<MplCommand> expected) {
+    Iterator<ChainLink> act = actual.iterator();
+    Iterator<MplCommand> exp = expected.iterator();
+    assertMatches(act, exp);
+    assertThat(act).isEmpty();
+    assertThat(exp).isEmpty();
+  }
+
+  public void assertMatches(Iterator<ChainLink> actual, Iterator<MplCommand> expected) {
+    Mode previousMode = null;
+    while (actual.hasNext() && expected.hasNext()) {
+      MplCommand expectedElement = expected.next();
+      assertThatNext(actual).matches(expectedElement, previousMode);
+      previousMode = expectedElement.getMode();
+    }
   }
 }

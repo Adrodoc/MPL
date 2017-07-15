@@ -111,7 +111,7 @@ public class MplTestBase extends MplAssertionFactory {
     };
   }
 
-  public static Builder<String> $CommandString() {
+  public Builder<String> $CommandString() {
     return new Builder<String>() {
       @Override
       public String build() {
@@ -120,7 +120,7 @@ public class MplTestBase extends MplAssertionFactory {
     };
   }
 
-  public static Builder<String> $Selector() {
+  public Builder<String> $Selector() {
     return new Builder<String>() {
       @Override
       public String build() {
@@ -129,15 +129,15 @@ public class MplTestBase extends MplAssertionFactory {
     };
   }
 
-  public static OneOf<Mode> $Mode() {
+  public OneOf<Mode> $Mode() {
     return $oneOf(Mode.values());
   }
 
-  public static OneOf<Conditional> $Conditional() {
+  public OneOf<Conditional> $Conditional() {
     return $oneOf(Conditional.values());
   }
 
-  public static OneOf<ProcessType> $ProcessType() {
+  public OneOf<ProcessType> $ProcessType() {
     return $oneOf(ProcessType.values());
   }
 
@@ -148,13 +148,13 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static CommandPartBufferBuilder $CommandPartBuffer() {
+  public CommandPartBufferBuilder $CommandPartBuffer() {
     return new CommandPartBufferBuilder()//
         .withCommand($CommandString())//
     ;
   }
 
-  public static CommandBuilder $Command() {
+  public CommandBuilder $Command() {
     return new CommandBuilder()//
         .withMinecraftCommand($CommandPartBuffer())//
         .withMode($Mode())//
@@ -163,7 +163,7 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  private static ModifierBufferBuilder $ModifierBuffer() {
+  private ModifierBufferBuilder $ModifierBuffer() {
     return new ModifierBufferBuilder()//
         .withMode($Mode())//
         .withConditional($Conditional())//
@@ -171,7 +171,7 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  protected static MplSourceBuilder $MplSource() {
+  protected MplSourceBuilder $MplSource() {
     return new MplSourceBuilder()//
         .withFile(new File(""))//
         .withToken(new CommonToken(MplLexer.PROCESS))//
@@ -179,7 +179,7 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static MplCommandBuilder $MplCommand() {
+  public MplCommandBuilder $MplCommand() {
     return new MplCommandBuilder()//
         .withModifier($ModifierBuffer())//
         .withCommand($CommandString())//
@@ -187,7 +187,7 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static MplProgramBuilder $MplProgram() {
+  public MplProgramBuilder $MplProgram() {
     return new MplProgramBuilder()//
         .withProgramFile(new File(""))//
         .withContext($MplCompilerContext())//
@@ -202,7 +202,7 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static MplProcessBuilder $MplProcess() {
+  public MplProcessBuilder $MplProcess() {
     return new MplProcessBuilder()//
         .withName($Identifier())//
         .withRepeating($boolean())//
@@ -212,7 +212,7 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static MplCallBuilder $MplCall() {
+  public MplCallBuilder $MplCall() {
     return new MplCallBuilder()//
         .withModifier($ModifierBuffer())//
         .withProcess($Identifier())//
@@ -220,7 +220,7 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static MplStartBuilder $MplStart() {
+  public MplStartBuilder $MplStart() {
     return new MplStartBuilder()//
         .withModifier($ModifierBuffer())//
         .withSelector($Selector())//
@@ -228,7 +228,7 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static MplStopBuilder $MplStop() {
+  public MplStopBuilder $MplStop() {
     return new MplStopBuilder()//
         .withModifier($ModifierBuffer())//
         .withSelector($Selector())//
@@ -236,7 +236,7 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static MplWaitforBuilder $MplWaitfor() {
+  public MplWaitforBuilder $MplWaitfor() {
     return new MplWaitforBuilder()//
         .withModifier($ModifierBuffer())//
         .withEvent($String())//
@@ -244,7 +244,7 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static MplNotifyBuilder $MplNotify() {
+  public MplNotifyBuilder $MplNotify() {
     return new MplNotifyBuilder()//
         .withModifier($ModifierBuffer())//
         .withEvent($String())//
@@ -252,7 +252,7 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static MplInterceptBuilder $MplIntercept() {
+  public MplInterceptBuilder $MplIntercept() {
     return new MplInterceptBuilder()//
         .withModifier($ModifierBuffer())//
         .withEvent($String())//
@@ -260,7 +260,7 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static MplBreakpointBuilder $MplBreakpoint() {
+  public MplBreakpointBuilder $MplBreakpoint() {
     return new MplBreakpointBuilder()//
         .withModifier($ModifierBuffer())//
         .withMessage($String())//
@@ -268,13 +268,13 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static MplSkipBuilder $MplSkip() {
+  public MplSkipBuilder $MplSkip() {
     return new MplSkipBuilder()//
         .withInternal($boolean())//
     ;
   }
 
-  public static MplIfBuilder $MplIf() {
+  public MplIfBuilder $MplIf() {
     return new MplIfBuilder()//
         .withNot($boolean())//
         .withCondition($CommandString())//
@@ -282,7 +282,7 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static MplWhileBuilder $MplWhile() {
+  public MplWhileBuilder $MplWhile() {
     return new MplWhileBuilder()//
         .withNot($boolean())//
         .withTrailing($boolean())//
@@ -291,7 +291,7 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static MplBreakBuilder $MplBreak() {
+  public MplBreakBuilder $MplBreak() {
     return new MplBreakBuilder()//
         .withModifier($ModifierBuffer())//
         .withLabel($String())//
@@ -299,7 +299,7 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static MplContinueBuilder $MplContinue() {
+  public MplContinueBuilder $MplContinue() {
     return new MplContinueBuilder()//
         .withModifier($ModifierBuffer())//
         .withLabel($String())//
@@ -307,11 +307,11 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static OneOf<MplType<?>> $MplType() {
+  public OneOf<MplType<?>> $MplType() {
     return $oneOf(MplType.values());
   }
 
-  public static MplStringVariableBuilder $MplVariable() {
+  public MplStringVariableBuilder $MplVariable() {
     return new MplStringVariableBuilder()//
         .withDeclarationSource($MplSource())//
         .withIdentifier($Identifier())//
@@ -319,7 +319,7 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static Orientation3DBuilder $Orientation3D() {
+  public Orientation3DBuilder $Orientation3D() {
     return new Orientation3DBuilder()//
         .withA($oneOf(EAST, WEST))//
         .withB($oneOf(UP, DOWN))//
@@ -327,7 +327,7 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static Coordinate3DBuilder $Coordinate3D() {
+  public Coordinate3DBuilder $Coordinate3D() {
     return new Coordinate3DBuilder()//
         .withX(many())//
         .withY(many())//
@@ -335,11 +335,11 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static ChainContainerBuilder $ChainContainer(CompilerOption... options) {
+  public ChainContainerBuilder $ChainContainer(CompilerOption... options) {
     return $ChainContainer(new CompilerOptions(options));
   }
 
-  public static ChainContainerBuilder $ChainContainer(CompilerOptions options) {
+  public ChainContainerBuilder $ChainContainer(CompilerOptions options) {
     return new ChainContainerBuilder()//
         .withOrientation($Orientation3D())//
         .withMax($Coordinate3D().withX(-1).withY(-1).withZ(-1))//
@@ -356,29 +356,29 @@ public class MplTestBase extends MplAssertionFactory {
     ;
   }
 
-  public static CommandChainBuilder $CommandChain(CompilerOption... options) {
+  public CommandChainBuilder $CommandChain(CompilerOption... options) {
     return $CommandChain(new CompilerOptions(options));
   }
 
-  public static CommandChainBuilder $CommandChain(CompilerOptions options) {
+  public CommandChainBuilder $CommandChain(CompilerOptions options) {
     return new CommandChainBuilder()//
         .withName($String())//
         .withCommands($validChainCommands(options))//
     ;
   }
 
-  public static ValidCommandChainBuilder $validChainCommands(CompilerOption... options) {
+  public ValidCommandChainBuilder $validChainCommands(CompilerOption... options) {
     return $validChainCommands(new CompilerOptions(options));
   }
 
-  public static ValidCommandChainBuilder $validChainCommands(CompilerOptions options) {
+  public ValidCommandChainBuilder $validChainCommands(CompilerOptions options) {
     return new ValidCommandChainBuilder().withOptions(options);
   }
 
   @GeneratePojoBuilder(intoPackage = "de.adrodoc55.minecraft.mpl",
       withName = "ValidCommandChainBuilder")
   @GenerateMplPojoBuilder
-  public static List<ChainLink> validChainCommands(CompilerOptions options,
+  public static List<ChainLink> validChainCommands(MplTestBase $, CompilerOptions options,
       Collection<? extends ChainLink> commands) {
     ProcessCommandsHelper helper = new ProcessCommandsHelper(options);
     List<ChainLink> result = new ArrayList<>();
@@ -393,7 +393,7 @@ public class MplTestBase extends MplAssertionFactory {
       result.add(newCommand(helper.getStopCommand(), modifier(IMPULSE)));
     }
     if (commands != null && !commands.isEmpty()) {
-      result.add(some($Command()));
+      result.add(some($.$Command()));
       result.addAll(commands);
     }
     return result;

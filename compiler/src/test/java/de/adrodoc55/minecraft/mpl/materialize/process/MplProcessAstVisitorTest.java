@@ -42,17 +42,15 @@ package de.adrodoc55.minecraft.mpl.materialize.process;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.INVERT;
 import static de.adrodoc55.minecraft.mpl.ast.Conditional.UNCONDITIONAL;
+import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplIntercept.INTERCEPTED;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.CHAIN;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.annotation.Nullable;
 
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -60,7 +58,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import de.adrodoc55.minecraft.mpl.MplTestBase;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall;
@@ -72,17 +69,19 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplStop;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplWaitfor;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgramBuilder;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLinkAssert;
-import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLinkIterableAssert;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ProcessCommandsHelper;
+import de.adrodoc55.minecraft.mpl.compilation.CompilerOptions;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
 import de.adrodoc55.minecraft.mpl.interpretation.insert.RelativeThisInsert;
+import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public abstract class MplProcessAstVisitorTest extends MplTestBase {
+public abstract class MplProcessAstVisitorTest extends MplMaterializationTestBase {
   protected MplCompilerContext context;
   protected MplProcessAstVisitor underTest;
   protected ProcessCommandsHelper helper;
@@ -90,20 +89,37 @@ public abstract class MplProcessAstVisitorTest extends MplTestBase {
   @Before
   public void before() {
     context = newContext();
-    MplProgram program = new MplProgram(new File(""), context);
-    underTest = newUnderTest(context, new MplProcessAstVisitorContext(program));
-    helper = new ProcessCommandsHelper(context.getOptions());
+    underTest = some($UnderTest());
+    helper = new ProcessCommandsHelper(getOptions());
   }
 
-  protected String markerEntity() {
-    return context.getVersion().markerEntity();
+  @Override
+  protected CompilerOptions getOptions() {
+    return context.getOptions();
   }
 
   protected abstract MplCompilerContext newContext();
 
-  protected MplProcessAstVisitor newUnderTest(MplCompilerContext compilerContext,
-      MplProcessAstVisitor.Context context) {
-    return new MplProcessAstVisitor(compilerContext, context);
+  @GenerateMplPojoBuilder
+  public static MplProcessAstVisitor createMplProcessAstVisitor(MplCompilerContext compilerContext,
+      MplProgram program) {
+    return new MplProcessAstVisitor(compilerContext, new MplProcessAstVisitorContext(program));
+  }
+
+  public MplProcessAstVisitorBuilder $UnderTest() {
+    return new MplProcessAstVisitorBuilder()//
+        .withCompilerContext(context)//
+        .withProgram($MplProgram())//
+    ;
+  }
+
+  @Override
+  public MplProgramBuilder $MplProgram() {
+    return super.$MplProgram().withContext(context);
+  }
+
+  protected String markerEntity() {
+    return context.getVersion().markerEntity();
   }
 
   protected String getStartCommand() {
@@ -112,14 +128,6 @@ public abstract class MplProcessAstVisitorTest extends MplTestBase {
 
   protected String getOffCommand() {
     return helper.getStopCommand();
-  }
-
-  public <CL extends ChainLink> ChainLinkAssert<?, CL> assertThat(@Nullable CL actual) {
-    return assertThat(actual, context.getOptions());
-  }
-
-  public ChainLinkIterableAssert assertThatNext(@Nullable Iterator<ChainLink> actual) {
-    return new ChainLinkIterableAssert(actual, context.getOptions());
   }
 
   // @formatter:off
@@ -138,10 +146,6 @@ public abstract class MplProcessAstVisitorTest extends MplTestBase {
     // given:
     MplCall mplCall = some($MplCall()//
         .withConditional(UNCONDITIONAL));
-    // FIXME Adrodoc55 09.07.2017: Is this neccessary?
-    // underTest.program = some($MplProgram().withProcesses(listOf(//
-    // some($MplProcess().withName(mplCall.getProcess()))//
-    // )));
 
     // when:
     List<ChainLink> result = mplCall.accept(underTest);
@@ -167,10 +171,6 @@ public abstract class MplProcessAstVisitorTest extends MplTestBase {
     // given:
     MplCall mplCall = some($MplCall()//
         .withConditional(CONDITIONAL));
-    // FIXME Adrodoc55 09.07.2017: Is this neccessary?
-    // underTest.program = some($MplProgram().withProcesses(listOf(//
-    // some($MplProcess().withName(mplCall.getProcess()))//
-    // )));
 
     // when:
     List<ChainLink> result = mplCall.accept(underTest);
@@ -207,10 +207,6 @@ public abstract class MplProcessAstVisitorTest extends MplTestBase {
             return modeForInverting;
           }
         }));
-    // FIXME Adrodoc55 09.07.2017: Is this neccessary?
-    // underTest.program = some($MplProgram().withProcesses(listOf(//
-    // some($MplProcess().withName(mplCall.getProcess()))//
-    // )));
 
     // when:
     List<ChainLink> result = mplCall.accept(underTest);
@@ -229,6 +225,31 @@ public abstract class MplProcessAstVisitorTest extends MplTestBase {
     expected.addAll(mplWaitfor.accept(underTest));
 
     assertThat(result).containsExactlyElementsOf(expected);
+  }
+
+  @Test
+  public void test_calling_an_inline_process_will_inline_all_ChainParts() {
+    // given:
+    List<MplCommand> mplCommands = listOf(several(), $MplCommand());
+    MplProcess inline = some($MplProcess()//
+        .withType(INLINE)//
+        .withRepeating(false)//
+        .withChainParts(mplCommands));
+    MplProgram program = some($MplProgram().withProcesses(listOf(inline)));
+    MplProcessAstVisitor underTest = some($UnderTest().withProgram(program));
+
+    MplCall mplCall = some($MplCall()//
+        .withProcess(inline.getName())//
+        .withMode(CHAIN)//
+        .withConditional(UNCONDITIONAL)//
+        .withNeedsRedstone(false)//
+    );
+
+    // when:
+    List<ChainLink> result = mplCall.accept(underTest);
+
+    // then:
+    assertMatches(result, mplCommands);
   }
 
   // @formatter:off
@@ -1654,7 +1675,7 @@ public abstract class MplProcessAstVisitorTest extends MplTestBase {
 
     // then:
     int ref = result.size() - 3;
-    if (context.getOptions().hasOption(TRANSMITTER)) {
+    if (getOptions().hasOption(TRANSMITTER)) {
       ref--;
     }
     Iterator<ChainLink> it = result.iterator();
@@ -1690,7 +1711,7 @@ public abstract class MplProcessAstVisitorTest extends MplTestBase {
 
     // then:
     int ref = result.size() - 1;
-    if (context.getOptions().hasOption(TRANSMITTER)) {
+    if (getOptions().hasOption(TRANSMITTER)) {
       ref--;
     }
     Iterator<ChainLink> it = result.iterator();
@@ -1734,7 +1755,7 @@ public abstract class MplProcessAstVisitorTest extends MplTestBase {
 
     // then:
     int ref = result.size() - 3;
-    if (context.getOptions().hasOption(TRANSMITTER)) {
+    if (getOptions().hasOption(TRANSMITTER)) {
       ref--;
     }
     Iterator<ChainLink> it = result.iterator();
@@ -1772,7 +1793,7 @@ public abstract class MplProcessAstVisitorTest extends MplTestBase {
 
     // then:
     int ref = result.size() - 1;
-    if (context.getOptions().hasOption(TRANSMITTER)) {
+    if (getOptions().hasOption(TRANSMITTER)) {
       ref--;
     }
     Iterator<ChainLink> it = result.iterator();

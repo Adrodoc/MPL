@@ -150,7 +150,7 @@ public class MplProcessAstVisitor extends ProcessCommandsHelper
    * @throws IllegalStateException if {@code chainPart} does not have predecessor
    * @see ModifiableChainPart#getPrevious()
    */
-  protected static void addInvertingCommandIfInvert(List<? super Command> commands,
+  protected void addInvertingCommandIfInvert(List<? super Command> commands,
       ModifiableChainPart chainPart) throws IllegalStateException {
     if (chainPart.getConditional() == Conditional.INVERT) {
       Dependable previous = chainPart.getPrevious();

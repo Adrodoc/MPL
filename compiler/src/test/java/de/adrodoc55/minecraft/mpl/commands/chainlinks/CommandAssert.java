@@ -111,6 +111,7 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
     return myself;
   }
 
+  @Override
   public CommandAssert hasMode(Mode mode) {
     mode().isEqualTo(mode);
     return myself;
@@ -136,6 +137,7 @@ public class CommandAssert extends ChainLinkAssert<CommandAssert, Command> {
     return myself;
   }
 
+  @Override
   public CommandAssert doesNeedRedstone() {
     needsRedstone().isTrue();
     return myself;
