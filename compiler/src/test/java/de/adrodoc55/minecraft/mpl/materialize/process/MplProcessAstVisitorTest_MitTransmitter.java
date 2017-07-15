@@ -369,7 +369,7 @@ public class MplProcessAstVisitorTest_MitTransmitter extends MplProcessAstVisito
     MplBreak mplBreak = some($MplBreak()//
         .withLoop(mplWhile)//
         .withConditional(INVERT)//
-        .withPrevious(command));
+    );
     mplWhile.setChainParts(listOf(command, mplBreak));
 
     // when:
@@ -416,7 +416,7 @@ public class MplProcessAstVisitorTest_MitTransmitter extends MplProcessAstVisito
     MplBreak mplBreak = some($MplBreak()//
         .withLoop(outerWhile)//
         .withConditional(CONDITIONAL)//
-        .withPrevious(innerCommand));
+    );
     innerWhile.setChainParts(listOf(innerCommand, mplBreak));
 
     // when:
@@ -551,7 +551,7 @@ public class MplProcessAstVisitorTest_MitTransmitter extends MplProcessAstVisito
     MplContinue mplContinue = some($MplContinue()//
         .withLoop(mplWhile)//
         .withConditional(CONDITIONAL)//
-        .withPrevious(command));
+    );
     mplWhile.setChainParts(listOf(command, mplContinue));
 
     // when:
@@ -592,7 +592,7 @@ public class MplProcessAstVisitorTest_MitTransmitter extends MplProcessAstVisito
     MplContinue mplContinue = some($MplContinue()//
         .withLoop(mplWhile)//
         .withConditional(CONDITIONAL)//
-        .withPrevious(command));
+    );
     mplWhile.setChainParts(listOf(command, mplContinue));
 
     // when:
@@ -644,7 +644,7 @@ public class MplProcessAstVisitorTest_MitTransmitter extends MplProcessAstVisito
     MplContinue mplContinue = some($MplContinue()//
         .withLoop(mplWhile)//
         .withConditional(INVERT)//
-        .withPrevious(command));
+    );
     mplWhile.setChainParts(listOf(command, mplContinue));
 
     // when:
@@ -685,7 +685,7 @@ public class MplProcessAstVisitorTest_MitTransmitter extends MplProcessAstVisito
     MplContinue mplContinue = some($MplContinue()//
         .withLoop(mplWhile)//
         .withConditional(INVERT)//
-        .withPrevious(command));
+    );
     mplWhile.setChainParts(listOf(command, mplContinue));
 
     // when:
@@ -743,7 +743,7 @@ public class MplProcessAstVisitorTest_MitTransmitter extends MplProcessAstVisito
     MplContinue mplContinue = some($MplContinue()//
         .withLoop(outerWhile)//
         .withConditional(CONDITIONAL)//
-        .withPrevious(innerCommand));
+    );
     innerWhile.setChainParts(listOf(innerCommand, mplContinue));
 
     // when:

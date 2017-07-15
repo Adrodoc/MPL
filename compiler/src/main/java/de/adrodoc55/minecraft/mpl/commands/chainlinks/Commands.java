@@ -43,7 +43,7 @@ import static de.adrodoc55.minecraft.mpl.ast.Conditional.CONDITIONAL;
 import static de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer.modifier;
 
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
-import de.adrodoc55.minecraft.mpl.ast.chainparts.Dependable;
+import de.adrodoc55.minecraft.mpl.commands.Dependable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.Modifiable;
 import de.adrodoc55.minecraft.mpl.interpretation.CommandPartBuffer;
@@ -99,14 +99,15 @@ public class Commands {
   }
 
   /**
-   * Constructs a {@link Command}, wich's success is always the opposite of the specified
-   * {@link Dependable}, if the constructed command is placed directly after the given command.
+   * Constructs a {@link Dependable}, wich's success is always the opposite of the specified
+   * {@link Dependable}, if the constructed command is placed directly after the given
+   * {@link Dependable}.
    *
    * @param previous the {@link Dependable} to invert
    * @return a new inverting {@link Command}
    */
   public static Command newInvertingCommand(Dependable previous) {
-    return newInvertingCommand(previous.getModeForInverting());
+    return newInvertingCommand(previous.getMode());
   }
 
   /**

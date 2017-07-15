@@ -602,7 +602,6 @@ public class MplInterpreter extends MplParserBaseListener {
       return;
     }
     if (prev.canBeDependedOn()) {
-      chainPart.setPrevious(prev);
       chainBuffer.add(chainPart);
     } else {
       Token token = modifierBuffer.getConditionalToken();

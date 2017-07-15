@@ -42,9 +42,7 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
-import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.Conditional;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
@@ -65,18 +63,10 @@ public abstract class ModifiableChainPart implements ExtendedModifiable, ChainPa
   protected @Nonnull Mode mode;
   protected @Nonnull Conditional conditional;
   protected boolean needsRedstone;
-
-  protected @Nullable Dependable previous;
   protected final @Nonnull MplSource source;
 
   public ModifiableChainPart(ExtendedModifiable modifier, @Nonnull MplSource source) {
-    this(modifier, null, source);
-  }
-
-  public ModifiableChainPart(ExtendedModifiable modifier, @Nullable Dependable previous,
-      @Nonnull MplSource source) {
     setModifier(modifier);
-    this.previous = previous;
     this.source = checkNotNull(source, "source == null!");
   }
 
@@ -94,29 +84,8 @@ public abstract class ModifiableChainPart implements ExtendedModifiable, ChainPa
     source = original.source;
   }
 
-  @Deprecated
-  @Override
-  public void completeDeepCopy(CopyScope scope) throws NullPointerException {
-    ModifiableChainPart original = scope.getCache().getOriginal(this);
-    previous = scope.copyObject(original.previous);
-  }
-
   @Override
   public boolean getNeedsRedstone() {
     return needsRedstone;
-  }
-
-  /*
-   * Kann sonst nicht aus javadoc referenziert werden
-   */
-  public @Nullable Dependable getPrevious() {
-    return previous;
-  }
-
-  /*
-   * see https://github.com/mkarneim/pojobuilder/issues/86
-   */
-  public void setPrevious(@Nullable Dependable previous) {
-    this.previous = previous;
   }
 }

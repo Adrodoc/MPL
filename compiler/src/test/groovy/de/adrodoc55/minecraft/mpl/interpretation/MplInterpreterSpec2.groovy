@@ -959,13 +959,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     ModifierBuffer modifierBuffer = new ModifierBuffer()
     modifierBuffer.setConditional(conditional);
-    ChainPart previous = null
-    if (conditional != UNCONDITIONAL) {
-      previous = process.chainParts[0]
-    }
 
     process.chainParts[0] == new MplCommand('/say hi', source())
-    process.chainParts[1] == new MplStart("@e[name=${identifier}]", modifierBuffer, previous, source())
+    process.chainParts[1] == new MplStart("@e[name=${identifier}]", modifierBuffer, source())
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -1017,13 +1013,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     ModifierBuffer modifierBuffer = new ModifierBuffer()
     modifierBuffer.setConditional(conditional);
-    ChainPart previous = null
-    if (conditional != UNCONDITIONAL) {
-      previous = process.chainParts[0]
-    }
 
     process.chainParts[0] == new MplCommand('/say hi', source())
-    process.chainParts[1] == new MplStart("@e[name=${identifier}]", modifierBuffer, previous, source())
+    process.chainParts[1] == new MplStart("@e[name=${identifier}]", modifierBuffer, source())
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -1084,13 +1076,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     ModifierBuffer modifierBuffer = new ModifierBuffer()
     modifierBuffer.setConditional(conditional);
-    ChainPart previous = null
-    if (conditional != UNCONDITIONAL) {
-      previous = process.chainParts[0]
-    }
 
     process.chainParts[0] == new MplCommand('/say hi', source())
-    process.chainParts[1] == new MplStop("@e[name=${identifier}]", modifierBuffer, previous, source())
+    process.chainParts[1] == new MplStop("@e[name=${identifier}]", modifierBuffer, source())
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -1201,13 +1189,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     ModifierBuffer modifierBuffer = new ModifierBuffer()
     modifierBuffer.setConditional(conditional);
-    ChainPart previous = null
-    if (conditional != UNCONDITIONAL) {
-      previous = process.chainParts[0]
-    }
 
     process.chainParts[0] == new MplCommand('/say hi', source())
-    process.chainParts[1] == new MplStop("@e[name=${identifier}]", modifierBuffer, previous, source())
+    process.chainParts[1] == new MplStop("@e[name=${identifier}]", modifierBuffer, source())
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -1270,13 +1254,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     ModifierBuffer modifierBuffer = new ModifierBuffer()
     modifierBuffer.setConditional(conditional);
-    ChainPart previous = null
-    if (conditional != UNCONDITIONAL) {
-      previous = process.chainParts[0]
-    }
 
     process.chainParts[0] == new MplCommand('/say hi', source())
-    process.chainParts[1] == new MplWaitfor(identifier, modifierBuffer, previous, source())
+    process.chainParts[1] == new MplWaitfor(identifier, modifierBuffer, source())
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -1375,13 +1355,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     ModifierBuffer modifierBuffer = new ModifierBuffer()
     modifierBuffer.setConditional(conditional);
-    ChainPart previous = null
-    if (conditional != UNCONDITIONAL) {
-      previous = process.chainParts[0]
-    }
 
     process.chainParts[0] == new MplCommand('/say hi', source())
-    process.chainParts[1] == new MplNotify(identifier, modifierBuffer, previous, source())
+    process.chainParts[1] == new MplNotify(identifier, modifierBuffer, source())
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -1442,13 +1418,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     ModifierBuffer modifierBuffer = new ModifierBuffer()
     modifierBuffer.setConditional(conditional);
-    ChainPart previous = null
-    if (conditional != UNCONDITIONAL) {
-      previous = process.chainParts[0]
-    }
 
     process.chainParts[0] == new MplCommand('/say hi', source())
-    process.chainParts[1] == new MplIntercept(identifier, modifierBuffer, previous, source())
+    process.chainParts[1] == new MplIntercept(identifier, modifierBuffer, source())
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -1508,13 +1480,9 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     ModifierBuffer modifierBuffer = new ModifierBuffer()
     modifierBuffer.setConditional(conditional);
-    ChainPart previous = null
-    if (conditional != UNCONDITIONAL) {
-      previous = process.chainParts[0]
-    }
 
     process.chainParts[0] == new MplCommand('/say hi', source())
-    process.chainParts[1] == new MplBreakpoint("${lastTempFile.name} : line 3" , modifierBuffer, previous, source())
+    process.chainParts[1] == new MplBreakpoint("${lastTempFile.name} : line 3" , modifierBuffer, source())
     process.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -2165,13 +2133,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     MplWhile mplWhile = process.chainParts[0]
 
-    ChainPart previous = null
-    if (conditional != UNCONDITIONAL) {
-      previous = mplWhile.chainParts[0]
-    }
-
     mplWhile.chainParts[0] == new MplCommand('/say hi', source())
-    mplWhile.chainParts[1] == new MplBreak(identifier, mplWhile, modifierBuffer, previous, source())
+    mplWhile.chainParts[1] == new MplBreak(identifier, mplWhile, modifierBuffer, source())
     mplWhile.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -2208,13 +2171,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     MplWhile mplWhile = process.chainParts[0]
 
-    ChainPart previous = null
-    if (conditional != UNCONDITIONAL) {
-      previous = mplWhile.chainParts[0]
-    }
-
     mplWhile.chainParts[0] == new MplCommand('/say hi', source())
-    mplWhile.chainParts[1] == new MplBreak(null, mplWhile, modifierBuffer, previous, source())
+    mplWhile.chainParts[1] == new MplBreak(null, mplWhile, modifierBuffer, source())
     mplWhile.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -2321,13 +2279,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     MplWhile mplWhile = process.chainParts[0]
 
-    ChainPart previous = null
-    if (conditional != UNCONDITIONAL) {
-      previous = mplWhile.chainParts[0]
-    }
-
     mplWhile.chainParts[0] == new MplCommand('/say hi', source())
-    mplWhile.chainParts[1] == new MplContinue(identifier, mplWhile, modifierBuffer, previous, source())
+    mplWhile.chainParts[1] == new MplContinue(identifier, mplWhile, modifierBuffer, source())
     mplWhile.chainParts.size() == 2
     where:
     modifier        | conditional
@@ -2364,13 +2317,8 @@ class MplInterpreterSpec2 extends MplSpecBase {
 
     MplWhile mplWhile = process.chainParts[0]
 
-    ChainPart previous = null
-    if (conditional != UNCONDITIONAL) {
-      previous = mplWhile.chainParts[0]
-    }
-
     mplWhile.chainParts[0] == new MplCommand('/say hi', source())
-    mplWhile.chainParts[1] == new MplContinue(null, mplWhile, modifierBuffer, previous, source())
+    mplWhile.chainParts[1] == new MplContinue(null, mplWhile, modifierBuffer, source())
     mplWhile.chainParts.size() == 2
     where:
     modifier        | conditional

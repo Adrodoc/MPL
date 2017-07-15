@@ -46,11 +46,13 @@ import java.util.Deque;
 
 import de.adrodoc55.minecraft.mpl.ast.chainparts.loop.MplWhile;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
+import de.adrodoc55.minecraft.mpl.commands.Dependable;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 public class MplProcessAstVisitorContext implements MplProcessAstVisitor.Context {
   private final MplProgram program;
+  private Dependable previous;
   private final Deque<IfNestingLayer> ifNestingLayers = new ArrayDeque<>();
   private final Deque<MplWhile> loops = new ArrayDeque<>();
   private final Deque<LoopRef> loopRefs = new ArrayDeque<>();
@@ -61,12 +63,22 @@ public class MplProcessAstVisitorContext implements MplProcessAstVisitor.Context
   }
 
   @Override
-  public void setBreakpoint(MplSource breakpoint) {}
-
-  @Override
   public MplProgram getProgram() {
     return program;
   }
+
+  @Override
+  public Dependable getPrevious() {
+    return previous;
+  }
+
+  @Override
+  public void setPrevious(Dependable previous) {
+    this.previous = previous;
+  }
+
+  @Override
+  public void setBreakpoint(MplSource breakpoint) {}
 
   @Override
   public Deque<IfNestingLayer> getIfNestingLayers() {

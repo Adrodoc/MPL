@@ -77,6 +77,7 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandChain;
+import de.adrodoc55.minecraft.mpl.commands.Dependable;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.MplSkip;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ProcessCommandsHelper;
@@ -267,19 +268,29 @@ public class MplProcessMaterializer extends ProcessCommandsHelper {
 
   private MplProcessAstVisitor.Context newVisitorContext(MplProgram program) {
     return new MplProcessAstVisitor.Context() {
+      private Dependable previous;
       private final Deque<IfNestingLayer> ifNestingLayers = new ArrayDeque<>();
       private final Deque<MplWhile> loops = new ArrayDeque<>();
       private final Deque<LoopRef> loopRefs = new ArrayDeque<>();
 
+      @Override
+      public MplProgram getProgram() {
+        return program;
+      }
+
+      @Override
+      public Dependable getPrevious() {
+        return previous;
+      }
+
+      @Override
+      public void setPrevious(Dependable previous) {
+        this.previous = previous;
+      }
 
       @Override
       public void setBreakpoint(MplSource breakpoint) {
         MplProcessMaterializer.this.breakpoint = breakpoint;
-      }
-
-      @Override
-      public MplProgram getProgram() {
-        return program;
       }
 
       @Override

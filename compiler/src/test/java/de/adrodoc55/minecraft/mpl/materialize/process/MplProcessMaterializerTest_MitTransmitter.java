@@ -82,9 +82,7 @@ public class MplProcessMaterializerTest_MitTransmitter extends MplProcessMateria
   public void test_a_nameless_process_doesnt_have_startup_commands() {
     // given:
     MplCommand first = some($MplCommand().withConditional(UNCONDITIONAL));
-    MplCommand second = some($MplCommand()//
-        .withPrevious(first)//
-        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
+    MplCommand second = some($MplCommand().withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
     MplProcess process = some($MplProcess()//
         .withName((String) null)//
         .withChainParts(listOf(first, second)));

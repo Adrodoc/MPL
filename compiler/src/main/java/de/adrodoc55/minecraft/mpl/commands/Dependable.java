@@ -37,39 +37,32 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.ast.chainparts;
+package de.adrodoc55.minecraft.mpl.commands;
 
-import de.adrodoc55.minecraft.mpl.commands.Mode;
+import javax.annotation.Nullable;
+
+import de.adrodoc55.minecraft.mpl.commands.chainlinks.ChainLink;
 
 /**
  * @author Adrodoc55
  */
 public interface Dependable {
   /**
-   * Returns whether a following CONDITIONAL or INVERT {@link ChainPart} can depend on this.
-   * <p>
-   * Subclasses that are dependable should override this method along with
-   * {@link #getModeForInverting()}.
+   * Returns whether a {@link ChainLink} can depend on this.
    *
-   * @return whether a following {@link ChainPart} can depend on this
+   * @return whether a {@link ChainLink} can depend on this
    */
   default boolean canBeDependedOn() {
-    return false;
+    return getMode() != null;
   }
 
   /**
-   * Returns the {@link Mode} that should be used for an invert depending on this {@link ChainPart}
-   * (optional operation).
-   * <p>
-   * Subclasses that are dependable should override this method along with
-   * {@link #canBeDependedOn()}.
+   * Returns the {@link Mode} that should be used for a reference depending on this
+   * {@link Dependable} or {@code null} if this {@link Dependable} can not be depended on.
    *
-   * @return the {@link Mode} of this {@link ChainPart}
-   * @throws UnsupportedOperationException if this {@link ChainPart} is not dependable as defined by
-   *         {@link #canBeDependedOn()}
+   * @return the {@link Mode} of this {@link Dependable} or {@code null} if this {@link Dependable}
+   *         can not be depended on
    */
-  default Mode getModeForInverting() throws UnsupportedOperationException {
-    throw new UnsupportedOperationException(
-        "The class " + getClass() + " is not dependable and does not have a mode");
-  }
+  @Nullable
+  Mode getMode();
 }

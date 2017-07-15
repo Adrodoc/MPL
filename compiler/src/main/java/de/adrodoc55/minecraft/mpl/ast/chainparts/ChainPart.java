@@ -50,7 +50,17 @@ import de.adrodoc55.minecraft.mpl.interpretation.IllegalModifierException;
 /**
  * @author Adrodoc55
  */
-public interface ChainPart extends MplNode, Named, Copyable, Dependable {
+public interface ChainPart extends MplNode, Named, Copyable {
+  /**
+   * Returns whether a following {@link Conditional#CONDITIONAL} or {@link Conditional#INVERT}
+   * {@link ChainPart} can depend on this.
+   *
+   * @return whether a following {@link ChainPart} can depend on this
+   */
+  default boolean canBeDependedOn() {
+    return false;
+  }
+
   /**
    * Set the {@link Mode} of this {@link ChainPart} (optional operation).
    * <p>

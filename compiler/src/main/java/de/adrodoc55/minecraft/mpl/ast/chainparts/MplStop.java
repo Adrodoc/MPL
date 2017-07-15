@@ -42,12 +42,10 @@ package de.adrodoc55.minecraft.mpl.ast.chainparts;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.mpl.ast.ExtendedModifiable;
 import de.adrodoc55.minecraft.mpl.ast.visitor.MplAstVisitor;
-import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.compilation.MplSource;
 import de.adrodoc55.minecraft.mpl.interpretation.ModifierBuffer;
 import lombok.EqualsAndHashCode;
@@ -76,12 +74,6 @@ public class MplStop extends ModifiableChainPart {
     this.selector = checkNotNull(selector, "selector == null!");
   }
 
-  public MplStop(String selector, ExtendedModifiable modifier, @Nullable Dependable previous,
-      @Nonnull MplSource source) {
-    super(modifier, previous, source);
-    this.selector = checkNotNull(selector, "selector == null!");
-  }
-
   @Deprecated
   protected MplStop(MplStop original) {
     super(original);
@@ -107,10 +99,5 @@ public class MplStop extends ModifiableChainPart {
   @Override
   public boolean canBeDependedOn() {
     return true;
-  }
-
-  @Override
-  public Mode getModeForInverting() {
-    return getMode();
   }
 }

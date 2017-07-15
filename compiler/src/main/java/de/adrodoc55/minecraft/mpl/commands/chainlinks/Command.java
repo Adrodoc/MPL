@@ -39,7 +39,11 @@
  */
 package de.adrodoc55.minecraft.mpl.commands.chainlinks;
 
+import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Predicates.notNull;
+import static com.google.common.collect.Iterables.filter;
+import static java.util.Arrays.asList;
 
 import java.util.List;
 
@@ -63,14 +67,12 @@ import de.adrodoc55.minecraft.mpl.interpretation.insert.TargetedThisInsert;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
  * @author Adrodoc55
  */
 @EqualsAndHashCode
-@ToString
 @Getter
 @Setter
 public class Command implements ChainLink, Modifiable {
@@ -165,5 +167,14 @@ public class Command implements ChainLink, Modifiable {
   private void throwNotFoundException(String string) throws UnableToResolveInsertException {
     throw new UnableToResolveInsertException(
         "Failed to resolve reference. " + string + " was not found in the specified chainLinks");
+  }
+
+  @Override
+  public String toString() {
+    String mode = this.mode != Mode.CHAIN ? this.mode.toString() : null;
+    String conditional = this.conditional ? "conditional" : null;
+    String needsRedstone = this.needsRedstone ? "needs redstone" : null;
+    String modifiers = on("; ").join(filter(asList(mode, conditional, needsRedstone), notNull()));
+    return modifiers + (modifiers.isEmpty() ? "" : ": ") + "/" + getCommand();
   }
 }

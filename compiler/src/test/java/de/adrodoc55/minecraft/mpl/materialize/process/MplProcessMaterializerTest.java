@@ -104,31 +104,30 @@ public abstract class MplProcessMaterializerTest extends MplMaterializationTestB
   public abstract void test_a_nameless_process_doesnt_have_startup_commands();
 
   @Test
-  public void test_a_repeat_process_with_chainparts_results_in_a_chain_with_chainlinks() {
+  public void test_the_first_command_of_a_repeat_process_is_repeating() {
     // given:
-    List<MplCommand> mplCommands = listOf(several(), $MplCommand());
+    List<MplCommand> mplCommands = listOf(several(), $MplCommand()//
+        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
     MplProcess process = some($MplProcess()//
         .withRepeating(true)//
         .withChainParts(mplCommands));
-
-    Iterator<MplCommand> exp = mplCommands.iterator();
 
     // when:
     CommandChain result = visitProcess(process);
 
     // then:
     Iterator<ChainLink> act = result.getCommands().iterator();
-    assertThatNext(act).isSkip();
+    if (context.getOptions().hasOption(TRANSMITTER)) {
+      assertThatNext(act).isSkip();
+    }
     assertThatNext(act).hasMode(REPEAT).doesNeedRedstone();
-    assertMatches(act, exp);
-    assertThat(act).isEmpty();
-    assertThat(exp).isEmpty();
   }
 
   @Test
   public void test_an_impulse_process_ends_with_notify() throws Exception {
     // given:
-    List<MplCommand> mplCommands = listOf(several(), $MplCommand());
+    List<MplCommand> mplCommands = listOf(several(), $MplCommand()//
+        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
     MplProcess process = some($MplProcess()//
         .withRepeating(false)//
         .withChainParts(mplCommands));
@@ -175,9 +174,7 @@ public abstract class MplProcessMaterializerTest extends MplMaterializationTestB
   public void test_a_repeat_process_uses_a_repeat_command_block() {
     // given:
     MplCommand first = some($MplCommand().withConditional(UNCONDITIONAL));
-    MplCommand second = some($MplCommand()//
-        .withPrevious(first)//
-        .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
+    MplCommand second = some($MplCommand().withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
     MplProcess process = some($MplProcess()//
         .withRepeating(true)//
         .withChainParts(listOf(first, second)));
@@ -208,12 +205,8 @@ public abstract class MplProcessMaterializerTest extends MplMaterializationTestB
   @Test
   public void test_invert_modifier_referenziert_den_richtigen_mode() {
     // given:
-    MplCommand first = some($MplCommand()//
-        .withConditional(UNCONDITIONAL));
-
-    MplCommand second = some($MplCommand()//
-        .withConditional(INVERT)//
-        .withPrevious(first));
+    MplCommand first = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand second = some($MplCommand().withConditional(INVERT));
 
     MplProcess process = some($MplProcess()//
         .withRepeating(false)//
@@ -234,12 +227,8 @@ public abstract class MplProcessMaterializerTest extends MplMaterializationTestB
   @Test
   public void test_Der_erste_invert_in_einem_repeating_process_referenziert_einen_repeating_command_block() {
     // given:
-    MplCommand first = some($MplCommand()//
-        .withConditional(UNCONDITIONAL));
-
-    MplCommand second = some($MplCommand()//
-        .withConditional(INVERT)//
-        .withPrevious(first));
+    MplCommand first = some($MplCommand().withConditional(UNCONDITIONAL));
+    MplCommand second = some($MplCommand().withConditional(INVERT));
 
     MplProcess process = some($MplProcess()//
         .withRepeating(true)//
