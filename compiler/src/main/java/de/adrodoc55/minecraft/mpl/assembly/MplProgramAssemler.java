@@ -92,13 +92,13 @@ public class MplProgramAssemler {
       doIncludes();
     }
     MplProgram result = programBuilder.getProgram();
-    boolean containsRemoteProcess = result.getProcesses().stream()//
-        .anyMatch(p -> p.getType().isRemote());
-    if (context.getErrors().isEmpty() && !containsRemoteProcess) {
-      context.addError(
-          new CompilerException(new MplSource(programFile, "", new CommonToken(MplLexer.PROCESS)),
-              "This file does not include any remote processes"));
-    }
+//    boolean containsRemoteProcess = result.getProcesses().stream()//
+//        .anyMatch(p -> p.getType().isRemote());
+//    if (context.getErrors().isEmpty() && !containsRemoteProcess) {
+//      context.addError(
+//          new CompilerException(new MplSource(programFile, "", new CommonToken(MplLexer.PROCESS)),
+//              "This file does not include any remote processes"));
+//    }
     return result;
   }
 

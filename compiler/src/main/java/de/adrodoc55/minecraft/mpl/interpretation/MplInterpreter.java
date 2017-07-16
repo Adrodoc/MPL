@@ -80,6 +80,7 @@ import com.google.common.collect.SetMultimap;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
+import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser;
 import de.adrodoc55.minecraft.mpl.antlr.MplParser.AutoContext;
@@ -851,7 +852,7 @@ public class MplInterpreter extends MplParserBaseListener {
   public void enterMplIf(MplIfContext ctx) {
     boolean not = ctx.NOT() != null;
     // FIXME: MplIf needs to support any dependable command as condition
-    String condition = ctx.command().getText();
+    String condition = MplUtils.commandWithoutLeadingSlash(ctx.command().getText());
     chainBuffer = new MplIf(chainBuffer, not, condition, toSource(ctx.IF().getSymbol()));
   }
 

@@ -162,7 +162,8 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
       MinecraftVersion.getDefault(), //
       new CompilerOptions(//
           CompilerOption.TRANSMITTER, //
-          CompilerOption.DELETE_ON_UNINSTALL//
+          CompilerOption.DELETE_ON_UNINSTALL, //
+          CompilerOption.FUNCTIONS //
       )//
   );
 

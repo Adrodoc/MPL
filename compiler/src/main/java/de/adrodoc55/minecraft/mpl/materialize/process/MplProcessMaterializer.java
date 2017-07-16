@@ -40,7 +40,6 @@
 package de.adrodoc55.minecraft.mpl.materialize.process;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
 import static de.adrodoc55.minecraft.mpl.ast.chainparts.MplNotify.NOTIFY;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.REPEAT;
@@ -202,7 +201,7 @@ public class MplProcessMaterializer extends ProcessCommandsHelper {
    * @return result a new {@link CommandChain}
    */
   public @Nullable CommandChain visitProcess(MplProgram program, MplProcess process) {
-    if (process.getType() == INLINE) {
+    if (!process.getType().isRemote()) {
       return null;
     }
     List<ChainPart> chainParts = new CopyScope().copy(process.getChainParts());

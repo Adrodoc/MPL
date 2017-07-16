@@ -39,11 +39,17 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation;
 
+import static com.google.common.base.Charsets.UTF_8;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.FUNCTIONS;
 import static java.util.stream.Collectors.toList;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 
@@ -57,6 +63,8 @@ import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
+import de.adrodoc55.minecraft.mpl.materialize.function.McFunction;
+import de.adrodoc55.minecraft.mpl.materialize.function.MplFunctionMaterializer;
 import de.adrodoc55.minecraft.mpl.materialize.process.MplProcessMaterializer;
 import de.adrodoc55.minecraft.mpl.placement.MplDebugProgramPlacer;
 import de.adrodoc55.minecraft.mpl.placement.MplProgramPlacer;
@@ -122,7 +130,28 @@ public class MplCompiler {
   }
 
   public ChainContainer materialize(MplProgram program) {
-    return new MplProcessMaterializer(provideContext()).materialize(program);
+    if (options.hasOption(FUNCTIONS)) {
+      Set<McFunction> result = new MplFunctionMaterializer(provideContext()).materialize(program);
+      Path functionsDir = Paths
+          .get("C:/Users/adrian/AppData/Roaming/.minecraft/saves/New World-/data/functions/mpl");
+      for (McFunction mcFunction : result) {
+        try {
+          Path funcPath = functionsDir.resolve(mcFunction.getName() + ".mcfunction");
+          Files.deleteIfExists(funcPath);
+          Path parent = funcPath.getParent();
+          if (parent != null) {
+            Files.createDirectories(parent);
+          }
+          Files.createFile(funcPath);
+          Files.write(funcPath, mcFunction.getCommands(), UTF_8);
+        } catch (IOException ex) {
+          throw new UndeclaredThrowableException(ex);
+        }
+      }
+      throw new RuntimeException();
+    } else {
+      return new MplProcessMaterializer(provideContext()).materialize(program);
+    }
   }
 
   public List<CommandBlockChain> place(ChainContainer container) throws CompilationFailedException {

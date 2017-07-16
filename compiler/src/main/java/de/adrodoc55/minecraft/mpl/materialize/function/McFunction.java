@@ -37,59 +37,40 @@
  * Sie sollten eine Kopie der GNU General Public License zusammen mit MPL erhalten haben. Wenn
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
-package de.adrodoc55.minecraft.mpl.compilation;
+package de.adrodoc55.minecraft.mpl.materialize.function;
 
-import static com.google.common.base.CaseFormat.LOWER_HYPHEN;
-import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
-import java.util.Arrays;
+import javax.annotation.Nonnull;
 
-import javax.annotation.concurrent.Immutable;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
-@Immutable
-public class CompilerOptions {
-  private final ImmutableSet<CompilerOption> options;
+@EqualsAndHashCode(of = "name")
+@ToString
+@RequiredArgsConstructor
+@Getter
+public class McFunction {
+  private final @Nonnull String name;
+  private final List<String> commands = new ArrayList<>();
 
-  public CompilerOptions(CompilerOption... options) {
-    this(Arrays.asList(options));
+  public List<String> getCommands() {
+    return Collections.unmodifiableList(commands);
   }
 
-  public CompilerOptions(Iterable<CompilerOption> options) {
-    this.options = Sets.immutableEnumSet(options);
+  public void addCommand(String command) {
+    commands.add(command);
   }
 
-  public boolean hasOption(CompilerOption option) {
-    return options.contains(option);
-  }
-
-  public ImmutableSet<CompilerOption> getOptions() {
-    return options;
-  }
-
-  @Override
-  public String toString() {
-    return options.toString();
-  }
-
-  /**
-   * @author Adrodoc55
-   */
-  public enum CompilerOption {
-    DEBUG, //
-    DELETE_ON_UNINSTALL, //
-    TRANSMITTER, //
-    FUNCTIONS, //
-    ;
-    @Override
-    public String toString() {
-      return UPPER_UNDERSCORE.to(LOWER_HYPHEN, super.toString());
-    }
+  public void addAllCommands(Collection<? extends String> commands) {
+    this.commands.addAll(commands);
   }
 }
-

@@ -2,6 +2,7 @@ package de.adrodoc55.minecraft.mpl.ide.fx.dialog.options;
 
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DELETE_ON_UNINSTALL;
+import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.FUNCTIONS;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
 
 import java.util.ArrayList;
@@ -51,6 +52,7 @@ public class OptionsController {
       options.add(DELETE_ON_UNINSTALL);
     if (debug.isSelected())
       options.add(DEBUG);
+    options.add(FUNCTIONS);
     CompilerOptions compilerOptions = new CompilerOptions(options);
     return new MplOptions(version, compilerOptions);
   }
