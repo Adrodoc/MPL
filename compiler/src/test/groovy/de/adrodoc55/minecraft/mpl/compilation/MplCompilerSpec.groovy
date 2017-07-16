@@ -127,11 +127,11 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    remote process main {
+    impulse process main {
       /this is the main process
     }
 
-    remote process other {
+    impulse process other {
       /this is the other process
     }
     """
@@ -152,12 +152,12 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    remote process main {
+    impulse process main {
       /this is the main process
     }
     """
     new File(folder, 'second.mpl').text = """
-    remote process other {
+    impulse process other {
       /this is the other process
     }
     """
@@ -175,13 +175,13 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    remote process main {
+    impulse process main {
       /this is the main process
       start other
     }
     """
     new File(folder, 'second.mpl').text = """
-    remote process other {
+    impulse process other {
       /this is the other process
     }
     """
@@ -204,13 +204,13 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'main.mpl').text = """
     import "newFolder/newFile.mpl"
 
-    remote process main {
+    impulse process main {
       /this is the main process
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    remote process other {
+    impulse process other {
       /this is the other process
     }
     """
@@ -230,14 +230,14 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'main.mpl').text = """
     import "newFolder/newFile.mpl"
 
-    remote process main {
+    impulse process main {
       /this is the main process
       start other
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    remote process other {
+    impulse process other {
       /this is the other process
     }
     """
@@ -260,13 +260,13 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'main.mpl').text = """
     import "newFolder"
 
-    remote process main {
+    impulse process main {
       /this is the main process
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    remote process other {
+    impulse process other {
       /this is the other process
     }
     """
@@ -286,14 +286,14 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'main.mpl').text = """
     import "newFolder"
 
-    remote process main {
+    impulse process main {
       /this is the main process
       start other
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    remote process other {
+    impulse process other {
       /this is the other process
     }
     """
@@ -314,12 +314,12 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    remote process main {
+    impulse process main {
       /this is the main process
       start other
     }
 
-    remote process other {
+    impulse process other {
     /this is the other process
     }
     """
@@ -340,17 +340,17 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    remote process main {
+    impulse process main {
       /this is the main process
       start other
     }
 
-    remote process other {
+    impulse process other {
       /this is the other process in the same file
     }
     """
     new File(folder, 'other.mpl').text = """
-    remote process other {
+    impulse process other {
       /this is the other process from the other file
     }
     """
@@ -371,17 +371,17 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
-    remote process p1 {
+    impulse process p1 {
       /this is the p1 process
       start p3
     }
 
-    remote process p2 {
+    impulse process p2 {
       /this is the p2 process
       start p3
     }
 
-    remote process p3 {
+    impulse process p3 {
       /this is the p3 process
     }
     """
@@ -406,17 +406,17 @@ class MplCompilerSpec extends MplSpecBase {
     given:
     File folder = tempFolder.root
     new File(folder, 'p1.mpl').text = """
-    remote process p1 {
+    impulse process p1 {
       /this is the p1 process
       start p2
     }
 
-    remote process p3 {
+    impulse process p3 {
       /this is the p3 process
     }
     """
     new File(folder, 'p2.mpl').text = """
-    remote process p2 {
+    impulse process p2 {
       /this is the p2 process
       start p3
     }
@@ -446,12 +446,12 @@ class MplCompilerSpec extends MplSpecBase {
     include "p2.mpl"
     """
     new File(folder, 'p1.mpl').text = """
-    remote process p1 {
+    impulse process p1 {
       /this is the p1 process
     }
     """
     new File(folder, 'p2.mpl').text = """
-    remote process p2 {
+    impulse process p2 {
       /this is the p2 process
       start p1
     }
@@ -476,13 +476,13 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'main.mpl').text = """
     include "newFolder/newFile.mpl"
 
-    remote process main {
+    impulse process main {
       /this is the main process
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    remote process other {
+    impulse process other {
       /this is the other process
     }
     """
@@ -505,18 +505,18 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'main.mpl').text = """
     include "newFolder"
 
-    remote process main {
+    impulse process main {
       /this is the main process
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    remote process other {
+    impulse process other {
       /this is the other process
     }
     """
     new File(folder, 'newFolder/newFile.txt').text = """
-    remote process irrelevant {
+    impulse process irrelevant {
       /this is the irrelevant process
     }
     """
@@ -539,7 +539,7 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'main.mpl').text = """
     include "newFolder/newFile1.mpl"
 
-    remote process main {
+    impulse process main {
       /this is the main process
     }
     """
@@ -547,12 +547,12 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'newFolder/newFile1.mpl').text = """
     include "newFile2.mpl"
 
-    remote process other1 {
+    impulse process other1 {
       /this is the other1 process
     }
     """
     new File(folder, 'newFolder/newFile2.mpl').text = """
-    remote process other2 {
+    impulse process other2 {
       /this is the other2 process
     }
     """
@@ -578,7 +578,7 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'main.mpl').text = """
     import "newFolder/newFile1.mpl"
 
-    remote process main {
+    impulse process main {
       /this is the main process
       start unknownProcess
     }
@@ -587,12 +587,12 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'newFolder/newFile1.mpl').text = """
     include "newFile2.mpl"
 
-    remote process other1 {
+    impulse process other1 {
       /this is the other1 process
     }
     """
     new File(folder, 'newFolder/newFile2.mpl').text = """
-    remote process other2 {
+    impulse process other2 {
       /this is the other2 process
     }
     """
@@ -612,7 +612,7 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'main.mpl').text = """
     import "newFolder/newFile1.mpl"
 
-    remote process main {
+    impulse process main {
       /this is the main process
       start other1
     }
@@ -621,12 +621,12 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'newFolder/newFile1.mpl').text = """
     include "newFile2.mpl"
 
-    remote process other1 {
+    impulse process other1 {
       /this is the other1 process
     }
     """
     new File(folder, 'newFolder/newFile2.mpl').text = """
-    remote process other2 {
+    impulse process other2 {
       /this is the other2 process
     }
     """
@@ -652,7 +652,7 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'main.mpl').text = """
     import "newFolder1/newFile1.mpl"
 
-    remote process main {
+    impulse process main {
       /this is the main process
       start unknownProcess
     }
@@ -661,14 +661,14 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'newFolder1/newFile1.mpl').text = """
     import "../newFolder2/newFile2.mpl"
 
-    remote process other1 {
+    impulse process other1 {
       /this is the other1 process
       start other2
     }
     """
     new File(folder, 'newFolder2').mkdirs()
     new File(folder, 'newFolder2/newFile2.mpl').text = """
-    remote process other2 {
+    impulse process other2 {
       /this is the other2 process
     }
     """
@@ -688,7 +688,7 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'main.mpl').text = """
     import "newFolder1/newFile1.mpl"
 
-    remote process main {
+    impulse process main {
       /this is the main process
       start other1
     }
@@ -697,14 +697,14 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'newFolder1/newFile1.mpl').text = """
     import "../newFolder2/newFile2.mpl"
 
-    remote process other1 {
+    impulse process other1 {
       /this is the other1 process
       start other2
     }
     """
     new File(folder, 'newFolder2').mkdirs()
     new File(folder, 'newFolder2/newFile2.mpl').text = """
-    remote process other2 {
+    impulse process other2 {
       /this is the other2 process
     }
     """
@@ -734,12 +734,12 @@ class MplCompilerSpec extends MplSpecBase {
     include "other2.mpl"
     """
     new File(folder, 'other1.mpl').text = """
-    remote process ${id2} {
+    impulse process ${id2} {
       /this is the ${id2} process
     }
     """
     new File(folder, 'other2.mpl').text = """
-    remote process ${id2} {
+    impulse process ${id2} {
       /this is the second ${id2} process
     }
     """
@@ -798,7 +798,7 @@ class MplCompilerSpec extends MplSpecBase {
       orientation "zyx"
     }
 
-    remote process main {}
+    impulse process main {}
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
@@ -814,7 +814,7 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'main.mpl').text = """
     include "other.mpl"
 
-    remote process main {}
+    impulse process main {}
     """
     new File(folder, 'other.mpl').text = """
     project other {
@@ -834,18 +834,18 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder"
-    remote process main {
+    impulse process main {
     /this is the main process
     }
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    remote process other {
+    impulse process other {
     /this is the other process
     }
     """
     new File(folder, 'newFolder/newFile2.mpl').text = """
-    remote process other {
+    impulse process other {
     /this is the second other process
     }
     """
@@ -864,7 +864,7 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     new File(folder, 'main.mpl').text = """
     import "newFolder"
-    remote process main {
+    impulse process main {
     /this is the main process
     start other
     }
@@ -872,13 +872,13 @@ class MplCompilerSpec extends MplSpecBase {
     new File(folder, 'newFolder').mkdirs()
     File newFile = new File(folder, 'newFolder/newFile.mpl')
     newFile.text = """
-    remote process other {
+    impulse process other {
     /this is the other process
     }
     """
     File newFile2 = new File(folder, 'newFolder/newFile2.mpl')
     newFile2.text = """
-    remote process other {
+    impulse process other {
     /this is the second other process
     }
     """
@@ -901,10 +901,10 @@ class MplCompilerSpec extends MplSpecBase {
     """
     new File(folder, 'newFolder').mkdirs()
     new File(folder, 'newFolder/newFile.mpl').text = """
-    remote process main {
+    impulse process main {
       /this is the main process
     }
-    remote process other {
+    impulse process other {
       /this is the other process
     }
     """
@@ -1035,7 +1035,7 @@ class MplCompilerSpec extends MplSpecBase {
       /say install
     }
 
-    remote process main { // If there is no process, there are no generated commands
+    impulse process main { // If there is no process, there are no generated commands
       /say hi
     }
     """
@@ -1069,7 +1069,7 @@ class MplCompilerSpec extends MplSpecBase {
       /say uninstall
     }
 
-    remote process main { // If there is no process, there are no generated commands
+    impulse process main { // If there is no process, there are no generated commands
       /say hi
     }
     """
@@ -1099,11 +1099,11 @@ class MplCompilerSpec extends MplSpecBase {
       /say main uninstall
     }
 
-    remote process main {
+    impulse process main {
       start other   // ein include erzeugen, damit sichergestellt wird, dass der interpreter sich nicht selbst included
     }
 
-    remote process other {}
+    impulse process other {}
     """
     when:
     MplProgram result = assembleProgram(new File(folder, 'main.mpl'))
@@ -1132,7 +1132,7 @@ class MplCompilerSpec extends MplSpecBase {
       /say main install
     }
 
-    remote process main {}
+    impulse process main {}
     """
     new File(folder, 'install1.mpl').text = """
     project p {}
@@ -1171,7 +1171,7 @@ class MplCompilerSpec extends MplSpecBase {
       /say main uninstall
     }
 
-    remote process main {}
+    impulse process main {}
     """
     new File(folder, 'uninstall1.mpl').text = """
     project p {}
@@ -1205,7 +1205,7 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     File programFile = new File(folder, 'main.mpl')
     programFile.text = """
-    remote process main {
+    impulse process main {
       ${action} other
     }
     inline process other {}
@@ -1232,7 +1232,7 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     File programFile = new File(folder, 'main.mpl')
     programFile.text = """
-    remote process main {
+    impulse process main {
       ${action} unknown
     }
     """
@@ -1256,7 +1256,7 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     File programFile = new File(folder, 'main.mpl')
     programFile.text = """
-    remote process main {
+    impulse process main {
       unknown()
     }
     """
@@ -1277,11 +1277,11 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     File programFile = new File(folder, 'main.mpl')
     programFile.text = """
-    remote process main {
+    impulse process main {
       waitfor other
     }
 
-    remote process other {}
+    impulse process other {}
     """
     when:
     MplCompilationResult result = compile(programFile)
@@ -1296,11 +1296,11 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     File programFile = new File(folder, 'main.mpl')
     programFile.text = """
-    remote process main {
+    impulse process main {
       waitfor event
     }
 
-    remote process other {
+    impulse process other {
       notify event
     }
     """
@@ -1317,11 +1317,11 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     File programFile = new File(folder, 'main.mpl')
     programFile.text = """
-    remote process main {
+    impulse process main {
       waitfor event
     }
 
-    remote process other {
+    impulse process other {
       if: /testfor @e
       then {
         notify event
@@ -1343,7 +1343,7 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     File programFile = new File(folder, 'main.mpl')
     programFile.text = """
-    remote process main {
+    impulse process main {
       waitfor unknown
     }
     """
@@ -1364,11 +1364,11 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     File programFile = new File(folder, 'main.mpl')
     programFile.text = """
-    remote process main {
+    impulse process main {
       notify event
     }
 
-    remote process other {
+    impulse process other {
       waitfor event
     }
     """
@@ -1385,11 +1385,11 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     File programFile = new File(folder, 'main.mpl')
     programFile.text = """
-    remote process main {
+    impulse process main {
       notify event
     }
 
-    remote process other {
+    impulse process other {
       if: /testfor @e
       then {
         waitfor event
@@ -1411,15 +1411,15 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     File programFile = new File(folder, 'main.mpl')
     programFile.text = """
-    remote process main {
+    impulse process main {
       notify event
     }
 
-    remote process other {
+    impulse process other {
       event()
     }
 
-    remote process event {}
+    impulse process event {}
     """
     when:
     MplCompilationResult result = compile(programFile)
@@ -1434,11 +1434,11 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     File programFile = new File(folder, 'main.mpl')
     programFile.text = """
-    remote process main {
+    impulse process main {
       notify event
     }
 
-    remote process other {
+    impulse process other {
       if: /testfor @e
       then {
         event()
@@ -1447,7 +1447,7 @@ class MplCompilerSpec extends MplSpecBase {
       }
     }
 
-    remote process event {}
+    impulse process event {}
     """
     when:
     MplCompilationResult result = compile(programFile)
@@ -1462,7 +1462,7 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     File programFile = new File(folder, 'main.mpl')
     programFile.text = """
-    remote process main {
+    impulse process main {
       notify unknown
     }
     """
@@ -1484,7 +1484,7 @@ class MplCompilerSpec extends MplSpecBase {
     File folder = tempFolder.root
     File programFile = new File(folder, 'main.mpl')
     programFile.text = """
-    remote process main {
+    impulse process main {
       ${action} @e[name=other]
     }
     """

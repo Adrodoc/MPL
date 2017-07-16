@@ -42,8 +42,9 @@ package de.adrodoc55.minecraft.mpl.interpretation;
 import static com.google.common.base.Preconditions.checkState;
 import static de.adrodoc55.commons.ArrayUtils.nonNullElementsIn;
 import static de.adrodoc55.commons.FileUtils.getCanonicalFile;
+import static de.adrodoc55.minecraft.mpl.ast.ProcessType.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
-import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
+import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REPEAT;
 import static de.adrodoc55.minecraft.mpl.ast.variable.Insertable.checkInsertable;
 
 import java.io.File;
@@ -476,26 +477,20 @@ public class MplInterpreter extends MplParserBaseListener {
     pushVariableScope();
     pushChainBuffer();
     String name = ctx.IDENTIFIER().getText();
-    boolean repeat = ctx.REPEAT() != null;
     ProcessType type = ProcessType.DEFAULT;
     if (ctx.INLINE() != null) {
       type = INLINE;
-    } else if (ctx.REMOTE() != null || ctx.IMPULSE() != null || repeat) {
-      type = REMOTE;
-    }
-    if (type == INLINE && (ctx.IMPULSE() != null || repeat)) {
-      TerminalNode terminal = repeat ? ctx.REPEAT() : ctx.IMPULSE();
-      context.addError(new CompilerException(toSource(terminal.getSymbol()),
-          "Illegal combination of modifiers for the process " + name
-              + "; only one of inline, impulse, or repeat is permitted"));
-      repeat = false;
+    } else if (ctx.IMPULSE() != null) {
+      type = IMPULSE;
+    } else if (ctx.REPEAT() != null) {
+      type = REPEAT;
     }
     Collection<String> tags = new ArrayList<>(ctx.TAG().size());
     for (TerminalNode tag : ctx.TAG()) {
       tags.add(MplLexerUtils.getTagString(tag.getSymbol()));
     }
     MplSource source = toSource(ctx.IDENTIFIER().getSymbol());
-    process = new MplProcess(name, repeat, type, tags, source);
+    process = new MplProcess(name, type, tags, source);
   }
 
   @Override
@@ -748,9 +743,9 @@ public class MplInterpreter extends MplParserBaseListener {
     } else if (identifier != null) {
       selector = toSelector(identifier.getText());
       source = toSource(identifier.getSymbol());
-    } else if (this.process != null) {
-      if (this.process.isRepeating()) {
-        selector = toSelector(this.process.getName());
+    } else if (process != null) {
+      if (process.getType() == REPEAT) {
+        selector = toSelector(process.getName());
       } else {
         context.addError(new CompilerException(source, "An impulse process cannot be stopped"));
         return;
@@ -827,7 +822,7 @@ public class MplInterpreter extends MplParserBaseListener {
 
   @Override
   public void enterMplSkip(MplSkipContext ctx) {
-    if (process != null && process.isRepeating() && chainBuffer.getChainParts().isEmpty()) {
+    if (process != null && process.getType() == REPEAT && chainBuffer.getChainParts().isEmpty()) {
       MplSource source = toSource(ctx);
       context.addError(
           new CompilerException(source, "skip cannot be the first command of a repeating process"));

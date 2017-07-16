@@ -40,7 +40,8 @@
 package de.adrodoc55.minecraft.mpl.ast.chainparts.program;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
+import static de.adrodoc55.minecraft.mpl.ast.ProcessType.IMPULSE;
+import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REPEAT;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -71,7 +72,6 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @Getter
 public class MplProcess implements Named, ChainPartBuffer {
   private final String name;
-  private final boolean repeating;
   private final ProcessType type;
   private final MplSource source;
   private final Deque<ChainPart> chainParts = new ArrayDeque<>();
@@ -82,14 +82,13 @@ public class MplProcess implements Named, ChainPartBuffer {
   }
 
   public MplProcess(@Nullable String name, @Nonnull MplSource source) {
-    this(name, false, REMOTE, new ArrayList<>(), source);
+    this(name, IMPULSE, new ArrayList<>(), source);
   }
 
   @GenerateMplPojoBuilder
-  public MplProcess(@Nullable String name, boolean repeating, ProcessType type,
-      Collection<String> tags, @Nonnull MplSource source) {
+  public MplProcess(@Nullable String name, ProcessType type, Collection<String> tags,
+      @Nonnull MplSource source) {
     this.name = name;
-    this.repeating = repeating;
     this.type = checkNotNull(type, "type == null!");
     setTags(tags);
     this.source = checkNotNull(source, "source == null!");
@@ -131,6 +130,10 @@ public class MplProcess implements Named, ChainPartBuffer {
     checkNotNull(tags, "tags == null!");
     this.tags.clear();
     this.tags.addAll(tags);
+  }
+
+  public boolean isRepeating() {
+    return getType() == REPEAT;
   }
 
 }

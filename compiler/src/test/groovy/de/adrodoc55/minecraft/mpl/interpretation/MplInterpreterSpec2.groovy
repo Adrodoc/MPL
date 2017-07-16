@@ -56,6 +56,7 @@ import com.google.common.collect.SetMultimap
 import de.adrodoc55.minecraft.mpl.MplSpecBase
 import de.adrodoc55.minecraft.mpl.assembly.MplReference
 import de.adrodoc55.minecraft.mpl.ast.Conditional
+import de.adrodoc55.minecraft.mpl.ast.ProcessType
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall
@@ -287,17 +288,20 @@ class MplInterpreterSpec2 extends MplSpecBase {
   }
 
   @Test
-  public void "A process may be inline or remote"() {
+  public void "Process modifiers"() {
     given:
     String id1 = some($Identifier())
     String id2 = some($Identifier())
     String id3 = some($Identifier())
+    String id4 = some($Identifier())
     String programString = """
     process ${id1} {}
 
     inline process ${id2} {}
 
-    remote process ${id3} {}
+    impulse process ${id3} {}
+
+    repeat process ${id4} {}
     """
     when:
     MplInterpreter interpreter = interpret(programString)
@@ -306,70 +310,20 @@ class MplInterpreterSpec2 extends MplSpecBase {
     lastContext.errors.isEmpty()
 
     Collection<MplProcess> processes = program.processes
-    processes.size() == 3
 
     MplProcess process1 = processes.find { it.name == id1 }
-    process1.type == INLINE
+    process1.type == ProcessType.DEFAULT
 
     MplProcess process2 = processes.find { it.name == id2 }
-    process2.type == INLINE
+    process2.type == ProcessType.INLINE
 
     MplProcess process3 = processes.find { it.name == id3 }
-    process3.type == REMOTE
-  }
+    process3.type == ProcessType.IMPULSE
 
-  @Test
-  public void "A remote process may be impulse or repeat"() {
-    given:
-    String id1 = some($Identifier())
-    String id2 = some($Identifier())
-    String id3 = some($Identifier())
-    String programString = """
-    remote process ${id1} {}
+    MplProcess process4 = processes.find { it.name == id4 }
+    process4.type == ProcessType.REPEAT
 
-    impulse process ${id2} {}
-
-    repeat process ${id3} {}
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-    then:
-    MplProgram program = interpreter.program
-    lastContext.errors.isEmpty()
-
-    Collection<MplProcess> processes = program.processes
-    processes.size() == 3
-
-    MplProcess process1 = processes.find { it.name == id1 }
-    process1.repeating == false
-
-    MplProcess process2 = processes.find { it.name == id2 }
-    process2.repeating == false
-
-    MplProcess process3 = processes.find { it.name == id3 }
-    process3.repeating == true
-  }
-
-  @Test
-  @Unroll("An inline #repeat process is not allowed")
-  public void "An inline repeat process is not allowed"(String repeat) {
-    given:
-    String id1 = some($Identifier())
-    String programString = """
-    inline ${repeat} process ${id1} {}
-    """
-    when:
-    MplInterpreter interpreter = interpret(programString)
-
-    then:
-    lastContext.errors[0].message == "Illegal combination of modifiers for the process ${id1}; only one of inline, impulse, or repeat is permitted"
-    lastContext.errors[0].source.file == lastTempFile
-    lastContext.errors[0].source.text == repeat
-    lastContext.errors[0].source.lineNumber == 2
-    lastContext.errors.size() == 1
-
-    where:
-    repeat << ['impulse', 'repeat']
+    processes.size() == 4
   }
 
   @Test
@@ -857,7 +811,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   public void "leading conditional/invert without identifier in remote process"(String conditional, String command) {
     given:
     String programString = """
-    remote process main {
+    impulse process main {
       ${conditional}: ${command}
     }
     """
@@ -879,7 +833,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
   public void "leading skip in repeating process"() {
     given:
     String testString = """
-    remote repeat process main {
+    repeat process main {
       skip
     }
     """
@@ -1172,7 +1126,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     given:
     String identifier = some($Identifier())
     String programString = """
-    remote repeat process ${identifier} {
+    repeat process ${identifier} {
       stop
     }
     """

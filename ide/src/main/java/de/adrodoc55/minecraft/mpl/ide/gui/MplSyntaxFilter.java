@@ -231,7 +231,6 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
         case MplLexer.ORIENTATION:
         case MplLexer.PROCESS:
         case MplLexer.PROJECT:
-        case MplLexer.REMOTE:
         case MplLexer.SKIP_TOKEN:
         case MplLexer.START:
         case MplLexer.STOP:

@@ -43,6 +43,25 @@ package de.adrodoc55.minecraft.mpl.ast;
  * @author Adrodoc55
  */
 public enum ProcessType {
-  INLINE, REMOTE;
+  INLINE {
+    @Override
+    public boolean isRemote() {
+      return false;
+    }
+  },
+  IMPULSE {
+    @Override
+    public boolean isRemote() {
+      return true;
+    }
+  },
+  REPEAT {
+    @Override
+    public boolean isRemote() {
+      return true;
+    }
+  },;
   public static final ProcessType DEFAULT = INLINE;
+
+  public abstract boolean isRemote();
 }

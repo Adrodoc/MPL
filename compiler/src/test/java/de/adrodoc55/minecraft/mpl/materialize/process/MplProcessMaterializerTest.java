@@ -56,6 +56,7 @@ import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 
+import de.adrodoc55.minecraft.mpl.ast.ProcessType;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplIf;
@@ -109,7 +110,7 @@ public abstract class MplProcessMaterializerTest extends MplMaterializationTestB
     List<MplCommand> mplCommands = listOf(several(), $MplCommand()//
         .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
     MplProcess process = some($MplProcess()//
-        .withRepeating(true)//
+        .withType(ProcessType.REPEAT)//
         .withChainParts(mplCommands));
 
     // when:
@@ -129,7 +130,7 @@ public abstract class MplProcessMaterializerTest extends MplMaterializationTestB
     List<MplCommand> mplCommands = listOf(several(), $MplCommand()//
         .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
     MplProcess process = some($MplProcess()//
-        .withRepeating(false)//
+        .withType(ProcessType.IMPULSE)//
         .withChainParts(mplCommands));
 
     // when:
@@ -176,7 +177,7 @@ public abstract class MplProcessMaterializerTest extends MplMaterializationTestB
     MplCommand first = some($MplCommand().withConditional(UNCONDITIONAL));
     MplCommand second = some($MplCommand().withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
     MplProcess process = some($MplProcess()//
-        .withRepeating(true)//
+        .withType(ProcessType.REPEAT)//
         .withChainParts(listOf(first, second)));
 
     // when:
@@ -207,9 +208,8 @@ public abstract class MplProcessMaterializerTest extends MplMaterializationTestB
     // given:
     MplCommand first = some($MplCommand().withConditional(UNCONDITIONAL));
     MplCommand second = some($MplCommand().withConditional(INVERT));
-
     MplProcess process = some($MplProcess()//
-        .withRepeating(false)//
+        .withType(ProcessType.IMPULSE)//
         .withChainParts(listOf(first, second)));
 
     // when:
@@ -229,9 +229,8 @@ public abstract class MplProcessMaterializerTest extends MplMaterializationTestB
     // given:
     MplCommand first = some($MplCommand().withConditional(UNCONDITIONAL));
     MplCommand second = some($MplCommand().withConditional(INVERT));
-
     MplProcess process = some($MplProcess()//
-        .withRepeating(true)//
+        .withType(ProcessType.REPEAT)//
         .withChainParts(listOf(first, second)));
 
     // when:
@@ -303,7 +302,7 @@ public abstract class MplProcessMaterializerTest extends MplMaterializationTestB
         .withElseParts(listOf(else1)));
 
     MplProcess process = some($MplProcess()//
-        .withRepeating(true)//
+        .withType(ProcessType.REPEAT)//
         .withChainParts(listOf(mplIf)));
 
     // when:
@@ -330,7 +329,7 @@ public abstract class MplProcessMaterializerTest extends MplMaterializationTestB
         .withThenParts(listOf(then1)));
 
     MplProcess process = some($MplProcess()//
-        .withRepeating(true)//
+        .withType(ProcessType.REPEAT)//
         .withChainParts(listOf(mplIf)));
 
     // when:

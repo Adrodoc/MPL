@@ -223,7 +223,6 @@ public abstract class MplProcessAstVisitorTest extends MplMaterializationTestBas
         .withConditional($oneOf(UNCONDITIONAL, CONDITIONAL)));
     MplProcess inline = some($MplProcess()//
         .withType(INLINE)//
-        .withRepeating(false)//
         .withChainParts(mplCommands));
     MplProgram program = some($MplProgram().withProcesses(listOf(inline)));
     MplProcessAstVisitor underTest = some($UnderTest().withProgram(program));

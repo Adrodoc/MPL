@@ -210,7 +210,7 @@ public class MplProcessMaterializer extends ProcessCommandsHelper {
     boolean containsSkip = containsHighlevelSkip(chainParts);
     String name = process.getName();
     if (name != null) {
-      if (process.isRepeating()) {
+      if (process.getType() == ProcessType.REPEAT) {
         if (options.hasOption(TRANSMITTER)) {
           result.add(new MplSkip());
         }

@@ -249,11 +249,6 @@ lexer grammar MplLexer;
    'continue'
  ;
 
- REMOTE
- :
-   'remote'
- ;
-
  INLINE
  :
    'inline'

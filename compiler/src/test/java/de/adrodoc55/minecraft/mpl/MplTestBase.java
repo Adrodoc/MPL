@@ -45,7 +45,6 @@ import static de.adrodoc55.minecraft.coordinate.Direction3D.NORTH;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.SOUTH;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.UP;
 import static de.adrodoc55.minecraft.coordinate.Direction3D.WEST;
-import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newCommand;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.TRANSMITTER;
@@ -195,9 +194,9 @@ public class MplTestBase extends MplAssertionFactory {
         .withScript($boolean())//
         .withOrientation($Orientation3D())//
         .withInstall($MplProcess()//
-            .withRepeating(false))//
+            .withType(ProcessType.IMPULSE))//
         .withUninstall($MplProcess()//
-            .withRepeating(false))//
+            .withType(ProcessType.IMPULSE))//
         .withMax($Coordinate3D())//
     ;
   }
@@ -205,9 +204,8 @@ public class MplTestBase extends MplAssertionFactory {
   public MplProcessBuilder $MplProcess() {
     return new MplProcessBuilder()//
         .withName($Identifier())//
-        .withRepeating($boolean())//
         .withTags(new ArrayList<>())//
-        .withType(REMOTE)//
+        .withType($oneOf(ProcessType.IMPULSE, ProcessType.REPEAT))//
         .withSource($MplSource())//
     ;
   }

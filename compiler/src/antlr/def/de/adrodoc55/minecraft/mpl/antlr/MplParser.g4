@@ -108,11 +108,8 @@ parser grammar MplParser;
  :
    TAG*
    (
-     REMOTE
-     | INLINE
-   )?
-   (
-     IMPULSE
+     INLINE
+     | IMPULSE
      | REPEAT
    )? PROCESS IDENTIFIER OPENING_CURLY_BRACKET chain? CLOSING_CURLY_BRACKET
  ;
