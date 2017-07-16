@@ -46,6 +46,8 @@ import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 
@@ -70,6 +72,10 @@ public class MplCompilerParameter {
   @Parameter(names = {"-o", "--output"}, description = "Specify an output file")
   private File output = STDOUT;
 
+  @Parameter(names = {"-f", "--function-dir"},
+      description = "Specify a directory to output functions")
+  private @Nullable File functionDir;
+
   @Parameter(names = {"-t", "--type"}, description = "Specify the output type")
   private CompilationType type = CompilationType.STRUCTURE;
 
@@ -89,6 +95,10 @@ public class MplCompilerParameter {
 
   public OutputStream getOutput() throws FileNotFoundException {
     return output == STDOUT ? System.out : new FileOutputStream(output);
+  }
+
+  public @Nullable File getFunctionDir() {
+    return functionDir;
   }
 
   public CompilationType getType() {

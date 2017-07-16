@@ -40,10 +40,12 @@
 package de.adrodoc55.minecraft.mpl.materialize.function;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static de.adrodoc55.minecraft.mpl.materialize.function.McFunction.toFullName;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -51,6 +53,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.base.Joiner;
 
+import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.InternalMplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplCall;
@@ -72,6 +75,20 @@ import de.adrodoc55.minecraft.mpl.materialize.function.MplFunctionAstVisitor.Res
  * @author Adrodoc55
  */
 public class MplFunctionAstVisitor implements MplAstVisitor<Result> {
+  public static Set<McFunction> materialize(String processName, String mcFuncName,
+      Iterable<? extends ChainPart> chainParts, MplFunctionAstVisitor.Context visitorContext) {
+    HashSet<McFunction> result = new HashSet<>();
+    McFunction function = new McFunction(processName + '/' + mcFuncName);
+    result.add(function);
+    MplFunctionAstVisitor visitor = new MplFunctionAstVisitor(processName, visitorContext);
+    for (ChainPart chainPart : chainParts) {
+      Result res = chainPart.accept(visitor);
+      function.addAllCommands(res.getCommands());
+      result.addAll(res.getSubFunctions());
+    }
+    return result;
+  }
+
   static class Result {
     private final List<String> commands = new ArrayList<>();
     private final Set<McFunction> subFunctions = new HashSet<>();
@@ -111,12 +128,9 @@ public class MplFunctionAstVisitor implements MplAstVisitor<Result> {
   }
 
   private final Context context;
-  private final MplFunctionMaterializer materializer;
   private final String processName;
 
-  public MplFunctionAstVisitor(MplFunctionMaterializer materializer, String processName,
-      Context context) {
-    this.materializer = checkNotNull(materializer, "materializer == null!");
+  public MplFunctionAstVisitor(String processName, Context context) {
     this.processName = checkNotNull(processName, "processName == null!");
     this.context = checkNotNull(context, "context == null!");
   }
@@ -184,19 +198,23 @@ public class MplFunctionAstVisitor implements MplAstVisitor<Result> {
 
   @Override
   public Result visitIf(MplIf mplIf) {
-    int ifNumber = context.getIfCounter().incrementAndGet();
     Result result = new Result();
+    int ifNumber = context.getIfCounter().incrementAndGet();
     result.addCondition(mplIf.getCondition(), ifNumber);
-    String thenFuncName = "then" + ifNumber;
-    String elseFuncName = "else" + ifNumber;
-    result
-        .addAll(materializer.materialize(processName, thenFuncName, mplIf.getThenParts(), context));
-    result
-        .addAll(materializer.materialize(processName, elseFuncName, mplIf.getElseParts(), context));
-    result.add("execute @s[tag=mpl:cond" + ifNumber + "] ~ ~ ~ function mpl:" + processName + "/"
-        + thenFuncName);
-    result.add("execute @s[tag=!mpl:cond" + ifNumber + "] ~ ~ ~ function mpl:" + processName + "/"
-        + elseFuncName);
+    Deque<ChainPart> thenParts = mplIf.getThenParts();
+    if (!thenParts.isEmpty()) {
+      String thenFuncName = "then" + ifNumber;
+      result.add("execute @s[tag=mpl:cond" + ifNumber + "] ~ ~ ~ function "
+          + toFullName(processName, thenFuncName));
+      result.addAll(materialize(processName, thenFuncName, thenParts, context));
+    }
+    Deque<ChainPart> elseParts = mplIf.getElseParts();
+    if (!elseParts.isEmpty()) {
+      String elseFuncName = "else" + ifNumber;
+      result.add("execute @s[tag=!mpl:cond" + ifNumber + "] ~ ~ ~ function "
+          + toFullName(processName, elseFuncName));
+      result.addAll(materialize(processName, elseFuncName, elseParts, context));
+    }
     return result;
   }
 

@@ -83,7 +83,7 @@ class MplCompilerSpec extends MplSpecBase {
     lastContext = compiler.provideContext()
     MplProgram program = compiler.assemble(programFile)
     compiler.checkErrors()
-    ChainContainer container = compiler.materialize(program)
+    ChainContainer container = compiler.materializeProcesses(program)
     compiler.checkErrors()
     List<CommandBlockChain> chains = compiler.place(container)
     return chains

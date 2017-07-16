@@ -39,13 +39,19 @@
  */
 package de.adrodoc55.minecraft.mpl.main;
 
+import static com.google.common.base.Charsets.UTF_8;
 import static de.adrodoc55.minecraft.mpl.compilation.MplCompiler.compile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Map.Entry;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+import com.google.common.collect.ImmutableListMultimap;
 
 import de.adrodoc55.commons.FileUtils;
 import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
@@ -71,6 +77,16 @@ public class MplCompilerMain {
       MplCompilationResult compiled = compile(programFile, version, params.getCompilerOptions());
       String name = FileUtils.getFileNameWithoutExtension(programFile);
       params.getType().getConverter().write(compiled, name, params.getOutput(), version);
+      File funcDir = params.getFunctionDir();
+      if (funcDir != null) {
+        ImmutableListMultimap<String, String> functions = compiled.getFunctions();
+        Path funcDirPath = funcDir.toPath();
+        Files.createDirectories(funcDirPath);
+        for (Entry<String, Collection<String>> function : functions.asMap().entrySet()) {
+          Path funcPath = funcDirPath.resolve(function.getKey());
+          Files.write(funcPath, function.getValue(), UTF_8);
+        }
+      }
     } catch (ParameterException ex) {
       System.err.println(ex.getLocalizedMessage());
       System.err.println("Run with '-h' to print help");

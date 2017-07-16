@@ -39,21 +39,18 @@
  */
 package de.adrodoc55.minecraft.mpl.compilation;
 
-import static com.google.common.base.Charsets.UTF_8;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
-import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.FUNCTIONS;
 import static java.util.stream.Collectors.toList;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.UndeclaredThrowableException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
@@ -105,10 +102,12 @@ public class MplCompiler {
     resetContext();
     MplProgram program = assemble(programFile);
     checkErrors();
-    ChainContainer container = materialize(program);
+    Set<McFunction> functions = materializeFunctions(program);
+    checkErrors();
+    ChainContainer container = materializeProcesses(program);
     checkErrors();
     List<CommandBlockChain> chains = place(container);
-    return toResult(container.getOrientation(), chains);
+    return toResult(container.getOrientation(), functions, chains);
   }
 
   /**
@@ -129,29 +128,12 @@ public class MplCompiler {
     return new MplProgramAssemler(provideContext()).assemble(programFile);
   }
 
-  public ChainContainer materialize(MplProgram program) {
-    if (options.hasOption(FUNCTIONS)) {
-      Set<McFunction> result = new MplFunctionMaterializer(provideContext()).materialize(program);
-      Path functionsDir = Paths
-          .get("C:/Users/adrian/AppData/Roaming/.minecraft/saves/New World-/data/functions/mpl");
-      for (McFunction mcFunction : result) {
-        try {
-          Path funcPath = functionsDir.resolve(mcFunction.getName() + ".mcfunction");
-          Files.deleteIfExists(funcPath);
-          Path parent = funcPath.getParent();
-          if (parent != null) {
-            Files.createDirectories(parent);
-          }
-          Files.createFile(funcPath);
-          Files.write(funcPath, mcFunction.getCommands(), UTF_8);
-        } catch (IOException ex) {
-          throw new UndeclaredThrowableException(ex);
-        }
-      }
-      throw new RuntimeException();
-    } else {
-      return new MplProcessMaterializer(provideContext()).materialize(program);
-    }
+  public Set<McFunction> materializeFunctions(MplProgram program) {
+    return new MplFunctionMaterializer(provideContext()).materialize(program);
+  }
+
+  public ChainContainer materializeProcesses(MplProgram program) {
+    return new MplProcessMaterializer(provideContext()).materialize(program);
   }
 
   public List<CommandBlockChain> place(ChainContainer container) throws CompilationFailedException {
@@ -181,12 +163,16 @@ public class MplCompiler {
     }
   }
 
-  public MplCompilationResult toResult(Orientation3D orientation, List<CommandBlockChain> chains) {
+  public MplCompilationResult toResult(Orientation3D orientation,
+      Iterable<? extends McFunction> functions, Collection<? extends CommandBlockChain> chains) {
+    ListMultimap<String, String> func = ArrayListMultimap.create();
+    for (McFunction mcFunction : functions) {
+      func.putAll(mcFunction.getFilePath(), mcFunction.getCommands());
+    }
     List<MplBlock> blocks = chains.stream()//
         .flatMap(c -> c.getBlocks().stream())//
         .collect(toList());
-
     ImmutableMap<Coordinate3D, MplBlock> result = Maps.uniqueIndex(blocks, b -> b.getCoordinate());
-    return new MplCompilationResult(orientation, result, context.getWarnings());
+    return new MplCompilationResult(orientation, func, result, context.getWarnings());
   }
 }

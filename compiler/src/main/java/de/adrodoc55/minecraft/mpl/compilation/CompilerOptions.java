@@ -84,7 +84,6 @@ public class CompilerOptions {
     DEBUG, //
     DELETE_ON_UNINSTALL, //
     TRANSMITTER, //
-    FUNCTIONS, //
     ;
     @Override
     public String toString() {

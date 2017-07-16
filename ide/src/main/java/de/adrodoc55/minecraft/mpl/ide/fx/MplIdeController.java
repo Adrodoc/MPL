@@ -162,8 +162,7 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
       MinecraftVersion.getDefault(), //
       new CompilerOptions(//
           CompilerOption.TRANSMITTER, //
-          CompilerOption.DELETE_ON_UNINSTALL, //
-          CompilerOption.FUNCTIONS //
+          CompilerOption.DELETE_ON_UNINSTALL //
       )//
   );
 
@@ -250,6 +249,7 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
 
   @Override
   public void handleException(Exception ex) {
+    ex.printStackTrace();
     Alert alert = new Alert(AlertType.ERROR, ex.getMessage());
     alert.setHeaderText(ex.getClass().getSimpleName());
     alert.showAndWait();
@@ -628,11 +628,14 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
     if (selectedEditor == null) {
       return null;
     }
-    return compile(selectedEditor.getFile(), false);
+    return compile(selectedEditor.getFile(), false, true);
   }
 
+  private @Nullable File functionDir = getFurthestExistingSubDir(getMinecraftDir(), "saves");
+
   @Override
-  public @Nullable MplCompilationResult compile(File file, boolean silent) {
+  public @Nullable MplCompilationResult compile(File file, boolean silent,
+      boolean useCachedFunctionDir) {
     if (!silent && warnAboutUnsavedResources()) {
       return null;
     }
@@ -642,6 +645,14 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
     try {
       MplCompilationResult result = MplCompiler.compile(file, version, compilerOptions);
       handleCompilerExceptions(WARNING, result.getWarnings());
+      ImmutableListMultimap<String, String> functions = result.getFunctions();
+      if (!silent && !functions.isEmpty()) {
+        File dir =
+            getSelectedEditor().outputFunctions(functions, functionDir, useCachedFunctionDir);
+        if (dir != null) {
+          functionDir = dir;
+        }
+      }
       return result;
     } catch (CompilationFailedException ex) {
       handleCompilerExceptions(ERROR, ex.getErrors());

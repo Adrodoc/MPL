@@ -1,0 +1,2 @@
+scoreboard objectives remove MPL_SUCCESS
+scoreboard objectives remove MPL_SUCCESS_COPY

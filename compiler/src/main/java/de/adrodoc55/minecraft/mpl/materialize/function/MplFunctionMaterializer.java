@@ -39,20 +39,27 @@
  */
 package de.adrodoc55.minecraft.mpl.materialize.function;
 
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.io.Resources.getResource;
+import static com.google.common.io.Resources.readLines;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.FUNCTION;
+import static de.adrodoc55.minecraft.mpl.materialize.function.McFunction.toFullName;
 
+import java.io.IOException;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ProcessCommandsHelper;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
-import de.adrodoc55.minecraft.mpl.materialize.function.MplFunctionAstVisitor.Result;
+import de.adrodoc55.minecraft.mpl.materialize.function.MplFunctionAstVisitor.Context;
 
 /**
  * @author Adrodoc55
@@ -71,7 +78,25 @@ public class MplFunctionMaterializer extends ProcessCommandsHelper {
     for (MplProcess process : program.getProcesses()) {
       result.addAll(materialize(process));
     }
+    if (!result.isEmpty()) {
+      addDefaultFunctions(result);
+    }
     return result;
+  }
+
+  private static void addDefaultFunctions(Set<McFunction> result) {
+    try {
+      List<String> defaultFunctionNames = Arrays.asList("install", "uninstall", "new-scope");
+      for (String functionName : defaultFunctionNames) {
+        List<String> content =
+            readLines(getResource("mpl/lang/function/" + functionName + ".mcfunction"), UTF_8);
+        McFunction function = new McFunction(functionName);
+        function.addAllCommands(content);
+        result.add(function);
+      }
+    } catch (IOException ex) {
+      throw new UndeclaredThrowableException(ex);
+    }
   }
 
   public Set<McFunction> materialize(MplProcess process) {
@@ -79,39 +104,24 @@ public class MplFunctionMaterializer extends ProcessCommandsHelper {
       return Collections.emptySet();
     }
     String processName = process.getName();
-    Set<McFunction> result = materialize(processName, ROOT_FUNCTION_NAME, process.getChainParts());
-    McFunction callFunction = new McFunction(processName + "/" + "call");
+    Set<McFunction> result = MplFunctionAstVisitor.materialize(processName, ROOT_FUNCTION_NAME,
+        process.getChainParts(), newVisitorContext());
+    McFunction callFunction = new McFunction(processName + '/' + "call");
     callFunction.addCommand("function mpl:new-scope");
-    callFunction.addCommand("execute @e[name=mpl:new-scope] ~ ~ ~ function mpl:" + processName + "/"
-        + ROOT_FUNCTION_NAME);
+    callFunction.addCommand("execute @e[name=mpl:new-scope] ~ ~ ~ function "
+        + toFullName(processName, ROOT_FUNCTION_NAME));
     result.add(callFunction);
     return result;
   }
 
-  public Set<McFunction> materialize(String processName, String mcFunctionName,
-      Iterable<? extends ChainPart> chainParts) {
-    return materialize(processName, mcFunctionName, chainParts,
-        new MplFunctionAstVisitor.Context() {
-          private final AtomicInteger ifCounter = new AtomicInteger();
+  private Context newVisitorContext() {
+    return new MplFunctionAstVisitor.Context() {
+      private final AtomicInteger ifCounter = new AtomicInteger();
 
-          @Override
-          public AtomicInteger getIfCounter() {
-            return ifCounter;
-          }
-        });
-  }
-
-  public Set<McFunction> materialize(String processName, String mcFunctionName,
-      Iterable<? extends ChainPart> chainParts, MplFunctionAstVisitor.Context visitorContext) {
-    HashSet<McFunction> result = new HashSet<>();
-    McFunction function = new McFunction(processName + "/" + mcFunctionName);
-    result.add(function);
-    MplFunctionAstVisitor visitor = new MplFunctionAstVisitor(this, processName, visitorContext);
-    for (ChainPart chainPart : chainParts) {
-      Result res = chainPart.accept(visitor);
-      function.addAllCommands(res.getCommands());
-      result.addAll(res.getSubFunctions());
-    }
-    return result;
+      @Override
+      public AtomicInteger getIfCounter() {
+        return ifCounter;
+      }
+    };
   }
 }

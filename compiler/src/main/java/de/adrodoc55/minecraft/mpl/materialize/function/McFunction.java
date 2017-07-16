@@ -49,18 +49,35 @@ import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 /**
  * @author Adrodoc55
  */
-@EqualsAndHashCode(of = "name")
-@ToString
+@EqualsAndHashCode(exclude = "commands")
 @RequiredArgsConstructor
 @Getter
 public class McFunction {
+  public static final String MPL_NAMESPACE = "mpl";
+
+  public static String toFullName(String processName, String rootFunctionName) {
+    return MPL_NAMESPACE + ':' + processName + '/' + rootFunctionName;
+  }
+
+  private final @Nonnull String namespace;
   private final @Nonnull String name;
   private final List<String> commands = new ArrayList<>();
+
+  public McFunction(String name) {
+    this(MPL_NAMESPACE, name);
+  }
+
+  public String getFullName() {
+    return namespace + ':' + name;
+  }
+
+  public String getFilePath() {
+    return namespace + '/' + name + ".mcfunction";
+  }
 
   public List<String> getCommands() {
     return Collections.unmodifiableList(commands);
@@ -72,5 +89,10 @@ public class McFunction {
 
   public void addAllCommands(Collection<? extends String> commands) {
     this.commands.addAll(commands);
+  }
+
+  @Override
+  public String toString() {
+    return "McFunction (name=" + getFullName() + ", commands=" + commands + ")";
   }
 }

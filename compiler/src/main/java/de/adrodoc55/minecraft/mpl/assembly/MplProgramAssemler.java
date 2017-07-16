@@ -50,9 +50,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.antlr.v4.runtime.CommonToken;
-
-import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.compilation.CompilerException;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilerContext;
@@ -92,13 +89,13 @@ public class MplProgramAssemler {
       doIncludes();
     }
     MplProgram result = programBuilder.getProgram();
-//    boolean containsRemoteProcess = result.getProcesses().stream()//
-//        .anyMatch(p -> p.getType().isRemote());
-//    if (context.getErrors().isEmpty() && !containsRemoteProcess) {
-//      context.addError(
-//          new CompilerException(new MplSource(programFile, "", new CommonToken(MplLexer.PROCESS)),
-//              "This file does not include any remote processes"));
-//    }
+    // boolean containsRemoteProcess = result.getProcesses().stream()//
+    // .anyMatch(p -> p.getType().isRemote());
+    // if (context.getErrors().isEmpty() && !containsRemoteProcess) {
+    // context.addError(
+    // new CompilerException(new MplSource(programFile, "", new CommonToken(MplLexer.PROCESS)),
+    // "This file does not include any remote processes"));
+    // }
     return result;
   }
 

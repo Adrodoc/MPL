@@ -39,6 +39,7 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.fx.editor;
 
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.commons.FileUtils.getFileNameWithoutExtension;
 
@@ -48,7 +49,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Map.Entry;
 
 import javax.annotation.Nullable;
 
@@ -84,6 +88,8 @@ import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.source.AnnotationModel;
 import org.eclipse.jface.text.source.IAnnotationModel;
 
+import com.google.common.collect.ImmutableListMultimap;
+
 import de.adrodoc55.minecraft.mpl.MplPartitioner;
 import de.adrodoc55.minecraft.mpl.MplPresentationReconciler;
 import de.adrodoc55.minecraft.mpl.compilation.MplCompilationResult;
@@ -109,6 +115,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Scene;
 import javafx.scene.control.Control;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Window;
@@ -166,7 +173,7 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
     MplOptions getMplOptions();
 
     @Nullable
-    MplCompilationResult compile(File file, boolean silent);
+    MplCompilationResult compile(File file, boolean silent, boolean useCachedFunctionDir);
 
     FindReplaceDialog getFindReplaceDialog();
   }
@@ -216,7 +223,7 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
   public void save() {
     super.save();
     setModified(false);
-    context.compile(getFile(), true);
+    context.compile(getFile(), true, true);
   }
 
   @Override
@@ -256,7 +263,7 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
 
   public File compileToStructure(@Nullable File initialDir, boolean useCachedFile)
       throws IOException {
-    MplCompilationResult result = context.compile(getFile(), false);
+    MplCompilationResult result = context.compile(getFile(), false, useCachedFile);
     if (result == null) {
       return null;
     }
@@ -279,7 +286,7 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
 
   public File compileToSchematic(@Nullable File initialDir, boolean useCachedFile)
       throws IOException {
-    MplCompilationResult result = context.compile(getFile(), false);
+    MplCompilationResult result = context.compile(getFile(), false, useCachedFile);
     if (result == null) {
       return null;
     }
@@ -301,7 +308,7 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
   }
 
   public File compileToMcedit(@Nullable File initialDir, boolean useCachedFile) throws IOException {
-    MplCompilationResult result = context.compile(getFile(), false);
+    MplCompilationResult result = context.compile(getFile(), false, useCachedFile);
     if (result == null) {
       return null;
     }
@@ -319,5 +326,32 @@ public class MplEditor extends TextEditor implements MplSourceViewer.Context {
     OutputStream out = new FileOutputStream(file);
     MinecraftVersion version = context.getMplOptions().getMinecraftVersion();
     converter.write(result, name, out, version);
+  }
+
+  private @Nullable File functionDir;
+
+  private @Nullable File getFunctionDir(@Nullable File initialDir, boolean useCachedDir) {
+    if (!useCachedDir || functionDir == null) {
+      DirectoryChooser fileChooser = new DirectoryChooser();
+      fileChooser.setTitle("Save functions");
+      fileChooser.setInitialDirectory(initialDir);
+      functionDir = fileChooser.showDialog(getWindow());
+    }
+    return functionDir;
+  }
+
+  public @Nullable File outputFunctions(ImmutableListMultimap<String, String> functions,
+      @Nullable File initialDir, boolean useCachedDir) throws IOException {
+    File functionDir = getFunctionDir(initialDir, useCachedDir);
+    if (functionDir == null) {
+      return null;
+    }
+    Path functionDirPath = functionDir.toPath();
+    for (Entry<String, Collection<String>> function : functions.asMap().entrySet()) {
+      Path funcPath = functionDirPath.resolve(function.getKey());
+      Files.createDirectories(funcPath.getParent());
+      Files.write(funcPath, function.getValue(), UTF_8);
+    }
+    return functionDir;
   }
 }
