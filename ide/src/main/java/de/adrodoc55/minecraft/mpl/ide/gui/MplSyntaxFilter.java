@@ -219,6 +219,7 @@ public class MplSyntaxFilter extends DocumentFilter implements View<MplSyntaxFil
         case MplLexer.BREAKPOINT:
         case MplLexer.CONDITIONAL:
         case MplLexer.ELSE:
+        case MplLexer.FUNCTION:
         case MplLexer.IF:
         case MplLexer.IMPORT:
         case MplLexer.INCLUDE:

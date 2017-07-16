@@ -334,7 +334,7 @@ class MplInterpreterSpec2 extends MplSpecBase {
     #Tag1
     #Test
     #AnotherTag
-    process main {
+    impulse process main {
       /say hi
     }
     """
@@ -360,6 +360,129 @@ class MplInterpreterSpec2 extends MplSpecBase {
       other()
     }
     process other {}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    lastContext.errors.isEmpty()
+
+    program.processes.size() == 2
+    MplProcess process = program.processes.find { it.name == 'main' }
+    process.chainParts[0] == new MplCall('other', source())
+    process.chainParts.size() == 1
+  }
+
+  // @formatter:off
+  // ----------------------------------------------------------------------------------------------------
+  //    _____                     _    _
+  //   |  ___|_   _  _ __    ___ | |_ (_)  ___   _ __
+  //   | |_  | | | || '_ \  / __|| __|| | / _ \ | '_ \
+  //   |  _| | |_| || | | || (__ | |_ | || (_) || | | |
+  //   |_|    \__,_||_| |_| \___| \__||_| \___/ |_| |_|
+  //
+  // ----------------------------------------------------------------------------------------------------
+  // @formatter:on
+
+  @Test
+  public void "A file may contain multiple functions"() {
+    given:
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
+    String id3 = some($Identifier())
+    String programString = """
+    function ${id1} {
+      /say I am the first function
+    }
+    function ${id2} {
+      /say I am the second function
+    }
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    MplProgram program = interpreter.program
+    lastContext.errors.isEmpty()
+
+    Collection<MplProcess> processes = program.processes
+    processes.size() == 2
+
+    MplProcess process1 = processes.find { it.name == id1 }
+    Deque<ChainPart> chainParts1 = process1.chainParts
+    chainParts1[0] == new MplCommand("/say I am the first function", source())
+    chainParts1.size() == 1
+
+    MplProcess process2 = processes.find { it.name == id2 }
+    Deque<ChainPart> chainParts2 = process2.chainParts
+    chainParts2[0] == new MplCommand("/say I am the second function", source())
+    chainParts2.size() == 1
+  }
+
+  @Test
+  public void "illegal function modifiers"() {
+    given:
+    String id1 = some($Identifier())
+    String id2 = some($Identifier())
+    String id3 = some($Identifier())
+    String id4 = some($Identifier())
+    String programString = """
+    inline function ${id2} {}
+
+    impulse function ${id3} {}
+
+    repeat function ${id4} {}
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    lastContext.errors[0].message == "Illegal modifier for function"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == 'inline'
+    lastContext.errors[0].source.lineNumber == 2
+    lastContext.errors[1].message == "Illegal modifier for function"
+    lastContext.errors[1].source.file == lastTempFile
+    lastContext.errors[1].source.text == 'impulse'
+    lastContext.errors[1].source.lineNumber == 4
+    lastContext.errors[2].message == "Illegal modifier for function"
+    lastContext.errors[2].source.file == lastTempFile
+    lastContext.errors[2].source.text == 'repeat'
+    lastContext.errors[2].source.lineNumber == 6
+    lastContext.errors.size() == 3
+  }
+
+  @Test
+  public void "a function cannot have tags"() {
+    given:
+    String identifier = some($Identifier())
+    String programString = """
+    #Tag
+    #AnotherTag
+    function main {
+      /say hi
+    }
+    """
+    when:
+    MplInterpreter interpreter = interpret(programString)
+    then:
+    lastContext.errors[0].message == "Only impulse and repeat processes can be tagged"
+    lastContext.errors[0].source.file == lastTempFile
+    lastContext.errors[0].source.text == '#Tag'
+    lastContext.errors[0].source.lineNumber == 2
+    lastContext.errors[1].message == "Only impulse and repeat processes can be tagged"
+    lastContext.errors[1].source.file == lastTempFile
+    lastContext.errors[1].source.text == '#AnotherTag'
+    lastContext.errors[1].source.lineNumber == 3
+    lastContext.errors.size() == 2
+  }
+
+  public void "a function can be called from another function"() {
+    given:
+    String identifier = some($Identifier())
+    String programString = """
+    function main {
+      other()
+    }
+    function other {}
     """
     when:
     MplInterpreter interpreter = interpret(programString)

@@ -42,6 +42,7 @@ package de.adrodoc55.minecraft.mpl.interpretation;
 import static com.google.common.base.Preconditions.checkState;
 import static de.adrodoc55.commons.ArrayUtils.nonNullElementsIn;
 import static de.adrodoc55.commons.FileUtils.getCanonicalFile;
+import static de.adrodoc55.minecraft.mpl.ast.ProcessType.FUNCTION;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REPEAT;
@@ -52,6 +53,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
@@ -477,17 +479,31 @@ public class MplInterpreter extends MplParserBaseListener {
     pushVariableScope();
     pushChainBuffer();
     String name = ctx.IDENTIFIER().getText();
-    ProcessType type = ProcessType.DEFAULT;
-    if (ctx.INLINE() != null) {
-      type = INLINE;
-    } else if (ctx.IMPULSE() != null) {
-      type = IMPULSE;
-    } else if (ctx.REPEAT() != null) {
-      type = REPEAT;
+    ProcessType type;
+    if (ctx.FUNCTION() != null) {
+      type = FUNCTION;
+      Arrays.asList(ctx.INLINE(), ctx.IMPULSE(), ctx.REPEAT()).stream()//
+          .filter(it -> it != null)//
+          .forEach(node -> context
+              .addError(new CompilerException(toSource(node), "Illegal modifier for function")));
+    } else {
+      type = ProcessType.DEFAULT;
+      if (ctx.INLINE() != null) {
+        type = INLINE;
+      } else if (ctx.IMPULSE() != null) {
+        type = IMPULSE;
+      } else if (ctx.REPEAT() != null) {
+        type = REPEAT;
+      }
     }
     Collection<String> tags = new ArrayList<>(ctx.TAG().size());
     for (TerminalNode tag : ctx.TAG()) {
-      tags.add(MplLexerUtils.getTagString(tag.getSymbol()));
+      if (type.isRemote()) {
+        tags.add(MplLexerUtils.getTagString(tag.getSymbol()));
+      } else {
+        context.addError(new CompilerException(toSource(tag),
+            "Only impulse and repeat processes can be tagged"));
+      }
     }
     MplSource source = toSource(ctx.IDENTIFIER().getSymbol());
     process = new MplProcess(name, type, tags, source);

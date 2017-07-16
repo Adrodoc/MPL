@@ -48,19 +48,26 @@ public enum ProcessType {
     public boolean isRemote() {
       return false;
     }
-  },
+  }, //
   IMPULSE {
     @Override
     public boolean isRemote() {
       return true;
     }
-  },
+  }, //
   REPEAT {
     @Override
     public boolean isRemote() {
       return true;
     }
-  },;
+  }, //
+  FUNCTION {
+    @Override
+    public boolean isRemote() {
+      return false;
+    }
+  }, //
+  ;
   public static final ProcessType DEFAULT = INLINE;
 
   public abstract boolean isRemote();

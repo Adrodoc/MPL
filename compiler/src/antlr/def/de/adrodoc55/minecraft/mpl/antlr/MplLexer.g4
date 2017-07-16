@@ -134,6 +134,11 @@ lexer grammar MplLexer;
    'process'
  ;
 
+ FUNCTION
+ :
+   'function'
+ ;
+
  IMPULSE
  :
    'impulse'

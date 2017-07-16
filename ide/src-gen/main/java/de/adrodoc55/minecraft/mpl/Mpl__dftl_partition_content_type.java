@@ -25,6 +25,7 @@ public class Mpl__dftl_partition_content_type extends org.eclipse.jface.text.rul
 			mpl_keywordWordRule.addWord("breakpoint", mpl_keywordToken);
 			mpl_keywordWordRule.addWord("conditional", mpl_keywordToken);
 			mpl_keywordWordRule.addWord("else", mpl_keywordToken);
+			mpl_keywordWordRule.addWord("function", mpl_keywordToken);
 			mpl_keywordWordRule.addWord("if", mpl_keywordToken);
 			mpl_keywordWordRule.addWord("import", mpl_keywordToken);
 			mpl_keywordWordRule.addWord("include", mpl_keywordToken);
@@ -37,7 +38,6 @@ public class Mpl__dftl_partition_content_type extends org.eclipse.jface.text.rul
 			mpl_keywordWordRule.addWord("orientation", mpl_keywordToken);
 			mpl_keywordWordRule.addWord("process", mpl_keywordToken);
 			mpl_keywordWordRule.addWord("project", mpl_keywordToken);
-			mpl_keywordWordRule.addWord("remote", mpl_keywordToken);
 			mpl_keywordWordRule.addWord("skip", mpl_keywordToken);
 			mpl_keywordWordRule.addWord("start", mpl_keywordToken);
 			mpl_keywordWordRule.addWord("stop", mpl_keywordToken);
