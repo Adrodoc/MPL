@@ -623,12 +623,12 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
     }
   }
 
-  private @Nullable MplCompilationResult compile() {
+  private @Nullable MplCompilationResult compile(boolean useCachedFunctionDir) {
     MplEditor selectedEditor = getSelectedEditor();
     if (selectedEditor == null) {
       return null;
     }
-    return compile(selectedEditor.getFile(), false, true);
+    return compile(selectedEditor.getFile(), false, useCachedFunctionDir);
   }
 
   private @Nullable File functionDir = getFurthestExistingSubDir(getMinecraftDir(), "saves");
@@ -702,8 +702,18 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
   }
 
   @FXML
+  public void compileFunctions() {
+    compile(true);
+  }
+
+  @FXML
+  public void compileFunctionsUnder() {
+    compile(false);
+  }
+
+  @FXML
   public void compileToCommand() {
-    MplCompilationResult result = compile();
+    MplCompilationResult result = compile(true);
     if (result == null) {
       return;
     }
@@ -770,7 +780,7 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
 
   @FXML
   public void compileToCbse() {
-    MplCompilationResult result = compile();
+    MplCompilationResult result = compile(true);
     if (result == null) {
       return;
     }

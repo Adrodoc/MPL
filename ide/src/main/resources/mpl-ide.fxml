@@ -79,6 +79,8 @@
         </Menu>
         <Menu text="_Compile">
           <items>
+            <MenuItem mnemonicParsing="false" onAction="#compileFunctions" styleClass="compileFunctions" text="Compile Functions" />
+            <MenuItem mnemonicParsing="false" onAction="#compileFunctionsUnder" styleClass="compileFunctions" text="Compile Functions under..." />
             <MenuItem mnemonicParsing="false" onAction="#compileToCommand" styleClass="compileToCommand" text="Compile to Command" />
             <MenuItem mnemonicParsing="false" onAction="#compileToStructure" styleClass="compileToStructure" text="Compile to Structure" />
             <MenuItem mnemonicParsing="false" onAction="#compileToStructureUnder" styleClass="compileToStructure" text="Compile to Structure under..." />
@@ -120,6 +122,15 @@
           </styleClass>
           <tooltip>
             <Tooltip text="Save the current File" />
+          </tooltip>
+        </Button>
+        <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileFunctions">
+          <styleClass>
+            <String fx:value="compileFunctions" />
+            <String fx:value="icon" />
+          </styleClass>
+          <tooltip>
+            <Tooltip text="Compile Functions" />
           </tooltip>
         </Button>
         <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#compileToCommand">
