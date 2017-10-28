@@ -93,8 +93,8 @@ public class MplFunctionAstVisitor implements MplAstVisitor<Result> {
     private final Set<McFunction> subFunctions = new HashSet<>();
 
     public void addCondition(String condition, int conditionIndex) {
-      add("stats entity @s set SuccessCount @s MPL_SUCCESS");
       add("scoreboard players set @s MPL_SUCCESS 0");
+      add("stats entity @s set SuccessCount @s MPL_SUCCESS");
       add(condition);
       add("scoreboard players operation @s MPL_SUCCESS_COPY = @s MPL_SUCCESS");
       add("stats entity @s clear SuccessCount");
@@ -245,15 +245,20 @@ public class MplFunctionAstVisitor implements MplAstVisitor<Result> {
     if (condition != null && !mplWhile.isTrailing()) {
       result.addCondition(condition, conditionIndex);
       result.addConditional(callRepeatFunction, conditionIndex);
+    } else {
+      result.add(callRepeatFunction);
     }
     FunctionContainer repeatContainer =
         materialize(processName, repeatFuncName, mplWhile.getChainParts(), context);
     result.addAll(repeatContainer);
+    McFunction repeatFunction = repeatContainer.getRootFunction();
     if (condition != null) {
       Result temp = new Result();
       temp.addCondition(condition, conditionIndex);
       temp.addConditional(callRepeatFunction, conditionIndex);
-      repeatContainer.getRootFunction().addAllCommands(temp.getCommands());
+      repeatFunction.addAllCommands(temp.getCommands());
+    } else {
+      repeatFunction.addCommand(callRepeatFunction);
     }
     return result;
   }
