@@ -40,8 +40,6 @@
 package de.adrodoc55.minecraft.mpl.materialize.function;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static de.adrodoc55.minecraft.mpl.materialize.function.McFunction.toFullName;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -50,9 +48,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import com.google.common.base.Joiner;
-
 import de.adrodoc55.minecraft.mpl.ast.chainparts.ChainPart;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.InternalMplCommand;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.MplBreakpoint;
@@ -75,32 +71,46 @@ import de.adrodoc55.minecraft.mpl.materialize.function.MplFunctionAstVisitor.Res
  * @author Adrodoc55
  */
 public class MplFunctionAstVisitor implements MplAstVisitor<Result> {
-  public static Set<McFunction> materialize(String processName, String mcFuncName,
+  public static FunctionContainer materialize(String processName, String mcFuncName,
       Iterable<? extends ChainPart> chainParts, MplFunctionAstVisitor.Context visitorContext) {
-    HashSet<McFunction> result = new HashSet<>();
-    McFunction function = new McFunction(processName + '/' + mcFuncName);
-    result.add(function);
+    McFunction rootFunction = new McFunction(processName + '/' + mcFuncName);
+    FunctionContainer result = new FunctionContainer(rootFunction);
     MplFunctionAstVisitor visitor = new MplFunctionAstVisitor(processName, visitorContext);
     for (ChainPart chainPart : chainParts) {
       Result res = chainPart.accept(visitor);
-      function.addAllCommands(res.getCommands());
-      result.addAll(res.getSubFunctions());
+      rootFunction.addAllCommands(res.getCommands());
+      result.addFunctions(res.getSubFunctions());
     }
     return result;
   }
 
   static class Result {
+    static String getCondtionLabel(int conditionIndex) {
+      return "mpl:cond" + conditionIndex;
+    }
+
     private final List<String> commands = new ArrayList<>();
     private final Set<McFunction> subFunctions = new HashSet<>();
 
-    public void addCondition(String condition, int ifNumber) {
+    public void addCondition(String condition, int conditionIndex) {
       add("stats entity @s set SuccessCount @s MPL_SUCCESS");
       add("scoreboard players set @s MPL_SUCCESS 0");
       add(condition);
       add("scoreboard players operation @s MPL_SUCCESS_COPY = @s MPL_SUCCESS");
       add("stats entity @s clear SuccessCount");
-      add("scoreboard players tag @s[score_MPL_SUCCESS_COPY_min=1,tag=!mpl:cond" + ifNumber
-          + "] add mpl:cond" + ifNumber + "");
+      String condtionLabel = getCondtionLabel(conditionIndex);
+      add("scoreboard players tag @s[score_MPL_SUCCESS_COPY=0,tag=" + condtionLabel + "] remove "
+          + condtionLabel);
+      add("scoreboard players tag @s[score_MPL_SUCCESS_COPY_min=1,tag=!" + condtionLabel + "] add "
+          + condtionLabel);
+    }
+
+    public void addConditional(String command, int conditionIndex) {
+      add("execute @s[tag=" + getCondtionLabel(conditionIndex) + "] ~ ~ ~ " + command);
+    }
+
+    public void addInverted(String command, int conditionIndex) {
+      add("execute @s[tag=!" + getCondtionLabel(conditionIndex) + "] ~ ~ ~ " + command);
     }
 
     public List<String> getCommands() {
@@ -122,9 +132,14 @@ public class MplFunctionAstVisitor implements MplAstVisitor<Result> {
     public void addAll(Collection<? extends McFunction> subFunctions) {
       this.subFunctions.addAll(subFunctions);
     }
+
+    public void addAll(FunctionContainer container) {
+      addAll(container.getFunctions());
+    }
   }
+
   public interface Context {
-    AtomicInteger getIfCounter();
+    AtomicInteger getConditionCounter();
   }
 
   private final Context context;
@@ -199,29 +214,48 @@ public class MplFunctionAstVisitor implements MplAstVisitor<Result> {
   @Override
   public Result visitIf(MplIf mplIf) {
     Result result = new Result();
-    int ifNumber = context.getIfCounter().incrementAndGet();
-    result.addCondition(mplIf.getCondition(), ifNumber);
+    int conditionIndex = context.getConditionCounter().incrementAndGet();
+    result.addCondition(mplIf.getCondition(), conditionIndex);
     Deque<ChainPart> thenParts = mplIf.getThenParts();
     if (!thenParts.isEmpty()) {
-      String thenFuncName = "then" + ifNumber;
-      result.add("execute @s[tag=mpl:cond" + ifNumber + "] ~ ~ ~ function "
-          + toFullName(processName, thenFuncName));
+      String thenFuncName = "then" + conditionIndex;
+      result.addConditional("function " + toFullName(thenFuncName), conditionIndex);
       result.addAll(materialize(processName, thenFuncName, thenParts, context));
     }
     Deque<ChainPart> elseParts = mplIf.getElseParts();
     if (!elseParts.isEmpty()) {
-      String elseFuncName = "else" + ifNumber;
-      result.add("execute @s[tag=!mpl:cond" + ifNumber + "] ~ ~ ~ function "
-          + toFullName(processName, elseFuncName));
+      String elseFuncName = "else" + conditionIndex;
+      result.addInverted("function " + toFullName(elseFuncName), conditionIndex);
       result.addAll(materialize(processName, elseFuncName, elseParts, context));
     }
     return result;
   }
 
+  private String toFullName(String functionName) {
+    return McFunction.toFullName(processName, functionName);
+  }
+
   @Override
   public Result visitWhile(MplWhile mplWhile) {
-    // TODO Auto-generated method stub
-    return null;
+    Result result = new Result();
+    int conditionIndex = context.getConditionCounter().incrementAndGet();
+    String repeatFuncName = "repeat" + conditionIndex;
+    String callRepeatFunction = "function " + toFullName(repeatFuncName);
+    String condition = mplWhile.getCondition();
+    if (condition != null && !mplWhile.isTrailing()) {
+      result.addCondition(condition, conditionIndex);
+      result.addConditional(callRepeatFunction, conditionIndex);
+    }
+    FunctionContainer repeatContainer =
+        materialize(processName, repeatFuncName, mplWhile.getChainParts(), context);
+    result.addAll(repeatContainer);
+    if (condition != null) {
+      Result temp = new Result();
+      temp.addCondition(condition, conditionIndex);
+      temp.addConditional(callRepeatFunction, conditionIndex);
+      repeatContainer.getRootFunction().addAllCommands(temp.getCommands());
+    }
+    return result;
   }
 
   @Override

@@ -45,7 +45,6 @@ import static com.google.common.io.Resources.getResource;
 import static com.google.common.io.Resources.readLines;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.FUNCTION;
 import static de.adrodoc55.minecraft.mpl.materialize.function.McFunction.toFullName;
-
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Arrays;
@@ -54,7 +53,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProcess;
 import de.adrodoc55.minecraft.mpl.ast.chainparts.program.MplProgram;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.ProcessCommandsHelper;
@@ -104,8 +102,9 @@ public class MplFunctionMaterializer extends ProcessCommandsHelper {
       return Collections.emptySet();
     }
     String processName = process.getName();
-    Set<McFunction> result = MplFunctionAstVisitor.materialize(processName, ROOT_FUNCTION_NAME,
+    FunctionContainer container = MplFunctionAstVisitor.materialize(processName, ROOT_FUNCTION_NAME,
         process.getChainParts(), newVisitorContext());
+    Set<McFunction> result = new HashSet<>(container.getFunctions());
     McFunction callFunction = new McFunction(processName + '/' + "call");
     callFunction.addCommand("function mpl:new-scope");
     callFunction.addCommand("execute @e[name=mpl:new-scope] ~ ~ ~ function "
@@ -116,11 +115,11 @@ public class MplFunctionMaterializer extends ProcessCommandsHelper {
 
   private Context newVisitorContext() {
     return new MplFunctionAstVisitor.Context() {
-      private final AtomicInteger ifCounter = new AtomicInteger();
+      private final AtomicInteger conditionCounter = new AtomicInteger();
 
       @Override
-      public AtomicInteger getIfCounter() {
-        return ifCounter;
+      public AtomicInteger getConditionCounter() {
+        return conditionCounter;
       }
     };
   }

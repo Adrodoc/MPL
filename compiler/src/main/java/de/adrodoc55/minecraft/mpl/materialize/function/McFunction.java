@@ -59,8 +59,8 @@ import lombok.RequiredArgsConstructor;
 public class McFunction {
   public static final String MPL_NAMESPACE = "mpl";
 
-  public static String toFullName(String processName, String rootFunctionName) {
-    return MPL_NAMESPACE + ':' + processName + '/' + rootFunctionName;
+  public static String toFullName(String processName, String functionName) {
+    return MPL_NAMESPACE + ':' + processName + '/' + functionName;
   }
 
   private final @Nonnull String namespace;

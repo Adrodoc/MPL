@@ -42,12 +42,12 @@ package de.adrodoc55.minecraft.mpl.interpretation;
 import static com.google.common.base.Preconditions.checkState;
 import static de.adrodoc55.commons.ArrayUtils.nonNullElementsIn;
 import static de.adrodoc55.commons.FileUtils.getCanonicalFile;
+import static de.adrodoc55.minecraft.mpl.MplUtils.commandWithoutLeadingSlash;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.FUNCTION;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.INLINE;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REPEAT;
 import static de.adrodoc55.minecraft.mpl.ast.variable.Insertable.checkInsertable;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -61,7 +61,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CommonToken;
@@ -73,11 +72,9 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
-
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
-
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.MplUtils;
@@ -896,7 +893,7 @@ public class MplInterpreter extends MplParserBaseListener {
     boolean trailing = ctx.DO() != null;
     // FIXME: MplWhile needs to support any dependable command as condition
     CommandContext command = ctx.command();
-    String condition = command != null ? command.getText() : null;
+    String condition = command != null ? commandWithoutLeadingSlash(command.getText()) : null;
 
     MplWhile mplWhile = new MplWhile(chainBuffer, label, not, trailing, condition,
         toSource(ctx.WHILE() != null ? ctx.WHILE().getSymbol() : ctx.REPEAT().getSymbol()));
