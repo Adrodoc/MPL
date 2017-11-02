@@ -40,14 +40,14 @@
 package de.adrodoc55.minecraft.mpl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static de.adrodoc55.minecraft.coordinate.Axis3D.X;
-import static de.adrodoc55.minecraft.coordinate.Axis3D.Y;
-import static de.adrodoc55.minecraft.coordinate.Axis3D.Z;
+import static de.adrodoc55.minecraft.coordinate.Axis3.X;
+import static de.adrodoc55.minecraft.coordinate.Axis3.Y;
+import static de.adrodoc55.minecraft.coordinate.Axis3.Z;
 
 import java.util.Collection;
 import java.util.function.BinaryOperator;
 
-import de.adrodoc55.minecraft.coordinate.Axis3D;
+import de.adrodoc55.minecraft.coordinate.Axis3;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 
@@ -82,13 +82,13 @@ public class MplUtils {
     }
   }
 
-  private static double get(Collection<Coordinate3D> coordinates, Axis3D axis,
+  private static double get(Collection<Coordinate3D> coordinates, Axis3 axis,
       BinaryOperator<Double> accumulator) {
     return coordinates.stream().map(c -> c.get(axis)).reduce(accumulator).orElse(0D);
   }
 
   private static double getBoundary(Collection<Coordinate3D> coordinates, Orientation3D orientation,
-      Axis3D axis) {
+      Axis3 axis) {
     boolean negative = orientation.get(axis).isNegative();
     BinaryOperator<Double> accumulator = negative ? Math::min : Math::max;
     return get(coordinates, axis, accumulator);

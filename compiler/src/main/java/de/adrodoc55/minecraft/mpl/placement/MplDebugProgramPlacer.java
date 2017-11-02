@@ -78,7 +78,7 @@ public class MplDebugProgramPlacer extends MplChainPlacer {
     Directions template = newTemplate(chain.getCommands().size() + 1);
     CommandBlockChain generated = generateFlat(chain, start, template);
     chains.add(generated);
-    start = start.plus(getOrientation().getC().toCoordinate().mult(2));
+    start = start.plus(getOrientation().getC().toCoordinate3D().mult(2));
   }
 
   private void addUnInstallation() throws NotEnoughSpaceException {
@@ -98,7 +98,7 @@ public class MplDebugProgramPlacer extends MplChainPlacer {
       }
     }
     for (CommandBlockChain chain : chains) {
-      chain.move(getOrientation().getC().toCoordinate().mult(offset));
+      chain.move(getOrientation().getC().toCoordinate3D().mult(offset));
     }
     generateUnInstall();
   }

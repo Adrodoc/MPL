@@ -39,14 +39,11 @@
  */
 package de.adrodoc55.minecraft.coordinate;
 
-import static com.google.common.math.DoubleMath.roundToInt;
-
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
-import java.util.function.DoubleBinaryOperator;
+import java.util.function.IntBinaryOperator;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -55,20 +52,20 @@ import com.google.common.collect.Collections2;
 import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 
 /**
- * A three dimensional {@code double} coordinate.
+ * A three dimensional {@code int} coordinate.
  *
  * @author Adrodoc55
  */
 @Immutable
-public class Coordinate3D implements Cloneable {
-  public static final Coordinate3D SELF = new Coordinate3D(0, 0, 0);
-  public static final Coordinate3D EAST = new Coordinate3D(1, 0, 0);
-  public static final Coordinate3D WEST = new Coordinate3D(-1, 0, 0);
-  public static final Coordinate3D UP = new Coordinate3D(0, 1, 0);
-  public static final Coordinate3D DOWN = new Coordinate3D(0, -1, 0);
-  public static final Coordinate3D SOUTH = new Coordinate3D(0, 0, 1);
-  public static final Coordinate3D NORTH = new Coordinate3D(0, 0, -1);
-  private static final Collection<Coordinate3D> DIRECTIONS = new ArrayList<Coordinate3D>(6);
+public class Coordinate3I implements Cloneable {
+  public static final Coordinate3I SELF = new Coordinate3I(0, 0, 0);
+  public static final Coordinate3I EAST = new Coordinate3I(1, 0, 0);
+  public static final Coordinate3I WEST = new Coordinate3I(-1, 0, 0);
+  public static final Coordinate3I UP = new Coordinate3I(0, 1, 0);
+  public static final Coordinate3I DOWN = new Coordinate3I(0, -1, 0);
+  public static final Coordinate3I SOUTH = new Coordinate3I(0, 0, 1);
+  public static final Coordinate3I NORTH = new Coordinate3I(0, 0, -1);
+  private static final Collection<Coordinate3I> DIRECTIONS = new ArrayList<Coordinate3I>(6);
 
   static {
     DIRECTIONS.add(EAST);
@@ -79,44 +76,44 @@ public class Coordinate3D implements Cloneable {
     DIRECTIONS.add(NORTH);
   }
 
-  public static Optional<Coordinate3D> getMin(Collection<Coordinate3D> coordinates) {
+  public static Optional<Coordinate3I> getMin(Collection<Coordinate3I> coordinates) {
     return coordinates.stream().reduce(getBinaryOperator(Math::min));
   }
 
-  public static Optional<Coordinate3D> getMax(Collection<Coordinate3D> coordinates) {
+  public static Optional<Coordinate3I> getMax(Collection<Coordinate3I> coordinates) {
     return coordinates.stream().reduce(getBinaryOperator(Math::max));
   }
 
-  public static BinaryOperator<Coordinate3D> getBinaryOperator(DoubleBinaryOperator op) {
+  public static BinaryOperator<Coordinate3I> getBinaryOperator(IntBinaryOperator op) {
     return (a, b) -> {
-      double x = op.applyAsDouble(a.x, b.x);
-      double y = op.applyAsDouble(a.y, b.y);
-      double z = op.applyAsDouble(a.z, b.z);
-      return new Coordinate3D(x, y, z);
+      int x = op.applyAsInt(a.x, b.x);
+      int y = op.applyAsInt(a.y, b.y);
+      int z = op.applyAsInt(a.z, b.z);
+      return new Coordinate3I(x, y, z);
     };
   }
 
-  public final double x;
-  public final double y;
-  public final double z;
+  public final int x;
+  public final int y;
+  public final int z;
 
-  public Coordinate3D() {
+  public Coordinate3I() {
     this(0, 0, 0);
   }
 
   @GenerateMplPojoBuilder
-  public Coordinate3D(double x, double y, double z) {
+  public Coordinate3I(int x, int y, int z) {
     this.x = x;
     this.y = y;
     this.z = z;
   }
 
-  public Coordinate3D(Coordinate3D other) {
+  public Coordinate3I(Coordinate3I other) {
     this(other.x, other.y, other.z);
   }
 
-  public Coordinate3D copy() {
-    return new Coordinate3D(this);
+  public Coordinate3I copy() {
+    return new Coordinate3I(this);
   }
 
   @Override
@@ -129,19 +126,8 @@ public class Coordinate3D implements Cloneable {
     }
   }
 
-  public Coordinate3I ceil() {
-    return round(RoundingMode.CEILING);
-  }
-
-  public Coordinate3I floor() {
-    return round(RoundingMode.FLOOR);
-  }
-
-  public Coordinate3I round(RoundingMode mode) {
-    int x = roundToInt(this.x, mode);
-    int y = roundToInt(this.y, mode);
-    int z = roundToInt(this.z, mode);
-    return new Coordinate3I(x, y, z);
+  public Coordinate3D to3D() {
+    return new Coordinate3D(x, y, z);
   }
 
   /**
@@ -149,7 +135,7 @@ public class Coordinate3D implements Cloneable {
    *
    * @return the value of {@link #x}
    */
-  public double getX() {
+  public int getX() {
     return x;
   }
 
@@ -158,7 +144,7 @@ public class Coordinate3D implements Cloneable {
    *
    * @return the value of {@link #y}
    */
-  public double getY() {
+  public int getY() {
     return y;
   }
 
@@ -167,25 +153,25 @@ public class Coordinate3D implements Cloneable {
    *
    * @return the value of {@link #z}
    */
-  public double getZ() {
+  public int getZ() {
     return z;
   }
 
-  public Coordinate3D plus(Coordinate3D other) {
-    double x = this.x + other.x;
-    double y = this.y + other.y;
-    double z = this.z + other.z;
-    return new Coordinate3D(x, y, z);
+  public Coordinate3I plus(Coordinate3I other) {
+    int x = this.x + other.x;
+    int y = this.y + other.y;
+    int z = this.z + other.z;
+    return new Coordinate3I(x, y, z);
   }
 
-  public Coordinate3D minus(Coordinate3D other) {
-    double x = this.x - other.x;
-    double y = this.y - other.y;
-    double z = this.z - other.z;
-    return new Coordinate3D(x, y, z);
+  public Coordinate3I minus(Coordinate3I other) {
+    int x = this.x - other.x;
+    int y = this.y - other.y;
+    int z = this.z - other.z;
+    return new Coordinate3I(x, y, z);
   }
 
-  public double get(Axis3 axis) {
+  public int get(Axis3 axis) {
     return axis.of(this);
   }
 
@@ -198,21 +184,21 @@ public class Coordinate3D implements Cloneable {
     }
   }
 
-  public Coordinate3D plus(double scalar, Direction3 direction) {
+  public Coordinate3I plus(int scalar, Direction3 direction) {
     scalar = direction.isNegative() ? -scalar : scalar;
     return plus(scalar, direction.getAxis());
   }
 
-  public Coordinate3D plus(double scalar, Axis3 axis) {
+  public Coordinate3I plus(int scalar, Axis3 axis) {
     return axis.plus(this, scalar);
   }
 
-  public Coordinate3D minus(double scalar, Direction3 direction) {
+  public Coordinate3I minus(int scalar, Direction3 direction) {
     scalar = direction.isNegative() ? -scalar : scalar;
     return minus(scalar, direction.getAxis());
   }
 
-  public Coordinate3D minus(double scalar, Axis3 axis) {
+  public Coordinate3I minus(int scalar, Axis3 axis) {
     return plus(-scalar, axis);
   }
 
@@ -222,11 +208,11 @@ public class Coordinate3D implements Cloneable {
    * @param scalar to multiply this with
    * @return a copy of this coordinate that is multiplied with the scalar
    */
-  public Coordinate3D mult(double scalar) {
-    double x = this.x * scalar;
-    double y = this.y * scalar;
-    double z = this.z * scalar;
-    return new Coordinate3D(x, y, z);
+  public Coordinate3I mult(int scalar) {
+    int x = this.x * scalar;
+    int y = this.y * scalar;
+    int z = this.z * scalar;
+    return new Coordinate3I(x, y, z);
   }
 
   public String toAbsoluteString() {
@@ -237,14 +223,14 @@ public class Coordinate3D implements Cloneable {
     return "~" + toStringNoZero(x) + " ~" + toStringNoZero(y) + " ~" + toStringNoZero(z);
   }
 
-  private String toStringNoZero(double d) {
+  private String toStringNoZero(int d) {
     if (d == 0) {
       return "";
     }
     return String.valueOf(d);
   }
 
-  public Collection<Coordinate3D> getAdjacent() {
+  public Collection<Coordinate3I> getAdjacent() {
     return Collections2.transform(DIRECTIONS, this::plus);
   }
 
@@ -270,7 +256,7 @@ public class Coordinate3D implements Cloneable {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    Coordinate3D other = (Coordinate3D) obj;
+    Coordinate3I other = (Coordinate3I) obj;
     if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x))
       return false;
     if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y))

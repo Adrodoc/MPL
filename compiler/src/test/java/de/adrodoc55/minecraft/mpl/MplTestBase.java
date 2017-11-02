@@ -39,12 +39,12 @@
  */
 package de.adrodoc55.minecraft.mpl;
 
-import static de.adrodoc55.minecraft.coordinate.Direction3D.DOWN;
-import static de.adrodoc55.minecraft.coordinate.Direction3D.EAST;
-import static de.adrodoc55.minecraft.coordinate.Direction3D.NORTH;
-import static de.adrodoc55.minecraft.coordinate.Direction3D.SOUTH;
-import static de.adrodoc55.minecraft.coordinate.Direction3D.UP;
-import static de.adrodoc55.minecraft.coordinate.Direction3D.WEST;
+import static de.adrodoc55.minecraft.coordinate.Direction3.DOWN;
+import static de.adrodoc55.minecraft.coordinate.Direction3.EAST;
+import static de.adrodoc55.minecraft.coordinate.Direction3.NORTH;
+import static de.adrodoc55.minecraft.coordinate.Direction3.SOUTH;
+import static de.adrodoc55.minecraft.coordinate.Direction3.UP;
+import static de.adrodoc55.minecraft.coordinate.Direction3.WEST;
 import static de.adrodoc55.minecraft.mpl.ast.ProcessType.REMOTE;
 import static de.adrodoc55.minecraft.mpl.commands.Mode.IMPULSE;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newCommand;

@@ -50,7 +50,7 @@ import javax.annotation.Nonnull;
 import com.google.common.collect.Collections2;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.coordinate.Direction3D;
+import de.adrodoc55.minecraft.coordinate.Direction3;
 import de.adrodoc55.minecraft.mpl.commands.Mode;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.Command;
 import de.adrodoc55.minecraft.mpl.commands.chainlinks.GeneratedBy;
@@ -70,9 +70,9 @@ import lombok.ToString;
 @Setter
 public class CommandBlock extends MplBlock {
   private @Nonnull Command command;
-  private @Nonnull Direction3D direction;
+  private @Nonnull Direction3 direction;
 
-  public CommandBlock(Command command, Direction3D direction, Coordinate3D coordinate) {
+  public CommandBlock(Command command, Direction3 direction, Coordinate3D coordinate) {
     super(coordinate);
     this.command = checkNotNull(command, "command == null!");
     this.direction = checkNotNull(direction, "direction == null!");
@@ -116,7 +116,7 @@ public class CommandBlock extends MplBlock {
     return damage;
   }
 
-  public static byte getDamageValue(Direction3D direction) {
+  public static byte getDamageValue(Direction3 direction) {
     if (direction == null) {
       throw new NullPointerException("direction == null");
     }

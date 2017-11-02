@@ -41,64 +41,80 @@ package de.adrodoc55.minecraft.coordinate;
 
 import static com.google.common.base.CaseFormat.LOWER_CAMEL;
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 /**
  * @author Adrodoc55
  */
-public enum Direction3D {
-  // @formatter:off
-  EAST(Coordinate3D.EAST, false, Axis3D.X),
-  WEST(Coordinate3D.WEST, true, Axis3D.X),
-  UP(Coordinate3D.UP, false, Axis3D.Y),
-  DOWN(Coordinate3D.DOWN, true, Axis3D.Y),
-  SOUTH(Coordinate3D.SOUTH, false, Axis3D.Z),
-  NORTH(Coordinate3D.NORTH, true, Axis3D.Z);
-  // @formatter:on
+public enum Direction3 {
+  EAST(Coordinate3I.EAST, false, Axis3.X), //
+  WEST(Coordinate3I.WEST, true, Axis3.X), //
+  UP(Coordinate3I.UP, false, Axis3.Y), //
+  DOWN(Coordinate3I.DOWN, true, Axis3.Y), //
+  SOUTH(Coordinate3I.SOUTH, false, Axis3.Z), //
+  NORTH(Coordinate3I.NORTH, true, Axis3.Z), //
+  ;
+  private static final ImmutableList<Direction3> VALUES = ImmutableList.copyOf(values());
 
-  public static Direction3D valueOf(Coordinate3D coordinate) {
-    if (coordinate == null) {
-      throw new NullPointerException("coordinate is null");
-    }
-    for (Direction3D direction : values()) {
-      if (coordinate.equals(direction.toCoordinate())) {
-        return direction;
-      }
+  public static ImmutableList<Direction3> getValues() {
+    return VALUES;
+  }
+
+  private static final ImmutableMap<Coordinate3D, Direction3> INDEX_3D =
+      Maps.uniqueIndex(VALUES, Direction3::toCoordinate3D);
+
+  public static Direction3 valueOf(Coordinate3D coordinate) {
+    checkNotNull(coordinate, "coordinate == null!");
+    Direction3 result = INDEX_3D.get(coordinate);
+    if (result != null) {
+      return result;
     }
     throw new IllegalArgumentException("No enum constant for coordinate " + coordinate);
   }
 
-  public static Direction3D valueOf(Axis3D axis, boolean negative) {
-    if (axis == null) {
-      throw new NullPointerException("axis is null");
+  private static final ImmutableMap<Coordinate3I, Direction3> INDEX_3I =
+      Maps.uniqueIndex(VALUES, Direction3::toCoordinate3I);
+
+  public static Direction3 valueOf(Coordinate3I coordinate) {
+    checkNotNull(coordinate, "coordinate == null!");
+    Direction3 result = INDEX_3I.get(coordinate);
+    if (result != null) {
+      return result;
     }
-    for (Direction3D direction : values()) {
-      if (axis.equals(direction.getAxis()) && negative == direction.negative) {
-        return direction;
-      }
-    }
-    throw new InternalError(
-        "This can never happen, because there must be a direction for every axis & negative combination!");
+    throw new IllegalArgumentException("No enum constant for coordinate " + coordinate);
   }
 
-  private final Coordinate3D relative;
-  private final boolean negative;
-  private final Axis3D axis;
+  public static Direction3 valueOf(Axis3 axis, boolean negative) {
+    return axis.getDirection(negative);
+  }
 
-  private Direction3D(Coordinate3D relative, boolean negative, Axis3D axis) {
+  private final Coordinate3I relative;
+  private final boolean negative;
+  private final Axis3 axis;
+
+  private Direction3(Coordinate3I relative, boolean negative, Axis3 axis) {
     this.relative = relative;
     this.negative = negative;
     this.axis = axis;
   }
 
-  public Coordinate3D toCoordinate() {
+  public Coordinate3I toCoordinate3I() {
     return relative;
+  }
+
+  public Coordinate3D toCoordinate3D() {
+    return relative.to3D();
   }
 
   public boolean isNegative() {
     return negative;
   }
 
-  public Axis3D getAxis() {
+  public Axis3 getAxis() {
     return axis;
   }
 

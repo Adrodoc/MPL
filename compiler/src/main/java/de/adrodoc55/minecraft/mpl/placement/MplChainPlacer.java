@@ -40,7 +40,7 @@
 package de.adrodoc55.minecraft.mpl.placement;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static de.adrodoc55.minecraft.coordinate.Axis3D.Y;
+import static de.adrodoc55.minecraft.coordinate.Axis3.Y;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newCommand;
 import static de.adrodoc55.minecraft.mpl.commands.chainlinks.Commands.newNoOperationCommand;
 import static de.adrodoc55.minecraft.mpl.compilation.CompilerOptions.CompilerOption.DEBUG;
@@ -67,9 +67,9 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
 
-import de.adrodoc55.minecraft.coordinate.Axis3D;
+import de.adrodoc55.minecraft.coordinate.Axis3;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.coordinate.Direction3D;
+import de.adrodoc55.minecraft.coordinate.Direction3;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.MplUtils;
 import de.adrodoc55.minecraft.mpl.blocks.AirBlock;
@@ -169,7 +169,7 @@ public abstract class MplChainPlacer {
   private void fillForbiddenPositions(Coordinate3D start, Set<Position> forbiddenReceiver,
       Set<Position> forbiddenTransmitter) {
     Orientation3D orientation = getOrientation();
-    Axis3D cAxis = orientation.getC().getAxis();
+    Axis3 cAxis = orientation.getC().getAxis();
     int startC = (int) start.get(cAxis);
     for (CommandBlockChain materialized : chains) {
       for (MplBlock block : materialized.getBlocks()) {
@@ -309,7 +309,7 @@ public abstract class MplChainPlacer {
       Position pos = entry.getKey();
       Position nextPos = entries.peek().getKey();
 
-      Direction3D d = getDirection(pos, nextPos, orientation);
+      Direction3 d = getDirection(pos, nextPos, orientation);
       Coordinate3D coord = toCoordinate(pos, orientation);
 
       if (entry.getValue() == ChainLinkType.NO_OPERATION) {
@@ -380,8 +380,8 @@ public abstract class MplChainPlacer {
    * @return a {@link Coordinate3D} representing the given {@link Position}
    */
   public static Coordinate3D toCoordinate(Position pos, Orientation3D orientation) {
-    Coordinate3D xDir = orientation.getA().toCoordinate();
-    Coordinate3D yDir = orientation.getB().toCoordinate();
+    Coordinate3D xDir = orientation.getA().toCoordinate3D();
+    Coordinate3D yDir = orientation.getB().toCoordinate3D();
     Coordinate3D coord = xDir.mult(pos.getX()).plus(yDir.mult(pos.getY()));
     return coord;
   }
@@ -395,8 +395,8 @@ public abstract class MplChainPlacer {
    * @return a {@link Position} representing the given {@link Coordinate3D}
    */
   public static Position toPosition(Coordinate3D coord, Orientation3D orientation) {
-    Direction3D a = orientation.getA();
-    Direction3D b = orientation.getB();
+    Direction3 a = orientation.getA();
+    Direction3 b = orientation.getB();
     int x = (int) coord.get(a.getAxis());
     int y = (int) coord.get(b.getAxis());
     return Position.at(x, y);
@@ -409,13 +409,13 @@ public abstract class MplChainPlacer {
    * @return the direction from the current position to the next position
    * @throws IllegalArgumentException if the two positions are not next to each other
    */
-  protected static Direction3D getDirection(Position cp, Position np, Orientation3D orientation)
+  protected static Direction3 getDirection(Position cp, Position np, Orientation3D orientation)
       throws IllegalArgumentException {
     // current coordinate
     Coordinate3D cc = toCoordinate(cp, orientation);
     // next coordinate
     Coordinate3D nc = toCoordinate(np, orientation);
-    return Direction3D.valueOf(nc.minus(cc));
+    return Direction3.valueOf(nc.minus(cc));
   }
 
   public static boolean isTransmitter(MplBlock block) {

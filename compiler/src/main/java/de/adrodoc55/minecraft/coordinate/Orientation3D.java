@@ -40,9 +40,9 @@
 package de.adrodoc55.minecraft.coordinate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static de.adrodoc55.minecraft.coordinate.Direction3D.EAST;
-import static de.adrodoc55.minecraft.coordinate.Direction3D.SOUTH;
-import static de.adrodoc55.minecraft.coordinate.Direction3D.UP;
+import static de.adrodoc55.minecraft.coordinate.Direction3.EAST;
+import static de.adrodoc55.minecraft.coordinate.Direction3.SOUTH;
+import static de.adrodoc55.minecraft.coordinate.Direction3.UP;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,16 +63,16 @@ import net.karneim.pojobuilder.GenerateMplPojoBuilder;
 @Getter
 public class Orientation3D {
   private final Token token;
-  private Direction3D a;
-  private Direction3D b;
-  private Direction3D c;
+  private Direction3 a;
+  private Direction3 b;
+  private Direction3 c;
 
   public Orientation3D() {
     this(EAST, UP, SOUTH);
   }
 
   @GenerateMplPojoBuilder
-  public Orientation3D(Direction3D a, Direction3D b, Direction3D c) {
+  public Orientation3D(Direction3 a, Direction3 b, Direction3 c) {
     this.token = null;
     checkNotNull(a, "a == null!");
     checkNotNull(b, "b == null!");
@@ -88,7 +88,7 @@ public class Orientation3D {
     this.token = token;
     checkNotNull(def, "def == null!");
     char[] defArray = def.toCharArray();
-    List<Direction3D> r = new ArrayList<>(3);
+    List<Direction3> r = new ArrayList<>(3);
     for (int i = 0; i < defArray.length; i++) {
       boolean negative = false;
       if (defArray[i] == '-') {
@@ -99,14 +99,14 @@ public class Orientation3D {
         throw new IllegalArgumentException("Every '-' must be followed by an axis!");
       }
       char a = defArray[i];
-      Axis3D axis;
+      Axis3 axis;
       try {
-        axis = Axis3D.valueOf(String.valueOf(Character.toUpperCase(a)));
+        axis = Axis3.valueOf(String.valueOf(Character.toUpperCase(a)));
       } catch (IllegalArgumentException ex) {
         throw new IllegalArgumentException(
             "Unknown direction '" + (negative ? "-" : "") + a + "'!");
       }
-      Direction3D direction = Direction3D.valueOf(axis, negative);
+      Direction3 direction = Direction3.valueOf(axis, negative);
       r.add(direction);
     }
     if (r.size() != 3) {
@@ -115,10 +115,10 @@ public class Orientation3D {
     setValue(r.get(0), r.get(1), r.get(2));
   }
 
-  private void setValue(Direction3D a, Direction3D b, Direction3D c) {
-    Axis3D aAxis = a.getAxis();
-    Axis3D bAxis = b.getAxis();
-    Axis3D cAxis = c.getAxis();
+  private void setValue(Direction3 a, Direction3 b, Direction3 c) {
+    Axis3 aAxis = a.getAxis();
+    Axis3 bAxis = b.getAxis();
+    Axis3 cAxis = c.getAxis();
     if (aAxis == bAxis || bAxis == cAxis || cAxis == aAxis) {
       throw new IllegalArgumentException("All directions must be on different axis!");
     }
@@ -130,25 +130,25 @@ public class Orientation3D {
   /**
    * @return <b>a</b> - the primary direction of this orientation
    */
-  public Direction3D getA() {
+  public Direction3 getA() {
     return a;
   }
 
   /**
    * @return <b>b</b> - the secondary direction of this orientation
    */
-  public Direction3D getB() {
+  public Direction3 getB() {
     return b;
   }
 
   /**
    * @return <b>c</b> - the tertiary direction of this orientation
    */
-  public Direction3D getC() {
+  public Direction3 getC() {
     return c;
   }
 
-  public Direction3D get(Axis3D axis) {
+  public Direction3 get(Axis3 axis) {
     checkNotNull(axis, "axis == null!");
     if (a.getAxis() == axis)
       return a;

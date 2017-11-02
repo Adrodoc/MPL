@@ -49,7 +49,7 @@ import java.util.List;
 
 import de.adrodoc55.commons.StringUtils;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.coordinate.Direction3D;
+import de.adrodoc55.minecraft.coordinate.Direction3;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
@@ -104,12 +104,12 @@ public class CommandConverter implements MplConverter {
   }
 
   public static Coordinate3D getOffset(Orientation3D orientation) {
-    Coordinate3D a = orientation.getA().toCoordinate();
-    Coordinate3D c = orientation.getC().toCoordinate();
+    Coordinate3D a = orientation.getA().toCoordinate3D();
+    Coordinate3D c = orientation.getC().toCoordinate3D();
 
-    Direction3D bd = orientation.getB();
-    bd = Direction3D.valueOf(bd.getAxis(), false);
-    Coordinate3D b = bd.toCoordinate();
+    Direction3 bd = orientation.getB();
+    bd = Direction3.valueOf(bd.getAxis(), false);
+    Coordinate3D b = bd.toCoordinate3D();
 
     // @formatter:off
     return new Coordinate3D().plus(a.mult(1)).plus(b.mult(-2)).plus(c.mult(1));

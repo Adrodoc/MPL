@@ -39,7 +39,7 @@
  */
 package de.adrodoc55.minecraft.coordinate
 
-import static de.adrodoc55.minecraft.coordinate.Direction3D.*
+import static de.adrodoc55.minecraft.coordinate.Direction3.*
 
 import org.junit.Test
 
@@ -50,7 +50,7 @@ class Orientation3DSpec extends Specification {
 
   @Test
   @Unroll('String construcor (#param)')
-  public void 'String construcor'(String param, Direction3D a, Direction3D b, Direction3D c) {
+  public void 'String construcor'(String param, Direction3 a, Direction3 b, Direction3 c) {
     when:
     Orientation3D ori = new Orientation3D(param);
     then:

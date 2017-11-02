@@ -40,9 +40,9 @@
 package de.adrodoc55.minecraft.mpl.conversion;
 
 import static com.google.common.base.Charsets.UTF_8;
-import static de.adrodoc55.minecraft.coordinate.Axis3D.X;
-import static de.adrodoc55.minecraft.coordinate.Axis3D.Y;
-import static de.adrodoc55.minecraft.coordinate.Axis3D.Z;
+import static de.adrodoc55.minecraft.coordinate.Axis3.X;
+import static de.adrodoc55.minecraft.coordinate.Axis3.Y;
+import static de.adrodoc55.minecraft.coordinate.Axis3.Z;
 
 import java.io.BufferedWriter;
 import java.io.IOException;

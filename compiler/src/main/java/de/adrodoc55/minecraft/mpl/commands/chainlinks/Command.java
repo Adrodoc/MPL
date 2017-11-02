@@ -55,7 +55,7 @@ import com.google.common.collect.Iterables;
 
 import de.adrodoc55.commons.CopyScope;
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.coordinate.Direction3D;
+import de.adrodoc55.minecraft.coordinate.Direction3;
 import de.adrodoc55.minecraft.mpl.blocks.CommandBlock;
 import de.adrodoc55.minecraft.mpl.blocks.MplBlock;
 import de.adrodoc55.minecraft.mpl.commands.Dependable;
@@ -142,7 +142,7 @@ public class Command implements ChainLink, Modifiable {
   }
 
   @Override
-  public MplBlock toBlock(Coordinate3D coordinate, Direction3D direction) {
+  public MplBlock toBlock(Coordinate3D coordinate, Direction3 direction) {
     return new CommandBlock(this, direction, coordinate);
   }
 

@@ -52,7 +52,7 @@ import java.util.List;
 import java.util.Set;
 
 import de.adrodoc55.minecraft.coordinate.Coordinate3D;
-import de.adrodoc55.minecraft.coordinate.Direction3D;
+import de.adrodoc55.minecraft.coordinate.Direction3;
 import de.adrodoc55.minecraft.coordinate.Orientation3D;
 import de.adrodoc55.minecraft.mpl.chain.ChainContainer;
 import de.adrodoc55.minecraft.mpl.chain.CommandBlockChain;
@@ -113,8 +113,8 @@ public class MplProgramPlacer extends MplChainPlacer {
   private void increaseSize() throws NotEnoughSpaceException {
     Coordinate3D max = container.getMax();
     Orientation3D o = getOrientation();
-    Direction3D a = o.getA();
-    Direction3D b = o.getB();
+    Direction3 a = o.getA();
+    Direction3 b = o.getB();
     int maxA = (int) max.get(a.getAxis());
     int maxB = (int) max.get(b.getAxis());
     int x = getSize().getX();
@@ -145,8 +145,8 @@ public class MplProgramPlacer extends MplChainPlacer {
 
   private Position calculateInitialSize() throws NotEnoughSpaceException {
     Orientation3D orientation = getOrientation();
-    Direction3D a = orientation.getA();
-    Direction3D b = orientation.getB();
+    Direction3 a = orientation.getA();
+    Direction3 b = orientation.getB();
     int maxA = (int) container.getMax().get(a.getAxis());
     int maxB = (int) container.getMax().get(b.getAxis());
     if (maxA >= 0 && maxB >= 0) {
@@ -240,9 +240,9 @@ public class MplProgramPlacer extends MplChainPlacer {
    */
   protected Coordinate3D findStart(int b) throws NotEnoughSpaceException {
     Orientation3D orientation = getOrientation();
-    Direction3D cDir = orientation.getC();
-    Coordinate3D bPos = orientation.getB().toCoordinate();
-    Coordinate3D cPos = cDir.toCoordinate();
+    Direction3 cDir = orientation.getC();
+    Coordinate3D bPos = orientation.getB().toCoordinate3D();
+    Coordinate3D cPos = cDir.toCoordinate3D();
 
     Position size = getSize();
     for (int c = 0; c < occupied.length; c++) {
@@ -282,8 +282,8 @@ public class MplProgramPlacer extends MplChainPlacer {
 
   protected void occupyBlocks(CommandBlockChain materialized) {
     Orientation3D orientation = getOrientation();
-    Direction3D b = orientation.getB();
-    Direction3D c = orientation.getC();
+    Direction3 b = orientation.getB();
+    Direction3 c = orientation.getC();
     Coordinate3D max = materialized.getBoundaries(orientation);
     int maxB = (int) max.get(b.getAxis());
     int maxC = (int) max.get(c.getAxis());
@@ -300,7 +300,7 @@ public class MplProgramPlacer extends MplChainPlacer {
         || !getInstall().getCommands().isEmpty()//
         || !getUninstall().getCommands().isEmpty()) {
       for (CommandBlockChain chain : chains) {
-        chain.move(getOrientation().getC().toCoordinate());
+        chain.move(getOrientation().getC().toCoordinate3D());
       }
     }
     generateUnInstall();
@@ -323,7 +323,7 @@ public class MplProgramPlacer extends MplChainPlacer {
     }
 
     if (!uninstall.getCommands().isEmpty()) {
-      Coordinate3D start = getOrientation().getB().toCoordinate();
+      Coordinate3D start = getOrientation().getB().toCoordinate3D();
       Directions template = newUninstallTemplate();
       CommandBlockChain generated = generateFlat(uninstall, start, template);
       chains.add(generated);
