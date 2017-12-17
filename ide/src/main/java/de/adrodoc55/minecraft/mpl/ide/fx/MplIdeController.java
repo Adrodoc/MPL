@@ -80,6 +80,7 @@ import org.eclipse.fx.ui.controls.tabpane.DndTabPane;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
+import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.reactfx.value.Val;
 
 import com.google.common.base.Charsets;
@@ -515,7 +516,7 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
 
     Tab tab = new Tab();
     tab.setText(path.getFileName().toString());
-    tab.setContent(editor);
+    tab.setContent(new VirtualizedScrollPane<>(editor));
     tab.setOnCloseRequest(e -> {
       if (warnAboutUnsavedResources(Arrays.asList(tab)))
         e.consume();
