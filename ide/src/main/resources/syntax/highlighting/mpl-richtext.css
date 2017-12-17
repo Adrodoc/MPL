@@ -39,7 +39,7 @@
  */
 
 .paragraph-box:has-caret {
-    -fx-background-color: #e8f2fe;
+  -fx-background-color: #e8f2fe;
 }
 
 .code-area .mpl {
@@ -48,83 +48,83 @@
   -fx-fill: black;
 }
 
-.code-area .mpl.mpl-punctuation {
+.code-area .mpl.punctuation {
   -fx-fill: black;
 }
 
-.code-area .mpl.mpl-bracket {
+.code-area .mpl.bracket {
   -fx-fill: black;
 }
 
-.code-area .mpl.mpl-tag {
+.code-area .mpl.tag {
   -fx-fill: grey;
 }
 
-.code-area .mpl.mpl-keyword {
+.code-area .mpl.keyword {
   -fx-fill: rgb(127, 0, 85);
   -fx-font-weight: bold;
 }
 
-.code-area .mpl.mpl_impulse {
+.code-area .mpl.impulse {
   -fx-fill: rgb(255, 127, 80);
   -fx-font-weight: bold;
 }
 
-.code-area .mpl.mpl-chain {
+.code-area .mpl.chain {
   -fx-fill: rgb(60, 179, 113);
   -fx-font-weight: bold;
 }
 
-.code-area .mpl.mpl-repeat {
+.code-area .mpl.repeat {
   -fx-fill: rgb(106, 90, 205);
   -fx-font-weight: bold;
 }
 
-.code-area .mpl.mpl-always-active {
+.code-area .mpl.always-active {
   -fx-fill: grey;
   -fx-font-weight: bold;
 }
 
-.code-area .mpl.mpl-needs-redstone {
+.code-area .mpl.needs-redstone {
   -fx-fill: red;
   -fx-font-weight: bold;
 }
 
-.code-area .mpl.mpl-unconditional {
+.code-area .mpl.unconditional {
   -fx-fill: grey;
   -fx-font-weight: bold;
 }
 
-.code-area .mpl.mpl-command {
+.code-area .mpl.command {
   -fx-fill: black;
 }
 
-.code-area .mpl.mpl-insert {
+.code-area .mpl.insert {
   -fx-fill: maroon;
-  -fx-background-color: rgb(240, 230, 140);
+  -rtfx-background-color: rgb(240, 230, 140);
 }
 
-.code-area .mpl.mpl-identifier {
+.code-area .mpl.identifier {
   -fx-fill: black;
 }
 
-.code-area .mpl.mpl_selector {
-  -fx-fill: navi;
+.code-area .mpl.selector {
+  -fx-fill: navy;
   -fx-font-weight: bold;
 }
 
-.code-area .mpl.mpl_string {
+.code-area .mpl.string {
   -fx-fill: rgb(42, 0, 255);
 }
 
-.code-area .mpl.mpl-type {
+.code-area .mpl.type {
   -fx-fill: black;
 }
 
-.code-area .mpl.mpl-number {
+.code-area .mpl.number {
   -fx-fill: black;
 }
 
-.code-area .mpl.mpl-comment {
+.code-area .mpl.comment {
   -fx-fill: rgb(63, 127, 95);
 }

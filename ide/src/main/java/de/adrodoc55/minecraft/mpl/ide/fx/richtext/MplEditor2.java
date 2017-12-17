@@ -89,16 +89,16 @@ public class MplEditor2 extends CodeArea {
         case MplLexer.EQUALS_SIGN:
         case MplLexer.PLUS:
         case MplLexer.MINUS:
-          styleClass = "mpl-punctuation";
+          styleClass = "punctuation";
           break;
         case MplLexer.OPENING_BRACKET:
         case MplLexer.CLOSING_BRACKET:
         case MplLexer.OPENING_CURLY_BRACKET:
         case MplLexer.CLOSING_CURLY_BRACKET:
-          styleClass = "mpl-bracket";
+          styleClass = "bracket";
           break;
         case MplLexer.TAG:
-          styleClass = "mpl-tag";
+          styleClass = "tag";
           break;
         case MplLexer.BREAKPOINT:
         case MplLexer.CONDITIONAL:
@@ -122,36 +122,37 @@ public class MplEditor2 extends CodeArea {
         case MplLexer.THEN:
         case MplLexer.UNINSTALL:
         case MplLexer.WAITFOR:
-          styleClass = "mpl-keyword";
+          styleClass = "keyword";
           break;
         case MplLexer.IMPULSE:
-          styleClass = "mpl-impulse";
+          styleClass = "impulse";
           break;
         case MplLexer.CHAIN:
-          styleClass = "mpl-chain";
+          styleClass = "chain";
           break;
         case MplLexer.BREAK:
         case MplLexer.CONTINUE:
         case MplLexer.DO:
         case MplLexer.REPEAT:
         case MplLexer.WHILE:
-          styleClass = "mpl-repeat";
+          styleClass = "repeat";
           break;
         case MplLexer.ALWAYS_ACTIVE:
-          styleClass = "mpl-always-active";
+          styleClass = "always-active";
           break;
         case MplLexer.NEEDS_REDSTONE:
-          styleClass = "mpl-needs-redstone";
+          styleClass = "needs-redstone";
           break;
         case MplLexer.UNCONDITIONAL:
-          styleClass = "mpl-unconditional";
+          styleClass = "unconditional";
           break;
         case MplLexer.SLASH:
         case MplLexer.COMMAND_STRING:
-          styleClass = "mpl-command";
+          styleClass = "command";
           break;
         case MplLexer.DOLLAR:
         case MplLexer.INSERT_CLOSING_BRACKET:
+        case MplLexer.INSERT_CLOSING_CURLY_BRACKET:
         case MplLexer.INSERT_DOT:
         case MplLexer.INSERT_IDENTIFIER:
         case MplLexer.INSERT_MINUS:
@@ -162,29 +163,29 @@ public class MplEditor2 extends CodeArea {
         case MplLexer.INSERT_THIS:
         case MplLexer.INSERT_UNSIGNED_INTEGER:
         case MplLexer.INSERT_WS:
-          styleClass = "mpl-insert";
+          styleClass = "insert";
           break;
         case MplLexer.IDENTIFIER:
-          styleClass = "mpl-identifier";
+          styleClass = "identifier";
           break;
         case MplLexer.SELECTOR:
-          styleClass = "mpl-selector";
+          styleClass = "selector";
           break;
         case MplLexer.STRING:
-          styleClass = "mpl-string";
+          styleClass = "string";
           break;
         case MplLexer.TYPE:
-          styleClass = "mpl-type";
+          styleClass = "type";
           break;
         case MplLexer.UNRECOGNIZED:
-          styleClass = "mpl-unrecognized";
+          styleClass = "unrecognized";
           break;
         case MplLexer.UNSIGNED_INTEGER:
-          styleClass = "mpl-number";
+          styleClass = "number";
           break;
         case MplLexer.COMMENT:
         case MplLexer.MULTILINE_COMMENT:
-          styleClass = "mpl-comment";
+          styleClass = "comment";
       }
       int start = token.getStartIndex();
       int end = token.getStopIndex() + 1;
