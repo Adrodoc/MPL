@@ -56,6 +56,7 @@ public class MplEditor2 extends CodeArea {
         .awaitLatest(plainTextChanges())//
         .subscribe(t -> applyHighlighting(t.get()))//
     ;
+    scrollToPixel(0, 0);
   }
 
   private Task<StyleSpans<Collection<String>>> computeHighlightingAsync(String text) {
