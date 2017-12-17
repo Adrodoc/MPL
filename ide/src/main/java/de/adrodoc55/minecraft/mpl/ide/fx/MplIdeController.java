@@ -49,6 +49,7 @@ import static javafx.scene.control.Alert.AlertType.CONFIRMATION;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -79,7 +80,9 @@ import org.eclipse.fx.ui.controls.tabpane.DndTabPane;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
+import org.reactfx.value.Val;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableListMultimap;
 
 import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
@@ -100,6 +103,8 @@ import de.adrodoc55.minecraft.mpl.ide.fx.dialog.unsaved.UnsavedResourcesDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.MplEditor;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotation;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationType;
+import de.adrodoc55.minecraft.mpl.ide.fx.richtext.MplEditor2;
+import de.adrodoc55.minecraft.mpl.ide.fx.richtext.graphic.MplParagraphGraphicFactory;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import javafx.application.HostServices;
 import javafx.beans.binding.Bindings;
@@ -108,6 +113,7 @@ import javafx.beans.binding.StringExpression;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -473,17 +479,59 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
   }
 
   private Tab provideTab(Path path) {
-    Tab result = tabs.get(path);
-    if (result != null) {
-      return result;
-    }
+    // Tab result = tabs.get(path);
+    // if (result != null) {
+    // return result;
+    // }
     return createAndAttachTab(path);
   }
 
   private Tab createAndAttachTab(Path path) {
+    if (path.toString().endsWith("1.mpl")) {
+      return new0(path);
+    }
+    return old(path);
+  }
+
+  private Tab new0(Path path) {
+    String content;
+    try {
+      content = new String(Files.readAllBytes(path), Charsets.UTF_8);
+    } catch (IOException ex) {
+      throw new UndeclaredThrowableException(ex);
+    }
+    MplEditor2 editor = new MplEditor2(content);
+    MplParagraphGraphicFactory factory = new MplParagraphGraphicFactory(editor);
+    editor.setParagraphGraphicFactory(factory);
+    Val.map(editor.textProperty(), t -> t.length() % editor.getParagraphs().size())
+        .addListener(new ChangeListener<Integer>() {
+          @Override
+          public void changed(ObservableValue<? extends Integer> observable, Integer oldValue,
+              Integer newValue) {
+            factory.setImage(oldValue, null);
+            factory.setImage(newValue, MplAnnotationType.ERROR.getImage());
+          }
+        });
+
+    Tab tab = new Tab();
+    tab.setText(path.getFileName().toString());
+    tab.setContent(editor);
+    tab.setOnCloseRequest(e -> {
+      if (warnAboutUnsavedResources(Arrays.asList(tab)))
+        e.consume();
+    });
+    editorTabPane.getTabs().add(tab);
+    tab.setOnClosed(e -> {
+      editors.remove(path);
+      tabs.remove(path);
+    });
+    tabs.put(path, tab);
+    return tab;
+  }
+
+  private Tab old(Path path) {
     BorderPane pane = new BorderPane();
     MplEditor editor = MplEditor.create(path, pane, eventBus, appMemento, this);
-
     ReadOnlyBooleanProperty modifiedProperty = editor.modifiedProperty();
     StringExpression titleText = Bindings.createStringBinding(() -> {
       return modifiedProperty.get() ? "*" : "";

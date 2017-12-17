@@ -81,6 +81,7 @@ public class MplIdeMain extends Application {
     ObservableList<String> stylesheets = scene.getStylesheets();
     stylesheets.add("/mpl-ide.css");
     stylesheets.add("/syntax/highlighting/mpl.css");
+    stylesheets.add("/syntax/highlighting/mpl-richtext.css");
 
     MplIdeController controller = loader.getController();
     controller.initialize(getHostServices());

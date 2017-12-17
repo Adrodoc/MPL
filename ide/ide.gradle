@@ -32,6 +32,7 @@ dependencies {
   compile project(':compiler')
   compile libs.beanfabrics
   compile libs.efxclipse
+  compile libs.richtextfx
   compileOnly libs.lombok
 
   testCompile project(':compiler').sourceSets.test.output

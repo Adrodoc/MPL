@@ -38,6 +38,16 @@
  * nicht, siehe <http://www.gnu.org/licenses/>.
  */
 
+.line-ruler {
+  -fx-background-color: -fx-hover-base;
+}
+
+.line-ruler * {
+  -fx-font-family: Consolas;
+  -fx-font-size: 12.5;
+  -fx-text-fill: grey;
+}
+
 .button.icon {
   -fx-background-color: transparent;
   -fx-border-color: transparent;
