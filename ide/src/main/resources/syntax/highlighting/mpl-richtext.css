@@ -48,6 +48,20 @@
   -fx-fill: black;
 }
 
+.code-area .mpl.warning {
+  -rtfx-underline-color: gold;
+  -rtfx-underline-width: 1;
+  -rtfx-underline-dash-array: 2;
+  -rtfx-underline-cap: butt;
+}
+
+.code-area .mpl.error {
+  -rtfx-underline-color: red;
+  -rtfx-underline-width: 1;
+  -rtfx-underline-dash-array: 2;
+  -rtfx-underline-cap: butt;
+}
+
 .code-area .mpl.punctuation {
   -fx-fill: black;
 }
