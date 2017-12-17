@@ -73,6 +73,7 @@ public class MplEditor2 extends CodeArea {
   private StyleSpans<Collection<String>> computeHighlighting(String text,
       BooleanSupplier isCancelled) throws InterruptedException {
     StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+    spansBuilder.add(Collections.emptyList(), 0);
 
     ANTLRInputStream input = new ANTLRInputStream(text);
     MplLexer lexer = new MplLexer(input);
