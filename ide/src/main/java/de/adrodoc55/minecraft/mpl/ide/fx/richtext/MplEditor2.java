@@ -39,7 +39,9 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.fx.richtext;
 
+import static javafx.scene.input.KeyCode.DIGIT7;
 import static javafx.scene.input.KeyCode.TAB;
+import static javafx.scene.input.KeyCombination.META_DOWN;
 import static javafx.scene.input.KeyCombination.SHIFT_DOWN;
 import static org.fxmisc.wellbehaved.event.EventPattern.keyPressed;
 import static org.fxmisc.wellbehaved.event.InputMap.consume;
@@ -57,6 +59,9 @@ import javax.annotation.Nullable;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.Token;
+import org.eclipse.fx.ui.controls.styledtext.StyledTextArea;
+import org.eclipse.fx.ui.controls.styledtext.StyledTextContent;
+import org.eclipse.fx.ui.controls.styledtext.TextSelection;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.EditableStyledDocument;
 import org.fxmisc.richtext.model.ReadOnlyStyledDocument;
@@ -74,6 +79,7 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.concurrent.Task;
+import javafx.scene.control.IndexRange;
 import javafx.scene.input.KeyEvent;
 
 /**
@@ -121,7 +127,8 @@ public class MplEditor2 extends CodeArea {
     addInputMap(this,
         sequence(//
             consume(keyPressed(TAB), this::tabPressed), //
-            consume(keyPressed(TAB, SHIFT_DOWN), this::shiftTabPressed)//
+            consume(keyPressed(TAB, SHIFT_DOWN), this::shiftTabPressed), //
+            consume(keyPressed(DIGIT7, META_DOWN), this::performCommenting)//
         ));
   }
 
@@ -161,9 +168,9 @@ public class MplEditor2 extends CodeArea {
     int minLine = Math.min(caretLine, anchorLine);
     int maxLine = Math.max(caretLine, anchorLine);
     String spaces = Strings.repeat(" ", tabWidth);
-    for (int line = minLine; line <= maxLine; line++) {
-      String text = getText(line);
-      if (!(text.startsWith(spaces) || text.trim().isEmpty())) {
+    for (int lineIndex = minLine; lineIndex <= maxLine; lineIndex++) {
+      String line = getText(lineIndex);
+      if (!(line.startsWith(spaces) || line.trim().isEmpty())) {
         return;
       }
     }
@@ -178,6 +185,61 @@ public class MplEditor2 extends CodeArea {
     int textLengthDelta = replacement.length() - text.length();
     if (initialAnchor < initialCaret) {
       selectRange(initialAnchor - tabWidth, initialCaret + textLengthDelta);
+    } else {
+      selectRange(initialAnchor + textLengthDelta, initialCaret - tabWidth);
+    }
+  }
+
+  private void performCommenting(KeyEvent e) {
+    String prefix = "//";
+
+    int caretLine = getCurrentParagraph();
+    int anchorLine = getAnchorParagraph();
+    int minLine = Math.min(caretLine, anchorLine);
+    int maxLine = Math.max(caretLine, anchorLine);
+
+    boolean allLinesAreComments = true;
+    for (int lineIndex = minLine; lineIndex <= maxLine; lineIndex++) {
+      String line = getText(lineIndex);
+      if (!line.trim().startsWith(prefix)) {
+        allLinesAreComments = false;
+        break;
+      }
+    }
+
+    StringBuilder sb = new StringBuilder();
+    for (int lineIndex = minLine; lineIndex <= maxLine; lineIndex++) {
+      String line = getText(lineIndex);
+      if (allLinesAreComments) {
+        int prefixIndex = line.indexOf(prefix);
+        assert prefixIndex >= 0;
+        sb.append(line.substring(0, prefixIndex));
+        sb.append(line.substring(prefixIndex + prefix.length()));
+      } else {
+        sb.append(prefix);
+        sb.append(line);
+      }
+      if (lineIndex != maxLine) {
+        sb.append('\n');
+      }
+    }
+    String replacement = sb.toString();
+
+    int initialAnchor = getAnchor();
+    int initialCaret = getCaretPosition();
+
+    boolean selectionStartAffected =
+        Math.min(initialAnchor, initialCaret) > getAbsolutePosition(minLine, getText(minLine).indexOf(prefix));
+
+    replaceText(minLine, 0, maxLine, getParagraphLength(maxLine), replacement);
+
+    int textLengthDelta = replacement.length() - text.length();
+    int a = allLinesAreComments ? -prefix.length() : prefix.length();
+    if (initialAnchor < initialCaret) {
+      if (selectionStartAffected) {
+        selectRange(initialAnchor + , initialCaret);
+      }
+      selectRange(initialAnchor + tabWidth, initialCaret + textLengthDelta);
     } else {
       selectRange(initialAnchor + textLengthDelta, initialCaret - tabWidth);
     }
