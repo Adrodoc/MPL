@@ -514,8 +514,13 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
           }
         });
 
+    ReadOnlyBooleanProperty modifiedProperty = editor.modifiedProperty();
+    StringExpression titleText = Bindings.createStringBinding(() -> {
+      return modifiedProperty.get() ? "*" : "";
+    }, modifiedProperty).concat(path.getFileName());
+
     Tab tab = new Tab();
-    tab.setText(path.getFileName().toString());
+    tab.textProperty().bind(titleText);
     tab.setContent(new VirtualizedScrollPane<>(editor));
     tab.setOnCloseRequest(e -> {
       if (warnAboutUnsavedResources(Arrays.asList(tab)))
