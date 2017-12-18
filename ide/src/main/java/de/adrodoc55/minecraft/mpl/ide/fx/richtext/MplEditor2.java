@@ -1,5 +1,12 @@
 package de.adrodoc55.minecraft.mpl.ide.fx.richtext;
 
+import static javafx.scene.input.KeyCode.TAB;
+import static javafx.scene.input.KeyCombination.SHIFT_DOWN;
+import static org.fxmisc.wellbehaved.event.EventPattern.keyPressed;
+import static org.fxmisc.wellbehaved.event.InputMap.consume;
+import static org.fxmisc.wellbehaved.event.InputMap.sequence;
+import static org.fxmisc.wellbehaved.event.Nodes.addInputMap;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -13,11 +20,17 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.Token;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.EditableStyledDocument;
+import org.fxmisc.richtext.model.ReadOnlyStyledDocument;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
+import org.fxmisc.richtext.model.StyledDocument;
+import org.fxmisc.richtext.model.TextOps;
+
+import com.google.common.base.Strings;
 
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
 import javafx.concurrent.Task;
+import javafx.scene.input.KeyEvent;
 
 public class MplEditor2 extends CodeArea {
   private static @Nullable ExecutorService syntaxHighlightingThread;
@@ -32,6 +45,8 @@ public class MplEditor2 extends CodeArea {
     }
     return syntaxHighlightingThread;
   }
+
+  private int tabWidth = 2;
 
   public MplEditor2() {}
 
@@ -57,6 +72,89 @@ public class MplEditor2 extends CodeArea {
         .subscribe(t -> applyHighlighting(t.get()))//
     ;
     scrollToPixel(0, 0);
+    addInputMap(this,
+        sequence(//
+            consume(keyPressed(TAB), this::tabPressed), //
+            consume(keyPressed(TAB, SHIFT_DOWN), this::shiftTabPressed)//
+        ));
+  }
+
+  private void tabPressed(KeyEvent e) {
+    int caretLine = getCurrentParagraph();
+    int anchorLine = getAnchorParagraph();
+    if (caretLine == anchorLine) {
+      int spaceCount = tabWidth - getCaretColumn() % tabWidth;
+      String spaces = Strings.repeat(" ", spaceCount);
+      replaceSelection(spaces);
+    } else {
+      int initialAnchor = getAnchor();
+      int initialCaret = getCaretPosition();
+
+      int minLine = Math.min(caretLine, anchorLine);
+      int maxLine = Math.max(caretLine, anchorLine);
+      String text = getText(minLine, 0, maxLine, 0);
+      String spaces = Strings.repeat(" ", tabWidth);
+      String replacement = spaces + text.replace("\n", '\n' + spaces);
+
+      replaceText(minLine, 0, maxLine, 0, replacement);
+
+      int textLengthDelta = replacement.length() - text.length();
+      if (initialAnchor < initialCaret) {
+        selectRange(initialAnchor + tabWidth, initialCaret + textLengthDelta);
+      } else {
+        selectRange(initialAnchor + textLengthDelta, initialCaret + tabWidth);
+      }
+    }
+  }
+
+  private void shiftTabPressed(KeyEvent e) {
+    int caretLine = getCurrentParagraph();
+    int anchorLine = getAnchorParagraph();
+    int minLine = Math.min(caretLine, anchorLine);
+    int maxLine = Math.max(caretLine, anchorLine);
+    String spaces = Strings.repeat(" ", tabWidth);
+    for (int line = minLine; line <= maxLine; line++) {
+      String text = getText(line);
+      if (!(text.startsWith(spaces) || text.trim().isEmpty())) {
+        return;
+      }
+    }
+    int initialAnchor = getAnchor();
+    int initialCaret = getCaretPosition();
+
+    String text = getText(minLine, 0, maxLine, tabWidth);
+    String replacement = text.replace('\n' + spaces, "\n").substring(tabWidth);
+
+    replaceText(minLine, 0, maxLine, tabWidth, replacement);
+
+    int textLengthDelta = replacement.length() - text.length();
+    if (initialAnchor < initialCaret) {
+      selectRange(initialAnchor - tabWidth, initialCaret + textLengthDelta);
+    } else {
+      selectRange(initialAnchor + textLengthDelta, initialCaret - tabWidth);
+    }
+  }
+
+  public int getAnchorParagraph() {
+    return offsetToPosition(getAnchor(), Bias.Backward).getMajor();
+  }
+
+  public void insertContent(int position, String text) {
+    replaceContent(position, position, text);
+  }
+
+  public void deleteContent(int start, int end) {
+    replaceContent(start, end, "");
+  }
+
+  public void replaceContent(int start, int end, String text) {
+    Collection<String> paragraphStyle = getParagraphStyleForInsertionAt(start);
+    Collection<String> style = getTextStyleForInsertionAt(start);
+    TextOps<String, Collection<String>> segmentOps =
+        (TextOps<String, Collection<String>>) getSegOps();
+    StyledDocument<Collection<String>, String, Collection<String>> replacement =
+        ReadOnlyStyledDocument.fromString(text, paragraphStyle, style, segmentOps);
+    getContent().replace(start, end, replacement);
   }
 
   private Task<StyleSpans<Collection<String>>> computeHighlightingAsync(String text) {
@@ -200,5 +298,13 @@ public class MplEditor2 extends CodeArea {
 
   private void applyHighlighting(StyleSpans<Collection<String>> highlighting) {
     setStyleSpans(0, highlighting);
+  }
+
+  public int getTabWidth() {
+    return tabWidth;
+  }
+
+  public void setTabWidth(int tabWidth) {
+    this.tabWidth = tabWidth;
   }
 }

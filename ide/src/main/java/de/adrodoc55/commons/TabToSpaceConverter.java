@@ -39,8 +39,6 @@
  */
 package de.adrodoc55.commons;
 
-import java.util.Arrays;
-
 /**
  * @author Adrodoc55
  */
@@ -86,12 +84,12 @@ public class TabToSpaceConverter {
     StringBuilder sb = new StringBuilder(text.length());
     int afterLastNlIndex = -offset;
     int afterLastTabIndex = 0;
-    char[] textArray = text.toCharArray();
-    for (int i = 0; i < textArray.length; i++) {
-      if (textArray[i] == '\r' || textArray[i] == '\n') {
+    for (int i = 0; i < text.length(); i++) {
+      char charAtI = text.charAt(i);
+      if (charAtI == '\r' || charAtI == '\n') {
         afterLastNlIndex = i + 1;
-      } else if (textArray[i] == '\t') {
-        sb.append(Arrays.copyOfRange(textArray, afterLastTabIndex, i));
+      } else if (charAtI == '\t') {
+        sb.append(text.substring(afterLastTabIndex, i));
         int spaceCount = tabWidth - ((i - afterLastNlIndex) % tabWidth);
         for (int s = spaceCount; s > 0; s--) {
           sb.append(' ');
@@ -102,7 +100,7 @@ public class TabToSpaceConverter {
         afterLastNlIndex -= spaceCount - 1;
       }
     }
-    sb.append(Arrays.copyOfRange(textArray, afterLastTabIndex, textArray.length));
+    sb.append(text.substring(afterLastTabIndex));
     return sb.toString();
   }
 
