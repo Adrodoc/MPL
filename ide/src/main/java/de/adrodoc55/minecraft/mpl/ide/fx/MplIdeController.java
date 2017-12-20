@@ -45,6 +45,7 @@ import static de.adrodoc55.commons.CommonDirectories.getMCEditDir;
 import static de.adrodoc55.commons.CommonDirectories.getMinecraftDir;
 import static de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationType.ERROR;
 import static de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationType.WARNING;
+import static javafx.beans.binding.Bindings.when;
 import static javafx.scene.control.Alert.AlertType.CONFIRMATION;
 
 import java.io.File;
@@ -514,12 +515,9 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
           }
         });
 
-    ReadOnlyBooleanProperty modifiedProperty = editor.modifiedProperty();
-    StringExpression titleText = Bindings.createStringBinding(() -> {
-      return modifiedProperty.get() ? "*" : "";
-    }, modifiedProperty).concat(path.getFileName());
-
     Tab tab = new Tab();
+    StringExpression titleText =
+        when(editor.modifiedProperty()).then("*").otherwise("").concat(path.getFileName());
     tab.textProperty().bind(titleText);
     tab.setContent(new VirtualizedScrollPane<>(editor));
     tab.setOnCloseRequest(e -> {

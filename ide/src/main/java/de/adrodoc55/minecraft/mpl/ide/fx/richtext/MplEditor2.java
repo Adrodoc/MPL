@@ -40,6 +40,7 @@
 package de.adrodoc55.minecraft.mpl.ide.fx.richtext;
 
 import static com.google.common.primitives.Ints.constrainToRange;
+import static javafx.beans.binding.Bindings.not;
 import static javafx.scene.input.KeyCode.DIGIT7;
 import static javafx.scene.input.KeyCode.TAB;
 import static javafx.scene.input.KeyCombination.SHIFT_DOWN;
@@ -71,10 +72,8 @@ import org.fxmisc.richtext.model.TextOps;
 import com.google.common.base.Strings;
 
 import de.adrodoc55.minecraft.mpl.antlr.MplLexer;
-import javafx.beans.property.BooleanProperty;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.concurrent.Task;
 import javafx.scene.input.KeyEvent;
@@ -114,7 +113,6 @@ public class MplEditor2 extends CodeArea {
   }
 
   {
-    plainTextChanges().subscribe(c -> setModified(true));
     plainTextChanges().conditionOnShowing(this)//
         .supplyTask(() -> computeHighlightingAsync(getText()))//
         .awaitLatest(plainTextChanges())//
@@ -462,18 +460,12 @@ public class MplEditor2 extends CodeArea {
     setStyleSpans(0, highlighting);
   }
 
-  private final BooleanProperty modified = new SimpleBooleanProperty();
-
-  public ReadOnlyBooleanProperty modifiedProperty() {
-    return modified;
+  public BooleanBinding modifiedProperty() {
+    return not(getUndoManager().atMarkedPositionProperty());
   }
 
   public boolean isModified() {
     return modifiedProperty().get();
-  }
-
-  private void setModified(boolean modified) {
-    this.modified.set(modified);
   }
 
   private final IntegerProperty tabWidth = new SimpleIntegerProperty(2);
