@@ -42,7 +42,7 @@
   -fx-background-color: #e8f2fe;
 }
 
-.code-area {
+.code-area * {
   -fx-font-family: Consolas;
   -fx-font-size: 12.5;
   -fx-fill: black;
