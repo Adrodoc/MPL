@@ -39,10 +39,11 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.fx.richtext;
 
+import static com.google.common.primitives.Ints.constrainToRange;
 import static javafx.scene.input.KeyCode.DIGIT7;
 import static javafx.scene.input.KeyCode.TAB;
-import static javafx.scene.input.KeyCombination.META_DOWN;
 import static javafx.scene.input.KeyCombination.SHIFT_DOWN;
+import static javafx.scene.input.KeyCombination.SHORTCUT_DOWN;
 import static org.fxmisc.wellbehaved.event.EventPattern.keyPressed;
 import static org.fxmisc.wellbehaved.event.InputMap.consume;
 import static org.fxmisc.wellbehaved.event.InputMap.sequence;
@@ -59,9 +60,6 @@ import javax.annotation.Nullable;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.Token;
-import org.eclipse.fx.ui.controls.styledtext.StyledTextArea;
-import org.eclipse.fx.ui.controls.styledtext.StyledTextContent;
-import org.eclipse.fx.ui.controls.styledtext.TextSelection;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.EditableStyledDocument;
 import org.fxmisc.richtext.model.ReadOnlyStyledDocument;
@@ -79,7 +77,6 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.concurrent.Task;
-import javafx.scene.control.IndexRange;
 import javafx.scene.input.KeyEvent;
 
 /**
@@ -128,7 +125,7 @@ public class MplEditor2 extends CodeArea {
         sequence(//
             consume(keyPressed(TAB), this::tabPressed), //
             consume(keyPressed(TAB, SHIFT_DOWN), this::shiftTabPressed), //
-            consume(keyPressed(DIGIT7, META_DOWN), this::performCommenting)//
+            consume(keyPressed(DIGIT7, SHORTCUT_DOWN), this::performCommenting)//
         ));
   }
 
@@ -190,63 +187,118 @@ public class MplEditor2 extends CodeArea {
     }
   }
 
-  private void performCommenting(KeyEvent e) {
-    String prefix = "//";
+  private static final String COMMENT_PREFIX = "//";
 
-    int caretLine = getCurrentParagraph();
-    int anchorLine = getAnchorParagraph();
-    int minLine = Math.min(caretLine, anchorLine);
-    int maxLine = Math.max(caretLine, anchorLine);
+  private void performCommenting(KeyEvent e) {
+    int anchorLineIndex = getAnchorParagraph();
+    int caretLineIndex = getCurrentParagraph();
+    int minLineIndex = Math.min(anchorLineIndex, caretLineIndex);
+    int maxLineIndex = Math.max(anchorLineIndex, caretLineIndex);
 
     boolean allLinesAreComments = true;
-    for (int lineIndex = minLine; lineIndex <= maxLine; lineIndex++) {
+    for (int lineIndex = minLineIndex; lineIndex <= maxLineIndex; lineIndex++) {
       String line = getText(lineIndex);
-      if (!line.trim().startsWith(prefix)) {
+      if (!line.trim().startsWith(COMMENT_PREFIX)) {
         allLinesAreComments = false;
         break;
       }
     }
 
+    if (allLinesAreComments) {
+      uncommentSelectedLines();
+    } else {
+      commentSelectedLines();
+    }
+  }
+
+  private void uncommentSelectedLines() {
+    int anchorPos = getAnchor();
+    int caretPos = getCaretPosition();
+    int minSelection = Math.min(anchorPos, caretPos);
+    int maxSelection = Math.max(anchorPos, caretPos);
+    int anchorLineIndex = getParagraphIndex(anchorPos);
+    int caretLineIndex = getCurrentParagraph();
+    int minLineIndex = Math.min(anchorLineIndex, caretLineIndex);
+    int maxLineIndex = Math.max(anchorLineIndex, caretLineIndex);
+    int lineCount = maxLineIndex - minLineIndex + 1;
+    String minLine = getText(minLineIndex);
+    String maxLine = getText(maxLineIndex);
+    int prefixLength = COMMENT_PREFIX.length();
+
+    // Calculate new selection
+    int firstPrefix = getAbsolutePosition(minLineIndex, minLine.indexOf(COMMENT_PREFIX));
+    int lastPrefix = getAbsolutePosition(maxLineIndex, maxLine.indexOf(COMMENT_PREFIX));
+    int minDelta = constrainToRange(minSelection - firstPrefix, 0, prefixLength);
+    int maxDelta = (lineCount - 1) * prefixLength
+        + constrainToRange(maxSelection - lastPrefix, 0, prefixLength);
+
+    // Remove the first comment prefix in each selected line
     StringBuilder sb = new StringBuilder();
-    for (int lineIndex = minLine; lineIndex <= maxLine; lineIndex++) {
+    for (int lineIndex = minLineIndex; lineIndex <= maxLineIndex; lineIndex++) {
       String line = getText(lineIndex);
-      if (allLinesAreComments) {
-        int prefixIndex = line.indexOf(prefix);
-        assert prefixIndex >= 0;
-        sb.append(line.substring(0, prefixIndex));
-        sb.append(line.substring(prefixIndex + prefix.length()));
-      } else {
-        sb.append(prefix);
-        sb.append(line);
-      }
-      if (lineIndex != maxLine) {
+      int prefixIndex = line.indexOf(COMMENT_PREFIX);
+      assert prefixIndex >= 0;
+      sb.append(line.substring(0, prefixIndex));
+      sb.append(line.substring(prefixIndex + prefixLength));
+      if (lineIndex != maxLineIndex) {
         sb.append('\n');
       }
     }
     String replacement = sb.toString();
+    replaceText(minLineIndex, 0, maxLineIndex, getParagraphLength(maxLineIndex), replacement);
 
-    int initialAnchor = getAnchor();
-    int initialCaret = getCaretPosition();
-
-    boolean selectionStartAffected =
-        Math.min(initialAnchor, initialCaret) > getAbsolutePosition(minLine, getText(minLine).indexOf(prefix));
-
-    replaceText(minLine, 0, maxLine, getParagraphLength(maxLine), replacement);
-
-    int textLengthDelta = replacement.length() - text.length();
-    int a = allLinesAreComments ? -prefix.length() : prefix.length();
-    if (initialAnchor < initialCaret) {
-      if (selectionStartAffected) {
-        selectRange(initialAnchor + , initialCaret);
-      }
-      selectRange(initialAnchor + tabWidth, initialCaret + textLengthDelta);
+    // Update selection
+    if (anchorPos < caretPos) {
+      selectRange(anchorPos - minDelta, caretPos - maxDelta);
     } else {
-      selectRange(initialAnchor + textLengthDelta, initialCaret - tabWidth);
+      selectRange(anchorPos - maxDelta, caretPos - minDelta);
+    }
+  }
+
+  private void commentSelectedLines() {
+    int anchorPos = getAnchor();
+    int caretPos = getCaretPosition();
+    int anchorLineIndex = getParagraphIndex(anchorPos);
+    int caretLineIndex = getCurrentParagraph();
+    int minLineIndex = Math.min(anchorLineIndex, caretLineIndex);
+    int maxLineIndex = Math.max(anchorLineIndex, caretLineIndex);
+    int lineCount = maxLineIndex - minLineIndex + 1;
+    int prefixLength = COMMENT_PREFIX.length();
+
+    // Calculate new selection
+    int minDelta = prefixLength;
+    int maxDelta = lineCount * prefixLength;
+
+    // Add a comment prefix at the start of each selected line
+    StringBuilder sb = new StringBuilder();
+    for (int lineIndex = minLineIndex; lineIndex <= maxLineIndex; lineIndex++) {
+      String line = getText(lineIndex);
+      sb.append(COMMENT_PREFIX).append(line);
+      if (lineIndex != maxLineIndex) {
+        sb.append('\n');
+      }
+    }
+    String replacement = sb.toString();
+    replaceText(minLineIndex, 0, maxLineIndex, getParagraphLength(maxLineIndex), replacement);
+
+    // Update selection
+    if (anchorPos < caretPos) {
+      selectRange(anchorPos + minDelta, caretPos + maxDelta);
+    } else {
+      selectRange(anchorPos + maxDelta, caretPos + minDelta);
     }
   }
 
   public int getAnchorParagraph() {
-    return offsetToPosition(getAnchor(), Bias.Backward).getMajor();
+    return getParagraphIndex(getAnchor());
+  }
+
+  public int getParagraphIndex(int charOffset) {
+    return offsetToPosition(charOffset).getMajor();
+  }
+
+  public Position offsetToPosition(int charOffset) {
+    return offsetToPosition(charOffset, Bias.Backward);
   }
 
   public void insertContent(int position, String text) {
