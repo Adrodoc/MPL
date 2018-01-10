@@ -39,10 +39,12 @@
  */
 package de.adrodoc55.minecraft.mpl.ide.fx;
 
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static de.adrodoc55.commons.CommonDirectories.getFurthestExistingSubDir;
 import static de.adrodoc55.commons.CommonDirectories.getMCEditDir;
 import static de.adrodoc55.commons.CommonDirectories.getMinecraftDir;
+import static de.adrodoc55.minecraft.mpl.ide.fx.ExceptionHandler.JAVA_FX_ALERT_HANDLER;
 import static de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationType.ERROR;
 import static de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationType.WARNING;
 import static javafx.beans.binding.Bindings.when;
@@ -50,7 +52,6 @@ import static javafx.scene.control.Alert.AlertType.CONFIRMATION;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -84,7 +85,6 @@ import org.eclipse.jface.text.source.IAnnotationModel;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.reactfx.value.Val;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableListMultimap;
 
 import de.adrodoc55.minecraft.mpl.compilation.CompilationFailedException;
@@ -105,7 +105,7 @@ import de.adrodoc55.minecraft.mpl.ide.fx.dialog.unsaved.UnsavedResourcesDialog;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.MplEditor;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotation;
 import de.adrodoc55.minecraft.mpl.ide.fx.editor.marker.MplAnnotationType;
-import de.adrodoc55.minecraft.mpl.ide.fx.richtext.MplEditor2;
+import de.adrodoc55.minecraft.mpl.ide.fx.richtext.MplFileEditor;
 import de.adrodoc55.minecraft.mpl.ide.fx.richtext.graphic.MplParagraphGraphicFactory;
 import de.adrodoc55.minecraft.mpl.version.MinecraftVersion;
 import javafx.application.HostServices;
@@ -143,7 +143,7 @@ import javafx.stage.WindowEvent;
 /**
  * @author Adrodoc55
  */
-public class MplIdeController implements ExceptionHandler, MplEditor.Context {
+public class MplIdeController implements MplEditor.Context {
   @FXML
   private Parent root;
 
@@ -177,6 +177,7 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
   private HostServices hostServices;
   private EventBus eventBus = new SimpleEventBus();
   private AppMemento appMemento = new MplAppMemento();
+  private final ExceptionHandler exceptionHandler = JAVA_FX_ALERT_HANDLER;
 
   private final Map<Path, Tab> tabs = new HashMap<>();
   private final Map<Path, TextEditor> editors = new HashMap<>();
@@ -255,11 +256,8 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
     return root.getScene().getWindow();
   }
 
-  @Override
   public void handleException(Exception ex) {
-    Alert alert = new Alert(AlertType.ERROR, ex.getMessage());
-    alert.setHeaderText(ex.getClass().getSimpleName());
-    alert.showAndWait();
+    exceptionHandler.handleException(ex);
   }
 
   @Override
@@ -272,7 +270,7 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
   @Override
   public FindReplaceDialog getFindReplaceDialog() {
     if (findReplaceDialog == null) {
-      findReplaceDialog = new FindReplaceDialog(getWindow(), this);
+      findReplaceDialog = new FindReplaceDialog(getWindow(), exceptionHandler);
       ChangeListener<Node> focusOwnerListener = (observable, oldValue,
           newValue) -> findReplaceDialog.getController().setFocusOwner(newValue);
       ChangeListener<Scene> sceneListener = (observable, oldValue, newValue) -> {
@@ -496,13 +494,7 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
   }
 
   private Tab new0(Path path) {
-    String content;
-    try {
-      content = new String(Files.readAllBytes(path), Charsets.UTF_8);
-    } catch (IOException ex) {
-      throw new UndeclaredThrowableException(ex);
-    }
-    MplEditor2 editor = new MplEditor2(content);
+    MplFileEditor editor = MplFileEditor.open(path, UTF_8, exceptionHandler);
     MplParagraphGraphicFactory factory = new MplParagraphGraphicFactory(editor);
     editor.setParagraphGraphicFactory(factory);
     Val.map(editor.textProperty(), t -> t.length() % editor.getParagraphs().size())
@@ -674,73 +666,6 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
     }
   }
 
-  private @Nullable MplCompilationResult compile() {
-    MplEditor selectedEditor = getSelectedEditor();
-    if (selectedEditor == null) {
-      return null;
-    }
-    return compile(selectedEditor.getFile(), false);
-  }
-
-  @Override
-  public @Nullable MplCompilationResult compile(File file, boolean silent) {
-    if (!silent && warnAboutUnsavedResources()) {
-      return null;
-    }
-    clearCompilerExceptions();
-    MinecraftVersion version = options.getMinecraftVersion();
-    CompilerOptions compilerOptions = options.getCompilerOptions();
-    try {
-      MplCompilationResult result = MplCompiler.compile(file, version, compilerOptions);
-      handleCompilerExceptions(WARNING, result.getWarnings());
-      return result;
-    } catch (CompilationFailedException ex) {
-      handleCompilerExceptions(ERROR, ex.getErrors());
-      handleCompilerExceptions(WARNING, ex.getWarnings());
-      if (!silent) {
-        Alert alert = new Alert(AlertType.ERROR);
-        String title = "Compilation Failed";
-        alert.setTitle(title);
-        alert.setHeaderText(title);
-        TextArea content = new TextArea();
-        content.setText(ex.toString());
-        DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.setExpandableContent(content);
-        dialogPane.setExpanded(true);
-        alert.showAndWait();
-      }
-    } catch (IOException ex) {
-      handleException(ex);
-    }
-    return null;
-  }
-
-  private void clearCompilerExceptions() {
-    for (TextEditor editor : editors.values()) {
-      IAnnotationModel annotationModel = editor.getSourceViewer().getAnnotationModel();
-      for (Annotation annotation : (Iterable<Annotation>) annotationModel::getAnnotationIterator) {
-        annotationModel.removeAnnotation(annotation);
-      }
-    }
-  }
-
-  private void handleCompilerExceptions(MplAnnotationType type,
-      ImmutableListMultimap<File, CompilerException> exceptions) {
-    for (Entry<File, Collection<CompilerException>> entry : exceptions.asMap().entrySet()) {
-      File file = entry.getKey();
-      TextEditor editor = editors.get(file.toPath());
-      if (editor != null) {
-        IAnnotationModel annotationModel = editor.getSourceViewer().getAnnotationModel();
-        for (CompilerException ex : entry.getValue()) {
-          MplAnnotation annotation = new MplAnnotation(type, ex.getLocalizedMessage());
-          MplSource source = ex.getSource();
-          Position position = new Position(source.getStartIndex(), source.getLength());
-          annotationModel.addAnnotation(annotation, position);
-        }
-      }
-    }
-  }
-
   @FXML
   public void compileToCommand() {
     MplCompilationResult result = compile();
@@ -845,6 +770,73 @@ public class MplIdeController implements ExceptionHandler, MplEditor.Context {
       }
     } catch (IOException ex) {
       handleException(ex);
+    }
+  }
+
+  private @Nullable MplCompilationResult compile() {
+    MplEditor selectedEditor = getSelectedEditor();
+    if (selectedEditor == null) {
+      return null;
+    }
+    return compile(selectedEditor.getFile(), false);
+  }
+
+  @Override
+  public @Nullable MplCompilationResult compile(File file, boolean silent) {
+    if (!silent && warnAboutUnsavedResources()) {
+      return null;
+    }
+    clearCompilerExceptions();
+    MinecraftVersion version = options.getMinecraftVersion();
+    CompilerOptions compilerOptions = options.getCompilerOptions();
+    try {
+      MplCompilationResult result = MplCompiler.compile(file, version, compilerOptions);
+      handleCompilerExceptions(WARNING, result.getWarnings());
+      return result;
+    } catch (CompilationFailedException ex) {
+      handleCompilerExceptions(ERROR, ex.getErrors());
+      handleCompilerExceptions(WARNING, ex.getWarnings());
+      if (!silent) {
+        Alert alert = new Alert(AlertType.ERROR);
+        String title = "Compilation Failed";
+        alert.setTitle(title);
+        alert.setHeaderText(title);
+        TextArea content = new TextArea();
+        content.setText(ex.toString());
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setExpandableContent(content);
+        dialogPane.setExpanded(true);
+        alert.showAndWait();
+      }
+    } catch (IOException ex) {
+      handleException(ex);
+    }
+    return null;
+  }
+
+  private void clearCompilerExceptions() {
+    for (TextEditor editor : editors.values()) {
+      IAnnotationModel annotationModel = editor.getSourceViewer().getAnnotationModel();
+      for (Annotation annotation : (Iterable<Annotation>) annotationModel::getAnnotationIterator) {
+        annotationModel.removeAnnotation(annotation);
+      }
+    }
+  }
+
+  private void handleCompilerExceptions(MplAnnotationType type,
+      ImmutableListMultimap<File, CompilerException> exceptions) {
+    for (Entry<File, Collection<CompilerException>> entry : exceptions.asMap().entrySet()) {
+      File file = entry.getKey();
+      TextEditor editor = editors.get(file.toPath());
+      if (editor != null) {
+        IAnnotationModel annotationModel = editor.getSourceViewer().getAnnotationModel();
+        for (CompilerException ex : entry.getValue()) {
+          MplAnnotation annotation = new MplAnnotation(type, ex.getLocalizedMessage());
+          MplSource source = ex.getSource();
+          Position position = new Position(source.getStartIndex(), source.getLength());
+          annotationModel.addAnnotation(annotation, position);
+        }
+      }
     }
   }
 }
