@@ -1,7 +1,7 @@
 Minecraft Programming Language (MPL)
 ====================================
 
-Author: Adrodoc55
+Author: Adrodoc
 
 What is MPL?
 -----------
@@ -9,18 +9,18 @@ MPL is a language that makes it easier to write applications for Minecraft 1.9 o
 The final result of compiling an MPL application are command blocks that can be imported into your world in various ways.
 MPL comes with it's own editor that supports syntax- and error-highlighting and has a built in compiler.
 
-For an advanced example application written in MPL see [ApertureCraft Vanilla](https://github.com/Adrodoc55/ApertureCraftVanilla)
+For an advanced example application written in MPL see [ApertureCraft Vanilla](https://github.com/Adrodoc/ApertureCraftVanilla)
 
 While MPL can be used to create very complex command block applications, it is also very easy to use for small projects.
 To use the command block generator you don't even need to know about any MPL specific syntax.
 
 How To Use
 ----------
-You can find a full tutorial for MPL [here](https://github.com/Adrodoc55/MPL/wiki/Tutorial-1.-Basics).
+You can find a full tutorial for MPL [here](https://github.com/Adrodoc/MPL/wiki/Tutorial-1.-Basics).
 
 There are multiple ways to compile `.mpl` files:
 * Open the file in the IDE and compile it by hand. You can find a detailed explanation in the tutorial.
-* Run the standalone compiler [from the command line](https://github.com/Adrodoc55/MPL/wiki/Using-MPL-from-the-command-line).
+* Run the standalone compiler [from the command line](https://github.com/Adrodoc/MPL/wiki/Using-MPL-from-the-command-line).
 * Compile MPL ingame using the Bukkit plugin [MplManager](https://gitlab.crazyblock-network.net/BrainStone/MplManager) by BrainStone.
 
 License
@@ -29,11 +29,11 @@ MPL is licensed under [GNU General Public License]. Any application compiled by 
 
 It would still be nice if you give credit to MPL, for example by using the following command in the installation of your application:
 
-`/tellraw @a [{"text":"This project was created using the\n ","color":"yellow"},{"text":"Minecraft Programming Language ","color":"gold"},{"text":"[MPL]","color":"aqua","hoverEvent":{"action":"show_text","value":{"text":"Click to open GitHub","color":"red"}},"clickEvent":{"action":"open_url","value":"https://github.com/Adrodoc55/MPL"}}]`
+`/tellraw @a [{"text":"This project was created using the\n ","color":"yellow"},{"text":"Minecraft Programming Language ","color":"gold"},{"text":"[MPL]","color":"aqua","hoverEvent":{"action":"show_text","value":{"text":"Click to open GitHub","color":"red"}},"clickEvent":{"action":"open_url","value":"https://github.com/Adrodoc/MPL"}}]`
 
 Download
 --------
-For manual use you can download the standalone compiler and IDE from [GitHub](https://github.com/Adrodoc55/MPL/releases).
+For manual use you can download the standalone compiler and IDE from [GitHub](https://github.com/Adrodoc/MPL/releases).
 
 MPL is also available both as library and standalone application at [Sonatype OSS Maven Repository] and [Maven Central].
 To get MPL using Maven add the following to your `pom`:
