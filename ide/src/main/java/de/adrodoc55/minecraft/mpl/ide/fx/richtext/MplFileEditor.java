@@ -54,6 +54,7 @@ public class MplFileEditor extends MplEditor2 {
   private void save(KeyEvent e) {
     try (OutputStreamWriter writer = new OutputStreamWriter(Files.newOutputStream(path), charset)) {
       writer.write(getText());
+      getUndoManager().mark();
     } catch (IOException ex) {
       exceptionHandler.handleException(ex);
     }
