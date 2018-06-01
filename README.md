@@ -66,7 +66,7 @@ Here are some guidelines to make contributing easier:
 * The MPL Project is split into two parts, the `compiler` and the `ide`. Both of these directories are subprojects, that should be imported into your IDE.
 * You should configure your IDE to use the [google java formatter](https://github.com/google/styleguide/blob/gh-pages/eclipse-java-google-style.xml).
 * All files should be encoded in `UTF-8`.
-* This project uses lombok. This does not make a difference on the command line, but depending on what IDE you use, you may have to install lombok into the IDE: https://projectlombok.org/download.html.
+* This project uses lombok. This does not make a difference on the command line, but depending on what IDE you use, you may have to install lombok into the IDE: https://projectlombok.org/setup/overview.
 * When using [Eclipse] configure the project by using the [Gradle Wrapper] and executing `gradlew eclipse` on a command line in the root directory.
 * Most tests are written in groovy. If you are using [Eclipse] you might want to use the [greclipse](https://github.com/groovy/groovy-eclipse/wiki) plugin.
 
