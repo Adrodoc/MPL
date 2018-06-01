@@ -55,7 +55,7 @@ ext {
     jcommander:     'com.beust:jcommander:1.58',
     jsr305:         'com.google.code.findbugs:jsr305:3.0.1',
     junit:          'junit:junit:4.12',
-    lombok:         'org.projectlombok:lombok:1.16.10',
+    lombok:         'org.projectlombok:lombok:1.16.22',
     nbt:            'com.evilco.mc:nbt:1.0.2',
     pojobuilder:    'net.karneim:pojobuilder:3.4.2',
     spock:          'org.spockframework:spock-core:1.0-groovy-2.4'
